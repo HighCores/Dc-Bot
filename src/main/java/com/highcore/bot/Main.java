@@ -77,7 +77,7 @@ public class Main {
         java.util.List<net.dv8tion.jda.api.interactions.commands.build.CommandData> commandList = new java.util.ArrayList<>();
 
         // ===== 1. CORE STATIC COMMANDS =====
-        commandList.add(
+        commandList.addAll(java.util.Arrays.asList(
                 // ===== CORE =====
                 Commands.slash("menu", "Control panel — all panels & features here"),
                 Commands.slash("ticket", "Open a new support ticket"),
@@ -194,7 +194,7 @@ public class Main {
                 Commands.slash("invites", "View invites (Admin)").addOption(OptionType.USER,"member","Member",false),
                 Commands.slash("server-avatar", "Server icon"),
                 Commands.slash("server-banner", "Server banner")
-        );
+        ));
         
         // ===== 2. DYNAMIC DATABASE SLASH COMMANDS =====
         int newCommandCount = 0;
