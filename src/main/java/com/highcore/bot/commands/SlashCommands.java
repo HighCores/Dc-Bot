@@ -66,8 +66,13 @@ public class SlashCommands extends ListenerAdapter {
             return;
         }
         event.deferReply().queue(hook -> {
-            int count = com.highcore.bot.Main.registerCommands(event.getJDA(), event.getGuild().getId());
-            hook.editOriginalEmbeds(EmbedUtil.success("Sync Complete", "Successfully pushed **" + count + "** dynamic commands to the Discord API.")).queue();
+            try {
+                int count = com.highcore.bot.Main.registerCommands(event.getJDA(), event.getGuild().getId());
+                hook.editOriginalEmbeds(EmbedUtil.success("Sync Complete", "Successfully pushed **" + count + "** dynamic commands to the Discord API. ⚡\n\n*Note: Restart your Discord client (Ctrl+R) if they don't appear immediately.*")).queue();
+            } catch (Exception ex) {
+                log.error("Sync failed: {}", ex.getMessage());
+                hook.editOriginalEmbeds(EmbedUtil.error("Sync Failed", "A system error occurred during command injection: " + ex.getMessage())).queue();
+            }
         });
     }
 

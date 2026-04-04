@@ -199,18 +199,26 @@ public class Main {
         // ===== 2. DYNAMIC DATABASE SLASH COMMANDS =====
         int newCommandCount = 0;
         try {
+            // Use a Set to track names and prevent collisions
+            java.util.Set<String> existingNames = new java.util.HashSet<>();
+            for (net.dv8tion.jda.api.interactions.commands.build.CommandData cd : commandList) {
+                existingNames.add(cd.getName().toLowerCase());
+            }
+
             // 1. Register Standard Commands
             com.google.gson.JsonArray dbCmds = com.highcore.bot.database.SupabaseClient.getAllCommands();
             if (dbCmds != null && dbCmds.size() > 0) {
                 for (com.google.gson.JsonElement el : dbCmds) {
+                    if (commandList.size() >= 100) break; // Discord Limit
                     com.google.gson.JsonObject obj = el.getAsJsonObject();
                     String name = obj.get("name").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
-                    if (name.isEmpty()) continue;
+                    if (name.isEmpty() || existingNames.contains(name)) continue;
                     
                     String desc = obj.has("description") && !obj.get("description").isJsonNull() ? obj.get("description").getAsString() : "Custom neural command";
                     if (desc.isEmpty()) desc = "Custom neural command";
                     
                     commandList.add(Commands.slash(name, desc.substring(0, Math.min(desc.length(), 100))));
+                    existingNames.add(name);
                     newCommandCount++;
                     log.info("Loaded dynamic command: /{}", name);
                 }
@@ -220,12 +228,14 @@ public class Main {
             com.google.gson.JsonArray menus = com.highcore.bot.database.SupabaseClient.getAllMenus();
             if (menus != null && menus.size() > 0) {
                 for (com.google.gson.JsonElement el : menus) {
+                    if (commandList.size() >= 100) break; // Discord Limit
                     com.google.gson.JsonObject obj = el.getAsJsonObject();
                     if (obj.has("trigger_command") && !obj.get("trigger_command").isJsonNull()) {
                         String name = obj.get("trigger_command").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
-                        if (!name.isEmpty()) {
+                        if (!name.isEmpty() && !existingNames.contains(name)) {
                             String title = obj.has("title") ? obj.get("title").getAsString() : "Custom Panel";
                             commandList.add(Commands.slash(name, "Open panel: " + title));
+                            existingNames.add(name);
                             newCommandCount++;
                             log.info("Loaded panel trigger: /{}", name);
                         }
@@ -237,10 +247,14 @@ public class Main {
         }
 
         // ===== 3. FINAL REGISTRATION =====
-        updateAction.addCommands(commandList).queue(
-                c -> log.info("Registered {} complete commands (Static + DB) to Discord API.", c.size()), 
-                e -> log.error("Command registration failed: {}", e.getMessage())
-        );
+        try {
+            updateAction.addCommands(commandList).queue(
+                    c -> log.info("Registered {} complete commands (Static + DB) to Discord API.", c.size()), 
+                    e -> log.error("Command registration failed at API level: {}", e.getMessage())
+            );
+        } catch (Exception ex) {
+            log.error("Fatal exception during updateAction.addCommands: {}", ex.getMessage());
+        }
 
         return newCommandCount;
     }
