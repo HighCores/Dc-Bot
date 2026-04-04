@@ -1,0 +1,140 @@
+package com.highcore.bot.services;
+
+import com.highcore.bot.config.Config;
+import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.entities.Guild;
+import net.dv8tion.jda.api.entities.channel.concrete.Category;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.EnumSet;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+
+public class LogManager {
+    private static final Logger log = LoggerFactory.getLogger(LogManager.class);
+    private static final Map<String, TextChannel> channelCache = new ConcurrentHashMap<>();
+
+    // All log channel names
+    private static final String[] LOG_CHANNELS = {
+            Config.LOG_JOIN_LEFT,
+            Config.LOG_MESSAGE,
+            Config.LOG_VOICE,
+            Config.LOG_TICKETS,
+            Config.LOG_CHANNELS,
+            Config.LOG_UPDATES,
+            Config.LOG_COMMANDS,
+            Config.LOG_MODS_CMD,
+            Config.LOG_ROLES
+    };
+
+    /**
+     * Called on bot startup. Finds existing log channels or creates missing ones.
+     * Uses contains-based matching to handle Discord name normalization.
+     */
+    public static void initialize(Guild guild) {
+        if (Config.LOG_CATEGORY_ID == null || Config.LOG_CATEGORY_ID.isEmpty()) {
+            log.warn("LOG_CATEGORY_ID not set, skipping log channel init");
+            return;
+        }
+
+        Category category = guild.getCategoryById(Config.LOG_CATEGORY_ID);
+        if (category == null) {
+            log.error("Log category not found: {}", Config.LOG_CATEGORY_ID);
+            return;
+        }
+
+        // Get ALL text channels in the category once
+        List<TextChannel> existingChannels = category.getTextChannels();
+
+        int found = 0;
+        int created = 0;
+
+        for (String name : LOG_CHANNELS) {
+            // Try exact match first, then normalized match
+            TextChannel existing = findChannel(existingChannels, name);
+
+            if (existing != null) {
+                channelCache.put(name, existing);
+                found++;
+                log.debug("Found existing log channel: {} (id: {})", existing.getName(), existing.getId());
+            } else {
+                try {
+                    TextChannel ch = category.createTextChannel(name)
+                            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+                            .complete();
+                    channelCache.put(name, ch);
+                    created++;
+                    log.info("Created log channel: {}", name);
+                } catch (Exception e) {
+                    log.error("Failed to create log channel {}: {}", name, e.getMessage());
+                }
+            }
+        }
+
+        log.info("Log channels initialized: {} found existing, {} newly created", found, created);
+    }
+
+    /**
+     * Find a channel by name with fallback to normalized matching.
+     * Discord may normalize channel names (lowercase, replace special chars).
+     */
+    private static TextChannel findChannel(List<TextChannel> channels, String targetName) {
+        // 1. Exact match
+        for (TextChannel ch : channels) {
+            if (ch.getName().equals(targetName)) {
+                return ch;
+            }
+        }
+
+        // 2. Normalized match — Discord converts names to lowercase and may alter unicode
+        String normalized = targetName.toLowerCase().replaceAll("[^a-z0-9\\-_]", "");
+        for (TextChannel ch : channels) {
+            String chNormalized = ch.getName().toLowerCase().replaceAll("[^a-z0-9\\-_]", "");
+            if (chNormalized.equals(normalized)) {
+                return ch;
+            }
+        }
+
+        // 3. Contains match — if the channel name contains the key part
+        // Extract the meaningful part (e.g., "join-left-logs" from "⛔️join・left・logs")
+        String keyPart = targetName.replaceAll("[^a-zA-Z]", "").toLowerCase();
+        if (!keyPart.isEmpty()) {
+            for (TextChannel ch : channels) {
+                String chKey = ch.getName().replaceAll("[^a-zA-Z]", "").toLowerCase();
+                if (chKey.equals(keyPart)) {
+                    return ch;
+                }
+            }
+        }
+
+        return null;
+    }
+
+    /**
+     * Get a log channel by name. Returns null if not found.
+     */
+    public static TextChannel get(String channelName) {
+        return channelCache.get(channelName);
+    }
+
+    /**
+     * Get a log channel, falling back to guild lookup if not cached.
+     */
+    public static TextChannel get(Guild guild, String channelName) {
+        TextChannel cached = channelCache.get(channelName);
+        if (cached != null) return cached;
+
+        if (Config.LOG_CATEGORY_ID == null) return null;
+        Category cat = guild.getCategoryById(Config.LOG_CATEGORY_ID);
+        if (cat == null) return null;
+
+        TextChannel found = findChannel(cat.getTextChannels(), channelName);
+        if (found != null) {
+            channelCache.put(channelName, found);
+        }
+        return found;
+    }
+}
