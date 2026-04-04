@@ -51,24 +51,38 @@ public class CommandService {
     public static void executeSlash(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         String trigger = event.getName().toLowerCase();
         
-        // 1. Check Standard Commands
-        JsonObject cmd = SupabaseClient.getCommand(trigger);
-        if (cmd != null) {
-            String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
-            if (!hasPermission(event.getMember(), perm)) {
-                event.reply("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").setEphemeral(true).queue();
-                return;
+        // 1. Check Standard Commands with Intelligent Matching
+        com.google.gson.JsonArray allCmds = SupabaseClient.getAllCommands();
+        if (allCmds != null) {
+            for (com.google.gson.JsonElement el : allCmds) {
+                com.google.gson.JsonObject obj = el.getAsJsonObject();
+                String dbName = obj.get("name").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
+                if (dbName.equals(trigger)) {
+                    String perm = obj.has("permission") && !obj.get("permission").isJsonNull() ? obj.get("permission").getAsString() : "everyone";
+                    if (!hasPermission(event.getMember(), perm)) {
+                        event.reply("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").setEphemeral(true).queue();
+                        return;
+                    }
+                    String response = obj.get("response_text").getAsString();
+                    event.reply(response).queue();
+                    return;
+                }
             }
-            String response = cmd.get("response_text").getAsString();
-            event.reply(response).queue();
-            return;
         }
 
-        // 2. Check Panels/Menus
-        JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
-        if (menu != null) {
-            sendMenuSlash(event, menu);
-            return;
+        // 2. Check Panels/Menus with Intelligent Matching
+        com.google.gson.JsonArray allMenus = SupabaseClient.getAllMenus();
+        if (allMenus != null) {
+            for (com.google.gson.JsonElement el : allMenus) {
+                com.google.gson.JsonObject obj = el.getAsJsonObject();
+                if (obj.has("trigger_command") && !obj.get("trigger_command").isJsonNull()) {
+                    String dbTrigger = obj.get("trigger_command").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
+                    if (dbTrigger.equals(trigger)) {
+                        sendMenuSlash(event, obj);
+                        return;
+                    }
+                }
+            }
         }
 
         event.reply("\u26A0\uFE0F **Neural link lost:** Command not found in registry.").setEphemeral(true).queue();
