@@ -65,11 +65,14 @@ public class Main {
         log.info("Highcore Agency Bot fully ready!");
     }
 
-    public static int registerCommands(JDA jda) {
-        Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) return 0;
-
-        net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction updateAction = guild.updateCommands();
+    public static int registerCommands(JDA jda, String guildId) {
+        net.dv8tion.jda.api.requests.restaction.CommandListUpdateAction updateAction;
+        
+        if (guildId != null && !guildId.isEmpty() && jda.getGuildById(guildId) != null) {
+            updateAction = jda.getGuildById(guildId).updateCommands();
+        } else {
+            updateAction = jda.updateCommands();
+        }
 
         updateAction.addCommands(
                 // ===== CORE =====

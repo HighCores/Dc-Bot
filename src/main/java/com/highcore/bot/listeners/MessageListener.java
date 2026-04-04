@@ -23,8 +23,8 @@ public class MessageListener extends ListenerAdapter {
                 com.highcore.bot.config.Config.getAdminRoles().stream().anyMatch(r -> event.getMember().getRoles().stream().anyMatch(mr -> mr.getId().equals(r))))) {
                 
                 event.getMessage().reply("\u2699\uFE0F **Syncing Neural Commands...**").queue(msg -> {
-                    int count = com.highcore.bot.Main.registerCommands(event.getJDA());
-                    msg.editMessage("\u2705 **Sync Complete!** Successfully added **" + count + "** new commands to the Discord API.").queue();
+                    int count = com.highcore.bot.Main.registerCommands(event.getJDA(), event.getGuild().getId());
+                    msg.editMessage("\u2705 **Sync Complete!** Successfully added **" + count + "** commands via Instant Update.").queue();
                 });
             } else {
                 event.getMessage().reply("\u274C **Unauthorized:** High Command authority required.").queue();
