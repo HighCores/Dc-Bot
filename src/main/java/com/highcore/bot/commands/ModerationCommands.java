@@ -438,9 +438,13 @@ public class ModerationCommands extends ListenerAdapter {
         String url = event.getOption("image_url", OptionMapping::getAsString);
         if (eName == null || url == null) { event.replyEmbeds(EmbedUtil.error("Error", "Provide name and image URL.")).setEphemeral(true).queue(); return; }
         event.deferReply(true).queue();
-        event.getGuild().createEmoji(eName, Icon.from(new java.io.ByteArrayInputStream(downloadImage(url)), Icon.IconType.PNG)).queue(
-                emoji -> event.getHook().editOriginalEmbeds(EmbedUtil.success("Emoji Added", emoji.getAsMention() + " **:" + eName + ":**")).queue(),
-                e -> event.getHook().editOriginalEmbeds(EmbedUtil.error("Error", e.getMessage())).queue());
+        try {
+            event.getGuild().createEmoji(eName, Icon.from(new java.io.ByteArrayInputStream(downloadImage(url)), Icon.IconType.PNG)).queue(
+                    emoji -> event.getHook().editOriginalEmbeds(EmbedUtil.success("Emoji Added", emoji.getAsMention() + " **:" + eName + ":**")).queue(),
+                    e -> event.getHook().editOriginalEmbeds(EmbedUtil.error("Error", e.getMessage())).queue());
+        } catch (java.io.IOException ex) {
+            event.getHook().editOriginalEmbeds(EmbedUtil.error("Error", "Failed to process image: " + ex.getMessage())).queue();
+        }
     }
 
     private byte[] downloadImage(String url) {
