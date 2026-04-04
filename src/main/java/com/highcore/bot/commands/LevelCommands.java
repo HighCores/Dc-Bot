@@ -40,10 +40,10 @@ public class LevelCommands extends ListenerAdapter {
         }
     }
 
-    // High admin roles that can set xp/level/reset
-    private static final Set<String> HIGH_ADMIN_ROLES = Set.of(
+    private static final Set<String> HIGH_ADMIN_ROLES = new java.util.HashSet<>(java.util.Arrays.asList(
             "1488795130025607323", "1488795130034000036", "1488795130034000035",
-            Config.ROLE_HIGH != null ? Config.ROLE_HIGH : "", Config.ROLE_FOUNDER != null ? Config.ROLE_FOUNDER : "");
+            Config.ROLE_HIGH != null ? Config.ROLE_HIGH : "", Config.ROLE_FOUNDER != null ? Config.ROLE_FOUNDER : ""
+    ));
 
     private boolean isHighAdmin(Member m) {
         if (m == null) return false;
