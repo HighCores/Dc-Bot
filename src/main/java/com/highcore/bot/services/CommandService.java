@@ -87,7 +87,7 @@ public class CommandService {
                         }
                         case "colors" -> {
                             // Trigger colors logic
-                            com.highcore.bot.commands.LevelCommands.sendColors(event);
+                            com.highcore.bot.commands.GeneralCommands.displayColors(event);
                         }
                         default -> {
                             if (!response.isEmpty()) event.reply(response).queue();
