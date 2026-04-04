@@ -63,8 +63,37 @@ public class CommandService {
                         event.reply("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").setEphemeral(true).queue();
                         return;
                     }
-                    String response = obj.get("response_text").getAsString();
-                    event.reply(response).queue();
+                    String response = obj.has("response_text") && !obj.get("response_text").isJsonNull() ? obj.get("response_text").getAsString() : "";
+                    String actionType = obj.has("action_type") && !obj.get("action_type").isJsonNull() ? obj.get("action_type").getAsString() : "text";
+                    String actionValue = obj.has("action_value") && !obj.get("action_value").isJsonNull() ? obj.get("action_value").getAsString() : "";
+
+                    switch (actionType.toLowerCase()) {
+                        case "panel" -> {
+                            if (!actionValue.isEmpty()) {
+                                JsonObject menuData = SupabaseClient.getMenu(actionValue);
+                                if (menuData != null) {
+                                    sendMenuSlash(event, menuData);
+                                } else {
+                                    event.reply("\u26A0\uFE0F **Neural error:** Targeted panel `" + actionValue + "` not found.").setEphemeral(true).queue();
+                                }
+                            } else {
+                                event.reply("\u26A0\uFE0F **Neural error:** No panel ID linked to this node.").setEphemeral(true).queue();
+                            }
+                        }
+                        case "ticket" -> {
+                            JsonObject ticketMenu = SupabaseClient.getMenu("ticket_panel");
+                            if (ticketMenu != null) sendMenuSlash(event, ticketMenu);
+                            else event.reply("\u26A0\uFE0F **Neural error:** Ticket panel not found.").setEphemeral(true).queue();
+                        }
+                        case "colors" -> {
+                            // Trigger colors logic
+                            com.highcore.bot.commands.LevelCommands.sendColors(event);
+                        }
+                        default -> {
+                            if (!response.isEmpty()) event.reply(response).queue();
+                            else event.reply("\u26A0\uFE0F **Neural error:** No payload found for this node.").setEphemeral(true).queue();
+                        }
+                    }
                     return;
                 }
             }
