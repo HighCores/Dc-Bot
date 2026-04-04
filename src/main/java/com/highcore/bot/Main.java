@@ -74,7 +74,10 @@ public class Main {
             updateAction = jda.updateCommands();
         }
 
-        updateAction.addCommands(
+        java.util.List<net.dv8tion.jda.api.interactions.commands.build.CommandData> commandList = new java.util.ArrayList<>();
+
+        // ===== 1. CORE STATIC COMMANDS =====
+        commandList.add(
                 // ===== CORE =====
                 Commands.slash("menu", "Control panel — all panels & features here"),
                 Commands.slash("ticket", "Open a new support ticket"),
@@ -193,19 +196,23 @@ public class Main {
                 Commands.slash("server-banner", "Server banner")
         );
         
-        // ===== DYNAMIC DATABASE SLASH COMMANDS =====
+        // ===== 2. DYNAMIC DATABASE SLASH COMMANDS =====
         int newCommandCount = 0;
         try {
             // 1. Register Standard Commands
             com.google.gson.JsonArray dbCmds = com.highcore.bot.database.SupabaseClient.getAllCommands();
             if (dbCmds != null && dbCmds.size() > 0) {
-                newCommandCount += dbCmds.size();
                 for (com.google.gson.JsonElement el : dbCmds) {
                     com.google.gson.JsonObject obj = el.getAsJsonObject();
                     String name = obj.get("name").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
+                    if (name.isEmpty()) continue;
+                    
                     String desc = obj.has("description") && !obj.get("description").isJsonNull() ? obj.get("description").getAsString() : "Custom neural command";
                     if (desc.isEmpty()) desc = "Custom neural command";
-                    updateAction.addCommands(Commands.slash(name, desc.substring(0, Math.min(desc.length(), 100))));
+                    
+                    commandList.add(Commands.slash(name, desc.substring(0, Math.min(desc.length(), 100))));
+                    newCommandCount++;
+                    log.info("Loaded dynamic command: /{}", name);
                 }
             }
             
@@ -218,8 +225,9 @@ public class Main {
                         String name = obj.get("trigger_command").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
                         if (!name.isEmpty()) {
                             String title = obj.has("title") ? obj.get("title").getAsString() : "Custom Panel";
-                            updateAction.addCommands(Commands.slash(name, "Open panel: " + title));
+                            commandList.add(Commands.slash(name, "Open panel: " + title));
                             newCommandCount++;
+                            log.info("Loaded panel trigger: /{}", name);
                         }
                     }
                 }
@@ -228,9 +236,10 @@ public class Main {
             log.error("Failed to load DB commands: {}", ex.getMessage());
         }
 
-        updateAction.queue(
-                c -> log.info("Registered {} complete commands (Static + DB)", c.size()), 
-                e -> log.error("Command reg failed: {}", e.getMessage())
+        // ===== 3. FINAL REGISTRATION =====
+        updateAction.addCommands(commandList).queue(
+                c -> log.info("Registered {} complete commands (Static + DB) to Discord API.", c.size()), 
+                e -> log.error("Command registration failed: {}", e.getMessage())
         );
 
         return newCommandCount;
