@@ -55,7 +55,7 @@ public class Main {
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild != null) LogManager.initialize(guild);
 
-        registerCommands(jda);
+        registerCommands(jda, Config.GUILD_ID);
         AutoReplyService.refreshCache();
         TicketReminderService.start(jda);
         GiveawayService.start(jda);
