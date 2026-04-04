@@ -193,15 +193,32 @@ public class Main {
         // ===== DYNAMIC DATABASE SLASH COMMANDS =====
         int newCommandCount = 0;
         try {
+            // 1. Register Standard Commands
             com.google.gson.JsonArray dbCmds = com.highcore.bot.database.SupabaseClient.getAllCommands();
             if (dbCmds != null && dbCmds.size() > 0) {
-                newCommandCount = dbCmds.size();
+                newCommandCount += dbCmds.size();
                 for (com.google.gson.JsonElement el : dbCmds) {
                     com.google.gson.JsonObject obj = el.getAsJsonObject();
                     String name = obj.get("name").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
                     String desc = obj.has("description") && !obj.get("description").isJsonNull() ? obj.get("description").getAsString() : "Custom neural command";
                     if (desc.isEmpty()) desc = "Custom neural command";
                     updateAction.addCommands(Commands.slash(name, desc.substring(0, Math.min(desc.length(), 100))));
+                }
+            }
+            
+            // 2. Register Panel/Menu Triggers
+            com.google.gson.JsonArray menus = com.highcore.bot.database.SupabaseClient.getAllMenus();
+            if (menus != null && menus.size() > 0) {
+                for (com.google.gson.JsonElement el : menus) {
+                    com.google.gson.JsonObject obj = el.getAsJsonObject();
+                    if (obj.has("trigger_command") && !obj.get("trigger_command").isJsonNull()) {
+                        String name = obj.get("trigger_command").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
+                        if (!name.isEmpty()) {
+                            String title = obj.has("title") ? obj.get("title").getAsString() : "Custom Panel";
+                            updateAction.addCommands(Commands.slash(name, "Open panel: " + title));
+                            newCommandCount++;
+                        }
+                    }
                 }
             }
         } catch (Exception ex) {

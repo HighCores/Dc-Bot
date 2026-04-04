@@ -50,6 +50,8 @@ public class CommandService {
 
     public static void executeSlash(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         String trigger = event.getName().toLowerCase();
+        
+        // 1. Check Standard Commands
         JsonObject cmd = SupabaseClient.getCommand(trigger);
         if (cmd != null) {
             String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
@@ -57,11 +59,56 @@ public class CommandService {
                 event.reply("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").setEphemeral(true).queue();
                 return;
             }
-
             String response = cmd.get("response_text").getAsString();
             event.reply(response).queue();
+            return;
+        }
+
+        // 2. Check Panels/Menus
+        JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
+        if (menu != null) {
+            sendMenuSlash(event, menu);
+            return;
+        }
+
+        event.reply("\u26A0\uFE0F **Neural link lost:** Command not found in registry.").setEphemeral(true).queue();
+    }
+
+    private static void sendMenuSlash(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event, JsonObject menu) {
+        String title = menu.get("title").getAsString();
+        String desc = menu.get("description").getAsString().replace("\\n", "\n");
+        String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
+        String colorHex = menu.has("color_hex") && !menu.get("color_hex").isJsonNull() ? menu.get("color_hex").getAsString() : "BRAND";
+        String menuId = menu.get("menu_id").getAsString();
+
+        EmbedBuilder eb = EmbedUtil.branded()
+                .setColor(EmbedUtil.parseColor(colorHex))
+                .setTitle(title)
+                .setDescription(desc);
+
+        if (imageUrl != null && !imageUrl.isEmpty()) eb.setImage(imageUrl);
+
+        JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
+        if (buttonsArr != null && buttonsArr.size() > 0) {
+            List<Button> buttons = new ArrayList<>();
+            for (var el : buttonsArr) {
+                JsonObject btnObj = el.getAsJsonObject();
+                String label = btnObj.get("label").getAsString();
+                String actionId = btnObj.get("action_id").getAsString();
+                String styleStr = btnObj.has("button_style") ? btnObj.get("button_style").getAsString() : "PRIMARY";
+                ButtonStyle style = switch (styleStr.toUpperCase()) {
+                    case "SUCCESS" -> ButtonStyle.SUCCESS;
+                    case "DANGER" -> ButtonStyle.DANGER;
+                    case "SECONDARY" -> ButtonStyle.SECONDARY;
+                    case "LINK" -> ButtonStyle.LINK;
+                    default -> ButtonStyle.PRIMARY;
+                };
+                if (style == ButtonStyle.LINK) buttons.add(Button.link(actionId, label));
+                else buttons.add(Button.of(style, actionId, label));
+            }
+            event.replyEmbeds(eb.build()).addComponents(ActionRow.of(buttons)).queue();
         } else {
-            event.reply("\u26A0\uFE0F **Neural link lost:** Command not found in registry.").setEphemeral(true).queue();
+            event.replyEmbeds(eb.build()).queue();
         }
     }
 
