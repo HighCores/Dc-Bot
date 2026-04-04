@@ -66,7 +66,7 @@ public class SlashCommands extends ListenerAdapter {
             return;
         }
         event.deferReply().queue(hook -> {
-            int count = com.highcore.bot.Main.registerCommands(event.getJDA());
+            int count = com.highcore.bot.Main.registerCommands(event.getJDA(), event.getGuild().getId());
             hook.editOriginalEmbeds(EmbedUtil.success("Sync Complete", "Successfully pushed **" + count + "** dynamic commands to the Discord API.")).queue();
         });
     }
