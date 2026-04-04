@@ -78,7 +78,7 @@ public class GeneralCommands extends ListenerAdapter {
     }
 
     // ==================== COLORS ====================
-    private void handleColors(SlashCommandInteractionEvent event) {
+    public static void displayColors(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
         ensureColorRoles(event.getGuild());
         JsonArray colors = SupabaseClient.getColorRoles(event.getGuild().getId());
         if (colors == null || colors.size() == 0) {
@@ -95,6 +95,10 @@ public class GeneralCommands extends ListenerAdapter {
         event.replyEmbeds(EmbedUtil.base().setColor(EmbedUtil.ACCENT_PURPLE)
                 .setDescription("## \uD83C\uDFA8 Available Colors\n\n" + sb + "\n> Use `/color-set <number>` to set your color!")
                 .build()).queue();
+    }
+
+    private void handleColors(SlashCommandInteractionEvent event) {
+        displayColors(event);
     }
 
     private void handleColorSet(SlashCommandInteractionEvent event) {
@@ -127,7 +131,7 @@ public class GeneralCommands extends ListenerAdapter {
                 e -> event.replyEmbeds(EmbedUtil.error("Error", e.getMessage())).setEphemeral(true).queue());
     }
 
-    private void ensureColorRoles(Guild guild) {
+    private static void ensureColorRoles(Guild guild) {
         JsonArray existing = SupabaseClient.getColorRoles(guild.getId());
         if (existing != null && existing.size() >= 6) return;
 
