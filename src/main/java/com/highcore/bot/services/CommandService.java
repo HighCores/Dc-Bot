@@ -120,16 +120,26 @@ public class CommandService {
     private static void sendMenuSlash(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event, JsonObject menu) {
         String title = menu.get("title").getAsString();
         String desc = menu.get("description").getAsString().replace("\\n", "\n");
+        String topImageUrl = menu.has("top_image_url") && !menu.get("top_image_url").isJsonNull() ? menu.get("top_image_url").getAsString() : null;
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
         String colorHex = menu.has("color_hex") && !menu.get("color_hex").isJsonNull() ? menu.get("color_hex").getAsString() : "BRAND";
         String menuId = menu.get("menu_id").getAsString();
 
-        EmbedBuilder eb = EmbedUtil.branded()
-                .setColor(EmbedUtil.parseColor(colorHex))
-                .setTitle(title)
-                .setDescription(desc);
+        List<MessageEmbed> embeds = new ArrayList<>();
+        int parsedColor = EmbedUtil.parseColor(colorHex);
 
+        if (topImageUrl != null && !topImageUrl.isEmpty()) {
+            embeds.add(new EmbedBuilder().setColor(parsedColor).setImage(topImageUrl).build());
+        }
+
+        EmbedBuilder eb = new EmbedBuilder()
+                .setColor(parsedColor);
+        
+        if (title != null && !title.isEmpty()) eb.setTitle(title);
+        if (desc != null && !desc.isEmpty()) eb.setDescription(desc);
         if (imageUrl != null && !imageUrl.isEmpty()) eb.setImage(imageUrl);
+
+        embeds.add(eb.build());
 
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
         if (buttonsArr != null && buttonsArr.size() > 0) {
@@ -146,12 +156,19 @@ public class CommandService {
                     case "LINK" -> ButtonStyle.LINK;
                     default -> ButtonStyle.PRIMARY;
                 };
-                if (style == ButtonStyle.LINK) buttons.add(Button.link(actionId, label));
-                else buttons.add(Button.of(style, actionId, label));
+                String emoji = btnObj.has("emoji") && !btnObj.get("emoji").isJsonNull() ? btnObj.get("emoji").getAsString() : null;
+                
+                Button btn = style == ButtonStyle.LINK ? Button.link(actionId, label) : Button.of(style, actionId, label);
+                if (emoji != null && !emoji.isEmpty()) {
+                    try {
+                        btn = btn.withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromFormatted(emoji));
+                    } catch (Exception ignored) {}
+                }
+                buttons.add(btn);
             }
-            event.replyEmbeds(eb.build()).addComponents(ActionRow.of(buttons)).queue();
+            event.replyEmbeds(embeds).addComponents(ActionRow.of(buttons)).queue();
         } else {
-            event.replyEmbeds(eb.build()).queue();
+            event.replyEmbeds(embeds).queue();
         }
     }
 
@@ -171,18 +188,26 @@ public class CommandService {
     private static void sendMenu(MessageChannel channel, JsonObject menu) {
         String title = menu.get("title").getAsString();
         String desc = menu.get("description").getAsString().replace("\\n", "\n");
+        String topImageUrl = menu.has("top_image_url") && !menu.get("top_image_url").isJsonNull() ? menu.get("top_image_url").getAsString() : null;
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
         String colorHex = menu.has("color_hex") && !menu.get("color_hex").isJsonNull() ? menu.get("color_hex").getAsString() : "BRAND";
         String menuId = menu.get("menu_id").getAsString();
 
-        EmbedBuilder eb = EmbedUtil.branded()
-                .setColor(EmbedUtil.parseColor(colorHex))
-                .setTitle(title)
-                .setDescription(desc);
+        List<MessageEmbed> embeds = new ArrayList<>();
+        int parsedColor = EmbedUtil.parseColor(colorHex);
 
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            eb.setImage(imageUrl);
+        if (topImageUrl != null && !topImageUrl.isEmpty()) {
+            embeds.add(new EmbedBuilder().setColor(parsedColor).setImage(topImageUrl).build());
         }
+
+        EmbedBuilder eb = new EmbedBuilder()
+                .setColor(parsedColor);
+        
+        if (title != null && !title.isEmpty()) eb.setTitle(title);
+        if (desc != null && !desc.isEmpty()) eb.setDescription(desc);
+        if (imageUrl != null && !imageUrl.isEmpty()) eb.setImage(imageUrl);
+
+        embeds.add(eb.build());
 
         // Fetch Buttons
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
@@ -202,15 +227,19 @@ public class CommandService {
                     default -> ButtonStyle.PRIMARY;
                 };
 
-                if (style == ButtonStyle.LINK) {
-                    buttons.add(Button.link(actionId, label));
-                } else {
-                    buttons.add(Button.of(style, actionId, label));
+                String emoji = btnObj.has("emoji") && !btnObj.get("emoji").isJsonNull() ? btnObj.get("emoji").getAsString() : null;
+
+                Button btn = style == ButtonStyle.LINK ? Button.link(actionId, label) : Button.of(style, actionId, label);
+                if (emoji != null && !emoji.isEmpty()) {
+                    try {
+                        btn = btn.withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromFormatted(emoji));
+                    } catch (Exception ignored) {}
                 }
+                buttons.add(btn);
             }
-            channel.sendMessageEmbeds(eb.build()).addComponents(ActionRow.of(buttons)).queue();
+            channel.sendMessageEmbeds(embeds).addComponents(ActionRow.of(buttons)).queue();
         } else {
-            channel.sendMessageEmbeds(eb.build()).queue();
+            channel.sendMessageEmbeds(embeds).queue();
         }
     }
 }
