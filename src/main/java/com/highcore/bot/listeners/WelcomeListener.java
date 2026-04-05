@@ -1,94 +1,115 @@
 package com.highcore.bot.listeners;
 
-import com.highcore.bot.config.Config;
-import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.entities.Guild;
-import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.Role;
+import com.google.gson.JsonObject;
+import com.highcore.bot.database.SupabaseClient;
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.guild.member.GuildMemberJoinEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
+import java.util.List;
+
 public class WelcomeListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(WelcomeListener.class);
 
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        Guild guild = event.getGuild();
-        Member member = event.getMember();
-        assignMemberRole(guild, member);
-        sendWelcomeEmbed(guild, member);
-        sendStartupDM(member);
-    }
+        
+        // 1. Fetch live config from Supabase (Dashboard synced)
+        JsonObject config = SupabaseClient.getWelcomeConfig();
+        
+        // Default High Core logic fallback if dashboard is completely empty
+        if (config == null || !config.has("is_active")) {
+            sendHighCoreLegacyWelcome(event);
+            return;
+        }
 
-    private void assignMemberRole(Guild guild, Member member) {
-        if (Config.ROLE_MEMBER == null || Config.ROLE_MEMBER.isEmpty()) return;
-        Role role = guild.getRoleById(Config.ROLE_MEMBER);
-        if (role == null) return;
-        guild.addRoleToMember(member, role).queue(null, err -> log.warn("Could not assign role: {}", err.getMessage()));
-    }
+        // If explicitly disabled in dashboard
+        if (!config.get("is_active").getAsBoolean()) return;
 
-    private void sendWelcomeEmbed(Guild guild, Member member) {
-        if (Config.WELCOME_CHANNEL_ID == null || Config.WELCOME_CHANNEL_ID.isEmpty()) return;
-        TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
+        // 2. Fetch Channel
+        String channelId = config.has("channel_id") && !config.get("channel_id").isJsonNull() ? config.get("channel_id").getAsString() : null;
+        if (channelId == null || channelId.isEmpty()) return;
+
+        TextChannel channel = event.getGuild().getTextChannelById(channelId);
+        if (channel == null) return;
+
+        // 3. Assemble Message Payload
+        String messageType = config.has("message_type") && !config.get("message_type").isJsonNull() ? config.get("message_type").getAsString() : "embed";
+        String messageBody = config.has("message") && !config.get("message").isJsonNull() ? config.get("message").getAsString() : "Welcome {user} to the server!";
+        
+        // Dynamic Variable Injection (Vetox parity)
+        messageBody = messageBody
+                .replace("{user}", event.getMember().getAsMention())
+                .replace("{user.tag}", event.getUser().getAsTag())
+                .replace("{server}", event.getGuild().getName())
+                .replace("{member_count}", String.valueOf(event.getGuild().getMemberCount()))
+                .replace("\\n", "\n");
+
+        if (messageType.equalsIgnoreCase("text")) {
+            channel.sendMessage(messageBody).queue();
+            return;
+        }
+
+        // Embed Builder (Real-time syncing from Dashboard settings)
+        String embedTitle = config.has("embed_title") && !config.get("embed_title").isJsonNull() ? config.get("embed_title").getAsString() : "";
+        String colorHex = config.has("color") && !config.get("color").isJsonNull() ? config.get("color").getAsString() : "#5865F2";
+        String thumbnailUrl = config.has("thumbnail_url") && !config.get("thumbnail_url").isJsonNull() ? config.get("thumbnail_url").getAsString() : "{user_avatar}";
+        String bannerUrl = config.has("image_url") && !config.get("image_url").isJsonNull() ? config.get("image_url").getAsString() : null;
+
+        if (thumbnailUrl.equals("{user_avatar}")) {
+            thumbnailUrl = event.getUser().getEffectiveAvatarUrl();
+        } else if (thumbnailUrl.equals("{none}") || thumbnailUrl.isEmpty()) {
+            thumbnailUrl = null;
+        }
+
+        int parsedColor = 0x5865F2;
+        try { parsedColor = Integer.parseInt(colorHex.replace("#", ""), 16); } catch (Exception ignored) {}
+
+        List<MessageEmbed> embeds = new ArrayList<>();
+        
+        EmbedBuilder eb = new EmbedBuilder()
+                .setColor(parsedColor)
+                .setDescription(messageBody);
+        
+        if (!embedTitle.isEmpty()) {
+            eb.setTitle(embedTitle);
+        }
+                
+        if (thumbnailUrl != null) eb.setThumbnail(thumbnailUrl);
+        if (bannerUrl != null && !bannerUrl.isEmpty()) eb.setImage(bannerUrl);
+
+        embeds.add(eb.build());
+        channel.sendMessage(event.getMember().getAsMention()).setEmbeds(embeds).queue();
+    }
+    
+    // Legacy fallback to not break current specific High Core workflow if database isn't fully migrated yet
+    private void sendHighCoreLegacyWelcome(GuildMemberJoinEvent event) {
+        String welcomeChannelId = com.highcore.bot.config.Config.WELCOME_CHANNEL_ID;
+        if (welcomeChannelId == null || welcomeChannelId.isEmpty()) return;
+        TextChannel ch = event.getGuild().getTextChannelById(welcomeChannelId);
         if (ch == null) return;
 
-        String s = Config.CH_STARTUP;
-        var eb = EmbedUtil.withBanner().setColor(EmbedUtil.ACCENT_TEAL)
-                .setThumbnail(member.getEffectiveAvatarUrl())
+        String s = com.highcore.bot.config.Config.CH_STARTUP;
+        var eb = com.highcore.bot.utils.EmbedUtil.withBanner().setColor(com.highcore.bot.utils.EmbedUtil.ACCENT_TEAL)
+                .setThumbnail(event.getMember().getEffectiveAvatarUrl())
                 .setDescription(String.format("""
-                        ## \uD83C\uDF89 Welcome to Highcore Agency!
+                        ## 🎉 Welcome to Highcore Agency!
 
-                        > Hey **%s**! Welcome to the server \uD83D\uDC9C
+                        > Hey **%s**! Welcome to the server 💜
 
-                        You are member **#%d** \uD83C\uDF1F
+                        You are member **#%d** 🌟
 
-                        > \u25B8 Check out <#%s> to learn everything about us
-                        > \u25B8 Check your DMs \u2014 we sent you a startup guide \uD83D\uDCD6
-                        > \u25B8 Respect the rules and enjoy your stay!
-                        """, member.getEffectiveName(), guild.getMemberCount(),
+                        > ▸ Check out <#%s> to learn everything about us
+                        > ▸ Check your DMs — we sent you a startup guide 📖
+                        > ▸ Respect the rules and enjoy your stay!
+                        """, event.getMember().getEffectiveName(), event.getGuild().getMemberCount(),
                         s != null ? s : "start-up"));
 
-        ch.sendMessage(member.getAsMention()).setEmbeds(eb.build()).queue();
-    }
-
-    private void sendStartupDM(Member member) {
-        String h = Config.CH_HIGHCORE, st = Config.CH_SERVICE_TERMS, u = Config.CH_UPDATES;
-        String dp = Config.CH_DEV_PRICES, dsp = Config.CH_DESIGN_PRICES, mp = Config.CH_MINECRAFT_PRICES;
-        String o = Config.CH_ORDER, t = Config.CH_TICKET;
-
-        var eb = EmbedUtil.branded().setColor(EmbedUtil.PRIMARY)
-                .setDescription(String.format("""
-                        ## \uD83D\uDCD6 Highcore Agency \u2014 Startup Guide
-
-                        > Welcome **%s**! Here's your quick guide \uD83D\uDE80
-
-                        ### \uD83C\uDFE0 About Us
-                        > <#%s> \u2014 Learn about Highcore Agency
-                        > <#%s> \u2014 Service terms & conditions
-                        > <#%s> \u2014 Latest updates & offers
-
-                        ### \uD83D\uDCB0 Pricing
-                        > <#%s> \u2014 Development prices
-                        > <#%s> \u2014 Design prices
-                        > <#%s> \u2014 Minecraft prices
-
-                        ### \uD83D\uDECD\uFE0F Order Now
-                        > <#%s> \u2014 Place an order directly
-                        > <#%s> \u2014 Open a support ticket
-
-                        ### \u2753 Need Help?
-                        > Open a ticket and our team will assist you ASAP! \uD83D\uDE0A
-                        """,
-                        member.getEffectiveName(),
-                        h != null ? h : "highcore", st != null ? st : "service-terms", u != null ? u : "updates",
-                        dp != null ? dp : "dev-prices", dsp != null ? dsp : "design-prices", mp != null ? mp : "minecraft-prices",
-                        o != null ? o : "order", t != null ? t : "ticket"));
-
-        member.getUser().openPrivateChannel().queue(
-                dm -> dm.sendMessageEmbeds(eb.build()).queue(null, err -> {}),
-                err -> {});
+        ch.sendMessage(event.getMember().getAsMention()).setEmbeds(eb.build()).queue();
     }
 }

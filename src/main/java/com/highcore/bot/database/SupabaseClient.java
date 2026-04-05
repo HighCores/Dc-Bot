@@ -158,6 +158,20 @@ public class SupabaseClient {
         return get("dc_commands", "is_active=eq.true&type=eq.slash");
     }
 
+    // ========== ADVANCED MODULES ==========
+
+    public static JsonObject getWelcomeConfig() {
+        // Highscore assumes 1 server typically, or passing guild_id if multiple
+        JsonArray arr = get("dc_welcome_config", "limit=1");
+        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
+    }
+
+    public static JsonObject getLevelGuildConfig() {
+        JsonArray arr = get("dc_levels_config", "limit=1");
+        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
+    }
+
+
     // ========== STATS ==========
 
     public static void logStat(String eventType, String userId, String details) {
