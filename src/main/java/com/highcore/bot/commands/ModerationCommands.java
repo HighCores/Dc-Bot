@@ -423,7 +423,7 @@ public class ModerationCommands extends ListenerAdapter {
         logMod(event, "Channel Shown", null, ch.getName());
     }
 
-    // ==================== SLOWMODE ====================
+    // ==================== SLOW MODE ====================
     private void handleSlowmode(SlashCommandInteractionEvent event) {
         int seconds = event.getOption("seconds", 0, OptionMapping::getAsInt);
         TextChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel).asTextChannel() : event.getChannel().asTextChannel();

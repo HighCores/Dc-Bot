@@ -172,7 +172,7 @@ public class EmbedUtil {
         if(thumb!=null&&!thumb.isEmpty())e.setThumbnail(thumb);
         if(aName!=null&&!aName.isEmpty()){if(aIcon!=null&&!aIcon.isEmpty())e.setAuthor(aName,null,aIcon);else e.setAuthor(aName);}
         if(fText!=null&&!fText.isEmpty()){if(fIcon!=null&&!fIcon.isEmpty())e.setFooter(fText,fIcon);else e.setFooter(fText);}else e.setFooter(FOOTER);
-        if(f1n!=null&&!f1n.isEmpty()&&f1v!=null)e.addField(f1n,f1v.replace("\\n","\n"),f1i!=null&&f1i);
+        if(f1n!=null&&!f1n.isEmptycfdcd()&&f1v!=null)e.addField(f1n,f1v.replace("\\n","\n"),f1i!=null&&f1i);
         if(f2n!=null&&!f2n.isEmpty()&&f2v!=null)e.addField(f2n,f2v.replace("\\n","\n"),f2i!=null&&f2i);
         if(f3n!=null&&!f3n.isEmpty()&&f3v!=null)e.addField(f3n,f3v.replace("\\n","\n"),f3i!=null&&f3i);
         return e.build();

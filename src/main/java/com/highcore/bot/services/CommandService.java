@@ -126,7 +126,7 @@ public class CommandService {
         String menuId = menu.get("menu_id").getAsString();
 
         List<MessageEmbed> embeds = new ArrayList<>();
-        int parsedColor = EmbedUtil.parseColor(colorHex);
+        java.awt.Color parsedColor = EmbedUtil.parseColor(colorHex);
 
         if (topImageUrl != null && !topImageUrl.isEmpty()) {
             embeds.add(new EmbedBuilder().setColor(parsedColor).setImage(topImageUrl).build());
@@ -194,7 +194,7 @@ public class CommandService {
         String menuId = menu.get("menu_id").getAsString();
 
         List<MessageEmbed> embeds = new ArrayList<>();
-        int parsedColor = EmbedUtil.parseColor(colorHex);
+        java.awt.Color parsedColor = EmbedUtil.parseColor(colorHex);
 
         if (topImageUrl != null && !topImageUrl.isEmpty()) {
             embeds.add(new EmbedBuilder().setColor(parsedColor).setImage(topImageUrl).build());
