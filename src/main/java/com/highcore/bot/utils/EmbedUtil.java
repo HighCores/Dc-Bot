@@ -123,12 +123,7 @@ public class EmbedUtil {
             BANNER_SUPPORT);
     }
 
-    public static Container levelPanel(User user) {
-        String name = (user != null) ? user.getName() : "Unknown Operative";
-        return containerBranded("IDENTITY", "Profile Audit", 
-            "User: **" + name + "**\nStanding: **Verified Operative**\nMerit Multiplier: **1.2x**", 
-            BANNER_MAIN);
-    }
+    // Level panel decommissioned. Passing through.
 
     public static Container logNode(String title, String body, Color color) {
         return containerBranded("REGISTRY", title, body, BANNER_SUPPORT)
@@ -199,7 +194,6 @@ public class EmbedUtil {
             "- `/hub` - Central operational node\n" +
             "- `/tickets` - Support registry\n" +
             "- `/services` - Marketplace overview\n" +
-            "- `/level` - Neural progression stats\n" +
             "- `/stats` - Agency telemetry", BANNER_MAIN);
     }
 

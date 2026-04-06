@@ -126,6 +126,35 @@ public class SupabaseClient {
         post("dc_ticket_messages", body);
     }
 
+    // ========== MENUS & COMMANDS (Dynamic) ==========
+
+    public static JsonObject getMenuByTrigger(String trigger) {
+        JsonArray arr = get("dc_menus", "trigger_command=eq." + trigger + "&limit=1");
+        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
+    }
+
+    public static JsonObject getMenu(String menuId) {
+        JsonArray arr = get("dc_menus", "menu_id=eq." + menuId + "&limit=1");
+        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
+    }
+
+    public static JsonArray getAllMenus() {
+        return get("dc_menus", null);
+    }
+
+    public static JsonObject getCommand(String trigger) {
+        JsonArray arr = get("dc_commands", "name=eq." + trigger + "&limit=1");
+        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
+    }
+
+    public static JsonArray getAllCommands() {
+        return get("dc_commands", null);
+    }
+
+    public static JsonArray getButtons(String menuId) {
+        return get("dc_buttons", "menu_id=eq." + menuId + "&order=position.asc");
+    }
+
     // ========== ORDERS & SESSIONS ==========
 
     public static JsonObject createOrder(JsonObject body) {

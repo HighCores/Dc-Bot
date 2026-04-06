@@ -6,7 +6,8 @@ import com.highcore.bot.services.AIService;
 import com.highcore.bot.services.AutoReplyService;
 import com.highcore.bot.services.BroadcastService;
 import com.highcore.bot.services.WordFilterService;
-import com.highcore.bot.services.SettingSyncService;
+import com.highcore.bot.services.LogManager;
+import com.highcore.bot.config.Config;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -25,7 +26,7 @@ public class MessageListener extends ListenerAdapter {
         String channelId = event.getChannel().getId();
         String userId = event.getAuthor().getId();
 
-        // 🛡️ Word Filter (Simplified Security)
+        // 🛡️ Word Filter
         if (WordFilterService.isForbidden(content)) {
             if (event.getMember() != null && !event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
                 event.getMessage().delete().queue();
@@ -38,8 +39,6 @@ public class MessageListener extends ListenerAdapter {
         }
 
         saveTicketMessage(event);
-
-        // Leveling system removed (Phase 1 Cleanup)
 
         if (content.equalsIgnoreCase("!stop")) {
             if (AIService.isAIEnabled(channelId)) {
@@ -84,7 +83,7 @@ public class MessageListener extends ListenerAdapter {
                 boolean started = BroadcastService.startBroadcast(event.getGuild(), bcMsg, targetRoleId, null);
                 if (started) {
                     String targetText = (targetRoleId != null) ? "<@&" + targetRoleId + ">" : "All Authorized Nodes";
-                    event.getMessage().replyEmbeds(com.highcore.bot.utils.EmbedUtil.success("Broadcast Protocol", "### 📡 Neural Transmission Initiated\n> Target: " + targetText + "\n> Status: Queueing via 7s sync delay.")).queue();
+                    event.getChannel().sendMessage(com.highcore.bot.utils.EmbedUtil.success("Broadcast Protocol", "### \uD83D\uDCE1 Neural Transmission Initiated\n> Target: " + targetText + "\n> Status: Queueing via 7s sync delay.")).queue();
                 } else {
                     event.getMessage().reply("\u26A0\uFE0F A broadcast is already in progress. Please wait for the current sequence to finalize.").queue();
                 }

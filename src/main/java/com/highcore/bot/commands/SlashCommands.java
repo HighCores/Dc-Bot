@@ -95,8 +95,7 @@ public class SlashCommands extends ListenerAdapter {
 
         if (admin) {
             mb.addOption("\uD83C\uDF89 Giveaway Panel", "giveaway_panel", "Manage takeaways")
-              .addOption("\u2B50 Points Panel", "points_panel", "Manage reward points")
-              .addOption("\uD83D\uDCCA Level Panel", "level_panel", "Manage leveling system");
+              .addOption("\u2B50 Points Panel", "points_panel", "Manage reward points");
         }
 
         PanelService.reply(event, EmbedUtil.mainMenu(), ActionRow.of(mb.build()));
