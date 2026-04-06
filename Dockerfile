@@ -1,15 +1,12 @@
-# Stage 1: Build
-FROM maven:3.9-eclipse-temurin-17 AS build
+# Build stage
+FROM maven:3.8.5-openjdk-17-slim AS build
 WORKDIR /app
 COPY pom.xml .
-RUN mvn dependency:go-offline -B
 COPY src ./src
-RUN mvn clean package -DskipTests -B
+RUN mvn clean package -DskipTests
 
-# Stage 2: Run
-FROM eclipse-temurin:17-jre
+# Run stage
+FROM openjdk:17-slim
 WORKDIR /app
 COPY --from=build /app/target/highcore-discord-bot-1.0.0.jar app.jar
-
-# Railway injects env vars automatically - no .env needed
 CMD ["java", "-jar", "app.jar"]
