@@ -9,7 +9,6 @@ import org.slf4j.LoggerFactory;
 
 public class PointsService {
     private static final Logger log = LoggerFactory.getLogger(PointsService.class);
-    private static final String TEAM_ROLE_ID = "1488795130008961040";
 
     /**
      * Award points to a staff member for ticket actions.
@@ -23,8 +22,7 @@ public class PointsService {
      * Check if user has the team role (for auto-points).
      */
     public static boolean isTeamMember(net.dv8tion.jda.api.entities.Member member) {
-        if (member == null) return false;
-        return member.getRoles().stream().anyMatch(r -> r.getId().equals(TEAM_ROLE_ID));
+        return Config.isStaff(member);
     }
 
     public static int getPoints(String userId, String guildId) {

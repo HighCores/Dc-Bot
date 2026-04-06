@@ -33,18 +33,26 @@ public class StatsService {
         String since = Instant.now().minus(days, ChronoUnit.DAYS).toString();
         JsonArray staffStats = SupabaseClient.getStaffStats(since);
 
-        if (staffStats == null || staffStats.size() == 0) return null;
+        if (staffStats == null || staffStats.size() == 0) return "`No active staff records found.`";
 
         Map<String, Integer> staffCounts = new HashMap<>();
         for (var element : staffStats) {
             JsonObject stat = element.getAsJsonObject();
-            String userId = stat.get("user_id").getAsString();
-            staffCounts.merge(userId, 1, Integer::sum);
+            if (stat.has("user_id") && !stat.get("user_id").isJsonNull()) {
+                String userId = stat.get("user_id").getAsString();
+                staffCounts.merge(userId, 1, Integer::sum);
+            }
         }
 
         return staffCounts.entrySet().stream()
-                .max(Map.Entry.comparingByValue())
-                .map(e -> "<@" + e.getKey() + "> (" + e.getValue() + " تكت)")
-                .orElse(null);
+                .sorted(Map.Entry.<String, Integer>comparingByValue().reversed())
+                .limit(3)
+                .map(e -> "<@" + e.getKey() + "> (" + e.getValue() + " tickets)")
+                .reduce((a, b) -> a + "\n" + b)
+                .orElse("`No performance data available.`");
+    }
+
+    public static String getTopStaffFormatted() {
+        return getTopStaff(30);
     }
 }

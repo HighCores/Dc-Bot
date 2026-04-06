@@ -137,4 +137,17 @@ public class LogManager {
         }
         return found;
     }
+
+    /**
+     * Get a log channel. Prioritizes the Dashboard configuration, 
+     * falls back to category-based auto-creation.
+     */
+    public static TextChannel getDashboardLogChannel(Guild guild, String channelName) {
+        String dashboardId = SettingSyncService.getModerationLogChannel();
+        if (dashboardId != null && !dashboardId.isEmpty()) {
+            TextChannel dashChan = guild.getTextChannelById(dashboardId);
+            if (dashChan != null) return dashChan;
+        }
+        return get(guild, channelName);
+    }
 }

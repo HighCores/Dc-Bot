@@ -8,6 +8,7 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.components.container.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
@@ -19,12 +20,10 @@ public class TicketReminderService {
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
     public static void start(JDA jda) {
-        // Run cleanup once on startup after a short delay (let JDA cache populate)
         scheduler.schedule(() -> {
             try { cleanupOrphanedTickets(jda); } catch (Exception e) { log.error("Startup cleanup error: {}", e.getMessage()); }
         }, 30, TimeUnit.SECONDS);
 
-        // Then run both cleanup and reminders every hour
         scheduler.scheduleAtFixedRate(() -> {
             try {
                 cleanupOrphanedTickets(jda);
@@ -34,10 +33,6 @@ public class TicketReminderService {
         log.info("Ticket reminder & cleanup service started");
     }
 
-    /**
-     * Find tickets that are open/claimed/reopened but their Discord channel no longer exists.
-     * Auto-close them so they don't pollute stats or reminders.
-     */
     private static void cleanupOrphanedTickets(JDA jda) {
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild == null) return;
@@ -54,10 +49,8 @@ public class TicketReminderService {
 
                 if (channelId == null || ticketId == null) continue;
 
-                // Check if the channel still exists in Discord
                 TextChannel channel = guild.getTextChannelById(channelId);
                 if (channel == null) {
-                    // Channel was deleted manually — auto-close the ticket in database
                     SupabaseClient.updateTicketStatus(ticketId, "closed", "System (channel deleted)");
                     SupabaseClient.logStat("ticket_auto_closed", "system", ticketId + " (orphaned)");
                     cleaned++;
@@ -87,10 +80,16 @@ public class TicketReminderService {
                     String chId = ticket.get("channel_id").getAsString();
                     String tId = ticket.get("ticket_id").getAsString();
                     TextChannel ch = guild.getTextChannelById(chId);
-                    if (ch == null) continue; // Skip — cleanup will handle this
-                    ch.sendMessageEmbeds(EmbedUtil.warning("Reminder",
-                            "\u23F0 Ticket **#" + tId + "** has been open for over **24 hours** without being claimed!\n\n" +
-                                    "<@&" + Config.ROLE_STAFF + "> Please respond to the client.")).queue();
+                    if (ch == null) continue;
+
+                    String body = "### \u23F0 Operational Warning\n" +
+                            "Ticket **#" + tId + "** has been open for over **24 hours** without being claimed!\n\n" +
+                            "<@&" + Config.ROLE_STAFF + "> Please respond to the client node immediately.";
+
+                    Container c = EmbedUtil.containerBranded("TICKET REMINDER", "Inactivity Alert", body, EmbedUtil.BANNER_SUPPORT);
+                    c.withAccentColor(EmbedUtil.WARNING.getRGB() & 0xFFFFFF);
+
+                    ch.sendMessageComponents(c).useComponentsV2(true).queue();
                 }
             } catch (Exception e) { /* skip */ }
         }

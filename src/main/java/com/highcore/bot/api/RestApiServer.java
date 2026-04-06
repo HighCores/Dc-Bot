@@ -6,6 +6,7 @@ import com.google.gson.JsonParser;
 import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.*;
+import com.highcore.bot.utils.EmbedUtil;
 import io.javalin.Javalin;
 import io.javalin.http.Context;
 import io.javalin.http.UnauthorizedResponse;
@@ -58,6 +59,9 @@ public class RestApiServer {
         app.post("/api/auto-replies", RestApiServer::addAutoReply);
         app.delete("/api/auto-replies/{keyword}", RestApiServer::deleteAutoReply);
 
+        // ===== BROADCAST API =====
+        app.post("/api/broadcast", RestApiServer::startApiBroadcast);
+
         // ===== STATS API =====
         app.get("/api/stats", RestApiServer::getStats);
         app.get("/api/stats/staff", RestApiServer::getStaffStats);
@@ -68,6 +72,7 @@ public class RestApiServer {
 
         // ===== SEND MESSAGE API =====
         app.post("/api/channels/{channelId}/message", RestApiServer::sendMessage);
+        app.post("/api/channels/{channelId}/embed", RestApiServer::sendEmbed);
 
         // ===== WEBHOOK (for n8n) =====
         app.post("/api/webhook", RestApiServer::handleWebhook);
@@ -116,9 +121,7 @@ public class RestApiServer {
         if (guild != null) {
             TextChannel channel = guild.getTextChannelById(channelId);
             if (channel != null) {
-                channel.sendMessageEmbeds(
-                        com.highcore.bot.utils.EmbedUtil.ticketClosed(id, "API/n8n")
-                ).queue();
+                channel.sendMessageComponents(EmbedUtil.ticketClosed(id, "API/n8n")).useComponentsV2(true).queue();
             }
         }
 
@@ -212,22 +215,68 @@ public class RestApiServer {
     private static void sendMessage(Context ctx) {
         String channelId = ctx.pathParam("channelId");
         JsonObject body = JsonParser.parseString(ctx.body()).getAsJsonObject();
-        String message = body.get("message").getAsString();
+        String message = com.highcore.bot.utils.EmojiUtil.parse(body.get("message").getAsString());
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) {
-            ctx.status(500).json(Map.of("error", "Guild not found"));
-            return;
-        }
-
+        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
         TextChannel channel = guild.getTextChannelById(channelId);
-        if (channel == null) {
-            ctx.status(404).json(Map.of("error", "Channel not found"));
-            return;
+        if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
+
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().setContent(message);
+        if (body.has("files") && body.get("files").isJsonArray()) {
+            for (var el : body.get("files").getAsJsonArray()) {
+                try {
+                    String url = el.getAsString();
+                    String name = url.substring(url.lastIndexOf("/") + 1);
+                    if (name.contains("?")) name = name.substring(0, name.indexOf("?"));
+                    mb.addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(new java.net.URL(url).openStream(), name));
+                } catch (Exception e) { log.warn("API File attachment failed: {}", e.getMessage()); }
+            }
         }
 
-        channel.sendMessage(message).queue();
+        channel.sendMessage(mb.build()).queue();
         ctx.json(Map.of("success", true));
+    }
+
+    private static void startApiBroadcast(Context ctx) {
+        JsonObject body = JsonParser.parseString(ctx.body()).getAsJsonObject();
+        String message = body.get("message").getAsString();
+        String roleId = body.has("role_id") ? body.get("role_id").getAsString() : null;
+        String attUrl = body.has("attachment_url") ? body.get("attachment_url").getAsString() : null;
+
+        Guild guild = jda.getGuildById(Config.GUILD_ID);
+        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
+
+        boolean started = BroadcastService.startBroadcast(guild, message, roleId, attUrl);
+        if (started) {
+            ctx.json(Map.of("success", true, "message", "Broadcast initiated."));
+        } else {
+            ctx.status(409).json(Map.of("error", "A broadcast is already in progress."));
+        }
+    }
+    private static void sendEmbed(Context ctx) {
+        String channelId = ctx.pathParam("channelId");
+        JsonObject body = JsonParser.parseString(ctx.body()).getAsJsonObject();
+        
+        String title = body.has("title") ? body.get("title").getAsString() : null;
+        String desc = body.has("description") ? body.get("description").getAsString() : null;
+        String color = body.has("color") ? body.get("color").getAsString() : null;
+        String image = body.has("image") ? body.get("image").getAsString() : null;
+        String thumb = body.has("thumbnail") ? body.get("thumbnail").getAsString() : null;
+        String aName = body.has("author_name") ? body.get("author_name").getAsString() : null;
+        String aIcon = body.has("author_icon") ? body.get("author_icon").getAsString() : null;
+        String fText = body.has("footer_text") ? body.get("footer_text").getAsString() : null;
+        String fIcon = body.has("footer_icon") ? body.get("footer_icon").getAsString() : null;
+
+        Guild guild = jda.getGuildById(Config.GUILD_ID);
+        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
+        TextChannel channel = guild.getTextChannelById(channelId);
+        if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
+
+        channel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon, 
+                null, null, null, null, null, null, null, null, null)).useComponentsV2(true).queue();
+        
+        ctx.json(Map.of("success", true, "channel", channelId));
     }
 
     // ===== WEBHOOK =====

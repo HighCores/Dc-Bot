@@ -8,26 +8,20 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.JDA;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.container.Container;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
 
 public class GiveawayService {
-    private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final Map<Long, ScheduledFuture<?>> activeTasks = new ConcurrentHashMap<>();
 
     public static void start(JDA jda) {
-        // Check for ending giveaways every 30 seconds
         scheduler.scheduleAtFixedRate(() -> {
-            try { checkEndingGiveaways(jda); } catch (Exception e) { log.error("Giveaway check error: {}", e.getMessage()); }
+            try { checkEndingGiveaways(jda); } catch (Exception e) { }
         }, 30, 30, TimeUnit.SECONDS);
-        log.info("Giveaway service started");
     }
 
     private static void checkEndingGiveaways(JDA jda) {
@@ -40,7 +34,8 @@ public class GiveawayService {
             if (endsAt == null) continue;
             try {
                 if (Instant.parse(endsAt).isBefore(now)) {
-                    endGiveaway(jda, g.get("id").getAsLong(), 1);
+                    int winners = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
+                    endGiveaway(jda, g.get("id").getAsLong(), winners);
                 }
             } catch (Exception e) { /* skip */ }
         }
@@ -56,42 +51,43 @@ public class GiveawayService {
         TextChannel ch = guild.getTextChannelById(channelId);
         if (ch == null) return;
 
-        // Get entries
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         List<String> userIds = new ArrayList<>();
         if (entries != null) {
             for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
         }
 
-        // Pick winners
         List<String> winners = pickWinners(userIds, Math.min(winnerCount, userIds.size()));
         String[] winnersArr = winners.toArray(new String[0]);
-
-        // Mark as ended
         SupabaseClient.endGiveaway(giveawayId, winnersArr);
 
-        // Send winner announcement
-        String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Prize";
-        String prizeType = g.has("prize_type") ? g.get("prize_type").getAsString() : "prize";
+        String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
 
         if (winners.isEmpty()) {
-            ch.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.WARNING)
-                    .setDescription("### \uD83C\uDF89 Giveaway Ended!\n> **" + prizeDetails + "**\n\n\u274C No valid entries. No winner.").build()).queue();
+            Container c = EmbedUtil.containerBranded("GIVEAWAY TERMINATED", "No Deployment Result", 
+                    "### \uD83C\uDF89 Sequence Finished\n> **Item:** " + prizeDetails + "\n\n\u274C Insufficient data points detected. No winner assigned.", EmbedUtil.BANNER_GIVEAWAY);
+            c.withAccentColor(EmbedUtil.DANGER.getRGB() & 0xFFFFFF);
+            ch.sendMessageComponents(c).useComponentsV2(true).queue();
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
-            ch.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.GOLD)
-                    .setDescription("### \uD83C\uDF89 Giveaway Ended!\n> **" + prizeDetails + "**\n\n\uD83C\uDFC6 Winner(s): " + wb + "\n\nCongratulations! \uD83C\uDF8A").build()).queue();
+            Container c = EmbedUtil.containerBranded("GIVEAWAY CONCLUDED", "Successful Allocation", 
+                    "### \uD83C\uDFC6 Neural Selection Complete\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! Synchronization complete. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
+            c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
+            ch.sendMessageComponents(c).useComponentsV2(true).queue();
         }
 
-        // Update original message if exists
         String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
         if (messageId != null) {
-            ch.editMessageEmbedsById(messageId, EmbedUtil.base().setColor(EmbedUtil.BRAND)
-                    .setDescription("### \uD83C\uDF89 Giveaway Ended\n> **" + prizeDetails + "**\n\n" +
-                            (winners.isEmpty() ? "\u274C No winners" : "\uD83C\uDFC6 Winner(s): " + String.join(", ", winners.stream().map(w -> "<@" + w + ">").toList())) +
-                            "\n> Entries: **" + userIds.size() + "**").build())
-                    .setComponents(ActionRow.of(Button.secondary("giveaway_ended", "\uD83C\uDF89 Ended").asDisabled())).queue(null, e -> {});
+            String statusBody = "### \uD83C\uDF89 Sequence Deactivated\n" +
+                    "> **Item:** " + prizeDetails + "\n" +
+                    (winners.isEmpty() ? "\u274C No valid winners" : "\uD83C\uDFC6 Winner(s): " + String.join(", ", winners.stream().map(w -> "<@" + w + ">").toList())) +
+                    "\n> Entries: **" + userIds.size() + "** subjects recorded.";
+            
+            Container editC = EmbedUtil.containerBranded("GIVEAWAY ARCHIVE", "Sequence Finalized", statusBody, EmbedUtil.BANNER_GIVEAWAY);
+            editC.withAccentColor(0x2B2D31);
+            
+            ch.editMessageComponentsById(messageId, editC).setComponents(ActionRow.of(Button.secondary("giveaway_ended", "ARCHIVED").asDisabled())).useComponentsV2(true).queue(null, e -> {});
         }
     }
 
@@ -107,12 +103,19 @@ public class GiveawayService {
         List<String> userIds = new ArrayList<>();
         if (entries != null) for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
 
-        List<String> winners = pickWinners(userIds, 1);
+        int winnersNeeded = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
+        List<String> winners = pickWinners(userIds, winnersNeeded);
         if (winners.isEmpty()) {
-            ch.sendMessageEmbeds(EmbedUtil.warning("Reroll", "No valid entries to reroll.")).queue();
+            PanelService.reply(ch, EmbedUtil.error("REROLL FAILED", "No valid population data detected for re-allocation."));
         } else {
-            ch.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.GOLD)
-                    .setDescription("### \uD83C\uDF00 Giveaway Rerolled!\n\uD83C\uDFC6 New winner: <@" + winners.get(0) + ">\nCongratulations! \uD83C\uDF8A").build()).queue();
+            StringBuilder wb = new StringBuilder();
+            for (String w : winners) wb.append("<@").append(w).append("> ");
+            Container c = EmbedUtil.containerBranded("GIVEAWAY RE-CALIBRATED", "New Allocation", 
+                    "### \uD83C\uDFC6 New Selection Complete\n\n**Winner(s):** " + wb + "\n\nCongratulations! Structural integrity restored. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
+            c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
+            ch.sendMessageComponents(c).useComponentsV2(true).queue();
+            
+            SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
         }
     }
 

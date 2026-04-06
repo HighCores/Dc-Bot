@@ -4,195 +4,248 @@ import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.*;
 import com.highcore.bot.utils.EmbedUtil;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class SlashCommands extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(SlashCommands.class);
 
+    public static class BcSession { public String roleId; public String attUrl; }
+    public static class BoterSession { public String channelId; public List<String> fileUrls = new ArrayList<>(); }
+    public static final Map<String, BcSession> BC_SESSIONS = new HashMap<>();
+    public static final Map<String, BoterSession> BOTER_SESSIONS = new HashMap<>();
+
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         TextChannel cmdLog = LogManager.get(event.getGuild(), Config.LOG_COMMANDS);
         if (cmdLog != null) {
-            cmdLog.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.INFO)
-                    .setAuthor(event.getUser().getName(), null, event.getUser().getEffectiveAvatarUrl())
-                    .setDescription("### \u2699\uFE0F Command Used")
-                    .addField("Command", "`/" + event.getFullCommandName() + "`", true)
-                    .addField("User", event.getUser().getAsMention(), true)
-                    .addField("Channel", event.getChannel().getAsMention(), true)
-                    .addField("\uD83D\uDD52 Time", java.time.format.DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
-                            .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now()), false).build()).queue();
+            String body = "### \u2699\uFE0F Command Executed\n" +
+                    "**Command:** `/" + event.getFullCommandName() + "`\n" +
+                    "**User:** " + event.getUser().getAsMention() + "\n" +
+                    "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                    "**Time:** " + java.time.format.DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
+                    .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now());
+            
+            cmdLog.sendMessageComponents(EmbedUtil.logNode("COMMAND AUDIT", body, EmbedUtil.INFO))
+                    .useComponentsV2(true).queue();
         }
-        if (isAdmin(event.getMember()) && !event.getName().equals("menu") && !event.getName().equals("help")) {
+        
+        if (isAdmin(event.getMember())) {
             TextChannel modLog = LogManager.get(event.getGuild(), Config.LOG_MODS_CMD);
             if (modLog != null) {
-                modLog.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.DANGER)
-                        .setAuthor(event.getUser().getName(), null, event.getUser().getEffectiveAvatarUrl())
-                        .setDescription("### \uD83D\uDC6E Admin Command")
-                        .addField("Command", "`/" + event.getFullCommandName() + "`", true)
-                        .addField("Admin", event.getUser().getAsMention(), true)
-                        .addField("Channel", event.getChannel().getAsMention(), true).build()).queue();
+                String body = "### \uD83D\uDC6E Administrative Override\n" +
+                        "**Command:** `/" + event.getFullCommandName() + "`\n" +
+                        "**Admin:** " + event.getUser().getAsMention() + "\n" +
+                        "**Node:** " + event.getChannel().getAsMention();
+                
+                modLog.sendMessageComponents(EmbedUtil.logNode("SECURITY ALERT", body, EmbedUtil.DANGER))
+                        .useComponentsV2(true).queue();
             }
         }
-        switch (event.getName()) {
-            case "sync" -> handleSync(event);
-            case "help" -> handleHelp(event);
-            case "autoreply" -> handleAutoReply(event);
-            case "panel" -> handlePanel(event);
-            case "embed" -> handleEmbed(event);
-            case "startup" -> handleStartup(event);
-            case "rename" -> handleRename(event);
-            case "setchannel" -> handleSetChannel(event);
-            default -> com.highcore.bot.services.CommandService.executeSlash(event);
+
+        try {
+            switch (event.getName()) {
+                case "hub", "panel" -> handleMenu(event);
+                case "services" -> PanelService.sendServicesPanel(event);
+                case "giveaway" -> PanelService.sendGiveawayPanel(event);
+                case "points" -> handlePointsCheck(event);
+                case "tickets" -> PanelService.sendTicketPanel(event);
+                case "stats" -> PanelService.sendStatsPanel(event);
+                case "help" -> handleHelp(event);
+                case "autoreply" -> handleAutoReply(event);
+                case "embed" -> handleEmbed(event);
+                case "startup" -> PanelService.sendStartupPanel(event);
+                case "rename" -> handleRename(event);
+                case "setchannel" -> handleSetChannel(event);
+                case "bc" -> handleBroadcast(event);
+                case "boter" -> handleBoter(event);
+            }
+        } catch (Exception e) {
+            log.error("Error executing SlashCommands: ", e);
+            if (!event.isAcknowledged()) {
+                PanelService.reply(event, EmbedUtil.error("SYSTEM ERROR", "Execution failed: " + e.getMessage()), true);
+            }
         }
     }
 
-    private void handleSync(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember()) && !event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) {
-            event.replyEmbeds(EmbedUtil.error("Unauthorized", "High Command authority required.")).setEphemeral(true).queue();
-            return;
+    private void handleMenu(SlashCommandInteractionEvent event) {
+        boolean admin = isAdmin(event.getMember());
+        StringSelectMenu.Builder mb = StringSelectMenu.create("menu_select").setPlaceholder("Select a module...");
+        
+        mb.addOption("\uD83C\uDFAB Open Ticket", "open_ticket", "Create a support request")
+          .addOption("\uD83D\uDCCA Statistics", "stats", "View agency stats");
+
+        if (admin) {
+            mb.addOption("\uD83C\uDF89 Giveaway Panel", "giveaway_panel", "Manage takeaways")
+              .addOption("\u2B50 Points Panel", "points_panel", "Manage reward points")
+              .addOption("\uD83D\uDCCA Level Panel", "level_panel", "Manage leveling system");
         }
-        event.deferReply().queue(hook -> {
-            try {
-                int count = com.highcore.bot.Main.registerCommands(event.getJDA(), event.getGuild().getId());
-                hook.editOriginalEmbeds(EmbedUtil.success("Sync Complete", "Successfully pushed **" + count + "** dynamic commands to the Discord API. ⚡\n\n*Note: Restart your Discord client (Ctrl+R) if they don't appear immediately.*")).queue();
-            } catch (Exception ex) {
-                log.error("Sync failed: {}", ex.getMessage());
-                hook.editOriginalEmbeds(EmbedUtil.error("Sync Failed", "A system error occurred during command injection: " + ex.getMessage())).queue();
-            }
-        });
+
+        PanelService.reply(event, EmbedUtil.mainMenu(), ActionRow.of(mb.build()));
     }
 
-    @Override
-    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        if (!event.getComponentId().equals("menu_select")) return;
-        String choice = event.getValues().get(0);
-        switch (choice) {
-            case "main_menu" -> event.replyEmbeds(EmbedUtil.mainMenu()).setEphemeral(true).queue();
-            case "open_ticket" -> event.replyEmbeds(EmbedUtil.ticketPanel()).addComponents(ActionRow.of(
-                    StringSelectMenu.create("ticket_type_select").setPlaceholder("Select ticket type...")
-                            .addOption("\uD83D\uDD27 Technical Support","tech_support","Get help with a technical issue")
-                            .addOption("\u2753 General Inquiry","inquiry","Ask a general question")
-                            .addOption("\uD83D\uDED2 Purchase Service","purchase","Buy a service from us")
-                            .addOption("\uD83D\uDCE6 Order Status","order_status","Check your order status")
-                            .addOption("\uD83D\uDC54 Apply for Management","apply_management","Apply for management")
-                            .addOption("\uD83D\uDC65 Apply for Highcore Team","apply_team","Join the Highcore team")
-                            .build())).setEphemeral(true).queue();
-            case "services" -> event.replyEmbeds(EmbedUtil.services()).setEphemeral(true).queue();
-            case "team" -> event.replyEmbeds(EmbedUtil.team()).setEphemeral(true).queue();
-            case "ai_query" -> { AIService.enableAI(event.getChannel().getId()); event.reply("\uD83D\uDCAC AI enabled! Type your question. `!stop` to disable.").setEphemeral(true).queue(); }
-            case "stats" -> { event.deferReply(true).queue(); Map<String,Integer> s=StatsService.getTicketStats(); event.getHook().editOriginalEmbeds(EmbedUtil.stats(s.get("total"),s.get("open"),s.get("closed"),s.get("claimed"),StatsService.getTopStaff(30))).queue(); }
-            case "giveaway_panel" -> {
-                if(!isAdmin(event.getMember())){event.reply("Admin only.").setEphemeral(true).queue();return;}
-                event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.GOLD).setDescription("""
-                        ## \uD83C\uDF89 Giveaway Management
-                        > Create and manage giveaways for your community.
-                        **How it works:**
-                        > \u25B8 Click **Create** to start a new giveaway
-                        > \u25B8 Choose type: discount, coupon, free service, or custom
-                        > \u25B8 Members join by clicking the \uD83C\uDF89 button
-                        > \u25B8 Winners are auto-picked when time runs out
-                        **Commands:**
-                        > `/giveaway-start` — Quick create \u2022 `/giveaway-end` — End early
-                        > `/giveaway-reroll` — New winner \u2022 `/giveaway-drop` — First-click-wins
-                        """).build()).addComponents(ActionRow.of(Button.success("gw_create","\u2795 Create Giveaway"),Button.secondary("gw_list","\uD83D\uDCCB List Active"))).setEphemeral(true).queue();
-            }
-            case "points_panel" -> {
-                if(!isAdmin(event.getMember())){event.reply("Admin only.").setEphemeral(true).queue();return;}
-                event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.ACCENT_PURPLE).setDescription("""
-                        ## \u2B50 Points Management
-                        > Reward team members for their work.
-                        **Auto-Points (Team role only):**
-                        > \u25B8 Claim ticket → +5 pts \u2022 Close ticket → +10 pts
-                        **Commands:**
-                        > `/points add/remove/set/check` \u2022 `/points-reset user/all` \u2022 `/points-leaderboard`
-                        """).build()).addComponents(ActionRow.of(Button.primary("pts_leaderboard","\uD83C\uDFC6 Leaderboard"))).setEphemeral(true).queue();
-            }
-            case "level_panel" -> {
-                if(!isAdmin(event.getMember())){event.reply("Admin only.").setEphemeral(true).queue();return;}
-                JsonArray rewards=SupabaseClient.getLevelRewards(event.getGuild().getId());
-                StringBuilder rl=new StringBuilder();
-                if(rewards!=null&&rewards.size()>0){for(var el:rewards){JsonObject r=el.getAsJsonObject();rl.append("> Lv.**").append(r.get("level").getAsInt()).append("** → <@&").append(r.get("role_id").getAsString()).append(">\n");}}else rl.append("> None configured.\n");
-                event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.ACCENT_TEAL).setDescription("## \uD83D\uDCCA Level System\n> 15-25 XP/msg (1 min cooldown) \u2022 Level = \u221A(XP/100)\n\n### \uD83C\uDF81 Role Rewards\n"+rl+"\n**Commands:** `/rank` `/top` `/setxp` `/setlevel` `/reset`").build())
-                        .addComponents(ActionRow.of(Button.success("lvl_add_reward","\u2795 Add Reward"),Button.danger("lvl_remove_reward","\u2796 Remove Reward"),Button.primary("lvl_leaderboard","\uD83C\uDFC6 Leaderboard"))).setEphemeral(true).queue();
-            }
-            case "settings_panel" -> {
-                if(!isAdmin(event.getMember())){event.reply("Admin only.").setEphemeral(true).queue();return;}
-                event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.INFO).setDescription("""
-                        ## \u2699\uFE0F Bot Settings
-                        **Channel Config:** `/setchannel <purpose> [channel]`
-                        > welcome, transcript, ticket, order, updates, startup, log, dev-prices, design-prices, minecraft-prices, highcore, service-terms
-                        **Admin Tools:**
-                        > `/panel` — Custom embed panel \u2022 `/embed` — Full embed builder
-                        > `/startup` — Send startup guide \u2022 `/rename` — Rename channel
-                        > `/autoreply add/remove/list` — Auto-replies
-                        """).build()).setEphemeral(true).queue();
-            }
-        }
+    private void handlePointsCheck(SlashCommandInteractionEvent event) {
+        Member m = event.getOption("member", OptionMapping::getAsMember);
+        if (m == null) m = event.getMember();
+        int pts = SupabaseClient.getPoints(m.getId(), event.getGuild().getId());
+        
+        Container c = EmbedUtil.containerBranded("SECURITY AUDIT", "Merit Ledger", 
+            "### \u2B50 Merit Report\n> Subject: " + m.getAsMention() + "\n> Status: **" + pts + "** reward points.", EmbedUtil.BANNER_MAIN);
+        c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
+        
+        PanelService.reply(event, c);
     }
 
     private void handleHelp(SlashCommandInteractionEvent event) {
-        boolean admin=isAdmin(event.getMember()); boolean staff=isStaff(event.getMember());
-        StringBuilder sb=new StringBuilder("## \uD83D\uDCD6 Highcore Bot — Commands\n\n");
-        sb.append("### \uD83D\uDC64 General\n");
-        sb.append("> `/menu` — Control panel (all panels here)\n> `/help` — This message\n> `/ticket` — Open a ticket\n");
-        sb.append("> `/profile` `/avatar` `/banner` — User info\n> `/server` `/server-avatar` `/server-banner` — Server info\n");
-        sb.append("> `/colors` `/color-set` — Color roles\n> `/roll` `/translate` `/get-emojis` `/vito` `/suggest`\n\n");
-        sb.append("### \uD83D\uDCCA Leveling & Points\n");
-        sb.append("> `/rank` — Rank card \u2022 `/top` — Leaderboard \u2022 `/level` — Quick check\n");
-        sb.append("> `/points check` — Points \u2022 `/points-leaderboard` — Ranking\n");
-        sb.append("> `/title view/set` — Profile title\n\n");
-        if(staff) sb.append("### \uD83D\uDCAC Staff\n> `/autoreply add/remove/list`\n\n");
-        if(admin){
-            sb.append("### \uD83D\uDC6E Moderation\n");
-            sb.append("> `/ban` `/unban` `/unban-all` `/kick` `/vkick` `/setnick`\n");
-            sb.append("> `/mute-text` `/unmute-text` `/mute-voice` `/unmute-voice` `/mute-check`\n");
-            sb.append("> `/timeout` `/untimeout` `/clear` `/lock` `/unlock` `/hide` `/show` `/slowmode`\n");
-            sb.append("> `/move` `/role` `/temprole` `/rar` `/inrole` `/role-multiple` `/add-emoji`\n");
-            sb.append("> `/warn-add` `/warn-remove` `/warnings` `/violations` `/violations-clear`\n\n");
-            sb.append("### \u2699\uFE0F Management\n");
-            sb.append("> `/menu` → All panels \u2022 `/ping` `/rep` `/suggestion`\n");
-            sb.append("> `/points add/remove/set` `/points-reset` `/user` `/roles` `/invites`\n");
-            sb.append("> `/giveaway-start` `/giveaway-end` `/giveaway-reroll` `/giveaway-drop`\n\n");
-            sb.append("### \uD83D\uDD12 High Admin\n> `/setxp` `/setlevel` `/reset`\n\n");
-        }
-        sb.append("### \uD83E\uDD16 Text\n> `!ai` — Enable AI \u2022 `!stop` — Disable AI");
-        event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.PRIMARY).setDescription(sb.toString()).build()).setEphemeral(true).queue();
+        PanelService.reply(event, EmbedUtil.help());
     }
 
     private void handleAutoReply(SlashCommandInteractionEvent event) {
-        if(!isStaff(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Staff only.")).setEphemeral(true).queue();return;}
-        String sub=event.getSubcommandName();if(sub==null)return;
+        if(!isStaff(event.getMember())){ PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        String sub=event.getSubcommandName(); if(sub==null) return;
         switch(sub){
-            case "add"->{String k=event.getOption("keyword",OptionMapping::getAsString),r=event.getOption("response",OptionMapping::getAsString);AutoReplyService.addResponse(k,r,event.getUser().getName());event.replyEmbeds(EmbedUtil.success("Added","Auto-reply for: **"+k+"**")).setEphemeral(true).queue();}
-            case "remove"->{String k=event.getOption("keyword",OptionMapping::getAsString);AutoReplyService.removeResponse(k);event.replyEmbeds(EmbedUtil.success("Removed","Removed: **"+k+"**")).setEphemeral(true).queue();}
-            case "list"->{Map<String,String>all=AutoReplyService.getAllResponses();if(all.isEmpty()){event.replyEmbeds(EmbedUtil.info("Auto-Replies","None configured.")).setEphemeral(true).queue();return;}StringBuilder s=new StringBuilder();all.forEach((k,v)->s.append("**").append(k).append("** → ").append(v).append("\n"));event.replyEmbeds(EmbedUtil.info("Auto-Replies",s.toString())).setEphemeral(true).queue();}
+            case "add"->{
+                String k=event.getOption("keyword",OptionMapping::getAsString);
+                String r=event.getOption("response",OptionMapping::getAsString);
+                AutoReplyService.addResponse(k,r,event.getUser().getName());
+                PanelService.reply(event, EmbedUtil.success("PROTOCOL ADDED", "Auto-reply designated for keyword: **"+k+"**"), true);
+            }
+            case "remove"->{
+                String k=event.getOption("keyword",OptionMapping::getAsString);
+                AutoReplyService.removeResponse(k);
+                PanelService.reply(event, EmbedUtil.success("PROTOCOL REMOVED", "Auto-reply designation purged for: **"+k+"**"), true);
+            }
+            case "list"->{
+                Map<String,String>all=AutoReplyService.getAllResponses();
+                if(all.isEmpty()){ PanelService.reply(event, EmbedUtil.info("REGISTRY EMPTY", "No auto-reply protocols configured."), true); return; }
+                StringBuilder s=new StringBuilder();
+                all.forEach((k,v)->s.append("**").append(k).append("** \u2192 ").append(v).append("\n"));
+                PanelService.reply(event, EmbedUtil.info("PROTOCOL LIST", s.toString()), true);
+            }
         }
     }
 
-    private void handlePanel(SlashCommandInteractionEvent event){if(!isAdmin(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Admin only.")).setEphemeral(true).queue();return;}event.replyEmbeds(EmbedUtil.base().setColor(EmbedUtil.parseColor(event.getOption("color","primary",OptionMapping::getAsString))).setTitle(event.getOption("title",OptionMapping::getAsString)).setDescription(event.getOption("description",OptionMapping::getAsString)).build()).queue();}
+    private void handleEmbed(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        // For custom embeds, we still use the complex helper but ensure it's V2-wrapped where possible or just keep it as is if it uses Container
+        // PanelService.reply handles the V2 wrap.
+        String title = event.getOption("title") != null ? event.getOption("title").getAsString() : null;
+        String desc = event.getOption("description") != null ? event.getOption("description").getAsString() : null;
+        String color = event.getOption("color") != null ? event.getOption("color").getAsString() : null;
+        String image = event.getOption("image") != null ? event.getOption("image").getAsString() : null;
+        String thumb = event.getOption("thumbnail") != null ? event.getOption("thumbnail").getAsString() : null;
+        String aName = event.getOption("author_name") != null ? event.getOption("author_name").getAsString() : null;
+        String aIcon = event.getOption("author_icon") != null ? event.getOption("author_icon").getAsString() : null;
+        String fText = event.getOption("footer_text") != null ? event.getOption("footer_text").getAsString() : null;
+        String fIcon = event.getOption("footer_icon") != null ? event.getOption("footer_icon").getAsString() : null;
 
-    private void handleEmbed(SlashCommandInteractionEvent event){if(!isAdmin(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Admin only.")).setEphemeral(true).queue();return;}event.replyEmbeds(EmbedUtil.custom(event.getOption("title",OptionMapping::getAsString),event.getOption("description",OptionMapping::getAsString),event.getOption("color",OptionMapping::getAsString),event.getOption("image",OptionMapping::getAsString),event.getOption("thumbnail",OptionMapping::getAsString),event.getOption("author_name",OptionMapping::getAsString),event.getOption("author_icon",OptionMapping::getAsString),event.getOption("footer_text",OptionMapping::getAsString),event.getOption("footer_icon",OptionMapping::getAsString),event.getOption("field1_name",OptionMapping::getAsString),event.getOption("field1_value",OptionMapping::getAsString),event.getOption("field1_inline")!=null?event.getOption("field1_inline").getAsBoolean():null,event.getOption("field2_name",OptionMapping::getAsString),event.getOption("field2_value",OptionMapping::getAsString),event.getOption("field2_inline")!=null?event.getOption("field2_inline").getAsBoolean():null,event.getOption("field3_name",OptionMapping::getAsString),event.getOption("field3_value",OptionMapping::getAsString),event.getOption("field3_inline")!=null?event.getOption("field3_inline").getAsBoolean():null)).queue();}
+        String f1n = event.getOption("field1_name") != null ? event.getOption("field1_name").getAsString() : null;
+        String f1v = event.getOption("field1_value") != null ? event.getOption("field1_value").getAsString() : null;
+        Boolean f1i = event.getOption("field1_inline") != null ? event.getOption("field1_inline").getAsBoolean() : null;
 
-    private void handleStartup(SlashCommandInteractionEvent event){if(!isAdmin(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Admin only.")).setEphemeral(true).queue();return;}String h=Config.CH_HIGHCORE,st=Config.CH_SERVICE_TERMS,u=Config.CH_UPDATES,dp=Config.CH_DEV_PRICES,dsp=Config.CH_DESIGN_PRICES,mp=Config.CH_MINECRAFT_PRICES,o=Config.CH_ORDER,t=Config.CH_TICKET;event.replyEmbeds(EmbedUtil.branded().setColor(EmbedUtil.PRIMARY).setDescription(String.format("## \uD83D\uDCD6 Highcore Agency — Startup Guide\n> Welcome! Here's your quick guide \uD83D\uDE80\n### \uD83C\uDFE0 About Us\n> <#%s> — About Highcore\n> <#%s> — Service Terms\n> <#%s> — Updates & Offers\n### \uD83D\uDCB0 Pricing\n> <#%s> — Dev Prices\n> <#%s> — Design Prices\n> <#%s> — MC Prices\n### \uD83D\uDECD\uFE0F Order\n> <#%s> — Place an order\n> <#%s> — Open a ticket\n### \u2753 Need Help?\n> Open a ticket! \uD83D\uDE0A",h!=null?h:"0",st!=null?st:"0",u!=null?u:"0",dp!=null?dp:"0",dsp!=null?dsp:"0",mp!=null?mp:"0",o!=null?o:"0",t!=null?t:"0")).build()).queue();}
+        String f2n = event.getOption("field2_name") != null ? event.getOption("field2_name").getAsString() : null;
+        String f2v = event.getOption("field2_value") != null ? event.getOption("field2_value").getAsString() : null;
+        Boolean f2i = event.getOption("field2_inline") != null ? event.getOption("field2_inline").getAsBoolean() : null;
 
-    private void handleRename(SlashCommandInteractionEvent event){if(!isAdmin(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Admin only.")).setEphemeral(true).queue();return;}GuildChannel ch=event.getOption("channel")!=null?event.getOption("channel",OptionMapping::getAsChannel):event.getGuildChannel();String n=event.getOption("name",OptionMapping::getAsString);if(ch==null||n==null){event.replyEmbeds(EmbedUtil.error("Error","Specify a name.")).setEphemeral(true).queue();return;}String old=ch.getName();ch.getManager().setName(n).queue(v->event.replyEmbeds(EmbedUtil.success("Renamed","`"+old+"` → `"+n+"`")).setEphemeral(true).queue(),e->event.replyEmbeds(EmbedUtil.error("Error",e.getMessage())).setEphemeral(true).queue());}
+        String f3n = event.getOption("field3_name") != null ? event.getOption("field3_name").getAsString() : null;
+        String f3v = event.getOption("field3_value") != null ? event.getOption("field3_value").getAsString() : null;
+        Boolean f3i = event.getOption("field3_inline") != null ? event.getOption("field3_inline").getAsBoolean() : null;
 
-    private void handleSetChannel(SlashCommandInteractionEvent event){if(!isAdmin(event.getMember())){event.replyEmbeds(EmbedUtil.error("Unauthorized","Admin only.")).setEphemeral(true).queue();return;}String p=event.getOption("purpose",OptionMapping::getAsString);GuildChannel ch=event.getOption("channel")!=null?event.getOption("channel",OptionMapping::getAsChannel):event.getGuildChannel();if(p==null||ch==null){event.replyEmbeds(EmbedUtil.error("Error","Specify purpose.")).setEphemeral(true).queue();return;}String key,label;switch(p.toLowerCase()){case "welcome"->{key="WELCOME_CHANNEL_ID";label="\uD83C\uDF89 Welcome";}case "transcript"->{key="TRANSCRIPT_CHANNEL_ID";label="\uD83D\uDCDC Transcript";}case "ticket"->{key="CH_TICKET";label="\uD83C\uDFAB Tickets";}case "order"->{key="CH_ORDER";label="\uD83D\uDED2 Orders";}case "updates"->{key="CH_UPDATES";label="\uD83D\uDCEF Updates";}case "startup"->{key="CH_STARTUP";label="\uD83D\uDCD6 Startup";}case "log"->{key="LOG_CATEGORY_ID";label="\uD83D\uDD14 Logs";}case "dev-prices"->{key="CH_DEV_PRICES";label="\uD83D\uDCB0 Dev Prices";}case "design-prices"->{key="CH_DESIGN_PRICES";label="\uD83C\uDFA8 Design Prices";}case "minecraft-prices"->{key="CH_MINECRAFT_PRICES";label="\u26CF\uFE0F MC Prices";}case "highcore"->{key="CH_HIGHCORE";label="\uD83C\uDFAF Highcore";}case "service-terms"->{key="CH_SERVICE_TERMS";label="\uD83D\uDCC3 Terms";}default->{event.replyEmbeds(EmbedUtil.error("Unknown","Options: welcome/transcript/ticket/order/updates/startup/log/dev-prices/design-prices/minecraft-prices/highcore/service-terms")).setEphemeral(true).queue();return;}}SupabaseClient.setSetting(key,ch.getId());Config.updateRuntime(key,ch.getId());event.replyEmbeds(EmbedUtil.success("Channel Set",label+" → "+ch.getAsMention()+"\n\n\u2705 Saved!")).setEphemeral(true).queue();TextChannel uc=LogManager.get(event.getGuild(),Config.LOG_UPDATES);if(uc!=null)uc.sendMessageEmbeds(EmbedUtil.base().setColor(EmbedUtil.INFO).setDescription("### \u2699\uFE0F Setting Changed\n> **"+label+"** → "+ch.getAsMention()+"\n> By: "+event.getUser().getAsMention()).build()).queue();}
+        PanelService.reply(event, EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon, 
+                f1n, f1v, f1i, f2n, f2v, f2i, f3n, f3v, f3i));
+    }
 
-    private boolean isStaff(Member m){return m!=null&&m.getRoles().stream().anyMatch(r->Config.getStaffRoles().contains(r.getId()));}
-    private boolean isAdmin(Member m){return m!=null&&m.getRoles().stream().anyMatch(r->Config.getAdminRoles().contains(r.getId()));}
+
+    private void handleRename(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel)event.getChannel();
+        String n = event.getOption("name", OptionMapping::getAsString);
+        if (ch == null || n == null) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify target designation name."), true); return; }
+        String old = ch.getName();
+        ch.getManager().setName(n).queue(v -> PanelService.reply(event, EmbedUtil.success("PROTOCOL UPDATED", "Node renamed: `" + old + "` \u2192 `" + n + "`"), true));
+    }
+
+    private void handleSetChannel(SlashCommandInteractionEvent event){
+        if(!isAdmin(event.getMember())){ PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        String p=event.getOption("purpose",OptionMapping::getAsString);
+        GuildChannel ch=event.getOption("channel")!=null?event.getOption("channel",OptionMapping::getAsChannel):(GuildChannel)event.getChannel();
+        if(p==null||ch==null){ PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify protocol purpose and target node."), true); return; }
+        SupabaseClient.setSetting(p.toUpperCase(),ch.getId());
+        Config.updateRuntime(p.toUpperCase(),ch.getId());
+        PanelService.reply(event, EmbedUtil.success("REGISTRY UPDATED", "Protocol `" + p.toUpperCase() + "` now bound to: " + ch.getAsMention()), true);
+    }
+
+    private void handleBroadcast(SlashCommandInteractionEvent event) {
+        if (event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals(BroadcastService.BROADCAST_ROLE_ID))) {
+            BcSession session = new BcSession();
+            OptionMapping roleOpt = event.getOption("role");
+            if (roleOpt != null) session.roleId = roleOpt.getAsRole().getId();
+            OptionMapping attOpt = event.getOption("attachment");
+            if (attOpt != null) session.attUrl = attOpt.getAsAttachment().getUrl();
+            
+            String sessionId = "bc_" + event.getUser().getId();
+            BC_SESSIONS.put(sessionId, session);
+
+            TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("Enter your transmission content here...")
+                    .setRequired(true)
+                    .build();
+
+            Modal modal = Modal.create("modal_bc", "BROADCAST INTERFACE")
+                    .addComponents(Label.of("Message Content", bodyInput))
+                    .build();
+
+            event.replyModal(modal).queue();
+        } else {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+        }
+    }
+
+    private void handleBoter(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        
+        BoterSession session = new BoterSession();
+        GuildChannel channel = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel)event.getChannel();
+        session.channelId = channel.getId();
+        
+        for (int i = 1; i <= 3; i++) {
+            OptionMapping att = event.getOption("file" + i);
+            if (att != null) session.fileUrls.add(att.getAsAttachment().getUrl());
+        }
+
+        String sessionId = "boter_" + event.getUser().getId();
+        BOTER_SESSIONS.put(sessionId, session);
+
+        TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("\u0627\u0643\u062a\u0628 \u0627\u0644\u0631\u0633\u0627\u0644\u062a\u0642 \u0627\u0644\u062a\u064a \u062a\u0631\u064A\u062F...")
+                .setRequired(true)
+                .build();
+
+        Modal modal = Modal.create("modal_boter", "BOT EMULATION")
+                .addComponents(Label.of("Transmission Content", bodyInput))
+                .build();
+
+        event.replyModal(modal).queue();
+    }
+
+    private boolean isStaff(Member m){return Config.isStaff(m);}
+    private boolean isAdmin(Member m){return Config.isAdmin(m);}
 }
