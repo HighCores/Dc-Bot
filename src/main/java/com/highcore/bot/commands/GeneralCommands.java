@@ -340,7 +340,7 @@ public class GeneralCommands extends ListenerAdapter {
         PanelService.reply(event, EmbedUtil.containerBranded("SECTOR SCAN", "Landscape Feed", "Sector: " + event.getGuild().getName(), url + "?size=1024"));
     }
 
-    public void displayColors(SlashCommandInteractionEvent event) {
+    public static void displayColors(SlashCommandInteractionEvent event) {
         StringBuilder sb = new StringBuilder();
         sb.append("### \u039B Sector Color Palette\n\n");
         sb.append("**PRIMARY:** `#ffffff` \u2014 Default Interface\n");
