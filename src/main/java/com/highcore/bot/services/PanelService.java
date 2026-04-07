@@ -63,8 +63,8 @@ public class PanelService {
                 if (useV2) replier.useComponentsV2(true);
                 replier.queue();
             }
-        } else if (interaction instanceof TextChannel tc) {
-            var sender = tc.sendMessage("");
+        } else if (interaction instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+            var sender = channel.sendMessage("");
             if (embed != null) sender.setEmbeds(embed);
             sender.setComponents(components);
             if (useV2) sender.useComponentsV2(true);

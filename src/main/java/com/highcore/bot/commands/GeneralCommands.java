@@ -340,5 +340,19 @@ public class GeneralCommands extends ListenerAdapter {
         PanelService.reply(event, EmbedUtil.containerBranded("SECTOR SCAN", "Landscape Feed", "Sector: " + event.getGuild().getName(), url + "?size=1024"));
     }
 
+    public void displayColors(SlashCommandInteractionEvent event) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("### \u039B Sector Color Palette\n\n");
+        sb.append("**PRIMARY:** `#ffffff` \u2014 Default Interface\n");
+        sb.append("**SUCCESS:** `#2ecc71` \u2014 Operation Confirmed\n");
+        sb.append("**DANGER:** `#e74c3c` \u2014 Security Breach / Halt\n");
+        sb.append("**WARNING:** `#f1c40f` \u2014 Alert Status\n");
+        sb.append("**INFO:** `#3498db` \u2014 System Data\n");
+        sb.append("**GOLD:** `#f1c40f` \u2014 Honor / Merit\n");
+        sb.append("**TEAL:** `#4db6ac` \u2014 Neural Integration");
+
+        PanelService.reply(event, EmbedUtil.containerBranded("PALETTE", "Visual Identification", sb.toString(), EmbedUtil.BANNER_MAIN), true);
+    }
+
     private boolean isAdmin(Member m) { return m != null && m.getRoles().stream().anyMatch(r -> Config.getAdminRoles().contains(r.getId())); }
 }

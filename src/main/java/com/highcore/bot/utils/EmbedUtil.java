@@ -23,6 +23,7 @@ public class EmbedUtil {
 
     public static final Color PRIMARY = Color.decode("#ffffff");
     public static final Color SUCCESS = Color.decode("#2ecc71");
+    public static final Color ACCENT_TEAL = Color.decode("#4db6ac");
     public static final Color DANGER = Color.decode("#e74c3c");
     public static final Color WARNING = Color.decode("#f1c40f");
     public static final Color INFO = Color.decode("#3498db");

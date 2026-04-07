@@ -7,10 +7,10 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.components.LayoutComponent;
+import net.dv8tion.jda.api.components.buttons.ButtonStyle;
+import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.ActionRow;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
@@ -110,12 +110,12 @@ public class CommandService {
 
     private static void sendMenuSlash(SlashCommandInteractionEvent event, JsonObject menu) {
         Container container = buildMenuContainer(menu);
-        event.reply(container).queue();
+        PanelService.reply(event, container);
     }
 
     private static void sendMenu(MessageChannel channel, JsonObject menu) {
         Container container = buildMenuContainer(menu);
-        channel.sendMessage(container).queue();
+        PanelService.reply(channel, container);
     }
 
     private static Container buildMenuContainer(JsonObject menu) {
