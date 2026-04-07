@@ -273,7 +273,7 @@ public class RestApiServer {
         TextChannel channel = guild.getTextChannelById(channelId);
         if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
 
-        channel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon, 
+        channel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.custom("AGENCY", title, desc, image, thumb, aName, aIcon, fText, fIcon, 
                 null, null, null, null, null, null, null, null, null)).useComponentsV2(true).queue();
         
         ctx.json(Map.of("success", true, "channel", channelId));

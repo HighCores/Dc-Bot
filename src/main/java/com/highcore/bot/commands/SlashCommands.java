@@ -52,7 +52,7 @@ public class SlashCommands extends ListenerAdapter {
                     "**Time:** " + java.time.format.DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
                             .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now());
 
-            cmdLog.sendMessageComponents(EmbedUtil.logNode("COMMAND LOG", body, EmbedUtil.INFO))
+            cmdLog.sendMessageComponents(EmbedUtil.activityLog("COMMAND LOG", body, EmbedUtil.INFO))
                     .useComponentsV2(true).queue();
         }
 
@@ -64,7 +64,7 @@ public class SlashCommands extends ListenerAdapter {
                         "**Admin:** " + event.getUser().getAsMention() + "\n" +
                         "**Channel:** " + event.getChannel().getAsMention();
 
-                modLog.sendMessageComponents(EmbedUtil.logNode("SECURITY ALERT", body, EmbedUtil.DANGER))
+                modLog.sendMessageComponents(EmbedUtil.activityLog("SECURITY ALERT", body, EmbedUtil.DANGER))
                         .useComponentsV2(true).queue();
             }
         }
@@ -213,7 +213,7 @@ public class SlashCommands extends ListenerAdapter {
         String f3v = event.getOption("field3_value") != null ? event.getOption("field3_value").getAsString() : null;
         Boolean f3i = event.getOption("field3_inline") != null ? event.getOption("field3_inline").getAsBoolean() : null;
 
-        PanelService.reply(event, EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon,
+        PanelService.reply(event, EmbedUtil.custom("AGENCY", title, desc, image, thumb, aName, aIcon, fText, fIcon,
                 f1n, f1v, f1i, f2n, f2v, f2i, f3n, f3v, f3i));
     }
 

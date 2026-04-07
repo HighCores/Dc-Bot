@@ -40,7 +40,7 @@ public class MessageListener extends ListenerAdapter {
                             "**Timestamp:** <t:" + (System.currentTimeMillis() / 1000) + ":F>\n" +
                             "**Detected Text:**\n> " + content;
                     
-                    logChannel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.logNode("SECURITY LOG", logBody, com.highcore.bot.utils.EmbedUtil.DANGER))
+                    logChannel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.activityLog("SECURITY LOG", logBody, com.highcore.bot.utils.EmbedUtil.DANGER))
                             .useComponentsV2(true).queue();
                 }
                 return;

@@ -6,7 +6,7 @@ import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
-import net.dv8tion.jda.api.interactions.commands.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.LayoutComponent;
 import net.dv8tion.jda.api.components.buttons.Button;

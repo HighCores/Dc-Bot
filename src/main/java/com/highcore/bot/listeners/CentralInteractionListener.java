@@ -13,12 +13,13 @@ import java.util.concurrent.TimeUnit;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.ActionRow;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import java.util.List;
 
 public class CentralInteractionListener extends ListenerAdapter {
 
@@ -116,7 +117,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         // --- AI & QUICK QUERY ---
         if (id.equals("quick_query") || id.equals("ai_query")) {
             AIService.enableAI(event.getChannel().getId());
-            event.replyComponents(EmbedUtil.neuralNode("Assistant activated. Looking for information... Ready for your message."))
+            event.replyComponents(EmbedUtil.assistantResponse("Assistant activated. Looking for information... Ready for your message."))
                     .useComponentsV2(true).setEphemeral(true).queue();
             return;
         }

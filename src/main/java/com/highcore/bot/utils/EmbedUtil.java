@@ -256,7 +256,31 @@ public class EmbedUtil {
     }
 
     public static Container warning(String title, String description) {
-        return containerBranded("WARNING", title, "⚠️ " + description, BANNER_MAIN)
+        return containerBranded("WARNING", title, "\u26A0\uFE0F " + description, BANNER_MAIN)
                 .withAccentColor(WARNING.getRGB() & 0xFFFFFF);
+    }
+
+    public static Container ratingThanks(int stars) {
+        return containerBranded("FEEDBACK", "Thank You", 
+            "We appreciate your **" + stars + "-star** rating! Your feedback helps us maintain professional excellence.", 
+            BANNER_MAIN).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF);
+    }
+
+    public static Container custom(String category, String title, String body, String imageUrl, String thumbnail, String author, String authorUrl, String footer, String footerIcon, String field1Title, String field1Value, Boolean field1Inline, String field2Title, String field2Value, Boolean field2Inline, String field3Title, String field3Value, Boolean field3Inline) {
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        if (imageUrl != null && !imageUrl.isEmpty()) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        layout.add(v2Header(category != null ? category : "AGENCY", title != null ? title : "Information"));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        if (body != null) layout.add(TextDisplay.of(body));
+        
+        StringBuilder sb = new StringBuilder();
+        if (field1Title != null) sb.append("**").append(field1Title).append(":** ").append(field1Value).append("\n");
+        if (field2Title != null) sb.append("**").append(field2Title).append(":** ").append(field2Value).append("\n");
+        if (field3Title != null) sb.append("**").append(field3Title).append(":** ").append(field3Value).append("\n");
+        
+        if (sb.length() > 0) layout.add(TextDisplay.of(sb.toString()));
+        layout.add(v2Footer());
+        
+        return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
     }
 }
