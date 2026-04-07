@@ -71,12 +71,12 @@ public class SlashCommands extends ListenerAdapter {
 
         try {
             switch (event.getName()) {
-                case "hub", "menu" -> handleMenu(event);
                 case "startup" -> handleStartup(event);
+                case "menu" -> handleMenu(event);
                 case "services" -> PanelService.sendServicesPanel(event);
                 case "giveaway" -> PanelService.sendGiveawayPanel(event);
                 case "points" -> handlePointsCheck(event);
-                case "tickets" -> PanelService.sendTicketPanel(event);
+                case "tickets", "ticket-panel" -> PanelService.sendTicketPanel(event);
                 case "stats" -> PanelService.sendStatsPanel(event);
                 case "help" -> handleHelp(event);
                 case "autoreply" -> handleAutoReply(event);
@@ -93,9 +93,8 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleMenu(SlashCommandInteractionEvent event) {
-        event.deferReply(true).queue();
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
         PanelService.sendMainMenu(event);
@@ -103,26 +102,24 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleStartup(SlashCommandInteractionEvent event) {
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
 
         ActionRow row1 = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.primary("menu_main", "Main Terminal")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\u23EA")),
                 net.dv8tion.jda.api.components.buttons.Button.secondary("startup_map", "Server Map")
                         .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
                 net.dv8tion.jda.api.components.buttons.Button.primary("menu_services", "Our Services")
-                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDED2")),
-                net.dv8tion.jda.api.components.buttons.Button.primary("startup_prices", "Our Prices")
-                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCB0")),
-                net.dv8tion.jda.api.components.buttons.Button.secondary("menu_stats", "Statistics")
-                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCCA")));
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDED2")));
 
         ActionRow row2 = ActionRow.of(
                 net.dv8tion.jda.api.components.buttons.Button.success("startup_colors", "Colors")
                         .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDFA8")),
-                net.dv8tion.jda.api.components.buttons.Button.danger("startup_rules", "Server Rules")
+                net.dv8tion.jda.api.components.buttons.Button.danger("startup_rules", "Guidelines")
                         .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCDC")),
-                net.dv8tion.jda.api.components.buttons.Button.secondary("startup_social", "Social Media")
+                net.dv8tion.jda.api.components.buttons.Button.secondary("startup_social", "Social nodes")
                         .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF10")));
 
         PanelService.reply(event, EmbedUtil.startupPanel(), row1, row2);
@@ -261,13 +258,13 @@ public class SlashCommands extends ListenerAdapter {
             String sessionId = "bc_" + event.getUser().getId();
             BC_SESSIONS.put(sessionId, session);
 
-            TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
+            TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("Enter your transmission content here...")
                     .setRequired(true)
                     .build();
 
             Modal modal = Modal.create("modal_bc", "BROADCAST")
-                    .addComponents(Label.of("Message Content", bodyInput))
+                    .addComponents(ActionRow.of(bodyInput))
                     .build();
 
             event.replyModal(modal).queue();
@@ -297,13 +294,13 @@ public class SlashCommands extends ListenerAdapter {
         String sessionId = "boter_" + event.getUser().getId();
         BOTER_SESSIONS.put(sessionId, session);
 
-        TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
+        TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Enter the message content here...")
                 .setRequired(true)
                 .build();
 
         Modal modal = Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(Label.of("Message Content", bodyInput))
+                .addComponents(ActionRow.of(bodyInput))
                 .build();
 
         event.replyModal(modal).queue();

@@ -52,7 +52,8 @@ public class PanelService {
             var hook = modalEvent.getHook().editOriginal("");
             if (embed != null) hook.setEmbeds(embed);
             hook.setComponents(components);
-            if (useV2) hook.useComponentsV2(true);
+            hook.useComponentsV2(true);
+            // Forced Flag set (1 << 12 = 4096)
             hook.queue();
             return;
         }
@@ -61,27 +62,27 @@ public class PanelService {
             var edit = editCallback.editMessage("");
             if (embed != null) edit.setEmbeds(embed);
             edit.setComponents(components);
-            if (useV2) edit.useComponentsV2(true);
+            edit.useComponentsV2(true);
             edit.queue();
         } else if (interaction instanceof IReplyCallback replyCallback) {
             if (replyCallback.isAcknowledged()) {
                 var hook = replyCallback.getHook().editOriginal("");
                 if (embed != null) hook.setEmbeds(embed);
                 hook.setComponents(components);
-                if (useV2) hook.useComponentsV2(true);
+                hook.useComponentsV2(true);
                 hook.queue();
             } else {
                 var replier = replyCallback.reply("").setEphemeral(ephemeral);
                 if (embed != null) replier.setEmbeds(embed);
                 replier.setComponents(components);
-                if (useV2) replier.useComponentsV2(true);
+                replier.useComponentsV2(true);
                 replier.queue();
             }
         } else if (interaction instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             var sender = channel.sendMessage("");
             if (embed != null) sender.setEmbeds(embed);
             sender.setComponents(components);
-            if (useV2) sender.useComponentsV2(true);
+            sender.useComponentsV2(true);
             sender.queue();
         }
     }
@@ -107,42 +108,47 @@ public class PanelService {
     }
 
     public static void sendMainMenu(Object target) {
-        reply(target, EmbedUtil.mainMenu(), getMainMenuComponents());
+        reply(target, EmbedUtil.mainMenu(getMainMenuComponents()));
     }
 
     public static void sendTicketPanel(Object target) {
-        reply(target, EmbedUtil.ticketPanel(), getTicketComponents());
+        reply(target, EmbedUtil.ticketPanel(getTicketComponents()));
     }
 
     public static void sendServicesPanel(Object target) {
-        reply(target, EmbedUtil.services(), ActionRow.of(Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))));
+        reply(target, EmbedUtil.containerBranded("OPS", "Capability Directory", "Explore Design & Development.", EmbedUtil.BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDED2"), 
+                ActionRow.of(Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")))));
     }
 
     public static void sendTeamPanel(Object target) {
-        reply(target, EmbedUtil.team(), ActionRow.of(Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))));
+        reply(target, EmbedUtil.containerBranded("MGMT", "Executive Hierarchy", "Leadership of the Highcore Agency ecosystem.", EmbedUtil.BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCBC"),
+                ActionRow.of(Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")))));
     }
 
     public static void sendPointsPanel(Object target) {
-        reply(target, EmbedUtil.pointsPanel(), ActionRow.of(
-            Button.primary("points_check", "Merit Audit").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")),
-            Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
-        ));
+        reply(target, EmbedUtil.containerBranded("SYSTEM", "Merit Registry", "Examine standing and contribution units.", EmbedUtil.BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCCA"),
+                ActionRow.of(
+                    Button.primary("points_check", "Merit Audit").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")),
+                    Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+                )));
     }
 
     public static void sendGiveawayPanel(Object target) {
-        reply(target, EmbedUtil.giveawayPanel(), ActionRow.of(
-            Button.success("gw_create", "Create").withEmoji(Emoji.fromUnicode("\uD83C\uDF81")),
-            Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
-        ));
+        reply(target, EmbedUtil.containerBranded("EVENT", "Prize Logic", "Manage internal reward distribution cycles.", EmbedUtil.BANNER_MAIN, Emoji.fromUnicode("\uD83C\uDF81"),
+                ActionRow.of(
+                    Button.success("gw_create", "Create").withEmoji(Emoji.fromUnicode("\uD83C\uDF81")),
+                    Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+                )));
     }
 
     public static void sendStartupPanel(Object target) {
-        reply(target, EmbedUtil.startupPanel(), ActionRow.of(
-            Button.primary("menu_services", "Services & Prices").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
-            Button.success("order_start", "Project Request").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-            Button.secondary("view_rules", "Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("menu_main", "Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
-        ));
+        reply(target, EmbedUtil.startupPanel(
+                ActionRow.of(
+                    Button.secondary("menu_main", "Return to Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")),
+                    Button.primary("menu_services", "Services & Prices").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
+                    Button.success("order_start", "Project Request").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
+                    Button.secondary("view_rules", "Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
+                )));
     }
 
     public static void sendStatsPanel(Object target) {

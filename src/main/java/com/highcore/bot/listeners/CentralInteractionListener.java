@@ -123,7 +123,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("support_start")) {
             TextInput subject = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
             Modal m = Modal.create("modal_ticket_open", "Support Request")
-                    .addComponents(Label.of("Problem Brief", subject))
+                    .addComponents(ActionRow.of(subject))
                     .build();
             event.replyModal(m).queue();
             return;
@@ -131,7 +131,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("report_start")) {
             TextInput reason = TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build();
             Modal m = Modal.create("modal_report_open", "Submit a Report")
-                    .addComponents(Label.of("Report Context", reason))
+                    .addComponents(ActionRow.of(reason))
                     .build();
             event.replyModal(m).queue();
             return;
@@ -217,14 +217,14 @@ public class CentralInteractionListener extends ListenerAdapter {
                 case "purchase" -> OrderService.startWizard(event);
                 case "tech_support" -> {
                     Modal m = Modal.create("modal_ticket_open", "Support Request")
-                            .addComponents(Label.of("Problem Brief", TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build()))
-                            .build();
+                        .addComponents(ActionRow.of(TextInput.create("subject", "Problem Brief", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build()))
+                        .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
                     Modal m = Modal.create("modal_report_open", "Submit a Report")
-                            .addComponents(Label.of("Report Context", TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build()))
-                            .build();
+                        .addComponents(ActionRow.of(TextInput.create("reason", "Report Context", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build()))
+                        .build();
                     event.replyModal(m).queue();
                 }
             }

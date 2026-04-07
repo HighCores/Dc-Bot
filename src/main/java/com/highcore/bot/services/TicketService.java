@@ -64,17 +64,19 @@ public class TicketService {
                     SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, "Project Order", "High", orderData);
                     
                     String summary = "Total: **$" + total + "**\nWizard: **" + wizId + "**";
-                    channel.sendMessageComponents(getWelcomeContainer(ticketId, user.getName(), type, summary))
-                            .useComponentsV2(true)
-                            .setComponents(ActionRow.of(getTicketButtons("open")), ActionRow.of(getPaymentButtons(ticketId))).queue();
+                    channel.sendMessageComponents(
+                        getWelcomeContainer(ticketId, user.getName(), type, summary, 
+                            ActionRow.of(getTicketButtons("open")), 
+                            ActionRow.of(getPaymentButtons(ticketId)))
+                    ).useComponentsV2(true).queue();
                 });
     }
 
     private static void finalizeTicket(TextChannel channel, User user, String ticketId, String type, String subject, String priority) {
         String body = "Subject: **" + subject + "**\nPriority: **" + priority + "**";
-        channel.sendMessageComponents(getWelcomeContainer(ticketId, user.getName(), type, body))
-                .useComponentsV2(true)
-                .setComponents(ActionRow.of(getTicketButtons("open"))).queue();
+        channel.sendMessageComponents(
+            getWelcomeContainer(ticketId, user.getName(), type, body, ActionRow.of(getTicketButtons("open")))
+        ).useComponentsV2(true).queue();
     }
 
     private static List<Button> getTicketButtons(String status) {
@@ -106,7 +108,7 @@ public class TicketService {
             case "order_status" -> "Order Status"; case "apply_management" -> "Management App"; case "apply_team" -> "Team App"; default -> "General"; };
     }
 
-    private static Container getWelcomeContainer(String ticketId, String userName, String type, String customBody) {
+    private static Container getWelcomeContainer(String ticketId, String userName, String type, String customBody, ActionRow... rows) {
         String body = switch (type) {
             case "tech_support" -> """
                     \uD83D\uDD27 **TECHNICAL SUPPORT:**
@@ -130,24 +132,26 @@ public class TicketService {
                     """;
         };
 
-        return EmbedUtil.ticketHeader(ticketId, userName, getTypeName(type), body + "\n" + customBody);
+        return EmbedUtil.containerBranded("SESSION", "Case #" + ticketId, body + "\n" + customBody, EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC1"), rows);
     }
 
     public static void claimTicket(TextChannel channel, Member claimer) {
         channel.getManager().setTopic("Dealt with by: " + claimer.getEffectiveName()).queue();
-        channel.sendMessageComponents(EmbedUtil.staffAssigned(claimer.getEffectiveName()))
-                .useComponentsV2(true)
-                .setComponents(ActionRow.of(getTicketButtons("claimed"))).queue();
+        channel.sendMessageComponents(
+            EmbedUtil.containerBranded("NOTICE", "Agent Assigned", "Operative **" + claimer.getEffectiveName() + "** claimed this session.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\u2705"),
+                ActionRow.of(getTicketButtons("claimed")))
+        ).useComponentsV2(true).queue();
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
-        channel.sendMessageComponents(EmbedUtil.containerBranded("CLOSING", "Closure Request", "A request to close this ticket has been made by **" + closer.getEffectiveName() + "**.\nPlease confirm if the service is complete.", EmbedUtil.BANNER_SUPPORT))
-                .useComponentsV2(true)
-                .setComponents(ActionRow.of(
-                        Button.success("order_status_update_DELIVERED", "Delivered"),
-                        Button.secondary("order_status_update_CANCELLED", "Cancelled"),
-                        Button.danger("order_status_update_CLOSED", "Close Ticket")
-                )).queue();
+        channel.sendMessageComponents(
+            EmbedUtil.containerBranded("CLOSING", "Closure Request", "A request to close this ticket has been made by **" + closer.getEffectiveName() + "**.\nPlease confirm if the service is complete.", EmbedUtil.BANNER_SUPPORT),
+            ActionRow.of(
+                Button.success("order_status_update_DELIVERED", "Delivered"),
+                Button.secondary("order_status_update_CANCELLED", "Cancelled"),
+                Button.danger("order_status_update_CLOSED", "Close Ticket")
+            )
+        ).useComponentsV2(true).queue();
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
@@ -163,9 +167,10 @@ public class TicketService {
             }
         }
         
-        channel.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVE", "Ticket Closed", "Status: **" + status + "**\nThis channel is now archived.", EmbedUtil.BANNER_SUPPORT))
-                .useComponentsV2(true)
-                .setComponents(ActionRow.of(getTicketButtons("closed"))).queue();
+        channel.sendMessageComponents(
+            EmbedUtil.containerBranded("ARCHIVE", "Ticket Closed", "Status: **" + status + "**\nThis channel is now archived.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
+                ActionRow.of(getTicketButtons("closed")))
+        ).useComponentsV2(true).queue();
 
         String ownerId = ticket != null ? ticket.get("user_id").getAsString() : null;
         if (ownerId != null) {
@@ -181,9 +186,10 @@ public class TicketService {
             if (owner != null) channel.upsertPermissionOverride(owner).grant(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND).queue();
         }
         
-        channel.sendMessageComponents(EmbedUtil.containerBranded("RESTORED", "Ticket Reopened", "Access to this ticket has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT))
-                .useComponentsV2(true)
-                .setComponents(ActionRow.of(getTicketButtons("open"))).queue();
+        channel.sendMessageComponents(
+            EmbedUtil.containerBranded("RESTORED", "Ticket Reopened", "Access to this ticket has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD04"),
+                ActionRow.of(getTicketButtons("open")))
+        ).useComponentsV2(true).queue();
     }
 
     public static void sendVisualReceipt(TextChannel channel, JsonObject data) {

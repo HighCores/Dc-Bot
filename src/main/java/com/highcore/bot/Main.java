@@ -22,8 +22,21 @@ public class Main {
     private static final Logger log = LoggerFactory.getLogger(Main.class);
 
     public static void main(String[] args) throws Exception {
-        log.info("Initializing Highcore Bot...");
-        if (Config.DISCORD_TOKEN == null || Config.DISCORD_TOKEN.isEmpty()) { log.error("DISCORD_TOKEN not set!"); System.exit(1); }
+        System.out.println("\u001B[36m" +
+                "  _    _  _____  _____  _    _  _____  ____   _____  ______ \n" +
+                " | |  | ||_   _||  ___|| |  | ||  ___||  _ \\ |  ___||  ____|\n" +
+                " | |__| |  | |  | | __ | |__| || |___ | |_) || |___ | |__   \n" +
+                " |  __  |  | |  | | \u2514\u2510| |  __  ||  ___||  _  /|  ___||  __|  \n" +
+                " | |  | | _| |_ | |__| || |  | || |___ | | \\ \\| |___ | |____ \n" +
+                " |_|  |_||_____| \\____/ |_|  |_||_____||_|  \\_\\_____||______|\n" +
+                "            HIGHCORE AGENCY - UNIFIED TERMINAL\n" +
+                "\u001B[0m");
+
+        log.info("[\u2699\uFE0F] Initializing Highcore Protocol v1.0.1...");
+        if (Config.DISCORD_TOKEN == null || Config.DISCORD_TOKEN.isEmpty()) { 
+            log.error("[\u274C] CRITICAL: DISCORD_TOKEN is absent from configuration."); 
+            System.exit(1); 
+        }
 
         JDA jda = JDABuilder.createDefault(Config.DISCORD_TOKEN)
                 .setStatus(OnlineStatus.ONLINE)
@@ -40,7 +53,8 @@ public class Main {
                         new ServerLogListener(), 
                         new WelcomeListener(), 
                         new CentralInteractionListener(),
-                        new OrderCommands()
+                        new OrderCommands(),
+                        new ModerationCommands()
                 )
                 .build().awaitReady();
 
@@ -63,57 +77,47 @@ public class Main {
             TelemetryService.stop(); 
             jda.shutdown(); 
         }));
-        log.info("Highcore Agency Bot fully ready!");
+        log.info("Highcore Agency Bot fully operational!");
     }
 
     private static void registerCommands(JDA jda) {
+        // Clear Global Commands (Forces Cache Refresh)
+        jda.updateCommands().queue();
+
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) return;
+        if (guild == null) { log.error("[\u274C] Guild not detected. Deployment aborted."); return; }
 
         guild.updateCommands().addCommands(
-                // ===== CORE AGENCY TOOLS =====
-                Commands.slash("menu", "Control panel \u2014 all panels & features here")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("startup", "Send startup guide & welcome panel (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("ticket", "Open a new support ticket"),
-                Commands.slash("tickets", "Send ticket control panel (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("giveaway", "Giveaway management panel (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("services", "Send services & prices panel (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("stats", "Send agency operational stats (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                OrderCommands.getCommandData(),
+                // ===== CORE SECTORS =====
+                Commands.slash("menu", "Unified highcore control center"),
+                Commands.slash("startup", "Initialize guidance & panels (Admin)"),
+                Commands.slash("ticket", "Open service request session"),
+                Commands.slash("ticket-panel", "Deploy ticket control node (Admin)"),
+                Commands.slash("services", "Agency capability directory"),
+                Commands.slash("stats", "Agency health analytics"),
                 
-                // ===== BROADCAST & MESSAGING =====
-                Commands.slash("bc", "Send a broadcast message to members (Admin)")
-                        .addOption(OptionType.ROLE, "role", "Target specific role", false)
-                        .addOption(OptionType.ATTACHMENT, "attachment", "Attach media", false),
-                Commands.slash("boter", "Send message on behalf of the terminal (Admin)")
-                        .addOption(OptionType.CHANNEL, "channel", "Target node", false)
-                        .addOption(OptionType.ATTACHMENT, "file1", "Payload A", false),
+                // ===== OPERATIONS =====
+                Commands.slash("bc", "Initialize broadcast sequence (Admin)")
+                        .addOption(OptionType.ROLE, "role", "Target role", false)
+                        .addOption(OptionType.ATTACHMENT, "attachment", "Media payload", false),
+                Commands.slash("boter", "Relay message via terminal (Admin)")
+                        .addOption(OptionType.CHANNEL, "channel", "Output node", false),
 
-                // ===== ADMINISTRATIVE =====
-                Commands.slash("points", "View merit points (Admin)")
-                        .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR)),
-                Commands.slash("points-manage", "Manage merit points (Admin)").addSubcommands(
-                        new SubcommandData("add","Add merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
-                        new SubcommandData("remove","Remove merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
-                        new SubcommandData("check","Audit merit").addOption(OptionType.USER,"member","Subject",false)),
-                Commands.slash("points-leaderboard", "Merit ranking"),
+                // ===== MERIT & SOCIAL =====
+                Commands.slash("points", "Identity merit standing"),
+                Commands.slash("points-manage", "Administrative merit override (Admin)").addSubcommands(
+                        new SubcommandData("add","Allocate merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
+                        new SubcommandData("remove","Deallocate merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
+                        new SubcommandData("check","Audit subject merit").addOption(OptionType.USER,"member","Subject",false)),
+                Commands.slash("points-leaderboard", "Top operative rankings"),
                 
+                // ===== MODERATION =====
+                Commands.slash("clear", "Clear channel records (Admin)")
+                        .addOption(OptionType.INTEGER, "amount", "Number of records", true),
+
                 // ===== UTILITY =====
-                Commands.slash("ping", "Check terminal latency (Admin)"),
-                Commands.slash("profile", "View subject identity").addOption(OptionType.USER,"member","Subject",false),
-                Commands.slash("server", "Display sector information"),
-                Commands.slash("autoreply", "Manage auto-responses (Admin)")
-                        .addSubcommands(
-                                new SubcommandData("add", "Add response").addOption(OptionType.STRING, "keyword", "Trigger", true).addOption(OptionType.STRING, "response", "Output", true),
-                                new SubcommandData("remove", "Remove response").addOption(OptionType.STRING, "keyword", "Trigger", true),
-                                new SubcommandData("list", "List responses"))
-        ).queue(c -> log.info("Synchronized {} protocol commands", c.size()), e -> log.error("Command sync failed: {}", e.getMessage()));
-
+                Commands.slash("ping", "Latency diagnostic"),
+                Commands.slash("profile", "Examine subject profile").addOption(OptionType.USER,"member","Subject",false)
+        ).queue(c -> log.info("[\u2705] Synchronized {} verified protocol commands", c.size()));
     }
 }

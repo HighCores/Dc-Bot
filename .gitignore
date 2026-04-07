@@ -1,24 +1,9 @@
-# Environment
-.env
-
-# Build
 target/
 *.class
 *.jar
-!pom.xml
-
-# IDE
 .idea/
-*.iml
 .vscode/
-.settings/
-.project
-.classpath
-
-# OS
+*.iml
+.env
 .DS_Store
-Thumbs.db
-
-# Logs
-logs/
 *.log
