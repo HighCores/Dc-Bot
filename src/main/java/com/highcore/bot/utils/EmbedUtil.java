@@ -58,12 +58,23 @@ public class EmbedUtil {
         return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
     }
 
+    public static Container multiBannerBranded(String category, String title, String body, String topBanner, String middleBanner) {
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        if (topBanner != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(topBanner)));
+        layout.add(v2Header(category, title));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        if (body != null) layout.add(TextDisplay.of(body));
+        if (middleBanner != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(middleBanner)));
+        layout.add(v2Footer());
+        return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
+    }
+
     public static TextDisplay v2Header(String category, String title) {
-        return TextDisplay.of("### \u039B " + category.toUpperCase() + " \u2022 " + title);
+        return TextDisplay.of("### ✨ " + category.toUpperCase() + " \u2022 " + title);
     }
 
     public static TextDisplay v2Footer() {
-        return TextDisplay.of("*Highcore Agency 2026 \u2022 Professional Services*");
+        return TextDisplay.of("*Highcore Agency • Professional Service Excellence*");
     }
 
     public static Container mainMenu() {
@@ -131,10 +142,10 @@ public class EmbedUtil {
     }
 
     public static Container team() {
-        return containerBranded("PERSONNEL", "Agency Operatives", 
-            "Operational hierarchy of the Highcore Agency.\n\n" +
-            "**Command Node:**\n> OmarAmr (Strategic Director)\n\n" +
-            "**Neural Ops:**\n> HC-Bot (Interface) • HC-019 (Logic Node)", 
+        return containerBranded("MANAGEMENT", "Executive Team", 
+            "Professional leadership of Highcore Agency.\n\n" +
+            "**Agency Director:**\n> OmarAmr (Senior Director)\n\n" +
+            "**Operational Staff:**\n> Our team is ready to assist you in tickets.", 
             BANNER_MAIN);
     }
 
@@ -146,6 +157,7 @@ public class EmbedUtil {
     }
 
     public static Container activityLog(String title, String body, Color color) {
+        // Body already contains mentioned IDs if passed correctly from LogManager
         return containerBranded("LOG", title, body, BANNER_SUPPORT)
                 .withAccentColor(color.getRGB() & 0xFFFFFF);
     }

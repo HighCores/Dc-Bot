@@ -19,6 +19,19 @@ public class WelcomeListener extends ListenerAdapter {
         log.info("Member joined: {} in {}", event.getMember().getUser().getName(), event.getGuild().getName());
         sendWelcomeMessage(event.getMember(), event.getGuild());
         sendStartupDM(event.getMember());
+        logActivity(event.getGuild(), "JOIN EVENT", "New Member joined: " + event.getMember().getAsMention(), com.highcore.bot.utils.EmbedUtil.SUCCESS);
+    }
+
+    @Override
+    public void onGuildMemberRemove(net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent event) {
+        logActivity(event.getGuild(), "LEAVE EVENT", "Member left the agency: **" + event.getUser().getName() + "** (" + event.getUser().getAsMention() + ")", com.highcore.bot.utils.EmbedUtil.DANGER);
+    }
+
+    private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
+        TextChannel ch = com.highcore.bot.services.LogManager.get(guild, Config.LOG_JOIN_LEFT);
+        if (ch != null) {
+            ch.sendMessageComponents(EmbedUtil.activityLog(title, body, color)).useComponentsV2(true).queue();
+        }
     }
 
     private void sendWelcomeMessage(Member member, Guild guild) {
@@ -26,16 +39,16 @@ public class WelcomeListener extends ListenerAdapter {
         if (ch == null) return;
 
         String body = String.format("""
-                ## \uD83C\uDF89 Welcome to Highcore Agency!
+                ## 🎉 Welcome to Highcore Agency!
                 
-                **Operative Identified:** %s
-                **Designation:** %s
+                **New Member:** %s
+                **Display Name:** %s
                 
-                > You have been successfully integrated into our neural network. 
-                > Please initialize your workstation and proceed to the designated sector.
+                > We are glad to have you with us at Highcore Agency. 
+                > Please feel free to explore our professional services and active projects.
                 """, member.getAsMention(), member.getEffectiveName());
 
-        Container c = EmbedUtil.containerBranded("WELCOME PROTOCOL", "New Integration", body, EmbedUtil.BANNER_MAIN);
+        Container c = EmbedUtil.containerBranded("AGENCY WELCOME", "New Member joined", body, EmbedUtil.BANNER_MAIN);
         c.withAccentColor(EmbedUtil.ACCENT_TEAL.getRGB() & 0xFFFFFF);
 
         ch.sendMessageComponents(c).useComponentsV2(true).queue();
@@ -46,23 +59,23 @@ public class WelcomeListener extends ListenerAdapter {
         String o = Config.CH_ORDER, t = Config.CH_TICKET;
 
         String body = String.format("""
-                ## \uD83D\uDCD6 Highcore Agency \u2014 Startup Guide
+                ## 📖 Highcore Agency — Startup Guide
                 
                 Welcome to the agency. Here are your primary operational links:
                 
-                \uD83D\uDCD1 **Protocols & Prices:**
+                📒 **Protocols & Prices:**
                 - <#%s> | <#%s> | <#%s>
                 
-                \uD83D\uDED2 **Resource Procurement:**
+                🛒 **Resource Procurement:**
                 - <#%s>
                 
-                \u2709\uFE0F **Operational Support:**
+                ✉️ **Operational Support:**
                 - <#%s>
                 
-                *Synchronize your neural link before proceeding.*
+                *Our team is ready to assist you in any department.*
                 """, dp, dsp, mp, o, t);
 
-        Container c = EmbedUtil.containerBranded("SYSTEM ENTRY", "Startup Guide", body, EmbedUtil.BANNER_MAIN);
+        Container c = EmbedUtil.containerBranded("AGENCY GUIDE", "Startup Guide", body, EmbedUtil.BANNER_MAIN);
         c.withAccentColor(EmbedUtil.PRIMARY.getRGB() & 0xFFFFFF);
 
         member.getUser().openPrivateChannel().queue(
