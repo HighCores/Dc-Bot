@@ -259,18 +259,19 @@ public class CentralInteractionListener extends ListenerAdapter {
     @Override
     public void onModalInteraction(@NotNull ModalInteractionEvent event) {
         String id = event.getModalId();
+        event.deferReply(true).queue(); // IMMEDIATE ACKNOWLEDGMENT TO PREVENT TIMEOUT
         
         if (id.equals("modal_ticket_open")) {
             String subject = EmojiUtil.parse(event.getValue("subject").getAsString());
             TicketService.createTicket(event.getGuild(), event.getUser(), subject, "Medium", "tech_support");
-            PanelService.reply(event, EmbedUtil.containerBranded("OPERATIONAL", "Node Initialized", "Technical support sector initialized. Consult your terminal link.", EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event, EmbedUtil.containerBranded("SUPPORT", "Ticket Initialized", "Your support channel has been created successfully.", EmbedUtil.BANNER_MAIN));
             return;
         }
 
         if (id.equals("modal_report_open")) {
             String reason = EmojiUtil.parse(event.getValue("reason").getAsString());
             TicketService.createTicket(event.getGuild(), event.getUser(), "Report: " + (reason.length() > 30 ? reason.substring(0, 30) + "..." : reason), "High", "complaint");
-            PanelService.reply(event, EmbedUtil.containerBranded("REGISTRY", "Registry Entry", "Your report has been logged. Enforcement will review the logs.", EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event, EmbedUtil.containerBranded("AGENCY", "Report Logged", "Your submission has been received. Enforcement will review soon.", EmbedUtil.BANNER_MAIN));
             return;
         }
 

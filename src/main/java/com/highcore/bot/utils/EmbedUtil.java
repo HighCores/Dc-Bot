@@ -93,25 +93,28 @@ public class EmbedUtil {
 
     public static Container services() {
         String body = """
-            ### 🛒 Highcore Agency Professional Services
+            ### 🛒 AGENCY SERVICE CATALOG
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            **🎨 DESIGN DEP.**
+            `[Vector Logo ]` \u2022 $25
+            `[Abstract Logo]` \u2022 $35
+            `[Full Branding]` \u2022 $60+
+            `[Motion Intro ]` \u2022 $30
             
-            **🎨 DESIGN DEPARTMENT**
-            \u2022 **Logo Design:** Vector ($25) \u2022 Abstract ($35)
-            \u2022 **Branding:** Full Package ($60+)
-            \u2022 **Motion:** Intros ($30) \u2022 Overlays ($25)
+            **⚙️ DEVELOPMENT DEP.**
+            `[Discord Bot  ]` \u2022 $20+
+            `[Custom Plugin]` \u2022 $35+
+            `[Web Landing  ]` \u2022 $45+
+            `[Full Systems ]` \u2022 $120+
             
-            **⚙️ DEVELOPMENT SECTOR**
-            \u2022 **Discord Bots:** Custom ($20+) \u2022 Advanced ($50+)
-            \u2022 **Web:** Landings ($40+) \u2022 Dashboards ($100+)
-            \u2022 **Minecraft:** Plugins & Java Solutions
-            
-            **🎬 MEDIA PRODUCTION**
-            \u2022 **Video Editing:** Montage ($15) \u2022 Commercial ($40+)
-            \u2022 **3D Animation:** Modeling & Rendering
-            
-            *Select a category below to browse and add services to your project.*
+            **🎬 MEDIA & MINECRAFT**
+            `[Video Edit   ]` \u2022 $15+
+            `[Server Setup ]` \u2022 $30+
+            `[Architectural]` \u2022 $25+
+            ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+            *Select a department below to start your project request.*
             """;
-        return sectionedBranded("SERVICES", "Official Directory", body, BANNER_SERVICES, "https://raw.githubusercontent.com/OmarAmr20/Img/main/741852963.png");
+        return sectionedBranded("SERVICES", "Professional Directory", body, BANNER_SERVICES, "https://i.imgur.com/vH97Z9P.png");
     }
 
     public static Container rulePanel() {

@@ -93,6 +93,7 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleMenu(SlashCommandInteractionEvent event) {
+        event.deferReply(true).queue();
         if (!isAdmin(event.getMember())) {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
@@ -128,14 +129,13 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handlePointsCheck(SlashCommandInteractionEvent event) {
+        event.deferReply(true).queue();
         Member m = event.getOption("member", OptionMapping::getAsMember);
-        if (m == null)
-            m = event.getMember();
+        if (m == null) m = event.getMember();
         int pts = SupabaseClient.getPoints(m.getId(), event.getGuild().getId());
 
         Container c = EmbedUtil.containerBranded("POINTS", "Points Report",
-                "### \u2B50 Your Points\n> Member: " + m.getAsMention() + "\n> Total: **" + pts
-                        + "** points.",
+                "### \u2B50 Your Points\n> Member: " + m.getAsMention() + "\n> Total: **" + pts + "** points.",
                 EmbedUtil.BANNER_MAIN);
         c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
 

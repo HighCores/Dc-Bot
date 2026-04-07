@@ -42,6 +42,16 @@ public class PanelService {
             }
         }
 
+        if (interaction instanceof ModalInteractionEvent modalEvent) {
+            if (!modalEvent.isAcknowledged()) modalEvent.deferReply(ephemeral).queue();
+            var hook = modalEvent.getHook().editOriginal("");
+            if (embed != null) hook.setEmbeds(embed);
+            hook.setComponents(components);
+            if (useV2) hook.useComponentsV2(true);
+            hook.queue();
+            return;
+        }
+
         if (interaction instanceof IMessageEditCallback editCallback && !((IReplyCallback)interaction).isAcknowledged()) {
             // For component interactions, we usually want to EDIT the message
             var edit = editCallback.editMessage("");
