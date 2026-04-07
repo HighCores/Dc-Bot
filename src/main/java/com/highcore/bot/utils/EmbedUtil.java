@@ -76,13 +76,12 @@ public class EmbedUtil {
         String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
         layout.add(TextDisplay.of(content));
 
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-
         if (rows != null && rows.length > 0) {
+            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
             layout.addAll(Arrays.asList(rows));
+            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.5 \u2022 HIGHCORE AGENCY \u2022 `"));
 
         return Container.of(layout);
