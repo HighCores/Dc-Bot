@@ -225,11 +225,11 @@ public class SlashCommands extends ListenerAdapter {
 
             BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
-            // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-            TextInput broadInput = TextInput.create("message", "Content", TextInputStyle.PARAGRAPH).setRequired(true).build();
+            // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+            TextInput broadInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
 
             event.replyModal(Modal.create("modal_bc", "BROADCAST")
-                    .addComponents(Label.of("Broadcast Message", broadInput))
+                    .addComponents(Label.of("Broadcast Content", broadInput))
                     .build()).queue();
         } else {
             PanelService.reply(event, EmbedUtil.accessDenied());
@@ -252,8 +252,8 @@ public class SlashCommands extends ListenerAdapter {
 
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
-        // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-        TextInput boterInput = TextInput.create("message", "Content", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+        TextInput boterInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
 
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
                 .addComponents(Label.of("Emulated Content", boterInput))

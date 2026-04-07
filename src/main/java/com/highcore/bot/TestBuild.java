@@ -7,8 +7,8 @@ import net.dv8tion.jda.api.modals.Modal;
 
 public class TestBuild {
     public static void test() {
-        // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-        TextInput input = TextInput.create("test", "test", TextInputStyle.SHORT).build();
+        // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+        TextInput input = TextInput.create("test", TextInputStyle.SHORT).build();
 
         Modal.create("test", "test")
             .addComponents(Label.of("Test Input", input))

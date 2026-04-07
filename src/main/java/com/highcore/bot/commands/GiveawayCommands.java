@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -37,18 +38,18 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-        TextInput prizeInput = TextInput.create("prize", "Prize", TextInputStyle.SHORT)
+        // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. Nitro Basic")
                 .setRequired(true)
                 .build();
 
-        TextInput winnersInput = TextInput.create("winners", "Number of Winners", TextInputStyle.SHORT)
+        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 1")
                 .setRequired(true)
                 .build();
 
-        TextInput timeInput = TextInput.create("duration", "Duration (minutes)", TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 60")
                 .setRequired(true)
                 .build();
@@ -76,9 +77,8 @@ public class GiveawayCommands extends ListenerAdapter {
         net.dv8tion.jda.api.components.buttons.Button joinBtn = net.dv8tion.jda.api.components.buttons.Button.primary("gw_join_" + giveawayId, "Join Giveaway")
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
-        // JDA 6.4.1: Container.of must be sent via replyComponents (NO .build())
-        event.replyComponents(EmbedUtil.giveaway(prizeStr, winCount, duration))
-                .addActionRow(joinBtn)
+        // JDA 6.4.1 FINAL FIX: Use replyComponents(Container, ActionRow) in a single call
+        event.replyComponents(EmbedUtil.giveaway(prizeStr, winCount, duration), ActionRow.of(joinBtn))
                 .queue(hook -> {
                     LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
                             "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), EmbedUtil.INFO);

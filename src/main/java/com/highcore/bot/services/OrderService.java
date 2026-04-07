@@ -73,11 +73,11 @@ public class OrderService extends ListenerAdapter {
 
         userOrderType.put(event.getUser().getId(), type.toUpperCase());
 
-        // JDA 6.4.1 GOLDEN PATTERN: Modal -> addComponents -> Label.of("Text", input)
-        TextInput nameInput = TextInput.create("name", "Project Name", TextInputStyle.SHORT).build();
-        TextInput budgetInput = TextInput.create("budget", "Estimated Budget ($)", TextInputStyle.SHORT).build();
-        TextInput descInput = TextInput.create("description", "Detailed Requirements", TextInputStyle.PARAGRAPH).build();
-        TextInput discordInput = TextInput.create("discord", "Discord Contact", TextInputStyle.SHORT).build();
+        // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+        TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).build();
+        TextInput budgetInput = TextInput.create("budget", TextInputStyle.SHORT).build();
+        TextInput descInput = TextInput.create("description", TextInputStyle.PARAGRAPH).build();
+        TextInput discordInput = TextInput.create("discord", TextInputStyle.SHORT).build();
 
         Modal modal = Modal.create("modal_order", "ORDER WIZARD: " + type.toUpperCase())
                 .addComponents(Label.of("Project Name", nameInput))
@@ -120,7 +120,6 @@ public class OrderService extends ListenerAdapter {
                 "**Contact:** `" + contact + "`\n\n" +
                 "Our team will review your requirements and reach out on Discord shortly.");
         
-        // JDA 6.4.1: Use sendMessageComponents(Container)
         event.getHook().sendMessageComponents(c).setEphemeral(true).queue();
         
         LogManager.log(event.getGuild(), "NEW ORDER", 

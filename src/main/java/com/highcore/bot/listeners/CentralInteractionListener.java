@@ -29,8 +29,8 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (member == null) return;
 
         if (id.equals("ticket_report")) {
-            // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-            TextInput reasonInput = TextInput.create("reason", "Report Reason", TextInputStyle.PARAGRAPH)
+            // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+            TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("Explain your situation...")
                     .setRequired(true)
                     .build();
@@ -40,8 +40,8 @@ public class CentralInteractionListener extends ListenerAdapter {
                     .build();
             event.replyModal(modal).queue();
         } else if (id.equals("ticket_support")) {
-            // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
-            TextInput subjectInput = TextInput.create("subject", "Support Subject", TextInputStyle.SHORT)
+            // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
+            TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
                     .setPlaceholder("What do you need help with?")
                     .setRequired(true)
                     .build();
