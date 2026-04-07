@@ -83,4 +83,5 @@ public class Config {
     public static List<String> getAdminRoles() { return Arrays.asList(ROLE_HIGH, ROLE_FOUNDER); }
     public static boolean isStaff(net.dv8tion.jda.api.entities.Member m) { return m != null && m.getRoles().stream().anyMatch(r -> getStaffRoles().contains(r.getId())); }
     public static boolean isAdmin(net.dv8tion.jda.api.entities.Member m) { return m != null && m.getRoles().stream().anyMatch(r -> getAdminRoles().contains(r.getId())); }
+    public static boolean isGroqConfigured() { return GROQ_API_KEY != null && !GROQ_API_KEY.isEmpty() && !GROQ_API_KEY.equals("your_groq_api_key"); }
 }

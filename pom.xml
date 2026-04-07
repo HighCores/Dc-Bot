@@ -6,8 +6,8 @@
 
     <groupId>com.highcore</groupId>
     <artifactId>highcore-discord-bot</artifactId>
-    <version>1.0.2</version>
-    <!-- REDEPLOY_TRIGGER: Highcore Terminal Force Sync v3.0 (JDA 6.4.1 Ultimate Victory) -->
+    <version>1.0.3</version>
+    <!-- REDEPLOY_TRIGGER: Highcore Terminal Force Sync v3.1 (JDA 6.4.1 TOTAL VICTORY) -->
     <packaging>jar</packaging>
 
     <name>Highcore Agency Discord Bot</name>
