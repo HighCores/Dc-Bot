@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
@@ -17,15 +16,14 @@ import java.util.*;
 
 public class PanelService {
 
-    public static void reply(Object interaction, Object content, ActionRow... rows) { handleReply(interaction, content, false, rows); }
-    public static void replyEphemeral(Object interaction, Object content, ActionRow... rows) { handleReply(interaction, content, true, rows); }
+    public static void reply(Object interaction, Object content) { handleReply(interaction, content, false); }
+    public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
-    private static void handleReply(Object interaction, Object content, boolean ephemeral, ActionRow... rows) {
+    private static void handleReply(Object interaction, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         MessageEmbed embed = null;
         if (content instanceof Container c) components.add(c);
         else if (content instanceof MessageEmbed me) embed = me;
-        if (rows != null) { for (ActionRow row : rows) { if (row != null) components.add(row); } }
 
         if (interaction instanceof ModalInteractionEvent modalEvent) {
             if (!modalEvent.isAcknowledged()) modalEvent.deferReply(ephemeral).queue();
@@ -68,7 +66,7 @@ public class PanelService {
         ActionRow row1 = ActionRow.of(Button.secondary("hub_map", "Server Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")), Button.primary("hub_services", "Our Services").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")), Button.primary("hub_prices", "Our Prices").withEmoji(Emoji.fromUnicode("\uD83D\uDCA2")));
         ActionRow row2 = ActionRow.of(Button.success("hub_stats", "Statistics").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")), Button.secondary("hub_colors", "Identity Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")), Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")));
         ActionRow row3 = ActionRow.of(Button.secondary("hub_social", "Social Media").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")), Button.success("order_start", "Start Order").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")));
-        reply(target, EmbedUtil.containerBranded("HUB", "Main Onboarding Node", body, EmbedUtil.BANNER_MAIN), row1, row2, row3);
+        reply(target, EmbedUtil.containerBranded("HUB", "Main Onboarding Node", body, EmbedUtil.BANNER_MAIN, null, row1, row2, row3));
     }
 
     public static void sendServerMap(Object target) {
@@ -79,36 +77,36 @@ public class PanelService {
     public static void sendSocialPanel(Object target) {
         String body = "### \uD83D\uDDA5\uFE0F Agency Presence\nOfficial Highcore digital channels.";
         ActionRow row = ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"), Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"), Button.link("https://www.instagram.com/high_core_agency/", "Instagram"), Button.link("https://www.threads.com/@high_core_agency", "Threads"));
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Connectivity", body, EmbedUtil.BANNER_MAIN), row);
+        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Connectivity", body, EmbedUtil.BANNER_MAIN, null, row));
     }
 
     public static void sendColorsPanel(Object target) {
         ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
         ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Spectrum Calibration", "Select your operative status color.", EmbedUtil.BANNER_MAIN), r1, r2);
+        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Spectrum Calibration", "Select your operative status color.", EmbedUtil.BANNER_MAIN, null, r1, r2));
     }
 
     public static void sendServicesCategory(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("view_services_cat").setPlaceholder("Capability Sector...").addOption("Designer", "cat_designer").addOption("Developer", "cat_developer").addOption("Editor", "cat_editor").addOption("Minecraft", "cat_minecraft").build();
-        replyEphemeral(target, EmbedUtil.containerBranded("DIRECTORY", "Capability Map", "Examine agency assets.", EmbedUtil.BANNER_MAIN), ActionRow.of(menu));
+        replyEphemeral(target, EmbedUtil.containerBranded("DIRECTORY", "Capability Map", "Examine agency assets.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
     }
 
     public static void sendPricesCategory(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("view_prices_cat").setPlaceholder("Accounting Sector...").addOption("Designer Prices", "price_designer").addOption("Developer Prices", "price_developer").addOption("Editor Prices", "price_editor").addOption("Minecraft Prices", "price_minecraft").build();
-        replyEphemeral(target, EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", "Examine financial requirements.", EmbedUtil.BANNER_MAIN), ActionRow.of(menu));
+        replyEphemeral(target, EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", "Examine financial requirements.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
     }
 
     public static void sendStatsPanel(Object target) {
-        reply(target, EmbedUtil.containerBranded("TELEMETRY", "Health Analytics", "Status: `ONLINE` | v2.5", EmbedUtil.BANNER_MAIN), ActionRow.of(Button.secondary("menu_main", "Return to Hub")));
+        reply(target, EmbedUtil.containerBranded("TELEMETRY", "Health Analytics", "Status: `ONLINE` | v2.5", EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendTicketPanel(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Support Category...").addOption("Order", "purchase").addOption("Support", "tech_support").addOption("Complaint", "complaint").build();
-        reply(target, EmbedUtil.containerBranded("LOGISTICS", "Ticket Node", "Initialize session below.", EmbedUtil.BANNER_SUPPORT), ActionRow.of(menu));
+        reply(target, EmbedUtil.containerBranded("LOGISTICS", "Ticket Node", "Initialize session below.", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
     }
 
     public static void sendGiveawayPanel(Object target) {
         ActionRow row = ActionRow.of(Button.success("giveaway_start", "Launch New Sweepstakes"), Button.danger("giveaway_end", "Terminate Active Giveaway"));
-        reply(target, EmbedUtil.containerBranded("SWEEPSTAKES", "Control Node", "Operate rewards distribution system.", EmbedUtil.BANNER_GIVEAWAY), row);
+        reply(target, EmbedUtil.containerBranded("SWEEPSTAKES", "Control Node", "Operate rewards distribution system.", EmbedUtil.BANNER_GIVEAWAY, null, row));
     }
 }

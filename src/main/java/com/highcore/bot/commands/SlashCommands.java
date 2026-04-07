@@ -10,9 +10,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.label.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.HashMap;
@@ -103,7 +103,7 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleClear(SlashCommandInteractionEvent event) {
-        int count = event.getOption("amount") != null ? event.getOption("amount").getAsInt() : 0;
+        int count = (event.getOption("amount") != null) ? event.getOption("amount").getAsInt() : 0;
         event.getChannel().getIterableHistory().takeAsync(count).thenAccept(msgs -> {
             event.getGuildChannel().deleteMessages(msgs).queue(v -> event.reply("Purged " + count + " records.").setEphemeral(true).queue());
         });
