@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.section.Section;
-import net.dv8tion.jda.api.components.section.SectionIcon;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import com.google.gson.JsonObject;
@@ -98,6 +97,18 @@ public class EmbedUtil {
     
     public static TextDisplay v2Header(String category, String title) { return TextDisplay.of("### \u25BA " + category.toUpperCase() + " \u30FB " + title); }
     public static TextDisplay v2Footer() { return TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.2 \u2022 `"); }
+    public static final Color PRIMARY = Color.decode("#10b981");
+
+    public static Color parseColor(String colorStr) {
+        if (colorStr == null) return ACCENT_TEAL;
+        try { return Color.decode(colorStr.startsWith("#") ? colorStr : "#" + colorStr); }
+        catch (Exception e) { return ACCENT_TEAL; }
+    }
+
+    public static Container orderLog(JsonObject logData) {
+        return containerBranded("ORDER", "Inbound Signal", "```json\n" + logData.toString() + "\n```", BANNER_MAIN);
+    }
+
     public static Container custom(String category, String title, String body, String imageUrl, String thumbnail, String author, String authorUrl, String footer, String footerIcon, String field1Title, String field1Value, Boolean field1Inline, String field2Title, String field2Value, Boolean field2Inline, String field3Title, String field3Value, Boolean field3Inline) {
         return containerBranded(category, title, body, imageUrl);
     }

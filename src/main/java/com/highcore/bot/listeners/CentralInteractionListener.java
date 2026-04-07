@@ -121,7 +121,9 @@ public class CentralInteractionListener extends ListenerAdapter {
         
         if (id.equals("order_start")) { OrderService.startWizard(event); return; }
         if (id.equals("support_start")) {
-            TextInput subject = TextInput.create("subject", "Problem Brief", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
+            TextInput subject = TextInput.create("subject", TextInputStyle.SHORT)
+                    .setLabel("Problem Brief")
+                    .setPlaceholder("Describe the technical issue...").setRequired(true).build();
             Modal m = Modal.create("modal_ticket_open", "Support Request")
                     .addComponents(ActionRow.of(subject))
                     .build();
@@ -129,7 +131,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
         if (id.equals("report_start")) {
-            TextInput reason = TextInput.create("reason", "Report Context", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build();
+            TextInput reason = TextInput.create("reason", TextInputStyle.PARAGRAPH)
+                    .setLabel("Report Context")
+                    .setPlaceholder("What are you reporting?").setRequired(true).build();
             Modal m = Modal.create("modal_report_open", "Submit a Report")
                     .addComponents(ActionRow.of(reason))
                     .build();
@@ -217,13 +221,13 @@ public class CentralInteractionListener extends ListenerAdapter {
                 case "purchase" -> OrderService.startWizard(event);
                 case "tech_support" -> {
                     Modal m = Modal.create("modal_ticket_open", "Support Request")
-                        .addComponents(ActionRow.of(TextInput.create("subject", "Problem Brief", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build()))
+                        .addComponents(ActionRow.of(TextInput.create("subject", TextInputStyle.SHORT).setLabel("Problem Brief").setPlaceholder("Describe the technical issue...").setRequired(true).build()))
                         .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
                     Modal m = Modal.create("modal_report_open", "Submit a Report")
-                        .addComponents(ActionRow.of(TextInput.create("reason", "Report Context", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build()))
+                        .addComponents(ActionRow.of(TextInput.create("reason", TextInputStyle.PARAGRAPH).setLabel("Report Context").setPlaceholder("What are you reporting?").setRequired(true).build()))
                         .build();
                     event.replyModal(m).queue();
                 }
