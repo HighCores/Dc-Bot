@@ -176,12 +176,12 @@ public class OrderService {
     }
 
     public static void finishWizard(ButtonInteractionEvent event) {
-        TextInput details = TextInput.create("order_details", "Detailed Requirements", TextInputStyle.PARAGRAPH)
+        TextInput details = TextInput.create("order_details", TextInputStyle.PARAGRAPH).setLabel("Detailed Requirements")
                 .setPlaceholder("Project details / Requirements...")
                 .setRequired(true).build();
-        TextInput qty = TextInput.create("order_qty", "Project Quantity", TextInputStyle.SHORT).setPlaceholder("Quantity (e.g. 1)").setRequired(true).setValue("1").build();
-        TextInput deadline = TextInput.create("order_deadline", "Preferred Deadline", TextInputStyle.SHORT).setPlaceholder("Deadline (e.g. 3 days)").setRequired(false).build();
-        TextInput promo = TextInput.create("order_promo", "Promo Code", TextInputStyle.SHORT).setPlaceholder("Discount Code").setRequired(false).build();
+        TextInput qty = TextInput.create("order_qty", TextInputStyle.SHORT).setLabel("Project Quantity").setPlaceholder("Quantity (e.g. 1)").setRequired(true).setValue("1").build();
+        TextInput deadline = TextInput.create("order_deadline", TextInputStyle.SHORT).setLabel("Preferred Deadline").setPlaceholder("Deadline (e.g. 3 days)").setRequired(false).build();
+        TextInput promo = TextInput.create("order_promo", TextInputStyle.SHORT).setLabel("Promo Code").setPlaceholder("Discount Code").setRequired(false).build();
 
         Modal modal = Modal.create("order_modal", "PROJECT SPECIFICATIONS")
                 .addComponents(

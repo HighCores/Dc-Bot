@@ -98,37 +98,37 @@ public class GiveawayCommands extends ListenerAdapter {
         if (!event.getComponentId().equals("gw_type_select")) return;
         String type = event.getValues().get(0);
 
-        TextInput channel = TextInput.create("gw_channel", "Target Node ID", TextInputStyle.SHORT)
+        TextInput channel = TextInput.create("gw_channel", TextInputStyle.SHORT).setLabel("Target Node ID")
                 .setPlaceholder("Channel ID (Node Designation)").setRequired(true).build();
-        TextInput duration = TextInput.create("gw_duration", "Duration (Minutes)", TextInputStyle.SHORT)
+        TextInput duration = TextInput.create("gw_duration", TextInputStyle.SHORT).setLabel("Duration (Minutes)")
                 .setPlaceholder("Duration in minutes (e.g. 1440 = 1 day)").setRequired(true).build();
-        TextInput winners = TextInput.create("gw_winners", "Winner Quantity", TextInputStyle.SHORT)
+        TextInput winners = TextInput.create("gw_winners", TextInputStyle.SHORT).setLabel("Winner Quantity")
                 .setPlaceholder("Winner quantity").setRequired(true).setValue("1").build();
 
         switch (type) {
             case "discount" -> {
-                TextInput details = TextInput.create("gw_details", "Discount Telemetry", TextInputStyle.PARAGRAPH)
+                TextInput details = TextInput.create("gw_details", TextInputStyle.PARAGRAPH).setLabel("Discount Telemetry")
                         .setPlaceholder("e.g. 30% off Web Development, up to $100").setRequired(true).build();
                 event.replyModal(Modal.create("gw_modal_discount", "DISCOUNT SEQUENCE CONFIG")
                         .addComponents(ActionRow.of(details), ActionRow.of(channel), 
                                 ActionRow.of(duration), ActionRow.of(winners)).build()).queue();
             }
             case "coupon" -> {
-                TextInput details = TextInput.create("gw_details", "Coupon Telemetry", TextInputStyle.PARAGRAPH)
+                TextInput details = TextInput.create("gw_details", TextInputStyle.PARAGRAPH).setLabel("Coupon Telemetry")
                         .setPlaceholder("e.g. $50 USD coupon, expires Dec 2025").setRequired(true).build();
                 event.replyModal(Modal.create("gw_modal_coupon", "COUPON SEQUENCE CONFIG")
                         .addComponents(ActionRow.of(details), ActionRow.of(channel), 
                                 ActionRow.of(duration), ActionRow.of(winners)).build()).queue();
             }
             case "free_service" -> {
-                TextInput details = TextInput.create("gw_details", "Service Telemetry", TextInputStyle.PARAGRAPH)
+                TextInput details = TextInput.create("gw_details", TextInputStyle.PARAGRAPH).setLabel("Service Telemetry")
                         .setPlaceholder("e.g. Free Discord Bot setup (worth $200)").setRequired(true).build();
                 event.replyModal(Modal.create("gw_modal_free_service", "SERVICE SEQUENCE CONFIG")
                         .addComponents(ActionRow.of(details), ActionRow.of(channel), 
                                 ActionRow.of(duration), ActionRow.of(winners)).build()).queue();
             }
             case "custom" -> {
-                TextInput details = TextInput.create("gw_details", "Prize Telemetry", TextInputStyle.PARAGRAPH)
+                TextInput details = TextInput.create("gw_details", TextInputStyle.PARAGRAPH).setLabel("Prize Telemetry")
                         .setPlaceholder("Describe the prize...").setRequired(true).build();
                 event.replyModal(Modal.create("gw_modal_custom", "CUSTOM SEQUENCE CONFIG")
                         .addComponents(ActionRow.of(details), ActionRow.of(channel), 

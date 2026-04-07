@@ -258,7 +258,7 @@ public class SlashCommands extends ListenerAdapter {
             String sessionId = "bc_" + event.getUser().getId();
             BC_SESSIONS.put(sessionId, session);
 
-            TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
+            TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setLabel("Message Content")
                     .setPlaceholder("Enter your transmission content here...")
                     .setRequired(true)
                     .build();
@@ -294,7 +294,7 @@ public class SlashCommands extends ListenerAdapter {
         String sessionId = "boter_" + event.getUser().getId();
         BOTER_SESSIONS.put(sessionId, session);
 
-        TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
+        TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setLabel("Message Content")
                 .setPlaceholder("Enter the message content here...")
                 .setRequired(true)
                 .build();
