@@ -83,6 +83,8 @@ public class SlashCommands extends ListenerAdapter {
                 case "embed" -> handleEmbed(event);
                 case "bc" -> handleBroadcast(event);
                 case "boter" -> handleBoter(event);
+                case "rename" -> handleRename(event);
+                case "setchannel" -> handleSetChannel(event);
             }
         } catch (Exception e) {
             log.error("Error executing SlashCommands: ", e);
