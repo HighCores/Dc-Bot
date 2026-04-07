@@ -14,10 +14,10 @@ import java.util.List;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://raw.githubusercontent.com/OmarAmr20/Img/main/741852963.png";
+    public static final String BANNER_MAIN = "https://i.imgur.com/B94Uf6O.png";
     public static final String BANNER_SUPPORT = "https://i.imgur.com/vH97Z9P.png";
-    public static final String BANNER_SERVICES = "https://raw.githubusercontent.com/OmarAmr20/Img/main/741852963.png";
-    public static final String BANNER_GIVEAWAY = "https://i.imgur.com/XwS1Yj8.png";
+    public static final String BANNER_SERVICES = "https://i.imgur.com/B94Uf6O.png";
+    public static final String BANNER_GIVEAWAY = "https://i.imgur.com/vH97Z9P.png";
 
     public static final String DIVIDER = "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬";
 
@@ -45,36 +45,23 @@ public class EmbedUtil {
 
     public static Container containerBranded(String category, String title, String description, String bannerUrl) {
         List<ContainerChildComponent> layout = new ArrayList<>();
-        
-        if (bannerUrl != null && !bannerUrl.isEmpty()) {
-            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(bannerUrl)));
-        }
-
-        layout.add(v2Header(category, title));
+        if (bannerUrl != null && !bannerUrl.isEmpty()) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(bannerUrl)));
+        layout.add(TextDisplay.of("### \u2728 " + category.toUpperCase() + " \u2022 " + title));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of(description));
-        layout.add(v2Footer());
-        
+        layout.add(TextDisplay.of("*Highcore Agency \u2022 Professional Service Excellence*"));
         return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
     }
 
-    public static Container multiBannerBranded(String category, String title, String body, String topBanner, String middleBanner) {
+    public static Container sectionedBranded(String category, String title, String body, String topBanner, String middleImage) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         if (topBanner != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(topBanner)));
-        layout.add(v2Header(category, title));
+        layout.add(TextDisplay.of("### \u2728 " + category.toUpperCase() + " \u2022 " + title));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         if (body != null) layout.add(TextDisplay.of(body));
-        if (middleBanner != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(middleBanner)));
-        layout.add(v2Footer());
+        if (middleImage != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(middleImage)));
+        layout.add(TextDisplay.of("*Highcore Agency \u2022 Established Excellence*"));
         return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
-    }
-
-    public static TextDisplay v2Header(String category, String title) {
-        return TextDisplay.of("### ✨ " + category.toUpperCase() + " \u2022 " + title);
-    }
-
-    public static TextDisplay v2Footer() {
-        return TextDisplay.of("*Highcore Agency • Professional Service Excellence*");
     }
 
     public static Container mainMenu() {
@@ -105,14 +92,26 @@ public class EmbedUtil {
     }
 
     public static Container services() {
-        return containerBranded("CATALOG", "Service Directory", 
-            "### Ξ Highcore Agency Professional Services\n\n" +
-            "**• Design:** Branding, UI/UX, Motion Graphics\n" +
-            "**• Development:** Discord Bots, WebApps, Full-Stack solutions\n" +
-            "**• Media:** Video editing, professional montage\n" +
-            "**• Minecraft:** Server setup & development\n\n" +
-            "*Select a category below to see details and prices.*", 
-            BANNER_SERVICES);
+        String body = """
+            ### 🛒 Highcore Agency Professional Services
+            
+            **🎨 DESIGN DEPARTMENT**
+            \u2022 **Logo Design:** Vector ($25) \u2022 Abstract ($35)
+            \u2022 **Branding:** Full Package ($60+)
+            \u2022 **Motion:** Intros ($30) \u2022 Overlays ($25)
+            
+            **⚙️ DEVELOPMENT SECTOR**
+            \u2022 **Discord Bots:** Custom ($20+) \u2022 Advanced ($50+)
+            \u2022 **Web:** Landings ($40+) \u2022 Dashboards ($100+)
+            \u2022 **Minecraft:** Plugins & Java Solutions
+            
+            **🎬 MEDIA PRODUCTION**
+            \u2022 **Video Editing:** Montage ($15) \u2022 Commercial ($40+)
+            \u2022 **3D Animation:** Modeling & Rendering
+            
+            *Select a category below to browse and add services to your project.*
+            """;
+        return sectionedBranded("SERVICES", "Official Directory", body, BANNER_SERVICES, "https://raw.githubusercontent.com/OmarAmr20/Img/main/741852963.png");
     }
 
     public static Container rulePanel() {

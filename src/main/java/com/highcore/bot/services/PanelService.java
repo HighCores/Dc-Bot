@@ -130,7 +130,8 @@ public class PanelService {
         reply(target, EmbedUtil.startupPanel(), ActionRow.of(
             Button.primary("menu_services", "Services & Prices").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
             Button.success("order_start", "Project Request").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-            Button.secondary("view_rules", "Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
+            Button.secondary("view_rules", "Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
+            Button.secondary("menu_main", "Hub").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
         ));
     }
 

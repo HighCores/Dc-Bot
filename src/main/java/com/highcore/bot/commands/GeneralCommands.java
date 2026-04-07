@@ -32,15 +32,8 @@ public class GeneralCommands extends ListenerAdapter {
                 case "avatar" -> handleAvatar(event);
                 case "banner" -> handleBanner(event);
                 case "server" -> handleServer(event);
-                case "server-avatar" -> handleServerAvatar(event);
-                case "server-banner" -> handleServerBanner(event);
-                case "roles" -> handleRoles(event);
-                case "invites" -> handleInvites(event);
                 case "rep" -> handleRep(event);
                 case "suggestion" -> handleSuggestion(event);
-                case "translate" -> handleTranslate(event);
-                case "roll" -> handleRoll(event);
-                case "get-emojis" -> handleGetEmojis(event);
                 case "title" -> handleTitle(event);
                 case "points-list" -> handlePointsList(event);
                 case "vito" -> handleVito(event);
@@ -89,11 +82,11 @@ public class GeneralCommands extends ListenerAdapter {
         if (target == null) target = event.getMember();
         int vitos = SupabaseClient.getVitos(target.getId(), event.getGuild().getId());
         if (vitos == 0) {
-            PanelService.reply(event, EmbedUtil.success("INTEGRITY REPORT", "### \u2705 Clean Record\n**" + target.getUser().getName() + "** displays zero vitos. Status: **EXEMPLARY**."), true);
+            PanelService.reply(event, EmbedUtil.success("RECORD STATUS", "### ✅ Clear Status\n**" + target.getUser().getName() + "** has a clean record with zero violations."), true);
             return;
         }
-        PanelService.reply(event, EmbedUtil.containerBranded("INTEGRITY REPORT", "Violation Count", 
-                "**" + target.getUser().getName() + "** has accumulated **" + vitos + "** vitos within this sector.", EmbedUtil.BANNER_MAIN), true);
+        PanelService.reply(event, EmbedUtil.containerBranded("STATUS AUDIT", "Active Violations", 
+                "**" + target.getUser().getName() + "** has accumulated **" + vitos + "** warnings in the agency.", EmbedUtil.BANNER_MAIN), true);
     }
 
     private void handleTranslate(SlashCommandInteractionEvent event) {
@@ -221,16 +214,16 @@ public class GeneralCommands extends ListenerAdapter {
         String joined = target.getTimeJoined() != null ?
                 DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(ZoneId.of("UTC")).format(target.getTimeJoined().toInstant()) : "?";
         
-        String body = "## \uD83D\uDCCB System Profile" + (title.isEmpty() ? "" : "\n> \uD83C\uDFF7\uFE0F *" + title + "*") + "\n\n" +
-                "**\uC5E5 Social Standing**\n" +
+        String body = "## 👤 User Profile" + (title.isEmpty() ? "" : "\n> 🏷️ *" + title + "*") + "\n\n" +
+                "**✨ Agency Standing**\n" +
                 "\u2022 Merit: **" + points + "**\n" +
                 "\u2022 Reputation: **" + rep + "**\n" +
                 "\u2022 Joined: **" + joined + "**\n\n" +
-                "**\uC5E5 Discipline Record**\n" +
-                "\u2022 Vitos: **" + vitos + "**\n" +
-                "\u2022 Warnings: **" + warns + "**";
+                "**📄 Record Summary**\n" +
+                "\u2022 Warnings: **" + warns + "**\n" +
+                "\u2022 Admin Notes: **" + vitos + "**";
 
-        PanelService.reply(event, EmbedUtil.containerBranded("BIOMETRIC SCAN", target.getUser().getName(), body, EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("PROFILE SUMMARY", target.getUser().getName(), body, EmbedUtil.BANNER_MAIN));
     }
 
     private void handleUser(SlashCommandInteractionEvent event) {
