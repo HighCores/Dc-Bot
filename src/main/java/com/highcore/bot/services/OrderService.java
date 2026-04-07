@@ -10,8 +10,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.Label;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.components.container.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -72,24 +73,17 @@ public class OrderService extends ListenerAdapter {
 
         userOrderType.put(event.getUser().getId(), type.toUpperCase());
 
-        // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
-        TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).build();
-        Label name = Label.of(nameInput).withLabel("Project Name").build();
-
-        TextInput budgetInput = TextInput.create("budget", TextInputStyle.SHORT).build();
-        Label budget = Label.of(budgetInput).withLabel("Estimated Budget ($)").build();
-
-        TextInput descInput = TextInput.create("description", TextInputStyle.PARAGRAPH).build();
-        Label description = Label.of(descInput).withLabel("Detailed Requirements").build();
-
-        TextInput discordInput = TextInput.create("discord", TextInputStyle.SHORT).build();
-        Label discord = Label.of(discordInput).withLabel("Discord Contact").build();
+        // JDA 6.4.1 GOLDEN PATTERN: Modal -> addComponents -> Label.of("Text", input)
+        TextInput nameInput = TextInput.create("name", "Project Name", TextInputStyle.SHORT).build();
+        TextInput budgetInput = TextInput.create("budget", "Estimated Budget ($)", TextInputStyle.SHORT).build();
+        TextInput descInput = TextInput.create("description", "Detailed Requirements", TextInputStyle.PARAGRAPH).build();
+        TextInput discordInput = TextInput.create("discord", "Discord Contact", TextInputStyle.SHORT).build();
 
         Modal modal = Modal.create("modal_order", "ORDER WIZARD: " + type.toUpperCase())
-                .addActionRow(name)
-                .addActionRow(budget)
-                .addActionRow(description)
-                .addActionRow(discord)
+                .addComponents(Label.of("Project Name", nameInput))
+                .addComponents(Label.of("Estimated Budget ($)", budgetInput))
+                .addComponents(Label.of("Detailed Requirements", descInput))
+                .addComponents(Label.of("Discord Contact", discordInput))
                 .build();
 
         event.replyModal(modal).queue();
@@ -118,7 +112,7 @@ public class OrderService extends ListenerAdapter {
         
         SupabaseClient.createOrder(orderBody);
         
-        com.highcore.bot.utils.Container c = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
+        Container c = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
                 "### \uD83D\uDCE6 Transmission Received\n" +
                 "**Project:** `" + name + "`\n" +
                 "**Type:** `" + type + "`\n" +
@@ -126,7 +120,8 @@ public class OrderService extends ListenerAdapter {
                 "**Contact:** `" + contact + "`\n\n" +
                 "Our team will review your requirements and reach out on Discord shortly.");
         
-        event.getHook().sendMessageEmbeds(c.build()).setEphemeral(true).queue();
+        // JDA 6.4.1: Use sendMessageComponents(Container)
+        event.getHook().sendMessageComponents(c).setEphemeral(true).queue();
         
         LogManager.log(event.getGuild(), "NEW ORDER", 
                 "User: " + event.getUser().getAsMention() + "\n" +

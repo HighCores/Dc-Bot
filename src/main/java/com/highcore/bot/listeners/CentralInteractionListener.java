@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.LogManager;
 import com.highcore.bot.services.PanelService;
+import com.highcore.bot.services.BroadcastService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
@@ -12,10 +13,9 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.Label;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 
 import java.util.EnumSet;
@@ -29,27 +29,25 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (member == null) return;
 
         if (id.equals("ticket_report")) {
-            // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
-            TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH)
+            // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
+            TextInput reasonInput = TextInput.create("reason", "Report Reason", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("Explain your situation...")
                     .setRequired(true)
                     .build();
-            Label reasonLabel = Label.of(reasonInput).withLabel("Report Reason").build();
 
             Modal modal = Modal.create("modal_report", "REPORT USER")
-                    .addActionRow(reasonLabel)
+                    .addComponents(Label.of("Report Reason", reasonInput))
                     .build();
             event.replyModal(modal).queue();
         } else if (id.equals("ticket_support")) {
-            // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
-            TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
+            // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
+            TextInput subjectInput = TextInput.create("subject", "Support Subject", TextInputStyle.SHORT)
                     .setPlaceholder("What do you need help with?")
                     .setRequired(true)
                     .build();
-            Label subjectLabel = Label.of(subjectInput).withLabel("Support Subject").build();
 
             Modal modal = Modal.create("modal_support", "SUPPORT TICKET")
-                    .addActionRow(subjectLabel)
+                    .addComponents(Label.of("Support Subject", subjectInput))
                     .build();
             event.replyModal(modal).queue();
         }
@@ -76,8 +74,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             com.highcore.bot.commands.SlashCommands.BcSession session = com.highcore.bot.commands.SlashCommands.BC_SESSIONS.get("bc_" + event.getUser().getId());
             if (session != null) {
                 String msg = event.getValue("message").getAsString();
-                // FIX: Assuming transmit still takes 4 args (Guild, Role, Msg, Url)
-                com.highcore.bot.services.BroadcastService.transmit(event.getGuild(), session.roleId, msg, session.attUrl);
+                BroadcastService.startBroadcast(event.getGuild(), msg, session.roleId, session.attUrl);
                 event.reply("Broadcast transmission initiated successfully.").setEphemeral(true).queue();
                 com.highcore.bot.commands.SlashCommands.BC_SESSIONS.remove("bc_" + event.getUser().getId());
             }
@@ -108,7 +105,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                 .addPermissionOverride(event.getMember(), EnumSet.of(net.dv8tion.jda.api.Permission.VIEW_CHANNEL, net.dv8tion.jda.api.Permission.MESSAGE_SEND), null)
                 .addPermissionOverride(event.getGuild().getPublicRole(), null, EnumSet.of(net.dv8tion.jda.api.Permission.VIEW_CHANNEL))
                 .queue(ch -> {
-                    // FIX: Pass all required 7 arguments to SupabaseClient.createTicket
                     SupabaseClient.createTicket(ch.getId(), event.getUser().getId(), ch.getId(), type, reason, "MEDIUM", new JsonObject());
                     ch.sendMessage(event.getUser().getAsMention() + " Welcome to your " + type + " ticket. Our staff will assist you shortly.\n**Reason:** " + reason).queue();
                     event.getHook().sendMessage("Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();

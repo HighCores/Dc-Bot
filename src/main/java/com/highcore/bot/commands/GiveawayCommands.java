@@ -12,7 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.Label;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,29 +37,26 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
-        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
+        // JDA 6.4.1 GOLDEN PATTERN: Label.of("Text", input)
+        TextInput prizeInput = TextInput.create("prize", "Prize", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. Nitro Basic")
                 .setRequired(true)
                 .build();
-        Label prize = Label.of(prizeInput).withLabel("Prize").build();
 
-        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
+        TextInput winnersInput = TextInput.create("winners", "Number of Winners", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 1")
                 .setRequired(true)
                 .build();
-        Label winners = Label.of(winnersInput).withLabel("Number of Winners").build();
 
-        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create("duration", "Duration (minutes)", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 60")
                 .setRequired(true)
                 .build();
-        Label time = Label.of(timeInput).withLabel("Duration (minutes)").build();
 
         Modal modal = Modal.create("modal_giveaway", "GIVEAWAY CONFIG")
-                .addActionRow(prize)
-                .addActionRow(winners)
-                .addActionRow(time)
+                .addComponents(Label.of("Prize", prizeInput))
+                .addComponents(Label.of("Winners Count", winnersInput))
+                .addComponents(Label.of("Duration (Min)", timeInput))
                 .build();
 
         event.replyModal(modal).queue();
@@ -79,7 +76,8 @@ public class GiveawayCommands extends ListenerAdapter {
         net.dv8tion.jda.api.components.buttons.Button joinBtn = net.dv8tion.jda.api.components.buttons.Button.primary("gw_join_" + giveawayId, "Join Giveaway")
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
-        event.replyEmbeds(EmbedUtil.giveaway(prizeStr, winCount, duration).build())
+        // JDA 6.4.1: Container.of must be sent via replyComponents (NO .build())
+        event.replyComponents(EmbedUtil.giveaway(prizeStr, winCount, duration))
                 .addActionRow(joinBtn)
                 .queue(hook -> {
                     LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
