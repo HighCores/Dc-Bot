@@ -176,27 +176,21 @@ public class OrderService {
     }
 
     public static void finishWizard(ButtonInteractionEvent event) {
-        TextInput details = TextInput.create("order_details", TextInputStyle.PARAGRAPH)
-                .setLabel("Detailed Requirements")
+        TextInput details = TextInput.create("order_details", "Detailed Requirements", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Project details / Requirements...")
                 .setRequired(true).build();
-        TextInput qty = TextInput.create("order_qty", TextInputStyle.SHORT)
-                .setLabel("Project Quantity")
+        TextInput qty = TextInput.create("order_qty", "Project Quantity", TextInputStyle.SHORT)
                 .setPlaceholder("Quantity (e.g. 1)").setRequired(true).setValue("1").build();
-        TextInput deadline = TextInput.create("order_deadline", TextInputStyle.SHORT)
-                .setLabel("Preferred Deadline")
+        TextInput deadline = TextInput.create("order_deadline", "Preferred Deadline", TextInputStyle.SHORT)
                 .setPlaceholder("Deadline (e.g. 3 days)").setRequired(false).build();
-        TextInput promo = TextInput.create("order_promo", TextInputStyle.SHORT)
-                .setLabel("Promo Code")
+        TextInput promo = TextInput.create("order_promo", "Promo Code", TextInputStyle.SHORT)
                 .setPlaceholder("Discount Code").setRequired(false).build();
 
         Modal modal = Modal.create("order_modal", "PROJECT SPECIFICATIONS")
-                .addComponents(
-                    ActionRow.of(details),
-                    ActionRow.of(qty),
-                    ActionRow.of(deadline),
-                    ActionRow.of(promo)
-                )
+                .addActionRow(details)
+                .addActionRow(qty)
+                .addActionRow(deadline)
+                .addActionRow(promo)
                 .build();
         event.replyModal(modal).queue();
     }

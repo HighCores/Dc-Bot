@@ -260,14 +260,13 @@ public class SlashCommands extends ListenerAdapter {
             String sessionId = "bc_" + event.getUser().getId();
             BC_SESSIONS.put(sessionId, session);
 
-            TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                    .setLabel("Message Content")
+            TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("Enter your transmission content here...")
                     .setRequired(true)
                     .build();
 
             Modal modal = Modal.create("modal_bc", "BROADCAST")
-                    .addComponents(ActionRow.of(bodyInput))
+                    .addActionRow(bodyInput)
                     .build();
 
             event.replyModal(modal).queue();
@@ -297,14 +296,13 @@ public class SlashCommands extends ListenerAdapter {
         String sessionId = "boter_" + event.getUser().getId();
         BOTER_SESSIONS.put(sessionId, session);
 
-        TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setLabel("Message Content")
+        TextInput bodyInput = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Enter the message content here...")
                 .setRequired(true)
                 .build();
 
         Modal modal = Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(ActionRow.of(bodyInput))
+                .addActionRow(bodyInput)
                 .build();
 
         event.replyModal(modal).queue();
