@@ -20,17 +20,19 @@ public class EmbedUtil {
 
     public static final String BANNER_MAIN = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
     public static final String BANNER_SUPPORT = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop";
+    public static final String BANNER_GIVEAWAY = "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2070&auto=format&fit=crop";
     
     public static final Color SUCCESS = Color.decode("#10b981"); 
     public static final Color DANGER = Color.decode("#f43f5e");  
     public static final Color WARNING = Color.decode("#f59e0b"); 
+    public static final Color INFO = Color.decode("#3b82f6");
     public static final Color GOLD = Color.decode("#fbbf24");
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
 
-    /**
-     * UNIFIED TERMINAL ENGINE V2
-     * Integrated ActionRows INSIDE the Container for a single premium card view.
-     */
+    public static Container containerBranded(String sector, String title, String body, String imageUrl) {
+        return containerBranded(sector, title, body, imageUrl, null);
+    }
+
     public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         
@@ -41,21 +43,17 @@ public class EmbedUtil {
         layout.add(TextDisplay.of("### \u25C8 " + sector.toUpperCase() + " SECTOR \u30FB " + title.toUpperCase()));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
-        if (iconEmoji != null) {
-            layout.add(Section.of(SectionIcon.of(iconEmoji), TextDisplay.of(body)));
-        } else {
-            layout.add(TextDisplay.of(body));
-        }
+        String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
+        layout.add(TextDisplay.of(content));
 
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
-        // CRITICAL: Adding ActionRows INSIDE the Container for V2 Card Style
-        if (rows != null) {
+        if (rows != null && rows.length > 0) {
             layout.addAll(Arrays.asList(rows));
         }
 
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-        layout.add(TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.1 \u2022 HIGHCORE AGENCY \u2022 `"));
+        layout.add(TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.2 \u2022 HIGHCORE AGENCY \u2022 `"));
 
         return Container.of(layout).withAccentColor(ACCENT_TEAL.getRGB() & 0xFFFFFF);
     }
@@ -71,30 +69,36 @@ public class EmbedUtil {
         return containerBranded("CENTER", "Main Control Node", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCE1"), rows);
     }
 
-    public static Container ticketPanel(ActionRow... rows) {
-        return containerBranded("LOGISTICS", "Terminal Access", "Initialize project session via selection modules below.", BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC4"), rows);
-    }
+    // MISSING SYMBOL RESTORATION WRAPPERS
+    public static Container accessDenied() { return error("ACCESS RESTRICTED", "Credentials insufficient for this terminal node."); }
+    public static Container giveawayPanel() { return containerBranded("OPS", "Active Sweepstakes", "Initialize participation in agency giveaways below.", BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81")); }
+    public static Container help() { return containerBranded("SYSTEM", "Terminal Intel", "Comprehensive command listing and protocol documentation.", BANNER_MAIN, Emoji.fromUnicode("\u2705")); }
+    public static Container activityLog(String type, String details, Color color) { return containerBranded("activity", type, details, BANNER_MAIN).withAccentColor(color.getRGB() & 0xFFFFFF); }
+    public static Container ticketClosed(String id, String user) { return containerBranded("session", "Closed", "Case #" + id + " archived by " + user, BANNER_SUPPORT); }
+    public static Container ratingThanks(int r) { return containerBranded("LOG", "Review Saved", "Rating: " + r + "/5 \u2605. Thank you.", BANNER_MAIN); }
+    public static Container paymentGateway(String m, String a) { return containerBranded("PAYS", "Invoice Init", "Method: " + m + " | Amount: $" + a, BANNER_MAIN); }
+    public static Container serverMap() { return containerBranded("INFO", "Node Map", "Agency Geographic Nodes & Connectivity.", BANNER_MAIN); }
+    public static Container socialMedia() { return containerBranded("INFO", "Agency Feeds", "Follow Highcore on digital channels.", BANNER_MAIN); }
+    public static Container warning(String t, String d) { return containerBranded("WARN", t, "[!] " + d, BANNER_SUPPORT).withAccentColor(WARNING.getRGB() & 0xFFFFFF); }
+    public static Container assistantResponse(String r) { return containerBranded("ASSIST", "AI Transmission", r, BANNER_MAIN); }
 
-    public static Container startupPanel(ActionRow... rows) {
-        return containerBranded("INIT", "Onboarding Sequence", "Highcore Agency delivers high-fidelity digital solutions.\nDeploy modules to begin.", BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
-    }
-
-    public static Container error(String title, String description) { return containerBranded("ERROR", title, "[\u274C] " + description, BANNER_SUPPORT, Emoji.fromUnicode("\u274C")).withAccentColor(DANGER.getRGB() & 0xFFFFFF); }
-    public static Container success(String title, String description) { return containerBranded("SUCCESS", title, "[\u2705] " + description, BANNER_MAIN, Emoji.fromUnicode("\u2705")).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF); }
-    public static Container info(String title, String description) { return containerBranded("INFO", title, "[\u2139\uFE0F] " + description, BANNER_MAIN, Emoji.fromUnicode("\u2139\uFE0F")); }
+    public static Container ticketPanel(ActionRow... rows) { return containerBranded("LOGISTICS", "Terminal Access", "Initialize project session via selection modules below.", BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC4"), rows); }
+    public static Container startupPanel(ActionRow... rows) { return containerBranded("INIT", "Onboarding Sequence", "Highcore Agency delivers high-fidelity digital solutions.\nDeploy modules to begin.", BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows); }
+    public static Container error(String title, String description) { return containerBranded("ERROR", title, "[\u274C] " + description, BANNER_SUPPORT).withAccentColor(DANGER.getRGB() & 0xFFFFFF); }
+    public static Container success(String title, String description) { return containerBranded("SUCCESS", title, "[\u2705] " + description, BANNER_MAIN).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF); }
+    public static Container info(String title, String description) { return containerBranded("INFO", title, "[\u2139\uFE0F] " + description, BANNER_MAIN); }
     
-    // BACKWARDS COMPATIBILITY WRAPPERS
-    public static Container services() { return containerBranded("OPS", "Capability Directory", "Explore Design & Development.", BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDED2")); }
-    public static Container rulePanel() { return containerBranded("PROTOCOL", "Compliance", "Professionalism mandatory.", BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC")); }
-    public static Container pointsPanel() { return containerBranded("SYSTEM", "Merit Registry", "Examine standing.", BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCCA")); }
-    public static Container stats(int t, int o, int c, int cl, String s) { return containerBranded("STATS", "Network", "Active Nodes: " + o, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCCA")); }
-    public static Container meritAudit(int points) { return containerBranded("AUDIT", "Identity Summary", "Merit: **" + points + "**", BANNER_MAIN, Emoji.fromUnicode("\u2B50")); }
-    public static Container ticketHeader(String tid, String u, String ty, String b) { return containerBranded("SESSION", "Case #" + tid, "**Client:** " + u + "\n" + b, BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC1")); }
-    public static Container staffAssigned(String n) { return containerBranded("NOTICE", "Agent Assigned", "Operative **" + n + "** claimed.", BANNER_SUPPORT, Emoji.fromUnicode("\u2705")); }
+    public static Container services() { return containerBranded("OPS", "Capability Directory", "Explore Design & Development.", BANNER_MAIN); }
+    public static Container rulePanel() { return containerBranded("PROTOCOL", "Compliance", "Professionalism mandatory.", BANNER_MAIN); }
+    public static Container pointsPanel() { return containerBranded("SYSTEM", "Merit Registry", "Examine standing.", BANNER_MAIN); }
+    public static Container stats(int t, int o, int c, int cl, String s) { return containerBranded("STATS", "Network", "Active Nodes: " + o, BANNER_MAIN); }
+    public static Container meritAudit(int points) { return containerBranded("AUDIT", "Identity Summary", "Merit: **" + points + "**", BANNER_MAIN); }
+    public static Container ticketHeader(String tid, String u, String ty, String b) { return containerBranded("SESSION", "Case #" + tid, "**Client:** " + u + "\n" + b, BANNER_SUPPORT); }
+    public static Container staffAssigned(String n) { return containerBranded("NOTICE", "Agent Assigned", "Operative **" + n + "** claimed.", BANNER_SUPPORT); }
     
     public static TextDisplay v2Header(String category, String title) { return TextDisplay.of("### \u25BA " + category.toUpperCase() + " \u30FB " + title); }
-    public static TextDisplay v2Footer() { return TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.1 \u2022 `"); }
+    public static TextDisplay v2Footer() { return TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.2 \u2022 `"); }
     public static Container custom(String category, String title, String body, String imageUrl, String thumbnail, String author, String authorUrl, String footer, String footerIcon, String field1Title, String field1Value, Boolean field1Inline, String field2Title, String field2Value, Boolean field2Inline, String field3Title, String field3Value, Boolean field3Inline) {
-        return containerBranded(category, title, body, imageUrl, null);
+        return containerBranded(category, title, body, imageUrl);
     }
 }
