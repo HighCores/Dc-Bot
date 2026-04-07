@@ -41,6 +41,24 @@ public class CommandService {
         return false;
     }
 
+    public static void executeSlash(SlashCommandInteractionEvent event) {
+        String trigger = event.getName().toLowerCase();
+        JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
+        if (menu != null) {
+            event.replyComponents(buildMenuContainer(menu)).useComponentsV2(true).queue();
+            return;
+        }
+
+        JsonObject cmd = SupabaseClient.getCommand(trigger);
+        if (cmd != null) {
+            String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
+            if (!hasPermission(event.getMember(), perm)) { event.reply("Access denied.").setEphemeral(true).queue(); return; }
+            String response = cmd.get("response_text").getAsString();
+            event.reply(response).queue();
+            return;
+        }
+    }
+
     public static void sendMenu(MessageChannel channel, JsonObject menu) {
         channel.sendMessageComponents(buildMenuContainer(menu)).useComponentsV2(true).queue();
     }
@@ -86,8 +104,8 @@ public class CommandService {
         if (perm.equalsIgnoreCase("everyone")) return true;
         List<String> staff = com.highcore.bot.config.Config.getStaffRoles();
         List<String> admins = com.highcore.bot.config.Config.getAdminRoles();
-        boolean isStaff = member.getRoles().stream().anyMatch(r -> staff.contains(r.getId()));
-        boolean isAdmin = member.getRoles().stream().anyMatch(r -> admins.contains(r.getId()));
+        boolean isStaff = member != null && member.getRoles().stream().anyMatch(r -> staff.contains(r.getId()));
+        boolean isAdmin = member != null && member.getRoles().stream().anyMatch(r -> admins.contains(r.getId()));
         if (perm.equalsIgnoreCase("admin")) return isAdmin;
         if (perm.equalsIgnoreCase("staff")) return isStaff;
         return true;

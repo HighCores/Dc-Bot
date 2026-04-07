@@ -11,6 +11,7 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.label.Label;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,7 +28,6 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // 1. HARDCODED TERMINAL COMMANDS
         switch (name) {
             case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else event.reply("Unauthorized.").setEphemeral(true).queue(); return; }
             case "tickets" -> { PanelService.sendTicketPanel(event); return; }
@@ -43,12 +43,12 @@ public class SlashCommands extends ListenerAdapter {
             case "ping" -> { event.reply("Latency: " + event.getJDA().getGatewayPing() + "ms").setEphemeral(true).queue(); return; }
         }
 
-        // 2. DYNAMIC SUPABASE COMMANDS (The 70+ commands)
         CommandService.executeSlash(event);
     }
 
     private void handlePoints(SlashCommandInteractionEvent event) {
         String sub = event.getSubcommandName();
+        if (sub == null) return;
         Member m = event.getOption("member", OptionMapping::getAsMember);
         if (m == null) m = event.getMember();
 
@@ -78,6 +78,7 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleFilter(SlashCommandInteractionEvent event) {
         String sub = event.getSubcommandName();
+        if (sub == null) return;
         String word = event.getOption("word") != null ? event.getOption("word").getAsString() : "";
         if (sub.equals("add")) { SupabaseClient.addForbiddenWord(word); WordFilterService.init(); event.reply("Added: " + word).setEphemeral(true).queue(); }
         else if (sub.equals("remove")) { SupabaseClient.removeForbiddenWord(word); WordFilterService.init(); event.reply("Removed: " + word).setEphemeral(true).queue(); }
@@ -86,6 +87,7 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleAutoReply(SlashCommandInteractionEvent event) {
         String sub = event.getSubcommandName();
+        if (sub == null) return;
         if (sub.equals("add")) { AutoReplyService.addResponse(event.getOption("keyword").getAsString(), event.getOption("response").getAsString(), event.getUser().getName()); event.reply("Response added.").setEphemeral(true).queue(); }
         else if (sub.equals("remove")) { AutoReplyService.removeResponse(event.getOption("keyword").getAsString()); event.reply("Response purged.").setEphemeral(true).queue(); }
         else if (sub.equals("list")) { event.reply("Matrix active.").setEphemeral(true).queue(); }
@@ -97,11 +99,11 @@ public class SlashCommands extends ListenerAdapter {
         if (event.getOption("attachment") != null) s.attUrl = event.getOption("attachment").getAsAttachment().getUrl();
         BC_SESSIONS.put("bc_" + event.getUser().getId(), s);
         TextInput input = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
-        event.replyModal(Modal.create("modal_bc", "BROADCAST TRANSMISSION").addComponents(ActionRow.of(input)).build()).queue();
+        event.replyModal(Modal.create("modal_bc", "BROADCAST TRANSMISSION").addComponents(Label.of("Message Content", input)).build()).queue();
     }
 
     private void handleClear(SlashCommandInteractionEvent event) {
-        int count = event.getOption("amount").getAsInt();
+        int count = event.getOption("amount") != null ? event.getOption("amount").getAsInt() : 0;
         event.getChannel().getIterableHistory().takeAsync(count).thenAccept(msgs -> {
             event.getGuildChannel().deleteMessages(msgs).queue(v -> event.reply("Purged " + count + " records.").setEphemeral(true).queue());
         });

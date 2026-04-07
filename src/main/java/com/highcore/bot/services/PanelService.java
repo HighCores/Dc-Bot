@@ -1,5 +1,6 @@
 package com.highcore.bot.services;
 
+import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -104,5 +105,10 @@ public class PanelService {
     public static void sendTicketPanel(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Support Category...").addOption("Order", "purchase").addOption("Support", "tech_support").addOption("Complaint", "complaint").build();
         reply(target, EmbedUtil.containerBranded("LOGISTICS", "Ticket Node", "Initialize session below.", EmbedUtil.BANNER_SUPPORT), ActionRow.of(menu));
+    }
+
+    public static void sendGiveawayPanel(Object target) {
+        ActionRow row = ActionRow.of(Button.success("giveaway_start", "Launch New Sweepstakes"), Button.danger("giveaway_end", "Terminate Active Giveaway"));
+        reply(target, EmbedUtil.containerBranded("SWEEPSTAKES", "Control Node", "Operate rewards distribution system.", EmbedUtil.BANNER_GIVEAWAY), row);
     }
 }

@@ -49,8 +49,6 @@ public class WelcomeListener extends ListenerAdapter {
                 """, member.getAsMention(), member.getEffectiveName());
 
         Container c = EmbedUtil.containerBranded("AGENCY WELCOME", "New Member joined", body, EmbedUtil.BANNER_MAIN);
-        c.withAccentColor(EmbedUtil.ACCENT_TEAL.getRGB() & 0xFFFFFF);
-
         ch.sendMessageComponents(c).useComponentsV2(true).queue();
     }
 
@@ -76,8 +74,6 @@ public class WelcomeListener extends ListenerAdapter {
                 """, dp, dsp, mp, o, t);
 
         Container c = EmbedUtil.containerBranded("AGENCY GUIDE", "Startup Guide", body, EmbedUtil.BANNER_MAIN);
-        c.withAccentColor(EmbedUtil.PRIMARY.getRGB() & 0xFFFFFF);
-
         member.getUser().openPrivateChannel().queue(
                 dm -> dm.sendMessageComponents(c).useComponentsV2(true).queue(null, err -> {}),
                 err -> {});
