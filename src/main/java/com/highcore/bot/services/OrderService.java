@@ -91,8 +91,8 @@ public class OrderService {
                 .addOption("Video Editor", "wiz_editor", net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDFAC"))
                 .build();
 
-        PanelService.reply(event, EmbedUtil.containerBranded("DEPOT INITIALIZED", "Order Dequisition", 
-                "### \uD83D\uDE80 Sector Selection\nSelect your project's primary sector to begin resource allocation and neural mapping.", EmbedUtil.BANNER_MAIN),
+        PanelService.reply(event, EmbedUtil.containerBranded("SERVICE HUB", "Service Selector", 
+                "### \uD83D\uDE80 Category Selection\nSelect the primary department for your project to begin our planning and resource allocation.", EmbedUtil.BANNER_MAIN),
                 ActionRow.of(menu));
     }
 
@@ -104,7 +104,7 @@ public class OrderService {
 
     public static void handleMultiSelection(StringSelectInteractionEvent event) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Telemetry link lost. Please re-initialize."), true); return; }
+        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
         
         String id = event.getComponentId();
         List<String> values = event.getValues();
@@ -122,13 +122,13 @@ public class OrderService {
 
     public static void handlePhaseJump(ButtonInteractionEvent event, String phase) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Telemetry link lost. Please re-initialize."), true); return; }
+        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
         if (phase.equals("ADDONS")) sendAddonSelection(event, session.category);
     }
 
     public static void handleNav(ButtonInteractionEvent event, int direction) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Telemetry link lost. Please re-initialize."), true); return; }
+        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
         if (direction > 0) sendAddonSelection(event, session.category);
         else sendServiceSelection(event, session.category);
     }
@@ -140,8 +140,8 @@ public class OrderService {
                 .setMinValues(1).setMaxValues(Math.min(items.size(), 10));
         items.forEach(i -> menu.addOption(i.name + " ($" + i.price + ")", i.id));
 
-        PanelService.reply(event, EmbedUtil.containerBranded("SECTOR ANALYSIS", cat.toUpperCase() + " SECTOR", 
-                "### \uD83D\uDCE1 Resource Allocation\nSelect one or more core services to allocate project resources in this sector.", EmbedUtil.BANNER_MAIN),
+        PanelService.reply(event, EmbedUtil.containerBranded("DEPARTMENT ANALYSIS", cat.toUpperCase() + " DEPARTMENT", 
+                "### \uD83D\uDCE1 Service Allocation\nSelect one or more core services for your project in this department.", EmbedUtil.BANNER_MAIN),
                 ActionRow.of(menu.build()));
     }
 
@@ -152,8 +152,8 @@ public class OrderService {
                 .setMinValues(0).setMaxValues(Math.min(items.size(), 10));
         items.forEach(i -> menu.addOption(i.name + " (+$" + i.price + ")", i.id));
 
-        PanelService.reply(event, EmbedUtil.containerBranded("RESOURCE EXPANSION", "Component Addoffs", 
-                "### \uD83D\uDD04 Neural Enhancements\nEnhance your project with these specialized modules and expedited protocols.", EmbedUtil.BANNER_MAIN),
+        PanelService.reply(event, EmbedUtil.containerBranded("SERVICE ADD-ONS", "Optional Enhancements", 
+                "### \uD83D\uDD04 Advanced Features\nEnhance your project with these specialized modules and expedited services.", EmbedUtil.BANNER_MAIN),
                 ActionRow.of(menu.build()));
     }
 
@@ -162,8 +162,8 @@ public class OrderService {
         orderData.addProperty("category", session.category);
         orderData.addProperty("total", calculateTotal(session));
         
-        PanelService.reply(event, EmbedUtil.orderRegistry(orderData), 
-            ActionRow.of(Button.success("wiz_finish", "Finalize & Transmit \uD83D\uDCE4")));
+        PanelService.reply(event, EmbedUtil.orderLog(orderData), 
+            ActionRow.of(Button.success("wiz_finish", "Finalize & Submit \uD83D\uDCE4")));
     }
 
     public static int calculateTotal(OrderSession session) {
@@ -177,18 +177,18 @@ public class OrderService {
 
     public static void finishWizard(ButtonInteractionEvent event) {
         TextInput details = TextInput.create("order_details", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("\u062a\u0641\u0627\u0635\u064a\u0644 \u0627\u0644\u0645\u0634\u0631\u0648\u0639 / \u0627\u0644\u0645\u062a\u0637\u0644\u0628\u0627\u062a...")
+                .setPlaceholder("Project details / Requirements...")
                 .setRequired(true).build();
         TextInput qty = TextInput.create("order_qty", TextInputStyle.SHORT).setPlaceholder("Quantity (e.g. 1)").setRequired(true).setValue("1").build();
         TextInput deadline = TextInput.create("order_deadline", TextInputStyle.SHORT).setPlaceholder("Deadline (e.g. 3 days)").setRequired(false).build();
-        TextInput promo = TextInput.create("order_promo", TextInputStyle.SHORT).setPlaceholder("Coded Access (Coupon)").setRequired(false).build();
+        TextInput promo = TextInput.create("order_promo", TextInputStyle.SHORT).setPlaceholder("Discount Code").setRequired(false).build();
 
         Modal modal = Modal.create("order_modal", "PROJECT SPECIFICATIONS")
                 .addComponents(
-                    Label.of("Technical Details", details),
-                    Label.of("Unit Quantity", qty),
-                    Label.of("Decomposition Deadline", deadline),
-                    Label.of("Promotional Key", promo)
+                    Label.of("Detailed Requirements", details),
+                    Label.of("Project Quantity", qty),
+                    Label.of("Preferred Deadline", deadline),
+                    Label.of("Promo Code", promo)
                 )
                 .build();
         event.replyModal(modal).queue();

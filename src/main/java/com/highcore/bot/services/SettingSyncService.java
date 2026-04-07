@@ -24,7 +24,7 @@ public class SettingSyncService {
         // Sync immediately, then every 30 seconds to stay in sync with the Dashboard
         sync();
         scheduler.scheduleAtFixedRate(SettingSyncService::sync, 30, 30, TimeUnit.SECONDS);
-        log.info("Neural Sync Service started: Fetching Dashboard configurations.");
+        log.info("Global Settings Sync started: Fetching Dashboard configurations.");
     }
 
     public static void sync() {
@@ -43,7 +43,7 @@ public class SettingSyncService {
             if (settingsArr != null && settingsArr.size() > 0) globalSettings = settingsArr.get(0).getAsJsonObject();
             
         } catch (Exception e) {
-            log.error("Neural Sync loop error: " + e.getMessage());
+            log.error("Global Settings Sync error: " + e.getMessage());
         }
     }
 

@@ -89,10 +89,16 @@ public class Config {
             case "CH_DESIGN_PRICES" -> CH_DESIGN_PRICES = value;
             case "CH_MINECRAFT_PRICES" -> CH_MINECRAFT_PRICES = value;
             case "CH_TICKET" -> CH_TICKET = value;
+            case "LOG_JOIN_LEFT" -> runtimeOverrides.put("LOG_JOIN_LEFT", value);
+            case "LOG_MESSAGE" -> runtimeOverrides.put("LOG_MESSAGE", value);
+            case "LOG_TICKETS" -> runtimeOverrides.put("LOG_TICKETS", value);
+            case "LOG_COMMANDS" -> runtimeOverrides.put("LOG_COMMANDS", value);
+            case "LOG_MODS_CMD" -> runtimeOverrides.put("LOG_MODS_CMD", value);
+            case "LOG_WARNING" -> runtimeOverrides.put("LOG_WARNING", value);
         }
     }
 
-    private static String get(String key) {
+    public static String get(String key) {
         String o = runtimeOverrides.get(key);
         if (o != null && !o.isEmpty()) return o;
         String v = System.getenv(key);

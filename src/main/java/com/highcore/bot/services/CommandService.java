@@ -10,9 +10,13 @@ import net.dv8tion.jda.api.interactions.commands.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.interactions.components.buttons.ButtonStyle;
 import net.dv8tion.jda.api.components.LayoutComponent;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.buttons.ButtonBuilder;
 import net.dv8tion.jda.api.components.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
+import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -121,13 +125,21 @@ public class CommandService {
         String colorHex = menu.has("color_hex") && !menu.get("color_hex").isJsonNull() ? menu.get("color_hex").getAsString() : "BRAND";
         String menuId = menu.get("menu_id").getAsString();
 
-        Container container = EmbedUtil.branded()
-                .setTitle(title)
-                .setDescription(desc)
-                .setColor(EmbedUtil.parseColor(colorHex));
+        List<ContainerChildComponent> layout = new ArrayList<>();
         
-        if (imageUrl != null && !imageUrl.isEmpty()) container.setImage(imageUrl);
+        // 🎞️ Banner Image (if present)
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        }
 
+        // 🏷️ Header
+        layout.add(EmbedUtil.v2Header("DATABASE", title));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+
+        // 📝 Description
+        layout.add(TextDisplay.of(desc));
+
+        // 🔘 Buttons
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
         if (buttonsArr != null && buttonsArr.size() > 0) {
             List<Button> buttons = new ArrayList<>();
@@ -146,9 +158,13 @@ public class CommandService {
                 }
                 buttons.add(btn);
             }
-            container.addComponents(ActionRow.of(buttons));
+            layout.add(ActionRow.of(buttons));
         }
-        return container;
+
+        // 📜 Footer
+        layout.add(EmbedUtil.v2Footer());
+
+        return Container.of(layout).withAccentColor(EmbedUtil.parseColor(colorHex).getRGB() & 0xFFFFFF);
     }
 
     private static boolean hasPermission(Member member, String perm) {

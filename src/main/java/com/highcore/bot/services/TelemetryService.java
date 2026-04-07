@@ -24,9 +24,9 @@ public class TelemetryService {
                 SupabaseClient.setSetting("bot_latency", ping + "ms");
                 SupabaseClient.setSetting("bot_uptime", formatUptime(uptime));
                 
-                log.debug("Telemetry pulse: ping={}ms, uptime={}", ping, formatUptime(uptime));
+                log.debug("System performance check: ping={}ms, uptime={}", ping, formatUptime(uptime));
             } catch (Exception e) {
-                log.error("Telemetry pulse failed: {}", e.getMessage());
+                log.error("Performance check failed: {}", e.getMessage());
             }
         }, 30, 60, TimeUnit.SECONDS);
     }

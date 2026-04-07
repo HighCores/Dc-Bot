@@ -36,7 +36,7 @@ public class BroadcastService {
                 targetMembers.add(m);
             }
 
-            log.info("Broadcast queue established: {} users. Beginning transmission...", targetMembers.size());
+            log.info("Broadcast queue established: {} users. Beginning delivery...", targetMembers.size());
             executeBroadcastStep(targetMembers, com.highcore.bot.utils.EmojiUtil.parse(message), attachmentUrl, 0);
         }).onError(e -> {
             log.error("Failed to load members for broadcast: {}", e.getMessage());
@@ -48,7 +48,7 @@ public class BroadcastService {
 
     private static void executeBroadcastStep(List<Member> members, String message, String media, int index) {
         if (index >= members.size()) {
-            log.info("Broadcast sequence finalized. Total: {}", members.size());
+            log.info("Broadcast sequence complete. Total: {}", members.size());
             isRunning = false;
             return;
         }
@@ -60,13 +60,13 @@ public class BroadcastService {
 
         m.getUser().openPrivateChannel().queue(pc -> {
             try {
-                Container c = EmbedUtil.containerBranded("TRANSMISSION", "Highcore Broadcast", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
+                Container c = EmbedUtil.containerBranded("MESSAGE", "Highcore Broadcast", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
 
                 pc.sendMessageComponents(c).useComponentsV2(true).queue(
                     s -> log.debug("Broadcast delivered to {}", m.getUser().getName()),
                     e -> log.warn("Broadcast failed for {}: {}", m.getUser().getName(), e.getMessage())
                 );
-            } catch (Exception ex) { log.error("Protocol error at node {}: {}", m.getUser().getName(), ex.getMessage()); }
+            } catch (Exception ex) { log.error("Service error for member {}: {}", m.getUser().getName(), ex.getMessage()); }
         }, error -> log.warn("Could not open DM for {}: {}", m.getUser().getName(), error.getMessage()));
 
         scheduler.schedule(() -> executeBroadcastStep(members, message, media, index + 1), 7, TimeUnit.SECONDS);

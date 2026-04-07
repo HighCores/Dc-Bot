@@ -31,21 +31,92 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("menu_tickets") || id.equals("btn_ticket")) { PanelService.sendTicketPanel(event); return; }
         if (id.equals("menu_services") || id.equals("view_services") || id.equals("btn_services")) { PanelService.sendServicesPanel(event); return; }
         if (id.equals("menu_points")) { PanelService.sendPointsPanel(event); return; }
+        if (id.equals("menu_stats") || id.equals("startup_stats")) { PanelService.sendStatsPanel(event); return; }
         if (id.equals("view_team") || id.equals("btn_team")) { PanelService.sendTeamPanel(event); return; }
+        
+        // --- STARTUP MODULE HANDLERS ---
+        if (id.equals("startup_map")) {
+            PanelService.reply(event, EmbedUtil.serverMap(), true);
+            return;
+        }
+        if (id.equals("startup_prices")) {
+            PanelService.reply(event, EmbedUtil.info("PRICES", "### \uD83D\uDCB0 Agency Price List\n" +
+                "> **Design:** Starts at $20\n" +
+                "> **Development:** Starts at $45\n" +
+                "> **Media:** Starts at $30\n" +
+                "> **Minecraft:** Starts at $25\n\n" +
+                "*Exact costs are calculated based on your specific project needs via Ticket.*"), true);
+            return;
+        }
+        if (id.equals("startup_rules")) {
+            PanelService.reply(event, EmbedUtil.rulePanel(), true);
+            return;
+        }
+        if (id.equals("startup_social")) {
+            ActionRow links = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.link("https://highcore.agency", "Website"),
+                net.dv8tion.jda.api.components.buttons.Button.link("https://twitter.com/highcoreagency", "Twitter"),
+                net.dv8tion.jda.api.components.buttons.Button.link("https://discord.gg/highcore", "Discord")
+            );
+            PanelService.reply(event, EmbedUtil.socialMedia(), true, links);
+            return;
+        }
+        if (id.equals("startup_colors")) {
+            ActionRow row1 = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.success("color_emerald", "Emerald Green"),
+                net.dv8tion.jda.api.components.buttons.Button.primary("color_ocean", "Ocean Blue"),
+                net.dv8tion.jda.api.components.buttons.Button.secondary("color_royal", "Royal Purple")
+            );
+            ActionRow row2 = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.primary("color_golden", "Golden Yellow"),
+                net.dv8tion.jda.api.components.buttons.Button.danger("color_rose", "Rose Pink"),
+                net.dv8tion.jda.api.components.buttons.Button.secondary("color_sunset", "Sunset Orange")
+            );
+            PanelService.reply(event, EmbedUtil.containerBranded("VISUALS", "Identity Selection", 
+                "Select a color to update your appearance. This will toggle existing roles.", EmbedUtil.BANNER_MAIN), true, row1, row2);
+            return;
+        }
+
+        // --- COLOR ROLE LOGIC ---
+        if (id.startsWith("color_")) {
+            String roleId = switch (id) {
+                case "color_emerald" -> "1490844719054454845";
+                case "color_ocean" -> "1490844755050135593";
+                case "color_royal" -> "1490844792052158485";
+                case "color_golden" -> "1490844828056223785";
+                case "color_rose" -> "1490844872054472745";
+                case "color_sunset" -> "1490844917051031626";
+                default -> null;
+            };
+            if (roleId == null) return;
+            net.dv8tion.jda.api.entities.Role role = event.getGuild().getRoleById(roleId);
+            if (role == null) { PanelService.reply(event, EmbedUtil.error("SECURITY", "Role ID validation failed. Node missing."), true); return; }
+            
+            if (event.getMember().getRoles().contains(role)) {
+                event.getGuild().removeRoleFromMember(event.getMember(), role).queue(v -> 
+                    PanelService.reply(event, EmbedUtil.success("COLORS", "Removed: **" + role.getName() + "**"), true));
+            } else {
+                // Remove other colors first for health
+                List<String> allColors = List.of("1490844719054454845", "1490844755050135593", "1490844792052158485", "1490844828056223785", "1490844872054472745", "1490844917051031626");
+                for (String cid : allColors) {
+                    net.dv8tion.jda.api.entities.Role r = event.getGuild().getRoleById(cid);
+                    if (r != null && event.getMember().getRoles().contains(r)) event.getGuild().removeRoleFromMember(event.getMember(), r).queue();
+                }
+                event.getGuild().addRoleToMember(event.getMember(), role).queue(v -> 
+                    PanelService.reply(event, EmbedUtil.success("COLORS", "Applied: **" + role.getName() + "**"), true));
+            }
+            return;
+        }
+        
         if (id.equals("view_rules")) {
-            PanelService.reply(event, EmbedUtil.containerBranded("RULES", "Sector Protocols", 
-                "### \uD83D\uDCDC Agency Guidelines\n" +
-                "1. **Respect Node Integrity:** Maintain professional communication.\n" +
-                "2. **No Data Leaks:** Confidentiality is paramount.\n" +
-                "3. **Queue Discipline:** Respect the ticket processing sequence.", 
-                EmbedUtil.BANNER_MAIN), true);
+            PanelService.reply(event, EmbedUtil.rulePanel(), true);
             return;
         }
         
         // --- AI & QUICK QUERY ---
         if (id.equals("quick_query") || id.equals("ai_query")) {
             AIService.enableAI(event.getChannel().getId());
-            event.replyComponents(EmbedUtil.neuralNode("Neural logic activated. Analytical mode: **ENABLED**.\nAccessing Highcore Database... Ready for input."))
+            event.replyComponents(EmbedUtil.neuralNode("Assistant activated. Looking for information... Ready for your message."))
                     .useComponentsV2(true).setEphemeral(true).queue();
             return;
         }
@@ -54,7 +125,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("order_start")) { OrderService.startWizard(event); return; }
         if (id.equals("support_start")) {
             TextInput subject = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
-            Modal m = Modal.create("modal_ticket_open", "Technical Support Entry")
+            Modal m = Modal.create("modal_ticket_open", "Support Request")
                     .addComponents(Label.of("Problem Brief", subject))
                     .build();
             event.replyModal(m).queue();
@@ -62,7 +133,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         }
         if (id.equals("report_start")) {
             TextInput reason = TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build();
-            Modal m = Modal.create("modal_report_open", "Complaint Registry")
+            Modal m = Modal.create("modal_report_open", "Submit a Report")
                     .addComponents(Label.of("Report Context", reason))
                     .build();
             event.replyModal(m).queue();
@@ -81,7 +152,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("ticket_reopen")) { TicketService.reopenTicket(event.getChannel().asTextChannel(), event.getMember()); event.deferEdit().queue(); return; }
             if (id.equals("ticket_transcript")) { TicketService.sendTranscript(event.getChannel().asTextChannel()); event.deferEdit().queue(); return; }
             if (id.equals("ticket_delete")) {
-                 event.replyComponents(EmbedUtil.warning("TERMINATION", "Sector will be decommissioned in 5 seconds.")).useComponentsV2(true).queue();
+                 event.replyComponents(EmbedUtil.warning("CLOSING", "The channel will be deleted in 5 seconds.")).useComponentsV2(true).queue();
                  event.getChannel().delete().queueAfter(5, TimeUnit.SECONDS);
                  return;
             }
@@ -98,7 +169,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             String[] p = id.split("_");
             String status = p[4];
             TicketService.finalizeClose(event.getChannel().asTextChannel(), event.getMember(), status);
-            PanelService.reply(event, EmbedUtil.containerBranded("REGISTRY", "Registry Updated", "Status set to **" + status + "**. Sector decommissioning initiated.", EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event, EmbedUtil.containerBranded("STATUS", "Status Updated", "Status set to **" + status + "**. The channel is being closed.", EmbedUtil.BANNER_MAIN));
             return;
         }
 
@@ -137,11 +208,11 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("gw_create")) {
             boolean isStaff = event.getMember().getRoles().stream().anyMatch(r -> Config.getStaffRoles().contains(r.getId()));
             if (!isStaff) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-            event.replyComponents(EmbedUtil.info("REGISTRY", "Use `/giveaway-start` to initialize a new prize distribution cycle.")).useComponentsV2(true).setEphemeral(true).queue();
+            event.replyComponents(EmbedUtil.info("GIVEAWAYS", "Use `/giveaway-start` to begin a new giveaway cycle.")).useComponentsV2(true).setEphemeral(true).queue();
             return;
         }
         if (id.equals("gw_list")) {
-            event.replyComponents(EmbedUtil.info("REGISTRY", "Consult the Highcore Central terminal or use `/giveaway-list` for active telemetry.")).useComponentsV2(true).setEphemeral(true).queue();
+            event.replyComponents(EmbedUtil.info("GIVEAWAYS", "Check the giveaway list for active giveaways.")).useComponentsV2(true).setEphemeral(true).queue();
             return;
         }
     }
@@ -155,18 +226,18 @@ public class CentralInteractionListener extends ListenerAdapter {
             switch (choice) {
                 case "purchase" -> OrderService.startWizard(event);
                 case "tech_support" -> {
-                    Modal m = Modal.create("modal_ticket_open", "Technical Support Entry")
+                    Modal m = Modal.create("modal_ticket_open", "Support Request")
                             .addComponents(Label.of("Problem Brief", TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build()))
                             .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
-                    Modal m = Modal.create("modal_report_open", "Complaint Registry")
+                    Modal m = Modal.create("modal_report_open", "Submit a Report")
                             .addComponents(Label.of("Report Context", TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build()))
                             .build();
                     event.replyModal(m).queue();
                 }
-                default -> PanelService.reply(event, EmbedUtil.error("NETWORK ERROR", "Selected category is currently offline or improperly designated."));
+                default -> PanelService.reply(event, EmbedUtil.error("ERROR", "The selected category is currently unavailable. Please try again later."));
             }
         } else if (id.equals("order_wiz_cat")) {
             OrderService.handleCategory(event);

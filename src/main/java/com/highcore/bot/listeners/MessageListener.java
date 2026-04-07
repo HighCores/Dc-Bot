@@ -30,67 +30,35 @@ public class MessageListener extends ListenerAdapter {
         if (WordFilterService.isForbidden(content)) {
             if (event.getMember() != null && !event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
                 event.getMessage().delete().queue();
-                event.getChannel()
-                        .sendMessage(event.getAuthor().getAsMention()
-                                + " \u26A0\uFE0F Your transmission contains forbidden terminology. Access denied.")
-                        .queue(m -> m.delete().queueAfter(5, TimeUnit.SECONDS));
+                
+                String logId = Config.get("LOG_WARNING");
+                TextChannel logChannel = (logId != null && !logId.isEmpty()) ? event.getGuild().getTextChannelById(logId) : null;
+                if (logChannel != null) {
+                    String logBody = "### \u26A0\uFE0F Security Alert: Restricted Content\n" +
+                            "**User:** " + event.getAuthor().getAsMention() + " (`" + event.getAuthor().getId() + "`)\n" +
+                            "**Location:** " + event.getChannel().getAsMention() + "\n" +
+                            "**Timestamp:** <t:" + (System.currentTimeMillis() / 1000) + ":F>\n" +
+                            "**Detected Text:**\n> " + content;
+                    
+                    logChannel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.logNode("SECURITY LOG", logBody, com.highcore.bot.utils.EmbedUtil.DANGER))
+                            .useComponentsV2(true).queue();
+                }
                 return;
             }
         }
 
         saveTicketMessage(event);
 
-        if (content.equalsIgnoreCase("!stop")) {
-            if (AIService.isAIEnabled(channelId)) {
-                AIService.disableAI(channelId);
-                AIService.clearSession(userId);
-                event.getMessage().reply("\u2705 AI assistant disabled.").queue();
-            }
-            return;
-        }
-        if (content.equalsIgnoreCase("!ai")) {
-            AIService.enableAI(channelId);
-            event.getMessage().reply("\uD83D\uDCAC AI assistant enabled! Type your question.\nType `!stop` to disable.")
-                    .queue();
-            return;
-        }
         if (AIService.isAIEnabled(channelId)) {
             event.getChannel().sendTyping().queue();
             String reply = AIService.chat(userId, content);
             event.getMessage().reply(reply).queue();
             return;
         }
+
         String autoReply = AutoReplyService.getResponse(content);
         if (autoReply != null)
             event.getMessage().reply(autoReply).queue();
-
-        // 📡 NEURAL BROADCAST: !bc <@role> <message>
-        if (content.toLowerCase().startsWith("!bc ")) {
-            if (event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals(BroadcastService.BROADCAST_ROLE_ID))) {
-                String cmdArgs = content.substring(4).trim();
-                String targetRoleId = null;
-                String bcMsg = cmdArgs;
-
-                if (cmdArgs.startsWith("<@&") && cmdArgs.contains(">")) {
-                    int endIdx = cmdArgs.indexOf(">");
-                    targetRoleId = cmdArgs.substring(3, endIdx);
-                    bcMsg = cmdArgs.substring(endIdx + 1).trim();
-                }
-
-                if (bcMsg.isEmpty()) { event.getMessage().reply("\u26A0\uFE0F Transmission content cannot be empty.").queue(); return; }
-                bcMsg = bcMsg.replace("\\n", "\n");
-
-                boolean started = BroadcastService.startBroadcast(event.getGuild(), bcMsg, targetRoleId, null);
-                if (started) {
-                    String targetText = (targetRoleId != null) ? "<@&" + targetRoleId + ">" : "All Authorized Nodes";
-                    event.getChannel().sendMessage(com.highcore.bot.utils.EmbedUtil.success("Broadcast Protocol", "### \uD83D\uDCE1 Neural Transmission Initiated\n> Target: " + targetText + "\n> Status: Queueing via 7s sync delay.")).queue();
-                } else {
-                    event.getMessage().reply("\u26A0\uFE0F A broadcast is already in progress. Please wait for the current sequence to finalize.").queue();
-                }
-            } else {
-                event.getMessage().reply("\u274C Unauthorized Protocol Access. Operational permissions required.").queue();
-            }
-        }
     }
 
     private void saveTicketMessage(MessageReceivedEvent event) {

@@ -28,8 +28,16 @@ import java.util.Map;
 public class SlashCommands extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(SlashCommands.class);
 
-    public static class BcSession { public String roleId; public String attUrl; }
-    public static class BoterSession { public String channelId; public List<String> fileUrls = new ArrayList<>(); }
+    public static class BcSession {
+        public String roleId;
+        public String attUrl;
+    }
+
+    public static class BoterSession {
+        public String channelId;
+        public List<String> fileUrls = new ArrayList<>();
+    }
+
     public static final Map<String, BcSession> BC_SESSIONS = new HashMap<>();
     public static final Map<String, BoterSession> BOTER_SESSIONS = new HashMap<>();
 
@@ -42,20 +50,20 @@ public class SlashCommands extends ListenerAdapter {
                     "**User:** " + event.getUser().getAsMention() + "\n" +
                     "**Channel:** " + event.getChannel().getAsMention() + "\n" +
                     "**Time:** " + java.time.format.DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
-                    .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now());
-            
-            cmdLog.sendMessageComponents(EmbedUtil.logNode("COMMAND AUDIT", body, EmbedUtil.INFO))
+                            .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now());
+
+            cmdLog.sendMessageComponents(EmbedUtil.logNode("COMMAND LOG", body, EmbedUtil.INFO))
                     .useComponentsV2(true).queue();
         }
-        
+
         if (isAdmin(event.getMember())) {
             TextChannel modLog = LogManager.get(event.getGuild(), Config.LOG_MODS_CMD);
             if (modLog != null) {
-                String body = "### \uD83D\uDC6E Administrative Override\n" +
+                String body = "### \uD83D\uDC6E Administrative Activity\n" +
                         "**Command:** `/" + event.getFullCommandName() + "`\n" +
                         "**Admin:** " + event.getUser().getAsMention() + "\n" +
-                        "**Node:** " + event.getChannel().getAsMention();
-                
+                        "**Channel:** " + event.getChannel().getAsMention();
+
                 modLog.sendMessageComponents(EmbedUtil.logNode("SECURITY ALERT", body, EmbedUtil.DANGER))
                         .useComponentsV2(true).queue();
             }
@@ -63,7 +71,8 @@ public class SlashCommands extends ListenerAdapter {
 
         try {
             switch (event.getName()) {
-                case "hub", "panel" -> handleMenu(event);
+                case "hub", "menu" -> handleMenu(event);
+                case "startup" -> handleStartup(event);
                 case "services" -> PanelService.sendServicesPanel(event);
                 case "giveaway" -> PanelService.sendGiveawayPanel(event);
                 case "points" -> handlePointsCheck(event);
@@ -72,9 +81,6 @@ public class SlashCommands extends ListenerAdapter {
                 case "help" -> handleHelp(event);
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);
-                case "startup" -> PanelService.sendStartupPanel(event);
-                case "rename" -> handleRename(event);
-                case "setchannel" -> handleSetChannel(event);
                 case "bc" -> handleBroadcast(event);
                 case "boter" -> handleBoter(event);
             }
@@ -87,29 +93,52 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleMenu(SlashCommandInteractionEvent event) {
-        boolean admin = isAdmin(event.getMember());
-        StringSelectMenu.Builder mb = StringSelectMenu.create("menu_select").setPlaceholder("Select a module...");
-        
-        mb.addOption("\uD83C\uDFAB Open Ticket", "open_ticket", "Create a support request")
-          .addOption("\uD83D\uDCCA Statistics", "stats", "View agency stats");
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+        PanelService.sendMainMenu(event);
+    }
 
-        if (admin) {
-            mb.addOption("\uD83C\uDF89 Giveaway Panel", "giveaway_panel", "Manage takeaways")
-              .addOption("\u2B50 Points Panel", "points_panel", "Manage reward points");
+    private void handleStartup(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
         }
 
-        PanelService.reply(event, EmbedUtil.mainMenu(), ActionRow.of(mb.build()));
+        ActionRow row1 = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.secondary("startup_map", "Server Map")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
+                net.dv8tion.jda.api.components.buttons.Button.primary("menu_services", "Our Services")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDED2")),
+                net.dv8tion.jda.api.components.buttons.Button.primary("startup_prices", "Our Prices")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCB0")),
+                net.dv8tion.jda.api.components.buttons.Button.secondary("menu_stats", "Statistics")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCCA")));
+
+        ActionRow row2 = ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.success("startup_colors", "Colors")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDFA8")),
+                net.dv8tion.jda.api.components.buttons.Button.danger("startup_rules", "Server Rules")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCDC")),
+                net.dv8tion.jda.api.components.buttons.Button.secondary("startup_social", "Social Media")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF10")));
+
+        PanelService.reply(event, EmbedUtil.startupPanel(), row1, row2);
     }
 
     private void handlePointsCheck(SlashCommandInteractionEvent event) {
         Member m = event.getOption("member", OptionMapping::getAsMember);
-        if (m == null) m = event.getMember();
+        if (m == null)
+            m = event.getMember();
         int pts = SupabaseClient.getPoints(m.getId(), event.getGuild().getId());
-        
-        Container c = EmbedUtil.containerBranded("SECURITY AUDIT", "Merit Ledger", 
-            "### \u2B50 Merit Report\n> Subject: " + m.getAsMention() + "\n> Status: **" + pts + "** reward points.", EmbedUtil.BANNER_MAIN);
+
+        Container c = EmbedUtil.containerBranded("POINTS", "Points Report",
+                "### \u2B50 Your Points\n> Member: " + m.getAsMention() + "\n> Total: **" + pts
+                        + "** points.",
+                EmbedUtil.BANNER_MAIN);
         c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
-        
+
         PanelService.reply(event, c);
     }
 
@@ -118,33 +147,49 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleAutoReply(SlashCommandInteractionEvent event) {
-        if(!isStaff(event.getMember())){ PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-        String sub=event.getSubcommandName(); if(sub==null) return;
-        switch(sub){
-            case "add"->{
-                String k=event.getOption("keyword",OptionMapping::getAsString);
-                String r=event.getOption("response",OptionMapping::getAsString);
-                AutoReplyService.addResponse(k,r,event.getUser().getName());
-                PanelService.reply(event, EmbedUtil.success("PROTOCOL ADDED", "Auto-reply designated for keyword: **"+k+"**"), true);
+        if (!isStaff(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+        String sub = event.getSubcommandName();
+        if (sub == null)
+            return;
+        switch (sub) {
+            case "add" -> {
+                String k = event.getOption("keyword", OptionMapping::getAsString);
+                String r = event.getOption("response", OptionMapping::getAsString);
+                AutoReplyService.addResponse(k, r, event.getUser().getName());
+                PanelService.reply(event,
+                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply added for keyword: **" + k + "**"), true);
             }
-            case "remove"->{
-                String k=event.getOption("keyword",OptionMapping::getAsString);
+            case "remove" -> {
+                String k = event.getOption("keyword", OptionMapping::getAsString);
                 AutoReplyService.removeResponse(k);
-                PanelService.reply(event, EmbedUtil.success("PROTOCOL REMOVED", "Auto-reply designation purged for: **"+k+"**"), true);
+                PanelService.reply(event,
+                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply removed for keyword: **" + k + "**"),
+                        true);
             }
-            case "list"->{
-                Map<String,String>all=AutoReplyService.getAllResponses();
-                if(all.isEmpty()){ PanelService.reply(event, EmbedUtil.info("REGISTRY EMPTY", "No auto-reply protocols configured."), true); return; }
-                StringBuilder s=new StringBuilder();
-                all.forEach((k,v)->s.append("**").append(k).append("** \u2192 ").append(v).append("\n"));
-                PanelService.reply(event, EmbedUtil.info("PROTOCOL LIST", s.toString()), true);
+            case "list" -> {
+                Map<String, String> all = AutoReplyService.getAllResponses();
+                if (all.isEmpty()) {
+                    PanelService.reply(event, EmbedUtil.info("LIST EMPTY", "No auto-reply messages found."),
+                            true);
+                    return;
+                }
+                StringBuilder s = new StringBuilder();
+                all.forEach((k, v) -> s.append("**").append(k).append("** \u2192 ").append(v).append("\n"));
+                PanelService.reply(event, EmbedUtil.info("MESSAGE LIST", s.toString()), true);
             }
         }
     }
 
     private void handleEmbed(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-        // For custom embeds, we still use the complex helper but ensure it's V2-wrapped where possible or just keep it as is if it uses Container
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+        // For custom embeds, we still use the complex helper but ensure it's V2-wrapped
+        // where possible or just keep it as is if it uses Container
         // PanelService.reply handles the V2 wrap.
         String title = event.getOption("title") != null ? event.getOption("title").getAsString() : null;
         String desc = event.getOption("description") != null ? event.getOption("description").getAsString() : null;
@@ -168,38 +213,56 @@ public class SlashCommands extends ListenerAdapter {
         String f3v = event.getOption("field3_value") != null ? event.getOption("field3_value").getAsString() : null;
         Boolean f3i = event.getOption("field3_inline") != null ? event.getOption("field3_inline").getAsBoolean() : null;
 
-        PanelService.reply(event, EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon, 
+        PanelService.reply(event, EmbedUtil.custom(title, desc, color, image, thumb, aName, aIcon, fText, fIcon,
                 f1n, f1v, f1i, f2n, f2v, f2i, f3n, f3v, f3i));
     }
 
-
     private void handleRename(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel)event.getChannel();
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel)
+                : (GuildChannel) event.getChannel();
         String n = event.getOption("name", OptionMapping::getAsString);
-        if (ch == null || n == null) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify target designation name."), true); return; }
+        if (ch == null || n == null) {
+            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Please specify the new name."), true);
+            return;
+        }
         String old = ch.getName();
-        ch.getManager().setName(n).queue(v -> PanelService.reply(event, EmbedUtil.success("PROTOCOL UPDATED", "Node renamed: `" + old + "` \u2192 `" + n + "`"), true));
+        ch.getManager().setName(n).queue(v -> PanelService.reply(event,
+                EmbedUtil.success("SYSTEM UPDATED", "Channel renamed: `" + old + "` \u2192 `" + n + "`"), true));
     }
 
-    private void handleSetChannel(SlashCommandInteractionEvent event){
-        if(!isAdmin(event.getMember())){ PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-        String p=event.getOption("purpose",OptionMapping::getAsString);
-        GuildChannel ch=event.getOption("channel")!=null?event.getOption("channel",OptionMapping::getAsChannel):(GuildChannel)event.getChannel();
-        if(p==null||ch==null){ PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify protocol purpose and target node."), true); return; }
-        SupabaseClient.setSetting(p.toUpperCase(),ch.getId());
-        Config.updateRuntime(p.toUpperCase(),ch.getId());
-        PanelService.reply(event, EmbedUtil.success("REGISTRY UPDATED", "Protocol `" + p.toUpperCase() + "` now bound to: " + ch.getAsMention()), true);
+    private void handleSetChannel(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+        String p = event.getOption("purpose", OptionMapping::getAsString);
+        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel)
+                : (GuildChannel) event.getChannel();
+        if (p == null || ch == null) {
+            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify settings type and target channel."), true);
+            return;
+        }
+        SupabaseClient.setSetting(p.toUpperCase(), ch.getId());
+        Config.updateRuntime(p.toUpperCase(), ch.getId());
+        PanelService.reply(event, EmbedUtil.success("SETTINGS UPDATED",
+                "Setting `" + p.toUpperCase() + "` now set to: " + ch.getAsMention()), true);
     }
 
     private void handleBroadcast(SlashCommandInteractionEvent event) {
-        if (event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals(BroadcastService.BROADCAST_ROLE_ID))) {
+        if (event.getMember() != null && event.getMember().getRoles().stream()
+                .anyMatch(r -> r.getId().equals(BroadcastService.BROADCAST_ROLE_ID))) {
             BcSession session = new BcSession();
             OptionMapping roleOpt = event.getOption("role");
-            if (roleOpt != null) session.roleId = roleOpt.getAsRole().getId();
+            if (roleOpt != null)
+                session.roleId = roleOpt.getAsRole().getId();
             OptionMapping attOpt = event.getOption("attachment");
-            if (attOpt != null) session.attUrl = attOpt.getAsAttachment().getUrl();
-            
+            if (attOpt != null)
+                session.attUrl = attOpt.getAsAttachment().getUrl();
+
             String sessionId = "bc_" + event.getUser().getId();
             BC_SESSIONS.put(sessionId, session);
 
@@ -208,7 +271,7 @@ public class SlashCommands extends ListenerAdapter {
                     .setRequired(true)
                     .build();
 
-            Modal modal = Modal.create("modal_bc", "BROADCAST INTERFACE")
+            Modal modal = Modal.create("modal_bc", "BROADCAST")
                     .addComponents(Label.of("Message Content", bodyInput))
                     .build();
 
@@ -219,32 +282,43 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleBoter(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
-        
+        if (!isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
+
         BoterSession session = new BoterSession();
-        GuildChannel channel = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel)event.getChannel();
+        GuildChannel channel = event.getOption("channel") != null
+                ? event.getOption("channel", OptionMapping::getAsChannel)
+                : (GuildChannel) event.getChannel();
         session.channelId = channel.getId();
-        
+
         for (int i = 1; i <= 3; i++) {
             OptionMapping att = event.getOption("file" + i);
-            if (att != null) session.fileUrls.add(att.getAsAttachment().getUrl());
+            if (att != null)
+                session.fileUrls.add(att.getAsAttachment().getUrl());
         }
 
         String sessionId = "boter_" + event.getUser().getId();
         BOTER_SESSIONS.put(sessionId, session);
 
         TextInput bodyInput = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("\u0627\u0643\u062a\u0628 \u0627\u0644\u0631\u0633\u0627\u0644\u062a\u0642 \u0627\u0644\u062a\u064a \u062a\u0631\u064A\u062F...")
+                .setPlaceholder("Enter the message content here...")
                 .setRequired(true)
                 .build();
 
-        Modal modal = Modal.create("modal_boter", "BOT EMULATION")
-                .addComponents(Label.of("Transmission Content", bodyInput))
+        Modal modal = Modal.create("modal_boter", "EMULATE USER")
+                .addComponents(Label.of("Message Content", bodyInput))
                 .build();
 
         event.replyModal(modal).queue();
     }
 
-    private boolean isStaff(Member m){return Config.isStaff(m);}
-    private boolean isAdmin(Member m){return Config.isAdmin(m);}
+    private boolean isStaff(Member m) {
+        return Config.isStaff(m);
+    }
+
+    private boolean isAdmin(Member m) {
+        return Config.isAdmin(m);
+    }
 }

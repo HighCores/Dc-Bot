@@ -80,23 +80,23 @@ public class TicketService {
     private static List<Button> getTicketButtons(String status) {
         List<Button> buttons = new ArrayList<>();
         if (status.equals("open")) {
-            buttons.add(Button.primary("ticket_claim", "Claim Module \uD83D\uDCE1"));
-            buttons.add(Button.danger("ticket_close", "Initiate Closure \u26D4"));
+            buttons.add(Button.primary("ticket_claim", "Claim Ticket \uD83D\uDCE1"));
+            buttons.add(Button.danger("ticket_close", "Close Ticket \u26D4"));
         } else if (status.equals("claimed")) {
-            buttons.add(Button.danger("ticket_close", "Initiate Closure \u26D4"));
+            buttons.add(Button.danger("ticket_close", "Close Ticket \u26D4"));
         } else if (status.equals("closed")) {
-            buttons.add(Button.success("ticket_reopen", "Override Closure \uD83D\uDD04"));
-            buttons.add(Button.secondary("ticket_transcript", "Sync Transcript \u231B"));
-            buttons.add(Button.danger("ticket_delete", "Decommission \u2623\uFE0F"));
+            buttons.add(Button.success("ticket_reopen", "Reopen Ticket \uD83D\uDD04"));
+            buttons.add(Button.secondary("ticket_transcript", "Save Transcript \u231B"));
+            buttons.add(Button.danger("ticket_delete", "Delete Channel \u2623\uFE0F"));
         }
         return buttons;
     }
 
     private static List<Button> getPaymentButtons(String ticketId) {
         return List.of(
-            Button.secondary("pay_paypal_" + ticketId, "PayPal Hub"),
-            Button.secondary("pay_stripe_" + ticketId, "Stripe Node"),
-            Button.secondary("pay_local_" + ticketId, "Local Entry")
+            Button.secondary("pay_paypal_" + ticketId, "PayPal Payment"),
+            Button.secondary("pay_stripe_" + ticketId, "Stripe Payment"),
+            Button.secondary("pay_local_" + ticketId, "Manual Entry")
         );
     }
 
@@ -109,28 +109,28 @@ public class TicketService {
     private static Container getWelcomeContainer(String ticketId, String userName, String type, String customBody) {
         String body = switch (type) {
             case "tech_support" -> """
-                    \uD83D\uDD27 **TECHNICAL PROTOCOL:**
-                    \u25B8 Describe the anomaly in detail.
-                    \u25B8 Transmission timestamp of occurrence.
-                    \u25B8 Attach visual telemetry (screenshots).
+                    \uD83D\uDD27 **TECHNICAL SUPPORT:**
+                    \u25B8 Describe the issue in detail.
+                    \u25B8 Mention when the issue started.
+                    \u25B8 Attach relevant screenshots or files.
                     """;
             case "inquiry" -> """
-                    \u2753 **QUERY PROTOCOL:**
-                    \u25B8 Identify service sector of interest.
+                    \u2753 **GENERAL INQUIRY:**
+                    \u25B8 Specify the department of interest.
                     \u25B8 Detail project scope or pricing query.
                     """;
             case "purchase" -> """
-                    \uD83D\uDED2 **DEQUISITION PROTOCOL:**
+                    \uD83D\uDED2 **PURCHASE REQUEST:**
                     \u25B8 Confirm service allocation.
                     \u25B8 Detail project specifications.
                     """;
             default -> """
-                    \uD83D\uDCCC **OPERATIONAL PROTOCOL:**
+                    \uD83D\uDCCC **FEEDBACK/COMPLAINT:**
                     \u25B8 Provide full situational context.
                     """;
         };
 
-        return EmbedUtil.ticketNode(ticketId, userName, getTypeName(type), body + "\n" + customBody);
+        return EmbedUtil.ticketHeader(ticketId, userName, getTypeName(type), body + "\n" + customBody);
     }
 
     public static void claimTicket(TextChannel channel, Member claimer) {
@@ -141,7 +141,7 @@ public class TicketService {
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
-        channel.sendMessageComponents(EmbedUtil.containerBranded("TERMINATION", "Closure Protocol", "A decommissioning request has been logged by operative **" + closer.getEffectiveName() + "**.\nConfirm sector status update.", EmbedUtil.BANNER_SUPPORT))
+        channel.sendMessageComponents(EmbedUtil.containerBranded("CLOSING", "Closure Request", "A request to close this ticket has been made by **" + closer.getEffectiveName() + "**.\nPlease confirm if the service is complete.", EmbedUtil.BANNER_SUPPORT))
                 .useComponentsV2(true)
                 .setComponents(ActionRow.of(
                         Button.success("order_status_update_DELIVERED", "Delivered"),
@@ -163,7 +163,7 @@ public class TicketService {
             }
         }
         
-        channel.sendMessageComponents(EmbedUtil.containerBranded("REGISTRY", "Sector Decomm", "Status: **" + status + "**\nAccess restricted to authorized personnel.", EmbedUtil.BANNER_SUPPORT))
+        channel.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVE", "Ticket Closed", "Status: **" + status + "**\nThis channel is now archived.", EmbedUtil.BANNER_SUPPORT))
                 .useComponentsV2(true)
                 .setComponents(ActionRow.of(getTicketButtons("closed"))).queue();
 
@@ -181,7 +181,7 @@ public class TicketService {
             if (owner != null) channel.upsertPermissionOverride(owner).grant(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND).queue();
         }
         
-        channel.sendMessageComponents(EmbedUtil.containerBranded("OVERRIDE", "Protocol Restored", "Sector access restored by operative **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT))
+        channel.sendMessageComponents(EmbedUtil.containerBranded("RESTORED", "Ticket Reopened", "Access to this ticket has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT))
                 .useComponentsV2(true)
                 .setComponents(ActionRow.of(getTicketButtons("open"))).queue();
     }
@@ -192,10 +192,10 @@ public class TicketService {
             FileUpload upload = FileUpload.fromData(receiptData, "invoice.png");
             
             Container receipt = Container.of(
-                EmbedUtil.v2Header("INVOICE", "Financial Registry"),
+                EmbedUtil.v2Header("PAYMENT", "Finance"),
                 Separator.createDivider(Separator.Spacing.SMALL),
                 MediaGallery.of(MediaGalleryItem.fromFile(upload)),
-                TextDisplay.of("**Transaction Audit:** Verified via Highcore Neural Network.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
+                TextDisplay.of("**Payment Verified:** Confirmed by Highcore Billing System.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
                 EmbedUtil.v2Footer()
             ).withAccentColor(EmbedUtil.SUCCESS.getRGB() & 0xFFFFFF);
 
@@ -207,10 +207,10 @@ public class TicketService {
 
     public static Container generateV2Receipt(JsonObject data, String receiptUrl) {
         return Container.of(
-            EmbedUtil.v2Header("INVOICE", "Financial Registry"),
+            EmbedUtil.v2Header("PAYMENT", "Finance"),
             Separator.createDivider(Separator.Spacing.SMALL),
             MediaGallery.of(MediaGalleryItem.fromUrl(receiptUrl)),
-            TextDisplay.of("**Transaction Audit:** Verified via Highcore Neural Network.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
+            TextDisplay.of("**Payment Verified:** Confirmed by Highcore Billing System.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
             EmbedUtil.v2Footer()
         ).withAccentColor(EmbedUtil.SUCCESS.getRGB() & 0xFFFFFF);
     }
@@ -223,7 +223,7 @@ public class TicketService {
                 for (var m : msgs) pw.println("[" + m.getTimeCreated() + "] " + m.getAuthor().getName() + ": " + m.getContentRaw());
                 pw.close();
                 channel.sendFiles(FileUpload.fromData(f)).queue(s -> f.delete());
-            } catch (Exception e) { log.error("Transcript node failure", e); }
+            } catch (Exception e) { log.error("Transcript generation failure", e); }
         });
     }
 }

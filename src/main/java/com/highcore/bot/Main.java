@@ -34,7 +34,6 @@ public class Main {
                 .addEventListeners(
                         new MessageListener(), 
                         new SlashCommands(),
-                        new ModerationCommands(), 
                         new GiveawayCommands(), 
                         new PointsCommands(), 
                         new GeneralCommands(),
@@ -95,16 +94,6 @@ public class Main {
                 Commands.slash("boter", "Send message on behalf of the terminal (Admin)")
                         .addOption(OptionType.CHANNEL, "channel", "Target node", false)
                         .addOption(OptionType.ATTACHMENT, "file1", "Payload A", false),
-
-                // ===== MODERATION (MANUAL OVERRIDE) =====
-                Commands.slash("ban", "Revoke member access (Admin)").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.STRING,"reason","Log reason",false),
-                Commands.slash("unban", "Restore member access (Admin)").addOption(OptionType.STRING,"user_id","Subject ID",true),
-                Commands.slash("kick", "Eject member from sector (Admin)").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.STRING,"reason","Log reason",false),
-                Commands.slash("mute", "Silence member transmission (Admin)").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"duration","Minutes",false),
-                Commands.slash("unmute", "Restore member transmission (Admin)").addOption(OptionType.USER,"member","Subject",true),
-                Commands.slash("clear", "Purge local data blocks (Admin)").addOption(OptionType.INTEGER,"amount","Purge density (1-100)",true),
-                Commands.slash("lock", "Secure transmission node (Admin)").addOption(OptionType.CHANNEL,"channel","Target node",false),
-                Commands.slash("unlock", "Enable transmission node (Admin)").addOption(OptionType.CHANNEL,"channel","Target node",false),
 
                 // ===== ADMINISTRATIVE =====
                 Commands.slash("points", "View merit points (Admin)")
