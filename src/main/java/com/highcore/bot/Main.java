@@ -1,3 +1,4 @@
+// FORCE REBUILD TRIGGER: 2026-04-07-05-55
 package com.highcore.bot;
 
 import com.highcore.bot.api.RestApiServer;
