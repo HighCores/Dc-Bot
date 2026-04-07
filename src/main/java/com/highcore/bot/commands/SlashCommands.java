@@ -87,7 +87,7 @@ public class SlashCommands extends ListenerAdapter {
         } catch (Exception e) {
             log.error("Error executing SlashCommands: ", e);
             if (!event.isAcknowledged()) {
-                PanelService.reply(event, EmbedUtil.error("SYSTEM ERROR", "Execution failed: " + e.getMessage()), true);
+                PanelService.replyEphemeral(event, EmbedUtil.error("SYSTEM ERROR", "Execution failed: " + e.getMessage()));
             }
         }
     }
@@ -159,26 +159,24 @@ public class SlashCommands extends ListenerAdapter {
                 String k = event.getOption("keyword", OptionMapping::getAsString);
                 String r = event.getOption("response", OptionMapping::getAsString);
                 AutoReplyService.addResponse(k, r, event.getUser().getName());
-                PanelService.reply(event,
-                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply added for keyword: **" + k + "**"), true);
+                PanelService.replyEphemeral(event,
+                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply added for keyword: **" + k + "**"));
             }
             case "remove" -> {
                 String k = event.getOption("keyword", OptionMapping::getAsString);
                 AutoReplyService.removeResponse(k);
-                PanelService.reply(event,
-                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply removed for keyword: **" + k + "**"),
-                        true);
+                PanelService.replyEphemeral(event,
+                        EmbedUtil.success("SYSTEM UPDATED", "Auto-reply removed for keyword: **" + k + "**"));
             }
             case "list" -> {
                 Map<String, String> all = AutoReplyService.getAllResponses();
                 if (all.isEmpty()) {
-                    PanelService.reply(event, EmbedUtil.info("LIST EMPTY", "No auto-reply messages found."),
-                            true);
+                    PanelService.replyEphemeral(event, EmbedUtil.info("LIST EMPTY", "No auto-reply messages found."));
                     return;
                 }
                 StringBuilder s = new StringBuilder();
                 all.forEach((k, v) -> s.append("**").append(k).append("** \u2192 ").append(v).append("\n"));
-                PanelService.reply(event, EmbedUtil.info("MESSAGE LIST", s.toString()), true);
+                PanelService.replyEphemeral(event, EmbedUtil.info("MESSAGE LIST", s.toString()));
             }
         }
     }
@@ -188,9 +186,6 @@ public class SlashCommands extends ListenerAdapter {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
         }
-        // For custom embeds, we still use the complex helper but ensure it's V2-wrapped
-        // where possible or just keep it as is if it uses Container
-        // PanelService.reply handles the V2 wrap.
         String title = event.getOption("title") != null ? event.getOption("title").getAsString() : null;
         String desc = event.getOption("description") != null ? event.getOption("description").getAsString() : null;
         String color = event.getOption("color") != null ? event.getOption("color").getAsString() : null;
@@ -226,12 +221,12 @@ public class SlashCommands extends ListenerAdapter {
                 : (GuildChannel) event.getChannel();
         String n = event.getOption("name", OptionMapping::getAsString);
         if (ch == null || n == null) {
-            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Please specify the new name."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Please specify the new name."));
             return;
         }
         String old = ch.getName();
-        ch.getManager().setName(n).queue(v -> PanelService.reply(event,
-                EmbedUtil.success("SYSTEM UPDATED", "Channel renamed: `" + old + "` \u2192 `" + n + "`"), true));
+        ch.getManager().setName(n).queue(v -> PanelService.replyEphemeral(event,
+                EmbedUtil.success("SYSTEM UPDATED", "Channel renamed: `" + old + "` \u2192 `" + n + "`")));
     }
 
     private void handleSetChannel(SlashCommandInteractionEvent event) {
@@ -243,13 +238,13 @@ public class SlashCommands extends ListenerAdapter {
         GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel)
                 : (GuildChannel) event.getChannel();
         if (p == null || ch == null) {
-            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Specify settings type and target channel."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Specify settings type and target channel."));
             return;
         }
         SupabaseClient.setSetting(p.toUpperCase(), ch.getId());
         Config.updateRuntime(p.toUpperCase(), ch.getId());
-        PanelService.reply(event, EmbedUtil.success("SETTINGS UPDATED",
-                "Setting `" + p.toUpperCase() + "` now set to: " + ch.getAsMention()), true);
+        PanelService.replyEphemeral(event, EmbedUtil.success("SETTINGS UPDATED",
+                "Setting `" + p.toUpperCase() + "` now set to: " + ch.getAsMention()));
     }
 
     private void handleBroadcast(SlashCommandInteractionEvent event) {

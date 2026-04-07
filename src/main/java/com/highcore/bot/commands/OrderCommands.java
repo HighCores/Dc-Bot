@@ -29,8 +29,8 @@ public class OrderCommands extends ListenerAdapter {
 
         JsonObject order = SupabaseClient.getOrder(num);
         if (order == null) {
-            PanelService.reply(event, EmbedUtil.error("REGISTRY ERROR", "### \u274C Project Not Found\n" + 
-                    "The project designation ID `" + num + "` does not exist in the Highcore neural registry."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("REGISTRY ERROR", "### \u274C Project Not Found\n" + 
+                    "The project designation ID `" + num + "` does not exist in the Highcore neural registry."));
             return;
         }
 

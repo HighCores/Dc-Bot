@@ -34,7 +34,7 @@ public class GiveawayCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        if (!isAdmin(event.getMember())) { PanelService.replyEphemeral(event, EmbedUtil.accessDenied()); return; }
         try {
             switch (event.getName()) {
                 case "giveaway-start" -> handleStart(event);
@@ -48,27 +48,25 @@ public class GiveawayCommands extends ListenerAdapter {
         } catch (Exception e) {
             log.error("Error executing GiveawayCommands: ", e);
             if (!event.isAcknowledged()) {
-                PanelService.reply(event, EmbedUtil.error("SYSTEM ERROR", "Execution failed: " + e.getMessage()), true);
+                PanelService.replyEphemeral(event, EmbedUtil.error("SYSTEM ERROR", "Execution failed: " + e.getMessage()));
             }
         }
     }
 
-    // ===== PANEL =====
     private void handlePanel(SlashCommandInteractionEvent event) {
         PanelService.reply(event, EmbedUtil.giveawayPanel(), ActionRow.of(
                         Button.success("gw_create", "\u2795 Create Giveaway"),
                         Button.secondary("gw_list", "\uD83D\uDCCB List Active")));
     }
 
-    // ===== PANEL BUTTONS =====
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         if (!event.getComponentId().startsWith("gw_")) return;
-        if (!isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        if (!isAdmin(event.getMember())) { PanelService.replyEphemeral(event, EmbedUtil.accessDenied()); return; }
 
         switch (event.getComponentId()) {
             case "gw_create" -> {
-                PanelService.reply(event, EmbedUtil.info("GIVEAWAY PROTOCOL", "Select prize classification type:"), true, ActionRow.of(
+                PanelService.replyEphemeral(event, EmbedUtil.info("GIVEAWAY PROTOCOL", "Select prize classification type:"), ActionRow.of(
                                 StringSelectMenu.create("gw_type_select")
                                         .setPlaceholder("Choose prize category...")
                                         .addOption("\uD83D\uDCB0 Discount", "discount", "Percentage or fixed discount")
@@ -80,7 +78,7 @@ public class GiveawayCommands extends ListenerAdapter {
             case "gw_list" -> {
                 JsonArray active = SupabaseClient.getActiveGiveaways();
                 if (active == null || active.size() == 0) {
-                    PanelService.reply(event, EmbedUtil.info("REGISTRY", "No active giveaway sequences detected."), true);
+                    PanelService.replyEphemeral(event, EmbedUtil.info("REGISTRY", "No active giveaway sequences detected."));
                     return;
                 }
                 StringBuilder sb = new StringBuilder();
@@ -90,12 +88,11 @@ public class GiveawayCommands extends ListenerAdapter {
                             .append(g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified")
                             .append(" \u2014 <#").append(g.get("channel_id").getAsString()).append(">\n");
                 }
-                PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY AUDIT", "Active Sequences", "### \uD83C\uDF89 Operational Nodes\n" + sb, EmbedUtil.BANNER_GIVEAWAY), true);
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY AUDIT", "Active Sequences", "### \uD83C\uDF89 Operational Nodes\n" + sb, EmbedUtil.BANNER_GIVEAWAY));
             }
         }
     }
 
-    // ===== TYPE SELECTOR =====
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         if (!event.getComponentId().equals("gw_type_select")) return;
@@ -140,7 +137,6 @@ public class GiveawayCommands extends ListenerAdapter {
         }
     }
 
-    // ===== MODAL SUBMIT =====
     @Override
     public void onModalInteraction(ModalInteractionEvent event) {
         if (!event.getModalId().startsWith("gw_modal_")) return;
@@ -154,13 +150,13 @@ public class GiveawayCommands extends ListenerAdapter {
             durationMin = Integer.parseInt(event.getValue("gw_duration").getAsString().trim());
             winnerCount = Integer.parseInt(event.getValue("gw_winners").getAsString().trim());
         } catch (NumberFormatException e) {
-            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Duration and winners must be numerical values."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Duration and winners must be numerical values."));
             return;
         }
 
         TextChannel targetCh = event.getGuild().getTextChannelById(channelId);
         if (targetCh == null) {
-            PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Target node ID not detected in sector."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Target node ID not detected in sector."));
             return;
         }
 
@@ -178,7 +174,7 @@ public class GiveawayCommands extends ListenerAdapter {
                 event.getUser().getId(), event.getUser().getName(), type, details, null, null, null, null, winnerCount, endsAt);
 
         if (giveaway == null) {
-            PanelService.reply(event, EmbedUtil.error("DATABASE ERROR", "Failed to initialize giveaway registry entry."), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATABASE ERROR", "Failed to initialize giveaway registry entry."));
             return;
         }
 
@@ -199,10 +195,9 @@ public class GiveawayCommands extends ListenerAdapter {
                         Button.secondary("gw_count_" + giveawayId, "0 entries recorded")))
                 .queue(msg -> SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId()));
 
-        PanelService.reply(event, EmbedUtil.success("SEQUENCE ACTIVE", "Giveaway **#" + giveawayId + "** deployed to " + targetCh.getAsMention() + "!"), true);
+        PanelService.replyEphemeral(event, EmbedUtil.success("SEQUENCE ACTIVE", "Giveaway **#" + giveawayId + "** deployed to " + targetCh.getAsMention() + "!"));
     }
 
-    // ===== SLASH COMMANDS =====
     private void handleStart(SlashCommandInteractionEvent event) {
         String prize = event.getOption("prize", OptionMapping::getAsString);
         int duration = event.getOption("duration", 60, OptionMapping::getAsInt);
@@ -212,7 +207,7 @@ public class GiveawayCommands extends ListenerAdapter {
         String endsAt = Instant.now().plus(duration, ChronoUnit.MINUTES).toString();
         JsonObject g = SupabaseClient.createGiveaway(ch.getId(), event.getGuild().getId(),
                 event.getUser().getId(), event.getUser().getName(), "custom", prize, null, null, null, null, winners, endsAt);
-        if (g == null) { PanelService.reply(event, EmbedUtil.error("DATABASE ERROR", "Failed to create registry entry."), true); return; }
+        if (g == null) { PanelService.replyEphemeral(event, EmbedUtil.error("DATABASE ERROR", "Failed to create registry entry.")); return; }
 
         long gid = g.get("id").getAsLong();
         String timeStr = duration >= 60 ? (duration / 60) + "h" : duration + "min";
@@ -228,7 +223,7 @@ public class GiveawayCommands extends ListenerAdapter {
                         Button.secondary("gw_count_" + gid, "0 entries recorded")))
                 .queue(msg -> SupabaseClient.setGiveawayMessageId(gid, msg.getId()));
         
-        PanelService.reply(event, EmbedUtil.success("SEQUENCE DEPLOYED", "Action active in " + ch.getAsMention()), true);
+        PanelService.replyEphemeral(event, EmbedUtil.success("SEQUENCE DEPLOYED", "Action active in " + ch.getAsMention()));
     }
 
     private void handleEnd(SlashCommandInteractionEvent event) {
@@ -236,8 +231,8 @@ public class GiveawayCommands extends ListenerAdapter {
         try {
             long id = Long.parseLong(idStr);
             GiveawayService.endGiveaway(event.getJDA(), id, 1);
-            PanelService.reply(event, EmbedUtil.success("PROTOCOL FINALIZED", "Giveaway **#" + id + "** decommissioning initiated."), true);
-        } catch (Exception e) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Malformed sequence ID."), true); }
+            PanelService.replyEphemeral(event, EmbedUtil.success("PROTOCOL FINALIZED", "Giveaway **#" + id + "** decommissioning initiated."));
+        } catch (Exception e) { PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Malformed sequence ID.")); }
     }
 
     private void handleReroll(SlashCommandInteractionEvent event) {
@@ -245,13 +240,13 @@ public class GiveawayCommands extends ListenerAdapter {
         try {
             long id = Long.parseLong(idStr);
             GiveawayService.rerollGiveaway(event.getJDA(), id);
-            PanelService.reply(event, EmbedUtil.success("PROTOCOL REROLLED", "Re-calibrating winners for sequence **#" + id + "**."), true);
-        } catch (Exception e) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Malformed sequence ID."), true); }
+            PanelService.replyEphemeral(event, EmbedUtil.success("PROTOCOL REROLLED", "Re-calibrating winners for sequence **#" + id + "**."));
+        } catch (Exception e) { PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Malformed sequence ID.")); }
     }
 
     private void handleList(SlashCommandInteractionEvent event) {
         JsonArray active = SupabaseClient.getActiveGiveaways();
-        if (active == null || active.size() == 0) { PanelService.reply(event, EmbedUtil.info("REGISTRY", "No active giveaway sequences detected."), true); return; }
+        if (active == null || active.size() == 0) { PanelService.replyEphemeral(event, EmbedUtil.info("REGISTRY", "No active giveaway sequences detected.")); return; }
         StringBuilder sb = new StringBuilder();
         for (var el : active) {
             JsonObject g = el.getAsJsonObject();
@@ -259,7 +254,7 @@ public class GiveawayCommands extends ListenerAdapter {
                     .append(g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified")
                     .append(" \u2014 <#").append(g.get("channel_id").getAsString()).append(">\n");
         }
-        PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY AUDIT", "Active Sequences", "### \uD83C\uDF89 Operational Nodes\n" + sb, EmbedUtil.BANNER_GIVEAWAY), true);
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY AUDIT", "Active Sequences", "### \uD83C\uDF89 Operational Nodes\n" + sb, EmbedUtil.BANNER_GIVEAWAY));
     }
 
     private void handleDrop(SlashCommandInteractionEvent event) {
@@ -268,7 +263,7 @@ public class GiveawayCommands extends ListenerAdapter {
         String endsAt = Instant.now().plus(1, ChronoUnit.MINUTES).toString();
         JsonObject g = SupabaseClient.createGiveaway(ch.getId(), event.getGuild().getId(),
                 event.getUser().getId(), event.getUser().getName(), "drop", prize, null, null, null, null, 1, endsAt);
-        if (g == null) { PanelService.reply(event, EmbedUtil.error("DATABASE ERROR", "Failed to initialize drop registry."), true); return; }
+        if (g == null) { PanelService.replyEphemeral(event, EmbedUtil.error("DATABASE ERROR", "Failed to initialize drop registry.")); return; }
         long gid = g.get("id").getAsLong();
         
         Container c = EmbedUtil.containerBranded("NEURAL DROP", "First Priority Acquisition", 
@@ -278,7 +273,7 @@ public class GiveawayCommands extends ListenerAdapter {
         ch.sendMessageComponents(c).useComponentsV2(true).addComponents(ActionRow.of(Button.success("gw_enter_" + gid, "\uD83D\uDCA8 CLAIM!")))
                 .queue(msg -> SupabaseClient.setGiveawayMessageId(gid, msg.getId()));
         
-        PanelService.reply(event, EmbedUtil.success("DROP DEPLOYED", "Acquisition node active in " + ch.getAsMention()), true);
+        PanelService.replyEphemeral(event, EmbedUtil.success("DROP DEPLOYED", "Acquisition node active in " + ch.getAsMention()));
     }
 
     private boolean isAdmin(Member m) { return m != null && m.getRoles().stream().anyMatch(r -> Config.getAdminRoles().contains(r.getId())); }

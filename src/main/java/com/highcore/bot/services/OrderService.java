@@ -104,7 +104,7 @@ public class OrderService {
 
     public static void handleMultiSelection(StringSelectInteractionEvent event) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
+        if (session == null) { PanelService.replyEphemeral(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process.")); return; }
         
         String id = event.getComponentId();
         List<String> values = event.getValues();
@@ -122,13 +122,13 @@ public class OrderService {
 
     public static void handlePhaseJump(ButtonInteractionEvent event, String phase) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
+        if (session == null) { PanelService.replyEphemeral(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process.")); return; }
         if (phase.equals("ADDONS")) sendAddonSelection(event, session.category);
     }
 
     public static void handleNav(ButtonInteractionEvent event, int direction) {
         OrderSession session = sessions.get(event.getUser().getId());
-        if (session == null) { PanelService.reply(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process."), true); return; }
+        if (session == null) { PanelService.replyEphemeral(event, EmbedUtil.error("SESSION EXPIRED", "Connection lost. Please restart the selection process.")); return; }
         if (direction > 0) sendAddonSelection(event, session.category);
         else sendServiceSelection(event, session.category);
     }

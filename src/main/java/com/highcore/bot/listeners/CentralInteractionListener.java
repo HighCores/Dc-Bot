@@ -14,11 +14,13 @@ import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.label.Label;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import java.util.List;
 
 public class CentralInteractionListener extends ListenerAdapter {
@@ -27,7 +29,6 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
         String id = event.getComponentId();
 
-        // --- NAVIGATION & MENUS ---
         if (id.equals("menu_main")) { PanelService.sendMainMenu(event); return; }
         if (id.equals("menu_tickets") || id.equals("btn_ticket")) { PanelService.sendTicketPanel(event); return; }
         if (id.equals("menu_services") || id.equals("view_services") || id.equals("btn_services")) { PanelService.sendServicesPanel(event); return; }
@@ -35,50 +36,48 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("menu_stats") || id.equals("startup_stats")) { PanelService.sendStatsPanel(event); return; }
         if (id.equals("view_team") || id.equals("btn_team")) { PanelService.sendTeamPanel(event); return; }
         
-        // --- STARTUP MODULE HANDLERS ---
         if (id.equals("startup_map")) {
-            PanelService.reply(event, EmbedUtil.serverMap(), true);
+            PanelService.replyEphemeral(event, EmbedUtil.serverMap());
             return;
         }
         if (id.equals("startup_prices")) {
-            PanelService.reply(event, EmbedUtil.info("PRICES", "### \uD83D\uDCB0 Agency Price List\n" +
+            PanelService.replyEphemeral(event, EmbedUtil.info("PRICES", "### \uD83D\uDCB0 Agency Price List\n" +
                 "> **Design:** Starts at $20\n" +
                 "> **Development:** Starts at $45\n" +
                 "> **Media:** Starts at $30\n" +
                 "> **Minecraft:** Starts at $25\n\n" +
-                "*Exact costs are calculated based on your specific project needs via Ticket.*"), true);
+                "*Exact costs are calculated based on your specific project needs via Ticket.*"));
             return;
         }
         if (id.equals("startup_rules")) {
-            PanelService.reply(event, EmbedUtil.rulePanel(), true);
+            PanelService.replyEphemeral(event, EmbedUtil.rulePanel());
             return;
         }
         if (id.equals("startup_social")) {
             ActionRow links = ActionRow.of(
-                net.dv8tion.jda.api.components.buttons.Button.link("https://highcore.agency", "Website"),
-                net.dv8tion.jda.api.components.buttons.Button.link("https://twitter.com/highcoreagency", "Twitter"),
-                net.dv8tion.jda.api.components.buttons.Button.link("https://discord.gg/highcore", "Discord")
+                Button.link("https://highcore.agency", "Website"),
+                Button.link("https://twitter.com/highcoreagency", "Twitter"),
+                Button.link("https://discord.gg/highcore", "Discord")
             );
-            PanelService.reply(event, EmbedUtil.socialMedia(), true, links);
+            PanelService.replyEphemeral(event, EmbedUtil.socialMedia(), links);
             return;
         }
         if (id.equals("startup_colors")) {
             ActionRow row1 = ActionRow.of(
-                net.dv8tion.jda.api.components.buttons.Button.success("color_emerald", "Emerald Green"),
-                net.dv8tion.jda.api.components.buttons.Button.primary("color_ocean", "Ocean Blue"),
-                net.dv8tion.jda.api.components.buttons.Button.secondary("color_royal", "Royal Purple")
+                Button.success("color_emerald", "Emerald Green"),
+                Button.primary("color_ocean", "Ocean Blue"),
+                Button.secondary("color_royal", "Royal Purple")
             );
             ActionRow row2 = ActionRow.of(
-                net.dv8tion.jda.api.components.buttons.Button.primary("color_golden", "Golden Yellow"),
-                net.dv8tion.jda.api.components.buttons.Button.danger("color_rose", "Rose Pink"),
-                net.dv8tion.jda.api.components.buttons.Button.secondary("color_sunset", "Sunset Orange")
+                Button.primary("color_golden", "Golden Yellow"),
+                Button.danger("color_rose", "Rose Pink"),
+                Button.secondary("color_sunset", "Sunset Orange")
             );
-            PanelService.reply(event, EmbedUtil.containerBranded("VISUALS", "Identity Selection", 
-                "Select a color to update your appearance. This will toggle existing roles.", EmbedUtil.BANNER_MAIN), true, row1, row2);
+            PanelService.replyEphemeral(event, EmbedUtil.containerBranded("VISUALS", "Identity Selection", 
+                "Select a color to update your appearance. This will toggle existing roles.", EmbedUtil.BANNER_MAIN), row1, row2);
             return;
         }
 
-        // --- COLOR ROLE LOGIC ---
         if (id.startsWith("color_")) {
             String roleId = switch (id) {
                 case "color_emerald" -> "1490844719054454845";
@@ -91,30 +90,28 @@ public class CentralInteractionListener extends ListenerAdapter {
             };
             if (roleId == null) return;
             net.dv8tion.jda.api.entities.Role role = event.getGuild().getRoleById(roleId);
-            if (role == null) { PanelService.reply(event, EmbedUtil.error("SECURITY", "Role ID validation failed. Node missing."), true); return; }
+            if (role == null) { PanelService.replyEphemeral(event, EmbedUtil.error("SECURITY", "Role ID validation failed. Node missing.")); return; }
             
             if (event.getMember().getRoles().contains(role)) {
                 event.getGuild().removeRoleFromMember(event.getMember(), role).queue(v -> 
-                    PanelService.reply(event, EmbedUtil.success("COLORS", "Removed: **" + role.getName() + "**"), true));
+                    PanelService.replyEphemeral(event, EmbedUtil.success("COLORS", "Removed: **" + role.getName() + "**")));
             } else {
-                // Remove other colors first for health
                 List<String> allColors = List.of("1490844719054454845", "1490844755050135593", "1490844792052158485", "1490844828056223785", "1490844872054472745", "1490844917051031626");
                 for (String cid : allColors) {
                     net.dv8tion.jda.api.entities.Role r = event.getGuild().getRoleById(cid);
                     if (r != null && event.getMember().getRoles().contains(r)) event.getGuild().removeRoleFromMember(event.getMember(), r).queue();
                 }
                 event.getGuild().addRoleToMember(event.getMember(), role).queue(v -> 
-                    PanelService.reply(event, EmbedUtil.success("COLORS", "Applied: **" + role.getName() + "**"), true));
+                    PanelService.replyEphemeral(event, EmbedUtil.success("COLORS", "Applied: **" + role.getName() + "**")));
             }
             return;
         }
         
         if (id.equals("view_rules")) {
-            PanelService.reply(event, EmbedUtil.rulePanel(), true);
+            PanelService.replyEphemeral(event, EmbedUtil.rulePanel());
             return;
         }
         
-        // --- AI & QUICK QUERY ---
         if (id.equals("quick_query") || id.equals("ai_query")) {
             AIService.enableAI(event.getChannel().getId());
             event.replyComponents(EmbedUtil.assistantResponse("Assistant activated. Looking for information... Ready for your message."))
@@ -122,7 +119,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
         
-        // --- TICKET STARTERS ---
         if (id.equals("order_start")) { OrderService.startWizard(event); return; }
         if (id.equals("support_start")) {
             TextInput subject = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
@@ -141,7 +137,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
 
-        // --- TICKET CONTROLS (STAFF ONLY) ---
         if (id.startsWith("ticket_") && !id.startsWith("ticket_type_") && !id.startsWith("ticket_modal_")) {
             boolean isStaff = event.getMember().getRoles().stream().anyMatch(r -> Config.getStaffRoles().contains(r.getId()));
             if (!isStaff) {
@@ -159,13 +154,11 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
         }
 
-        // --- ORDER WIZARD ---
         if (id.equals("wiz_prev")) { OrderService.handleNav(event, -1); return; }
         if (id.equals("wiz_next")) { OrderService.handleNav(event, 1); return; }
         if (id.equals("wiz_to_addons")) { OrderService.handlePhaseJump(event, "ADDONS"); return; }
         if (id.equals("wiz_finish")) { OrderService.finishWizard(event); return; }
 
-        // --- CLOSURE STATUS ---
         if (id.startsWith("order_status_update_")) {
             String[] p = id.split("_");
             String status = p[4];
@@ -174,7 +167,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
 
-        // --- PAYMENT MOCKS ---
         if (id.startsWith("pay_")) {
             String type = id.split("_")[1].toUpperCase();
             String info = switch (type) {
@@ -188,14 +180,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
 
-        // --- POINTS ---
         if (id.equals("points_check")) {
             int pts = SupabaseClient.getPoints(event.getUser().getId(), event.getGuild().getId());
             PanelService.reply(event, EmbedUtil.meritAudit(pts));
             return;
         }
 
-        // --- RATINGS ---
         if (id.startsWith("rate_")) {
             String[] parts = id.split("_");
             int stars = Integer.parseInt(parts[1]);
@@ -205,10 +195,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
 
-        // --- GIVEAWAYS (STAFF ONLY) ---
         if (id.equals("gw_create")) {
             boolean isStaff = event.getMember().getRoles().stream().anyMatch(r -> Config.getStaffRoles().contains(r.getId()));
-            if (!isStaff) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+            if (!isStaff) { PanelService.replyEphemeral(event, EmbedUtil.accessDenied()); return; }
             event.replyComponents(EmbedUtil.info("GIVEAWAYS", "Use `/giveaway-start` to begin a new giveaway cycle.")).useComponentsV2(true).setEphemeral(true).queue();
             return;
         }
@@ -238,7 +227,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                             .build();
                     event.replyModal(m).queue();
                 }
-                default -> PanelService.reply(event, EmbedUtil.error("ERROR", "The selected category is currently unavailable. Please try again later."));
             }
         } else if (id.equals("order_wiz_cat")) {
             OrderService.handleCategory(event);
@@ -251,7 +239,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 case "menu_stats" -> PanelService.sendStatsPanel(event);
                 case "menu_points" -> PanelService.sendPointsPanel(event);
                 case "menu_main" -> PanelService.sendMainMenu(event);
-                default -> PanelService.reply(event, EmbedUtil.accessDenied());
+                default -> PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             }
         }
     }
@@ -259,7 +247,7 @@ public class CentralInteractionListener extends ListenerAdapter {
     @Override
     public void onModalInteraction(@NotNull ModalInteractionEvent event) {
         String id = event.getModalId();
-        event.deferReply(true).queue(); // IMMEDIATE ACKNOWLEDGMENT TO PREVENT TIMEOUT
+        event.deferReply(true).queue();
         
         if (id.equals("modal_ticket_open")) {
             String subject = EmojiUtil.parse(event.getValue("subject").getAsString());
@@ -272,29 +260,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             String reason = EmojiUtil.parse(event.getValue("reason").getAsString());
             TicketService.createTicket(event.getGuild(), event.getUser(), "Report: " + (reason.length() > 30 ? reason.substring(0, 30) + "..." : reason), "High", "complaint");
             PanelService.reply(event, EmbedUtil.containerBranded("AGENCY", "Report Logged", "Your submission has been received. Enforcement will review soon.", EmbedUtil.BANNER_MAIN));
-            return;
-        }
-
-        if (id.equals("modal_order_finish")) {
-            OrderService.OrderSession session = OrderService.sessions.get(event.getUser().getId());
-            if (session == null) return;
-            
-            JsonObject orderData = new JsonObject();
-            orderData.addProperty("category", session.category);
-            orderData.addProperty("name", event.getValue("proj_name").getAsString());
-            orderData.addProperty("link", event.getValue("proj_link").getAsString());
-            orderData.addProperty("details", event.getValue("proj_details").getAsString());
-            orderData.addProperty("contact", event.getValue("proj_contact").getAsString());
-            orderData.addProperty("total", OrderService.calculateTotal(session));
-            
-            JsonArray srvs = new JsonArray(); session.selectedServices.forEach(srvs::add);
-            JsonArray adds = new JsonArray(); session.selectedAddons.forEach(adds::add);
-            orderData.add("services", srvs);
-            orderData.add("addons", adds);
-            
-            TicketService.createOrderTicket(event.getGuild(), event.getUser(), "purchase", orderData.get("total").getAsInt(), session.category, orderData);
-            PanelService.reply(event, EmbedUtil.containerBranded("PROJECT", "Order Initialized", "Telemetry successfully uploaded. Your custom order ticket is active.", EmbedUtil.BANNER_MAIN));
-            OrderService.sessions.remove(event.getUser().getId());
             return;
         }
 

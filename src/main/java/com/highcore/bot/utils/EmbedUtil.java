@@ -22,15 +22,15 @@ public class EmbedUtil {
     public static final String DIVIDER = "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬" + "▬";
 
     public static final Color PRIMARY = Color.decode("#ffffff");
-    public static final Color SUCCESS = Color.decode("#2ecc71");
-    public static final Color ACCENT_TEAL = Color.decode("#4db6ac");
-    public static final Color DANGER = Color.decode("#e74c3c");
-    public static final Color WARNING = Color.decode("#f1c40f");
-    public static final Color INFO = Color.decode("#3498db");
-    public static final Color GOLD = Color.decode("#f1c40f");
+    public static final Color SUCCESS = Color.decode("#10b981");
+    public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
+    public static final Color DANGER = Color.decode("#ef4444");
+    public static final Color WARNING = Color.decode("#f59e0b");
+    public static final Color INFO = Color.decode("#3b82f6");
+    public static final Color GOLD = Color.decode("#f59e0b");
 
     public static Color parseColor(String hex) {
-        if (hex == null) return PRIMARY;
+        if (hex == null || hex.isEmpty() || hex.equalsIgnoreCase("brand")) return SUCCESS;
         try {
             if (hex.startsWith("#")) return Color.decode(hex);
             return switch (hex.toLowerCase()) {
@@ -38,9 +38,18 @@ public class EmbedUtil {
                 case "danger" -> DANGER;
                 case "gold" -> GOLD;
                 case "info" -> INFO;
-                default -> PRIMARY;
+                case "teal" -> ACCENT_TEAL;
+                default -> SUCCESS;
             };
-        } catch (Exception e) { return PRIMARY; }
+        } catch (Exception e) { return SUCCESS; }
+    }
+
+    public static TextDisplay v2Header(String category, String title) {
+        return TextDisplay.of("### ✨ " + category.toUpperCase() + " \u2022 " + title);
+    }
+
+    public static TextDisplay v2Footer() {
+        return TextDisplay.of("*Highcore Agency \u2022 Professional Service Excellence*");
     }
 
     public static Container containerBranded(String category, String title, String description, String bannerUrl) {
@@ -50,7 +59,7 @@ public class EmbedUtil {
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of(description));
         layout.add(TextDisplay.of("*Highcore Agency \u2022 Professional Service Excellence*"));
-        return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
+        return Container.of(layout).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF);
     }
 
     public static Container sectionedBranded(String category, String title, String body, String topBanner, String middleImage) {
@@ -61,7 +70,7 @@ public class EmbedUtil {
         if (body != null) layout.add(TextDisplay.of(body));
         if (middleImage != null) layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(middleImage)));
         layout.add(TextDisplay.of("*Highcore Agency \u2022 Established Excellence*"));
-        return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
+        return Container.of(layout).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF);
     }
 
     public static Container mainMenu() {
@@ -159,7 +168,6 @@ public class EmbedUtil {
     }
 
     public static Container activityLog(String title, String body, Color color) {
-        // Body already contains mentioned IDs if passed correctly from LogManager
         return containerBranded("LOG", title, body, BANNER_SUPPORT)
                 .withAccentColor(color.getRGB() & 0xFFFFFF);
     }
@@ -296,6 +304,6 @@ public class EmbedUtil {
         if (sb.length() > 0) layout.add(TextDisplay.of(sb.toString()));
         layout.add(v2Footer());
         
-        return Container.of(layout).withAccentColor(PRIMARY.getRGB() & 0xFFFFFF);
+        return Container.of(layout).withAccentColor(SUCCESS.getRGB() & 0xFFFFFF);
     }
 }

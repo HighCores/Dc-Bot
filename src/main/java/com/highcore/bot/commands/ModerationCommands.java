@@ -36,58 +36,58 @@ public class ModerationCommands extends ListenerAdapter {
             }
         } catch (Exception e) {
             log.error("Error executing ModerationCommands: ", e);
-            PanelService.reply(event, EmbedUtil.error("TERMINAL ERROR", "Execution failure: " + e.getMessage()), true);
+            PanelService.replyEphemeral(event, EmbedUtil.error("TERMINAL ERROR", "Execution failure: " + e.getMessage()));
         }
     }
 
     private void handleBan(SlashCommandInteractionEvent event) {
         Member target = event.getOption("member", OptionMapping::getAsMember);
         String reason = event.getOption("reason", "No reason provided", OptionMapping::getAsString);
-        if (target == null) { PanelService.reply(event, EmbedUtil.error("MODERATION ERROR", "Target subject not located."), true); return; }
+        if (target == null) { PanelService.replyEphemeral(event, EmbedUtil.error("MODERATION ERROR", "Target subject not located.")); return; }
 
         event.getGuild().ban(target, 0, TimeUnit.DAYS).reason(reason).queue(
                 v -> PanelService.reply(event, EmbedUtil.success("SUBJECT TERMINATED", "**" + target.getUser().getName() + "** access revoked.")),
-                e -> PanelService.reply(event, EmbedUtil.error("TERMINATION FAILED", e.getMessage()), true));
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("TERMINATION FAILED", e.getMessage())));
     }
 
     private void handleUnban(SlashCommandInteractionEvent event) {
         String userId = event.getOption("user_id", OptionMapping::getAsString);
-        if (userId == null) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Subject ID required."), true); return; }
+        if (userId == null) { PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Subject ID required.")); return; }
         event.getGuild().unban(UserSnowflake.fromId(userId)).queue(
                 v -> PanelService.reply(event, EmbedUtil.success("SUBJECT REHABILITATED", "Access permits restored for `" + userId + "`.")),
-                e -> PanelService.reply(event, EmbedUtil.error("REHABILITATION FAILED", e.getMessage()), true));
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("REHABILITATION FAILED", e.getMessage())));
     }
 
     private void handleKick(SlashCommandInteractionEvent event) {
         Member target = event.getOption("member", OptionMapping::getAsMember);
         String reason = event.getOption("reason", "No reason provided", OptionMapping::getAsString);
-        if (target == null) { PanelService.reply(event, EmbedUtil.error("MODERATION ERROR", "Target subject not located."), true); return; }
+        if (target == null) { PanelService.replyEphemeral(event, EmbedUtil.error("MODERATION ERROR", "Target subject not located.")); return; }
         
         event.getGuild().kick(target).reason(reason).queue(
                 v -> PanelService.reply(event, EmbedUtil.success("SUBJECT EJECTED", "**" + target.getUser().getName() + "** removed from sector.")),
-                e -> PanelService.reply(event, EmbedUtil.error("EJECTION FAILED", e.getMessage()), true));
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("EJECTION FAILED", e.getMessage())));
     }
 
     private void handleMute(SlashCommandInteractionEvent event) {
         Member target = event.getOption("member", OptionMapping::getAsMember);
         int mins = event.getOption("duration", 10, OptionMapping::getAsInt);
-        if (target == null) { PanelService.reply(event, EmbedUtil.error("MODERATION ERROR", "Subject not located."), true); return; }
+        if (target == null) { PanelService.replyEphemeral(event, EmbedUtil.error("MODERATION ERROR", "Subject not located.")); return; }
         target.timeoutFor(Duration.ofMinutes(mins)).queue(
                 v -> PanelService.reply(event, EmbedUtil.success("TRANSISSION SILENCED", "**" + target.getUser().getName() + "** placed in timeout for " + mins + "m.")),
-                e -> PanelService.reply(event, EmbedUtil.error("SILENCING FAILED", e.getMessage()), true));
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("SILENCING FAILED", e.getMessage())));
     }
 
     private void handleUnmute(SlashCommandInteractionEvent event) {
         Member target = event.getOption("member", OptionMapping::getAsMember);
-        if (target == null) { PanelService.reply(event, EmbedUtil.error("DATA ERROR", "Subject not located."), true); return; }
+        if (target == null) { PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Subject not located.")); return; }
         target.removeTimeout().queue(
                 v -> PanelService.reply(event, EmbedUtil.success("TRANSMISSION RESTORED", "**" + target.getUser().getName() + "** protocols re-enabled.")),
-                e -> PanelService.reply(event, EmbedUtil.error("RESTORATION FAILED", e.getMessage()), true));
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("RESTORATION FAILED", e.getMessage())));
     }
 
     private void handleClear(SlashCommandInteractionEvent event) {
         int amount = event.getOption("amount", 10, OptionMapping::getAsInt);
-        if (amount < 1 || amount > 100) { PanelService.reply(event, EmbedUtil.error("PROTOCOL WARNING", "Purge density 1-100."), true); return; }
+        if (amount < 1 || amount > 100) { PanelService.replyEphemeral(event, EmbedUtil.error("PROTOCOL WARNING", "Purge density 1-100.")); return; }
         event.deferReply(true).queue();
         event.getChannel().asTextChannel().getHistory().retrievePast(amount).queue(messages -> {
             event.getChannel().asTextChannel().purgeMessages(messages);
@@ -100,8 +100,8 @@ public class ModerationCommands extends ListenerAdapter {
         PermissionOverrideAction action = ch.getPermissionContainer().upsertPermissionOverride(event.getGuild().getPublicRole());
         if (lock) action.deny(Permission.MESSAGE_SEND); else action.clear(Permission.MESSAGE_SEND);
         action.queue(
-                v -> PanelService.reply(event, EmbedUtil.success(lock ? "NODE SECURED" : "NODE ACCESSIBLE", ch.getAsMention() + (lock ? " locked." : " unlocked.")), true),
-                e -> PanelService.reply(event, EmbedUtil.error("SECURITY FAILED", e.getMessage()), true));
+                v -> PanelService.replyEphemeral(event, EmbedUtil.success(lock ? "NODE SECURED" : "NODE ACCESSIBLE", ch.getAsMention() + (lock ? " locked." : " unlocked."))),
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("SECURITY FAILED", e.getMessage())));
     }
 
     private boolean isAdmin(Member m) { return m != null && m.getRoles().stream().anyMatch(r -> Config.getAdminRoles().contains(r.getId())); }

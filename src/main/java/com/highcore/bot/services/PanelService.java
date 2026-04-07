@@ -2,11 +2,10 @@ package com.highcore.bot.services;
 
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.callbacks.IMessageEditCallback;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
@@ -17,14 +16,20 @@ import java.util.*;
 public class PanelService {
 
     /**
-     * Unified response handler for JDA 6 Components V2.
-     * Automatically handles replies, edits, and standalone channel messages.
+     * Standard response handler.
      */
     public static void reply(Object interaction, Object content, ActionRow... rows) {
-        reply(interaction, content, false, rows);
+        handleReply(interaction, content, false, rows);
     }
 
-    public static void reply(Object interaction, Object content, boolean ephemeral, ActionRow... rows) {
+    /**
+     * Ephemeral response handler (separate method name to avoid Java ambiguity).
+     */
+    public static void replyEphemeral(Object interaction, Object content, ActionRow... rows) {
+        handleReply(interaction, content, true, rows);
+    }
+
+    private static void handleReply(Object interaction, Object content, boolean ephemeral, ActionRow... rows) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         MessageEmbed embed = null;
         boolean useV2 = false;
@@ -53,7 +58,6 @@ public class PanelService {
         }
 
         if (interaction instanceof IMessageEditCallback editCallback && !((IReplyCallback)interaction).isAcknowledged()) {
-            // For component interactions, we usually want to EDIT the message
             var edit = editCallback.editMessage("");
             if (embed != null) edit.setEmbeds(embed);
             edit.setComponents(components);
@@ -82,12 +86,10 @@ public class PanelService {
         }
     }
 
-    // ========== COMPONENT GENERATORS ==========
-
     public static ActionRow[] getTicketComponents() {
         return new ActionRow[]{ActionRow.of(
             StringSelectMenu.create("ticket_type_select")
-                .setPlaceholder("Select a secure support category...")
+                .setPlaceholder("Select a support category...")
                 .addOption("Order / Purchase", "purchase", "Request a new agency service", Emoji.fromUnicode("\uD83D\uDED2"))
                 .addOption("Technical Support", "tech_support", "Hardware, software, connectivity", Emoji.fromUnicode("\uD83D\uDD27"))
                 .addOption("Complaint / Report", "complaint", "Report an issue or violation", Emoji.fromUnicode("\u26A0\uFE0F"))
@@ -103,8 +105,6 @@ public class PanelService {
             Button.secondary("menu_stats", "Network Stats").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA"))
         )};
     }
-
-    // ========== PANEL SENDING METHODS ==========
 
     public static void sendMainMenu(Object target) {
         reply(target, EmbedUtil.mainMenu(), getMainMenuComponents());

@@ -7,10 +7,8 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.components.buttons.ButtonStyle;
-import net.dv8tion.jda.api.components.MessageTopLevelComponent;
-import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
@@ -73,18 +71,18 @@ public class CommandService {
                             if (!actionValue.isEmpty()) {
                                 JsonObject menuData = SupabaseClient.getMenu(actionValue);
                                 if (menuData != null) sendMenuSlash(event, menuData);
-                                else event.reply("\u26A0\uFE0F **Neural error:** Targeted panel `" + actionValue + "` not found.").setEphemeral(true).queue();
-                            } else event.reply("\u26A0\uFE0F **Neural error:** No panel ID linked to this node.").setEphemeral(true).queue();
+                                else event.reply("\u26A0\uFE0F **Systems error:** Targeted panel `" + actionValue + "` not found.").setEphemeral(true).queue();
+                            } else event.reply("\u26A0\uFE0F **Systems error:** No panel ID linked to this node.").setEphemeral(true).queue();
                         }
                         case "ticket" -> {
                             JsonObject ticketMenu = SupabaseClient.getMenu("ticket_panel");
                             if (ticketMenu != null) sendMenuSlash(event, ticketMenu);
-                            else event.reply("\u26A0\uFE0F **Neural error:** Ticket panel not found.").setEphemeral(true).queue();
+                            else event.reply("\u26A0\uFE0F **Systems error:** Ticket panel not found.").setEphemeral(true).queue();
                         }
                         case "colors" -> com.highcore.bot.commands.GeneralCommands.displayColors(event);
                         default -> {
                             if (!response.isEmpty()) event.reply(response).queue();
-                            else event.reply("\u26A0\uFE0F **Neural error:** No payload found for this node.").setEphemeral(true).queue();
+                            else event.reply("\u26A0\uFE0F **Systems error:** No payload found for this node.").setEphemeral(true).queue();
                         }
                     }
                     return;
@@ -105,7 +103,7 @@ public class CommandService {
                 }
             }
         }
-        event.reply("\u26A0\uFE0F **Neural link lost:** Command not found in registry.").setEphemeral(true).queue();
+        event.reply("\u26A0\uFE0F **Registry error:** Command not found in system manifest.").setEphemeral(true).queue();
     }
 
     private static void sendMenuSlash(SlashCommandInteractionEvent event, JsonObject menu) {
@@ -127,19 +125,15 @@ public class CommandService {
 
         List<ContainerChildComponent> layout = new ArrayList<>();
         
-        // 🎞️ Banner Image (if present)
         if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
 
-        // 🏷️ Header
         layout.add(EmbedUtil.v2Header("DATABASE", title));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
-        // 📝 Description
         layout.add(TextDisplay.of(desc));
 
-        // 🔘 Buttons
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
         if (buttonsArr != null && buttonsArr.size() > 0) {
             List<Button> buttons = new ArrayList<>();
@@ -147,11 +141,17 @@ public class CommandService {
                 JsonObject btnObj = el.getAsJsonObject();
                 String label = btnObj.get("label").getAsString();
                 String actionId = btnObj.get("action_id").getAsString();
-                String styleStr = btnObj.has("button_style") ? btnObj.get("button_style").getAsString() : "PRIMARY";
-                ButtonStyle style = ButtonStyle.valueOf(styleStr.toUpperCase());
+                String styleStr = btnObj.has("button_style") ? btnObj.get("button_style").getAsString().toUpperCase() : "PRIMARY";
                 String emoji = btnObj.has("emoji") && !btnObj.get("emoji").isJsonNull() ? btnObj.get("emoji").getAsString() : null;
                 
-                Button btn = style == ButtonStyle.LINK ? Button.link(actionId, label) : Button.of(style, actionId, label);
+                Button btn = switch (styleStr) {
+                    case "SUCCESS" -> Button.success(actionId, label);
+                    case "DANGER" -> Button.danger(actionId, label);
+                    case "SECONDARY" -> Button.secondary(actionId, label);
+                    case "LINK" -> Button.link(actionId, label);
+                    default -> Button.primary(actionId, label);
+                };
+
                 if (emoji != null && !emoji.isEmpty()) {
                     try { btn = btn.withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromFormatted(emoji)); } 
                     catch (Exception ignored) {}
@@ -161,7 +161,6 @@ public class CommandService {
             layout.add(ActionRow.of(buttons));
         }
 
-        // 📜 Footer
         layout.add(EmbedUtil.v2Footer());
 
         return Container.of(layout).withAccentColor(EmbedUtil.parseColor(colorHex).getRGB() & 0xFFFFFF);
