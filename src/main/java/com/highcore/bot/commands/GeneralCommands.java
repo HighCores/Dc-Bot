@@ -60,6 +60,6 @@ public class GeneralCommands extends ListenerAdapter {
             Button.secondary("color_sunset", "Sunset Orange")
         );
         PanelService.reply(event, EmbedUtil.containerBranded("VISUALS", "Identity Selection", 
-            "Select a color to update your appearance. This will toggle existing roles.", EmbedUtil.BANNER_MAIN), row1, row2);
+            "Select a color to update your appearance. This will toggle existing roles.", EmbedUtil.BANNER_MAIN, null, row1, row2));
     }
 }
