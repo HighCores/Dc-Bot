@@ -4,24 +4,19 @@ import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.AIService;
 import com.highcore.bot.services.AutoReplyService;
-import com.highcore.bot.services.BroadcastService;
 import com.highcore.bot.services.WordFilterService;
-import com.highcore.bot.services.LogManager;
 import com.highcore.bot.config.Config;
+import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.Permission;
 
-import java.util.concurrent.TimeUnit;
-
 public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot())
-            return;
-        if (!event.isFromGuild())
-            return;
+        if (event.getAuthor().isBot()) return;
+        if (!event.isFromGuild()) return;
         String content = event.getMessage().getContentRaw();
         String channelId = event.getChannel().getId();
         String userId = event.getAuthor().getId();
@@ -37,10 +32,9 @@ public class MessageListener extends ListenerAdapter {
                     String logBody = "### \u26A0\uFE0F Security Alert: Restricted Content\n" +
                             "**User:** " + event.getAuthor().getAsMention() + " (`" + event.getAuthor().getId() + "`)\n" +
                             "**Location:** " + event.getChannel().getAsMention() + "\n" +
-                            "**Timestamp:** <t:" + (System.currentTimeMillis() / 1000) + ":F>\n" +
                             "**Detected Text:**\n> " + content;
                     
-                    logChannel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.activityLog("SECURITY LOG", logBody, com.highcore.bot.utils.EmbedUtil.DANGER))
+                    logChannel.sendMessageComponents(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER))
                             .useComponentsV2(true).queue();
                 }
                 return;
@@ -51,26 +45,19 @@ public class MessageListener extends ListenerAdapter {
 
         if (AIService.isAIEnabled(channelId)) {
             event.getChannel().sendTyping().queue();
-            String reply = AIService.chat(userId, content);
-            event.getMessage().reply(reply).queue();
+            event.getMessage().reply(AIService.chat(userId, content)).queue();
             return;
         }
 
         String autoReply = AutoReplyService.getResponse(content);
-        if (autoReply != null)
-            event.getMessage().reply(autoReply).queue();
+        if (autoReply != null) event.getMessage().reply(autoReply).queue();
     }
 
     private void saveTicketMessage(MessageReceivedEvent event) {
-        if (!(event.getChannel() instanceof TextChannel channel))
-            return;
-        if (!channel.getName().startsWith("ticket-"))
-            return;
+        if (!(event.getChannel() instanceof TextChannel channel)) return;
+        if (!channel.getName().startsWith("ticket-")) return;
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-        if (ticket == null)
-            return;
-        SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(),
-                event.getAuthor().getId(), event.getAuthor().getName(),
-                event.getMessage().getContentRaw(), event.getMessageId());
+        if (ticket == null) return;
+        SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), event.getMessage().getContentRaw(), event.getMessageId());
     }
 }
