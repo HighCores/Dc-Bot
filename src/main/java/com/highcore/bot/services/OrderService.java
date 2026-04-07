@@ -1,5 +1,6 @@
 package com.highcore.bot.services;
 
+import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -9,17 +10,55 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Map;
+import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
 public class OrderService extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(OrderService.class);
     private static final Map<String, String> userOrderType = new ConcurrentHashMap<>();
+
+    public static class ServiceItem {
+        public String id, name, price;
+        public ServiceItem(String id, String name, String price) { this.id = id; this.name = name; this.price = price; }
+    }
+
+    public static final Map<String, List<ServiceItem>> SERVICES = new HashMap<>();
+    public static final Map<String, List<ServiceItem>> ADDONS = new HashMap<>();
+
+    static {
+        // DESIGNER
+        SERVICES.put("DESIGNER", List.of(
+            new ServiceItem("ds_logo", "Logo Design", "20"),
+            new ServiceItem("ds_id", "Full Visual Identity", "50"),
+            new ServiceItem("ds_social", "Social Media Design", "25"),
+            new ServiceItem("ds_discord", "Discord Welcome/Packs", "20"),
+            new ServiceItem("ds_banner", "Covers & Banners", "25"),
+            new ServiceItem("ds_print", "Prints & Brochures", "30"),
+            new ServiceItem("ds_motion", "Motion Graphics", "45"),
+            new ServiceItem("ds_uiux", "UI/UX Design", "60"),
+            new ServiceItem("ds_info", "Infographics", "25"),
+            new ServiceItem("ds_emoji", "Emoji / Stickers", "15")
+        ));
+        ADDONS.put("DESIGNER", List.of(
+            new ServiceItem("ad_rush", "Rush Delivery", "25"),
+            new ServiceItem("ad_source", "Source Files (AI/PSD)", "30")
+        ));
+
+        // DEVELOPER
+        SERVICES.put("DEVELOPER", List.of(
+            new ServiceItem("dv_web", "Web Developer", "30"),
+            new ServiceItem("dv_bot", "Bots Developer", "40")
+        ));
+        ADDONS.put("DEVELOPER", List.of(
+            new ServiceItem("ad_automation", "Automation Engine", "35")
+        ));
+    }
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
@@ -33,22 +72,18 @@ public class OrderService extends ListenerAdapter {
 
         userOrderType.put(event.getUser().getId(), type.toUpperCase());
 
-        TextInput name = TextInput.create("name", "Project Name", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. My Website")
-                .setRequired(true)
-                .build();
-        TextInput budget = TextInput.create("budget", "Estimated Budget ($)", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. 100")
-                .setRequired(true)
-                .build();
-        TextInput description = TextInput.create("description", "Detailed Requirements", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Describe your vision here...")
-                .setRequired(true)
-                .build();
-        TextInput discord = TextInput.create("discord", "Discord Contact", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. user#0000")
-                .setRequired(true)
-                .build();
+        // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
+        TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).build();
+        Label name = Label.of(nameInput).withLabel("Project Name").build();
+
+        TextInput budgetInput = TextInput.create("budget", TextInputStyle.SHORT).build();
+        Label budget = Label.of(budgetInput).withLabel("Estimated Budget ($)").build();
+
+        TextInput descInput = TextInput.create("description", TextInputStyle.PARAGRAPH).build();
+        Label description = Label.of(descInput).withLabel("Detailed Requirements").build();
+
+        TextInput discordInput = TextInput.create("discord", TextInputStyle.SHORT).build();
+        Label discord = Label.of(discordInput).withLabel("Discord Contact").build();
 
         Modal modal = Modal.create("modal_order", "ORDER WIZARD: " + type.toUpperCase())
                 .addActionRow(name)
@@ -72,7 +107,16 @@ public class OrderService extends ListenerAdapter {
 
         event.deferReply(true).queue();
 
-        SupabaseClient.createOrder(event.getUser().getId(), type, name, desc, budget, contact);
+        // FIX: Pass JsonObject as required by SupabaseClient
+        JsonObject orderBody = new JsonObject();
+        orderBody.addProperty("user_id", event.getUser().getId());
+        orderBody.addProperty("type", type);
+        orderBody.addProperty("project_name", name);
+        orderBody.addProperty("description", desc);
+        orderBody.addProperty("budget", budget);
+        orderBody.addProperty("contact", contact);
+        
+        SupabaseClient.createOrder(orderBody);
         
         com.highcore.bot.utils.Container c = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
                 "### \uD83D\uDCE6 Transmission Received\n" +

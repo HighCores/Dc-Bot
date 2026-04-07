@@ -150,4 +150,12 @@ public class LogManager {
         }
         return get(guild, channelName);
     }
+
+    public static void log(Guild guild, String title, String description, java.awt.Color color) {
+        TextChannel ch = getDashboardLogChannel(guild, Config.LOG_MODS_CMD);
+        if (ch != null) {
+            ch.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.activityLog(title, description, color))
+                    .useComponentsV2(true).queue();
+        }
+    }
 }

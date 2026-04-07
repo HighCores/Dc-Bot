@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -224,8 +225,12 @@ public class SlashCommands extends ListenerAdapter {
 
             BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
+            // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
+            TextInput broadInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
+            Label broadLabel = Label.of(broadInput).withLabel("Content").build();
+
             event.replyModal(Modal.create("modal_bc", "BROADCAST")
-                    .addActionRow(TextInput.create("message", "Content", TextInputStyle.PARAGRAPH).setRequired(true).build())
+                    .addActionRow(broadLabel)
                     .build()).queue();
         } else {
             PanelService.reply(event, EmbedUtil.accessDenied());
@@ -248,8 +253,12 @@ public class SlashCommands extends ListenerAdapter {
 
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
+        // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
+        TextInput boterInput = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        Label boterLabel = Label.of(boterInput).withLabel("Content").build();
+
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addActionRow(TextInput.create("message", "Content", TextInputStyle.PARAGRAPH).setRequired(true).build())
+                .addActionRow(boterLabel)
                 .build()).queue();
     }
 

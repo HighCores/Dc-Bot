@@ -7,10 +7,12 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,13 +21,13 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.Random;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.*;
 
 public class GiveawayCommands extends ListenerAdapter {
 
     private static final Logger log = LoggerFactory.getLogger(GiveawayCommands.class);
     private static final Map<String, List<String>> entries = new ConcurrentHashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
@@ -35,18 +37,24 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        TextInput prize = TextInput.create("prize", "Prize", TextInputStyle.SHORT)
+        // JDA 6.4.1 GOLDEN PATTERN: TextInput -> Label wrapper
+        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. Nitro Basic")
                 .setRequired(true)
                 .build();
-        TextInput winners = TextInput.create("winners", "Number of Winners", TextInputStyle.SHORT)
+        Label prize = Label.of(prizeInput).withLabel("Prize").build();
+
+        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 1")
                 .setRequired(true)
                 .build();
-        TextInput time = TextInput.create("duration", "Duration (minutes)", TextInputStyle.SHORT)
+        Label winners = Label.of(winnersInput).withLabel("Number of Winners").build();
+
+        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
                 .setPlaceholder("e.g. 60")
                 .setRequired(true)
                 .build();
+        Label time = Label.of(timeInput).withLabel("Duration (minutes)").build();
 
         Modal modal = Modal.create("modal_giveaway", "GIVEAWAY CONFIG")
                 .addActionRow(prize)
@@ -61,7 +69,7 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onModalInteraction(ModalInteractionEvent event) {
         if (!event.getModalId().equals("modal_giveaway")) return;
         
-        String prize = event.getValue("prize").getAsString();
+        String prizeStr = event.getValue("prize").getAsString();
         int winCount = Integer.parseInt(event.getValue("winners").getAsString());
         int duration = Integer.parseInt(event.getValue("duration").getAsString());
 
@@ -71,27 +79,27 @@ public class GiveawayCommands extends ListenerAdapter {
         net.dv8tion.jda.api.components.buttons.Button joinBtn = net.dv8tion.jda.api.components.buttons.Button.primary("gw_join_" + giveawayId, "Join Giveaway")
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
-        event.replyEmbeds(EmbedUtil.giveaway(prize, winCount, duration).build())
+        event.replyEmbeds(EmbedUtil.giveaway(prizeStr, winCount, duration).build())
                 .addActionRow(joinBtn)
                 .queue(hook -> {
-                    com.highcore.bot.services.LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
-                            "Prize: " + prize + "\nAdmin: " + event.getUser().getAsMention(), EmbedUtil.INFO);
+                    LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
+                            "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), EmbedUtil.INFO);
                     
-                    event.getGuild().getJDA().getExecutorService().schedule(() -> {
+                    scheduler.schedule(() -> {
                         List<String> participants = entries.get(giveawayId);
                         if (participants == null || participants.isEmpty()) {
-                            event.getChannel().sendMessage("Giveaway for **" + prize + "** ended with no participants!").queue();
+                            event.getChannel().sendMessage("Giveaway for **" + prizeStr + "** ended with no participants!").queue();
                             return;
                         }
 
                         Random r = new Random();
-                        List<String> winners = new ArrayList<>();
+                        List<String> winnerMentions = new ArrayList<>();
                         for (int i = 0; i < winCount && !participants.isEmpty(); i++) {
                             int idx = r.nextInt(participants.size());
-                            winners.add("<@" + participants.remove(idx) + ">");
+                            winnerMentions.add("<@" + participants.remove(idx) + ">");
                         }
 
-                        String msg = "### \uD83C\uDF89 GIVEAWAY ENDED\n**Prize:** " + prize + "\n**Winners:** " + String.join(", ", winners);
+                        String msg = "### \uD83C\uDF89 GIVEAWAY ENDED\n**Prize:** " + prizeStr + "\n**Winners:** " + String.join(", ", winnerMentions);
                         event.getChannel().sendMessage(msg).queue();
                         entries.remove(giveawayId);
                     }, duration, TimeUnit.MINUTES);
@@ -99,7 +107,7 @@ public class GiveawayCommands extends ListenerAdapter {
     }
 
     @Override
-    public void onButtonInteraction(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+    public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
         if (id.startsWith("gw_join_")) {
             String gwId = id.replace("gw_join_", "");

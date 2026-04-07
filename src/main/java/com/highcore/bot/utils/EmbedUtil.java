@@ -105,6 +105,15 @@ public class EmbedUtil {
         catch (Exception e) { return ACCENT_TEAL; }
     }
 
+    public static Container giveaway(String prize, int winners, int duration) {
+        String body = "### \uD83C\uDF81 **GIVEAWAY ACTIVATED**\n" +
+                "**Prize:** `" + prize + "`\n" +
+                "**Winners:** `" + winners + "`\n" +
+                "**Duration:** `" + duration + " minutes`\n\n" +
+                "Click the button below to initialize your entry into the participant pool.";
+        return containerBranded("SWEEPSTAKES", "Active Reward Distribution", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
+    }
+
     public static Container orderLog(JsonObject logData) {
         return containerBranded("ORDER", "Inbound Signal", "```json\n" + logData.toString() + "\n```", BANNER_MAIN);
     }
