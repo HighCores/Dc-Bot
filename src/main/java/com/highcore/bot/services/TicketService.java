@@ -54,7 +54,6 @@ public class TicketService {
         
         String ticketId = String.format("%04d", new Random().nextInt(10000));
         String channelName = "order-" + ticketId;
-
         Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         if (cat == null) return;
 
@@ -63,8 +62,7 @@ public class TicketService {
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                 .queue(channel -> {
                     SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, "Project Order", "High", orderData);
-                    
-                    String summary = "Total: **$" + total + "**\nWizard: **" + wizId + "**";
+                    String summary = "Total: **$" + total + "**\nWizard Session: **" + wizId + "**";
                     channel.sendMessageComponents(
                         getWelcomeContainer(ticketId, user.getName(), type, summary, 
                             ActionRow.of(getTicketButtons("open")), 
@@ -89,7 +87,6 @@ public class TicketService {
             buttons.add(Button.danger("ticket_close", "Close Ticket \u26D4"));
         } else if (status.equals("closed")) {
             buttons.add(Button.success("ticket_reopen", "Reopen Ticket \uD83D\uDD04"));
-            buttons.add(Button.secondary("ticket_transcript", "Save Transcript \u231B"));
             buttons.add(Button.danger("ticket_delete", "Delete Channel \u2623\uFE0F"));
         }
         return buttons;
@@ -97,79 +94,45 @@ public class TicketService {
 
     private static List<Button> getPaymentButtons(String ticketId) {
         return List.of(
-            Button.secondary("pay_paypal_" + ticketId, "PayPal Payment"),
-            Button.secondary("pay_stripe_" + ticketId, "Stripe Payment"),
-            Button.secondary("pay_local_" + ticketId, "Manual Entry")
+            Button.secondary("pay_paypal_" + ticketId, "PayPal Account"),
+            Button.secondary("pay_stripe_" + ticketId, "Stripe Portal"),
+            Button.secondary("pay_local_" + ticketId, "Manual Gateway")
         );
     }
 
-    private static String getTypeName(String type) {
-        return switch (type) {
-            case "tech_support" -> "Technical Support"; case "inquiry" -> "General Inquiry"; case "purchase" -> "Purchase Service";
-            case "order_status" -> "Order Status"; case "apply_management" -> "Management App"; case "apply_team" -> "Team App"; default -> "General"; };
-    }
-
     private static Container getWelcomeContainer(String ticketId, String userName, String type, String customBody, ActionRow... rows) {
-        String body = switch (type) {
-            case "tech_support" -> """
-                    \uD83D\uDD27 **TECHNICAL SUPPORT:**
-                    \u25B8 Describe the issue in detail.
-                    \u25B8 Mention when the issue started.
-                    \u25B8 Attach relevant screenshots or files.
-                    """;
-            case "inquiry" -> """
-                    \u2753 **GENERAL INQUIRY:**
-                    \u25B8 Specify the department of interest.
-                    \u25B8 Detail project scope or pricing query.
-                    """;
-            case "purchase" -> """
-                    \uD83D\uDED2 **PURCHASE REQUEST:**
-                    \u25B8 Confirm service allocation.
-                    \u25B8 Detail project specifications.
-                    """;
-            default -> """
-                    \uD83D\uDCCC **FEEDBACK/COMPLAINT:**
-                    \u25B8 Provide full situational context.
-                    """;
-        };
-
-        return EmbedUtil.containerBranded("SESSION", "Case #" + ticketId, body + "\n" + customBody, EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC1"), rows);
+        String body = "Operative: " + userName + "\nCase: #" + ticketId + "\n\n" + customBody;
+        return EmbedUtil.containerBranded("TICKET", "Support Session Created", body, EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDCC1"), rows);
     }
 
     public static void claimTicket(TextChannel channel, Member claimer) {
-        channel.getManager().setTopic("Dealt with by: " + claimer.getEffectiveName()).queue();
+        channel.getManager().setTopic("Assigned: " + claimer.getEffectiveName()).queue();
         channel.sendMessageComponents(
-            EmbedUtil.containerBranded("NOTICE", "Agent Assigned", "Operative **" + claimer.getEffectiveName() + "** claimed this session.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\u2705"),
+            EmbedUtil.containerBranded("CLAIM", "Agent Notified", "Operative **" + claimer.getEffectiveName() + "** has entered the session.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\u2705"),
                 ActionRow.of(getTicketButtons("claimed")))
         ).useComponentsV2(true).queue();
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
         channel.sendMessageComponents(
-            EmbedUtil.containerBranded("CLOSING", "Closure Request", "A request to close this ticket has been made by **" + closer.getEffectiveName() + "**.\nPlease confirm if the service is complete.", EmbedUtil.BANNER_SUPPORT),
+            EmbedUtil.containerBranded("LOGISTICS", "Closure Sequence", "End session request initialized by **" + closer.getEffectiveName() + "**.\nConfirm project status below.", EmbedUtil.BANNER_SUPPORT),
             ActionRow.of(
                 Button.success("order_status_update_DELIVERED", "Delivered"),
                 Button.secondary("order_status_update_CANCELLED", "Cancelled"),
-                Button.danger("order_status_update_CLOSED", "Close Ticket")
+                Button.danger("order_status_update_CLOSED", "Terminate Session")
             )
         ).useComponentsV2(true).queue();
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
-        channel.getManager().setTopic("Status: " + status + " | Closed by: " + closer.getEffectiveName()).queue();
-        
+        channel.getManager().setTopic("Status: " + status + " | Operator: " + closer.getEffectiveName()).queue();
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         if (ticket != null) {
             String tid = ticket.get("ticket_id").getAsString();
             SupabaseClient.updateTicketStatus(tid, status.toUpperCase(), closer.getEffectiveName());
-            
-            if (status.equals("DELIVERED") && ticket.has("metadata") && !ticket.get("metadata").isJsonNull()) {
-                sendVisualReceipt(channel, ticket.get("metadata").getAsJsonObject());
-            }
         }
-        
         channel.sendMessageComponents(
-            EmbedUtil.containerBranded("ARCHIVE", "Ticket Closed", "Status: **" + status + "**\nThis channel is now archived.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
+            EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **" + status + "**\nThis channel is now locked.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
                 ActionRow.of(getTicketButtons("closed")))
         ).useComponentsV2(true).queue();
 
@@ -186,9 +149,8 @@ public class TicketService {
             Member owner = channel.getGuild().getMemberById(ownerId);
             if (owner != null) channel.upsertPermissionOverride(owner).grant(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND).queue();
         }
-        
         channel.sendMessageComponents(
-            EmbedUtil.containerBranded("RESTORED", "Ticket Reopened", "Access to this ticket has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD04"),
+            EmbedUtil.containerBranded("RESTORED", "Session Reopened", "Access to this node has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD04"),
                 ActionRow.of(getTicketButtons("open")))
         ).useComponentsV2(true).queue();
     }
@@ -197,40 +159,9 @@ public class TicketService {
         try {
             byte[] receiptData = ReceiptService.generateReceipt(data, channel.getName());
             FileUpload upload = FileUpload.fromData(receiptData, "invoice.png");
-            
-            Container receipt = Container.of(
-                EmbedUtil.v2Header("PAYMENT", "Finance"),
-                Separator.createDivider(Separator.Spacing.SMALL),
-                MediaGallery.of(MediaGalleryItem.fromFile(upload)),
-                TextDisplay.of("**Payment Verified:** Confirmed by Highcore Billing System.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
-                EmbedUtil.v2Footer()
-            ).withAccentColor(EmbedUtil.SUCCESS.getRGB() & 0xFFFFFF);
-
-            channel.sendMessageComponents(receipt).useComponentsV2(true).queue();
-        } catch (Exception e) {
-            log.error("Failed to generate/send visual receipt", e);
-        }
-    }
-
-    public static Container generateV2Receipt(JsonObject data, String receiptUrl) {
-        return Container.of(
-            EmbedUtil.v2Header("PAYMENT", "Finance"),
-            Separator.createDivider(Separator.Spacing.SMALL),
-            MediaGallery.of(MediaGalleryItem.fromUrl(receiptUrl)),
-            TextDisplay.of("**Payment Verified:** Confirmed by Highcore Billing System.\n**Total:** `$" + data.get("total").getAsInt() + "`"),
-            EmbedUtil.v2Footer()
-        ).withAccentColor(EmbedUtil.SUCCESS.getRGB() & 0xFFFFFF);
-    }
-
-    public static void sendTranscript(TextChannel channel) {
-        channel.getIterableHistory().takeAsync(100).thenAccept(msgs -> {
-            try {
-                File f = new File("transcript-" + channel.getName() + ".txt");
-                PrintWriter pw = new PrintWriter(f);
-                for (var m : msgs) pw.println("[" + m.getTimeCreated() + "] " + m.getAuthor().getName() + ": " + m.getContentRaw());
-                pw.close();
-                channel.sendFiles(FileUpload.fromData(f)).queue(s -> f.delete());
-            } catch (Exception e) { log.error("Transcript generation failure", e); }
-        });
+            channel.sendMessageComponents(
+                EmbedUtil.containerBranded("FINANCE", "Payment Protocol Verified", "Total: **$" + data.get("total").getAsInt() + "**\nReceipt attached below.", EmbedUtil.BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83D\uDCB3"))
+            ).addFiles(upload).useComponentsV2(true).queue();
+        } catch (Exception e) { log.error("Receipt failure", e); }
     }
 }

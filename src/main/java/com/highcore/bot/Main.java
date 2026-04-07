@@ -1,4 +1,3 @@
-// FORCE REBUILD TRIGGER: 2026-04-07-05-55
 package com.highcore.bot;
 
 import com.highcore.bot.api.RestApiServer;
@@ -30,10 +29,10 @@ public class Main {
                 " |  __  |  | |  | | \u2514\u2510| |  __  ||  ___||  _  /|  ___||  __|  \n" +
                 " | |  | | _| |_ | |__| || |  | || |___ | | \\ \\| |___ | |____ \n" +
                 " |_|  |_||_____| \\____/ |_|  |_||_____||_|  \\_\\_____||______|\n" +
-                "            HIGHCORE AGENCY - UNIFIED TERMINAL\n" +
+                "            HIGHCORE AGENCY - UNIFIED TERMINAL v2.5\n" +
                 "\u001B[0m");
 
-        log.info("[\u2699\uFE0F] Initializing Highcore Protocol v1.0.1...");
+        log.info("[\u2699\uFE0F] Initializing Highcore Protocol v1.0.4...");
         if (Config.DISCORD_TOKEN == null || Config.DISCORD_TOKEN.isEmpty()) { 
             log.error("[\u274C] CRITICAL: DISCORD_TOKEN is absent from configuration."); 
             System.exit(1); 
@@ -50,12 +49,9 @@ public class Main {
                         new SlashCommands(),
                         new GiveawayCommands(), 
                         new PointsCommands(), 
-                        new GeneralCommands(),
                         new ServerLogListener(), 
                         new WelcomeListener(), 
-                        new CentralInteractionListener(),
-                        new OrderCommands(),
-                        new ModerationCommands()
+                        new CentralInteractionListener()
                 )
                 .build().awaitReady();
 
@@ -78,47 +74,46 @@ public class Main {
             TelemetryService.stop(); 
             jda.shutdown(); 
         }));
-        log.info("Highcore Agency Bot fully operational!");
+        log.info("Highcore Agency Bot (Terminal v2.5) fully operational!");
     }
 
     private static void registerCommands(JDA jda) {
-        // Clear Global Commands (Forces Cache Refresh)
         jda.updateCommands().queue();
-
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) { log.error("[\u274C] Guild not detected. Deployment aborted."); return; }
+        if (guild == null) return;
 
         guild.updateCommands().addCommands(
-                // ===== CORE SECTORS =====
-                Commands.slash("menu", "Unified highcore control center"),
-                Commands.slash("startup", "Initialize guidance & panels (Admin)"),
-                Commands.slash("ticket", "Open service request session"),
-                Commands.slash("ticket-panel", "Deploy ticket control node (Admin)"),
-                Commands.slash("services", "Agency capability directory"),
+                // ===== CORE HUB & OPERATIONS =====
+                Commands.slash("startup", "Initialize agency guidance & hub panels (Admin)"),
+                Commands.slash("tickets", "Initialize support logistics ticket module"),
+                Commands.slash("services", "Open agency capability directory"),
+                Commands.slash("giveaway", "Sweepstakes configuration module (Admin)"),
                 Commands.slash("stats", "Agency health analytics"),
-                
-                // ===== OPERATIONS =====
                 Commands.slash("bc", "Initialize broadcast sequence (Admin)")
                         .addOption(OptionType.ROLE, "role", "Target role", false)
                         .addOption(OptionType.ATTACHMENT, "attachment", "Media payload", false),
-                Commands.slash("boter", "Relay message via terminal (Admin)")
-                        .addOption(OptionType.CHANNEL, "channel", "Output node", false),
-
-                // ===== MERIT & SOCIAL =====
-                Commands.slash("points", "Identity merit standing"),
-                Commands.slash("points-manage", "Administrative merit override (Admin)").addSubcommands(
-                        new SubcommandData("add","Allocate merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
-                        new SubcommandData("remove","Deallocate merit").addOption(OptionType.USER,"member","Subject",true).addOption(OptionType.INTEGER,"amount","Value",true),
-                        new SubcommandData("check","Audit subject merit").addOption(OptionType.USER,"member","Subject",false)),
-                Commands.slash("points-leaderboard", "Top operative rankings"),
                 
-                // ===== MODERATION =====
-                Commands.slash("clear", "Clear channel records (Admin)")
-                        .addOption(OptionType.INTEGER, "amount", "Number of records", true),
+                // ===== MERIT SYSTEM (ADMIN POINTS) =====
+                Commands.slash("points", "Identity merit standing").addSubcommands(
+                        new SubcommandData("check", "Audit operative merit").addOption(OptionType.USER, "member", "Subject", false),
+                        new SubcommandData("add", "Allocate merit (Admin)").addOption(OptionType.USER, "member", "Subject", true).addOption(OptionType.INTEGER, "amount", "Value", true),
+                        new SubcommandData("remove", "Deallocate merit (Admin)").addOption(OptionType.USER, "member", "Subject", true).addOption(OptionType.INTEGER, "amount", "Value", true),
+                        new SubcommandData("reset", "Reset merit standing (Admin)").addOption(OptionType.USER, "member", "Subject", true)),
+                Commands.slash("leaderboard", "Top operative rankings"),
+                
+                // ===== CONFIGURATION (ADMIN) =====
+                Commands.slash("filter", "Configure forbidden word matrix (Admin)").addSubcommands(
+                        new SubcommandData("add", "Add word").addOption(OptionType.STRING, "word", "Word", true),
+                        new SubcommandData("remove", "Remove word").addOption(OptionType.STRING, "word", "Word", true),
+                        new SubcommandData("list", "Display matrix")),
+                Commands.slash("auto", "Configure keyword response matrix (Admin)").addSubcommands(
+                        new SubcommandData("add", "Add keyword").addOption(OptionType.STRING, "keyword", "Key", true).addOption(OptionType.STRING, "response", "Value", true),
+                        new SubcommandData("remove", "Remove keyword").addOption(OptionType.STRING, "keyword", "Key", true),
+                        new SubcommandData("list", "Display list")),
 
-                // ===== UTILITY =====
-                Commands.slash("ping", "Latency diagnostic"),
-                Commands.slash("profile", "Examine subject profile").addOption(OptionType.USER,"member","Subject",false)
-        ).queue(c -> log.info("[\u2705] Synchronized {} verified protocol commands", c.size()));
+                // ===== UTILITY & MAINTENANCE =====
+                Commands.slash("clear", "Clear channel records (Admin)").addOption(OptionType.INTEGER, "amount", "Count", true),
+                Commands.slash("ping", "Latency diagnostic")
+        ).queue(c -> log.info("[\u2705] Synchronized {} verified protocol commands (Terminal v2.5)", c.size()));
     }
 }
