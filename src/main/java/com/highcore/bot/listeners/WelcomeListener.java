@@ -21,14 +21,20 @@ public class WelcomeListener extends ListenerAdapter {
         log.info("Member joined: {} in {}", event.getMember().getUser().getName(), event.getGuild().getName());
         
         try {
+            // Generate the dynamic card ONCE for usage in both Server and DM
             byte[] welcomeImage = WelcomeCardService.generateWelcomeCard(event.getMember());
+            
+            // 1. Send to Server Welcome Channel
             sendWelcomeMessage(event.getMember(), event.getGuild(), welcomeImage);
+            
+            // 2. Send to Member's Private DM
+            sendStartupDM(event.getMember(), welcomeImage);
+            
         } catch (Exception e) {
-            log.error("Failed to generate welcome image", e);
+            log.error("Failed to execute welcome protocol", e);
             sendWelcomeMessage(event.getMember(), event.getGuild(), null);
         }
 
-        sendStartupDM(event.getMember());
         logActivity(event.getGuild(), "Member Joined", "A new member has joined: **" + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")", com.highcore.bot.utils.EmbedUtil.SUCCESS);
     }
 
@@ -48,15 +54,12 @@ public class WelcomeListener extends ListenerAdapter {
         TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
         if (ch == null) return;
 
-        // 1. Precise 3-line message
         String body = String.format("""
                 Welcome : %s, 
                 You are the %d'th member .
                 Dont forget to visit the line : <#1488795130470072321>
                 """, member.getAsMention(), guild.getMemberCount());
 
-        // 2. Build Container using the attached image as a Banner (attachment://welcome.png)
-        // This ensures the image is part of the primary UI structure.
         Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, "attachment://welcome.png");
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
@@ -66,7 +69,7 @@ public class WelcomeListener extends ListenerAdapter {
         message.queue();
     }
 
-    private void sendStartupDM(Member member) {
+    private void sendStartupDM(Member member, byte[] image) {
         String hub = "1488795130470072321";
 
         String body = String.format("""
@@ -75,9 +78,15 @@ public class WelcomeListener extends ListenerAdapter {
                 Dont forget to visit the line : <#%s>
                 """, member.getUser().getAsMention(), member.getGuild().getMemberCount(), hub);
 
-        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, EmbedUtil.BANNER_MAIN);
+        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, "attachment://welcome.png");
         member.getUser().openPrivateChannel().queue(
-                dm -> dm.sendMessageComponents(c).useComponentsV2(true).queue(null, err -> {}),
+                dm -> {
+                    var msg = dm.sendMessageComponents(c).useComponentsV2(true);
+                    if (image != null) {
+                        msg.addFiles(FileUpload.fromData(image, "welcome.png"));
+                    }
+                    msg.queue(null, err -> {});
+                },
                 err -> {});
     }
 }
