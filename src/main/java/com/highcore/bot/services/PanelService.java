@@ -24,16 +24,32 @@ public class PanelService {
         List<MessageEmbed> embeds = new ArrayList<>();
         List<ActionRow> rows = new ArrayList<>();
         
-        // ULTIMATE STABILITY PROTOCOL: Convert all content to high-standard Embeds
         EmbedBuilder mainEmbed = new EmbedBuilder()
-            .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
-            .setFooter("\u2022 High Core Unified System \u2022 v1.3.0 \u2022");
+            .setFooter("\u2022 High Core Unified System \u2022 v1.3.5 \u2022");
+
+        // ONLY ADD IMAGE IF IT IS LIKELY WORKING (ImgBB check needed)
+        if (EmbedUtil.BANNER_MAIN != null && !EmbedUtil.BANNER_MAIN.isEmpty()) {
+            mainEmbed.setImage(EmbedUtil.BANNER_MAIN);
+        }
 
         if (content instanceof Container c) {
-            // Logically decode/map the container text to an embed description
             mainEmbed.setTitle(" [+] CORE SYSTEM PROTOCOL EXECUTED ");
-            mainEmbed.setDescription("` High Core Cyber-Infrastructure Active `\n\n**LOGISTICS INDEX:**\n" + c.toString().replace("Container{", "").replace("}", ""));
+            
+            // INTELLECTUAL TEXT EXTRACTION: Scan components for readable text
+            StringBuilder sb = new StringBuilder();
+            sb.append("` High Core Cyber-Infrastructure Active `\n\n");
+            
+            for (Object comp : c.getComponents()) {
+                if (comp instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay td) {
+                    String text = td.getContent().replace("###", "").replace("◈", "").trim();
+                    if (!text.isEmpty()) sb.append("**\u25B8 ").append(text).append("**\n");
+                } else if (comp instanceof ActionRow ar) {
+                    rows.add(ar);
+                }
+            }
+            
+            mainEmbed.setDescription(sb.toString());
             embeds.add(mainEmbed.build());
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
@@ -41,11 +57,15 @@ public class PanelService {
             for (Object obj : list) {
                 if (obj instanceof MessageEmbed me) embeds.add(me);
                 else if (obj instanceof ActionRow ar) rows.add(ar);
+                else if (obj instanceof Container c2) {
+                    // Recursive-like for list of containers
+                    handleReply(interaction, c2, ephemeral);
+                    return;
+                }
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DEFER TO SECURE THE CONNECTION
             if (!replyCallback.isAcknowledged()) {
                 replyCallback.deferReply(ephemeral).queue(hook -> {
                     hook.editOriginal("` [+] High Core System Protocol Loaded `")
@@ -54,7 +74,6 @@ public class PanelService {
                         .queue();
                 });
             } else {
-                // STEP 2: FULFILL VIA HOOK
                 var hook = replyCallback.getHook();
                 hook.editOriginal("` [+] High Core System Protocol Updated `")
                     .setEmbeds(embeds)
