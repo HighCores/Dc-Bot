@@ -62,18 +62,29 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "◈ Global digital infrastructure & professional multi-sector agency services. High fidelity solutions for the modern era.";
+        String title = "** HIGH CORE AGENCY **";
+        String body = """
+                ### ◈ **PREMIUM MULTI-SECTOR AGENCY OPERATIONS**
+                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. **HIGH CORE** provides high-fidelity solutions across system development, visual architecture, and strategic media management.
+                
+                Our internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.
+                
+                By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.
+                
+                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                
+                ### ◈ **SYSTEM NAVIGATION PROTOCOLS**
+                Examine our operational modules and establish a secure connection using the authorized protocols below.
+                """;
         
-        ActionRow row1 = ActionRow.of(
-            Button.primary("hub_highcore", "◈ HIGHCORE").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
-            Button.primary("hub_about", "◈ ABOUT US").withEmoji(Emoji.fromUnicode("\uD83D\uDCD6"))
-        );
-        ActionRow row2 = ActionRow.of(
-            Button.secondary("hub_partners", "◈ PARTNERS").withEmoji(Emoji.fromUnicode("\uD83E\uDD1D")),
-            Button.success("hub_tickets", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F"))
+        ActionRow row = ActionRow.of(
+            Button.secondary("hub_highcore", "◈ AGENCY").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5")),
+            Button.secondary("hub_about", "◈ INFOS").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
+            Button.secondary("hub_partners", "◈ NETWORK").withEmoji(Emoji.fromUnicode("\uD83E\uDDE1")),
+            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u2709\uFE0F"))
         );
         
-        handleReply(target, EmbedUtil.containerBranded("HIGH CORE THE UNLIMITED AGENCY", null, body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
+        handleReply(target, EmbedUtil.containerBranded(title, null, body, EmbedUtil.BANNER_MAIN, null, row), false);
     }
 
     public static void sendRulesPanel(Object target) {

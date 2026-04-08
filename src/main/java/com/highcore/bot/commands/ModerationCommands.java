@@ -22,7 +22,20 @@ public class ModerationCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        String name = event.getName();
+        String name = event.getName().toLowerCase();
+        
+        // OWNERSHIP-BASED DEFERRAL for Moderation: Only acknowledge if it's a mod tool
+        java.util.List<String> modCmds = java.util.Arrays.asList(
+            "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
+            "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
+            "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji"
+        );
+        
+        if (!modCmds.contains(name)) return; // Pass to other listeners
+
+        if (!event.isAcknowledged()) event.deferReply(true).queue();
+
         switch (name) {
             case "setnick" -> handleSetNick(event);
             case "ban" -> handleBan(event);

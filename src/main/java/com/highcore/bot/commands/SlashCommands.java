@@ -27,17 +27,31 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // IMMEDIATE DEFERRAL PROTOCOL: Ensures absolute stability and prevents timeout errors
-        if (name.equals("startup") || name.equals("tickets") || name.equals("services") || name.equals("stats")) {
-            event.deferReply(name.equals("services")).queue();
+        // OWNERSHIP-BASED DEFERRAL: Handle Core and Dynamic commands
+        java.util.List<String> coreCmds = java.util.Arrays.asList("startup", "tickets", "services", "stats", "bc");
+        
+        // If it's a core command OR a moderation command (handled elsewhere), we decide deferral
+        java.util.List<String> modCmds = java.util.Arrays.asList(
+            "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
+            "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
+            "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji"
+        );
+
+        if (modCmds.contains(name)) return; // Let ModerationCommands handle it entirely
+
+        // Defer EVERYTHING else (Core + Dynamic)
+        if (!event.isAcknowledged()) {
+            boolean ephemeral = !name.equals("startup") && !name.equals("bc");
+            event.deferReply(ephemeral).queue();
         }
 
         switch (name) {
-            case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else event.reply("Unauthorized.").setEphemeral(true).queue(); }
+            case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
             case "tickets" -> PanelService.sendTicketPanel(event);
             case "services" -> PanelService.sendServicesCategory(event);
             case "stats" -> PanelService.sendStatsPanel(event);
-            case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else event.reply("Unauthorized.").setEphemeral(true).queue(); }
+            case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
             default -> CommandService.executeSlash(event);
         }
     }
