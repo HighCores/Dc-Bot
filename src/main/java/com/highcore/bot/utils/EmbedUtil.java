@@ -58,9 +58,10 @@ public class EmbedUtil {
             ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
-        // 1. BRANDING BANNER (V2 COMPLIANT)
+        // 1. BRANDING BANNER (V2 COMPLIANT - WIDE FIT)
         if (imageUrl != null) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
         // 2. ELITE HEADER
@@ -93,7 +94,7 @@ public class EmbedUtil {
     }
 
     public static Container rulesPanel(ActionRow... rows) {
-        return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"),
+        return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_RULES, Emoji.fromUnicode("\uD83D\uDCDC"),
                 rows);
     }
 
