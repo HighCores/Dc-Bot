@@ -24,7 +24,7 @@ public class WelcomeCardService {
         BufferedImage background = null;
         try {
             // Priority 1: Multi-Path Local Search (Highly Robust for Railway/Docker)
-            String[] commonPaths = {"welcome.png", "src/main/resources/welcome.png", "/app/welcome.png"};
+            String[] commonPaths = {"welcome.png", "IMG_20260408_171922.png", "src/main/resources/welcome.png", "/app/welcome.png"};
             for (String path : commonPaths) {
                 java.io.File file = new java.io.File(path);
                 if (file.exists()) {
