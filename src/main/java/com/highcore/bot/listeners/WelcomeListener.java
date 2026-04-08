@@ -29,12 +29,12 @@ public class WelcomeListener extends ListenerAdapter {
         }
 
         sendStartupDM(event.getMember());
-        logActivity(event.getGuild(), "حدث انضمام", "عضو جديد انضم إلينا: **" + event.getMember().getUser().getName() + "** (`" + event.getMember().getId() + "`)", com.highcore.bot.utils.EmbedUtil.SUCCESS);
+        logActivity(event.getGuild(), "Member Joined", "A new member has joined: **" + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")", com.highcore.bot.utils.EmbedUtil.SUCCESS);
     }
 
     @Override
     public void onGuildMemberRemove(net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent event) {
-        logActivity(event.getGuild(), "حدث مغادرة", "غادر أحد الأعضاء الوكالة: **" + event.getUser().getName() + "** (`" + event.getUser().getId() + "`)", com.highcore.bot.utils.EmbedUtil.DANGER);
+        logActivity(event.getGuild(), "Member Left", "A member has left the server: **" + event.getUser().getName() + "** (" + event.getUser().getId() + ")", com.highcore.bot.utils.EmbedUtil.DANGER);
     }
 
     private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
@@ -49,16 +49,13 @@ public class WelcomeListener extends ListenerAdapter {
         if (ch == null) return;
 
         String body = String.format("""
-                ## 🎉 مرحباً بك في وكالة هايكور!
+                ## Welcome to Haikore Agency!
                 
-                **العضو الجديد:** %s
-                **الاسم:** %s
-                
-                > نحن سعداء جداً بانضمامك إلينا. 
-                > خذ جولة في أقسامنا واطلع على خدماتنا الاحترافية.
-                """, member.getAsMention(), member.getEffectiveName());
+                Hello %s, we are thrilled to have you here. 
+                Explore our professional services and feel free to reach out to our staff.
+                """, member.getUser().getName());
 
-        Container c = EmbedUtil.containerBranded("ترحيب", "انضمام عضو جديد", body, null); // Banner URL null as we send file
+        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, null);
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
@@ -72,23 +69,23 @@ public class WelcomeListener extends ListenerAdapter {
         String o = Config.CH_ORDER, t = Config.CH_TICKET;
 
         String body = String.format("""
-                ## 📖 دليل البداية — وكالة هايكور
+                ## 📖 Welcome Guide - Haikore Agency
                 
-                أهلاً بك في الوكالة. إليك أهم الروابط التي قد تحتاجها:
+                Hello! Here are the most important links to get you started:
                 
-                📒 **الأسعار والقوانين:**
+                📒 **Pricing & Rules:**
                 - <#%s> | <#%s> | <#%s>
                 
-                🛒 **طلب خدمة جديدة:**
+                🛒 **Request a Service:**
                 - <#%s>
                 
-                ✉️ **الدعم الفني:**
+                ✉️ **Technical Support:**
                 - <#%s>
                 
-                *فريقنا مستعد دائماً لمساعدتك في أي وقت.*
+                *Our team is always here to help you.*
                 """, dp, dsp, mp, o, t);
 
-        Container c = EmbedUtil.containerBranded("دليل", "دليل البداية", body, EmbedUtil.BANNER_MAIN);
+        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, EmbedUtil.BANNER_MAIN);
         member.getUser().openPrivateChannel().queue(
                 dm -> dm.sendMessageComponents(c).useComponentsV2(true).queue(null, err -> {}),
                 err -> {});

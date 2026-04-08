@@ -16,74 +16,70 @@ public class WelcomeCardService {
      * Overlay: User Avatar (Left), "Welcome to the Future" text, and Name Box.
      */
     public static byte[] generateWelcomeCard(Member member) throws Exception {
-        // Highcore Agency Branding Banner (Image 1 from user)
-        BufferedImage background = ImageIO.read(new URL("https://i.ibb.co/3ykfX5K/media-1775551414274.png"));
+        // Highcore Agency Branding Background (The premium golden background provided by user)
+        BufferedImage background = ImageIO.read(new URL("https://i.ibb.co/L5T8S0j/IMG-8438.jpg"));
         int width = background.getWidth();
         int height = background.getHeight();
 
         BufferedImage combined = new BufferedImage(width, height, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = combined.createGraphics();
         
-        // Quality rendering hints
+        // High-Quality Rendering
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BILINEAR);
+        g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
+        g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
         // 1. Draw Background
-        g.drawImage(background, 0, 0, null);
+        g.drawImage(background, 0, 0, width, height, null);
 
         // 2. Prepare Avatar
-        String avatarUrl = member.getUser().getEffectiveAvatarUrl() + "?size=256";
+        String avatarUrl = member.getUser().getEffectiveAvatarUrl() + "?size=512";
         BufferedImage avatar = ImageIO.read(new URL(avatarUrl));
 
-        // Placement math: Left-aligned, vertically centered
-        int avatarSize = (int) (height * 0.65);
-        int avatarX = (int) (width * 0.06);
-        int avatarY = (height - avatarSize) / 2;
+        // Placement math: Left-aligned, vertically offset for balance
+        int avatarSize = (int) (height * 0.50);
+        int avatarX = (int) (width * 0.08);
+        int avatarY = (int) (height * 0.25);
 
-        // Circular Clip for Avatar
+        // Circular Clip
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // Golden Outer Border for Avatar
-        g.setColor(new Color(212, 175, 55)); // Metallic Gold #D4AF37
-        g.setStroke(new BasicStroke(6));
+        // Premium Gold Outer Border
+        g.setColor(new Color(212, 175, 55)); // Metallic Gold
+        g.setStroke(new BasicStroke(8));
         g.drawOval(avatarX, avatarY, avatarSize, avatarSize);
 
-        // 3. Welcome Subtext (Small font above name)
-        g.setFont(new Font("Arial", Font.PLAIN, 18));
-        g.setColor(new Color(200, 200, 200));
-        int textX = avatarX + avatarSize + 40;
-        int textY = avatarY + 35;
-        g.drawString("Welcome to the Future", textX, textY);
+        // 3. Welcome Text (Small above the name box)
+        g.setFont(new Font("SansSerif", Font.PLAIN, 22));
+        g.setColor(new Color(230, 230, 230));
+        int textX = avatarX + avatarSize + 50;
+        int textY = avatarY + 45;
+        g.drawString("Welcome to the Future", textX + 5, textY);
 
-        // 4. Name Box (Modern transparency)
-        int boxW = 450;
-        int boxH = 75;
+        // 4. Modern Name Box
+        int boxW = 500;
+        int boxH = 90;
         int boxX = textX;
         int boxY = textY + 15;
         
-        // Shadow/Glow (Subtle)
-        g.setColor(new Color(212, 175, 55, 30));
-        g.fillRect(boxX - 2, boxY - 2, boxW + 4, boxH + 4);
-
-        // Box Body
-        g.setColor(new Color(0, 0, 0, 180));
-        g.fillRect(boxX, boxY, boxW, boxH);
+        // Semi-transparent deep background
+        g.setColor(new Color(0, 0, 0, 160));
+        g.fillRoundRect(boxX, boxY, boxW, boxH, 20, 20);
         
-        // Box Border (Gold)
-        g.setColor(new Color(212, 175, 55));
-        g.setStroke(new BasicStroke(2));
-        g.drawRect(boxX, boxY, boxW, boxH);
+        // Gold Border for Box
+        g.setColor(new Color(212, 175, 55, 200));
+        g.setStroke(new BasicStroke(3));
+        g.drawRoundRect(boxX, boxY, boxW, boxH, 20, 20);
 
-        // 5. User Name
-        g.setFont(new Font("Arial", Font.BOLD, 42));
+        // 5. Member Name
+        g.setFont(new Font("SansSerif", Font.BOLD, 48));
         g.setColor(Color.WHITE);
-        String name = member.getEffectiveName();
-        // Simple truncation if too long for the box
-        if (name.length() > 18) name = name.substring(0, 15) + "...";
-        g.drawString(name, boxX + 25, boxY + 52);
+        String name = member.getUser().getName().toUpperCase();
+        if (name.length() > 16) name = name.substring(0, 14) + "..";
+        g.drawString(name, boxX + 40, boxY + 62);
 
         g.dispose();
 

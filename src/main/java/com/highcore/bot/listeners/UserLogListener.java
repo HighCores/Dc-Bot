@@ -22,39 +22,39 @@ public class UserLogListener extends ListenerAdapter {
     public void onUserUpdateName(@NotNull UserUpdateNameEvent event) {
         TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
         if (ch == null) return;
-        String body = "### \uD83D\uDCDD تحديث اسم الحساب\n" +
-                "**العضو:** `" + event.getUser().getName() + "`\n" +
-                "**المعرف:** `" + event.getUser().getId() + "`\n" +
-                "**الاسم السابق:** `" + event.getOldName() + "`\n" +
-                "**الاسم الجديد:** `" + event.getNewName() + "`\n" +
-                "**الوقت:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("تغيير الهوية", body, EmbedUtil.GOLD)).queue();
+        String body = "### \uD83D\uDCDD Account Name Updated\n" +
+                "**User:** `" + event.getUser().getName() + "`\n" +
+                "**ID:** `" + event.getUser().getId() + "`\n" +
+                "**Old Name:** `" + event.getOldName() + "`\n" +
+                "**New Name:** `" + event.getNewName() + "`\n" +
+                "**Time:** " + now();
+        ch.sendMessageComponents(EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD)).queue();
     }
 
     @Override
     public void onUserUpdateAvatar(@NotNull UserUpdateAvatarEvent event) {
         TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
         if (ch == null) return;
-        String body = "### \uD83D\uDDBC تحديث الصورة الشخصية\n" +
-                "**العضو:** `" + event.getUser().getName() + "`\n" +
-                "**المعرف:** `" + event.getUser().getId() + "`\n" +
-                "**الصورة الجديدة:** [اضغط هنا للعرض](" + event.getNewAvatarUrl() + ")\n" +
-                "**الوقت:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("تحديث بصري", body, EmbedUtil.GOLD)).queue();
+        String body = "### \uD83D\uDDBC Profile Picture Updated\n" +
+                "**User:** `" + event.getUser().getName() + "`\n" +
+                "**ID:** `" + event.getUser().getId() + "`\n" +
+                "**New Avatar:** [Click to view](" + event.getNewAvatarUrl() + ")\n" +
+                "**Time:** " + now();
+        ch.sendMessageComponents(EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD)).queue();
     }
 
     @Override
     public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
         TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
         if (ch == null) return;
-        String old = event.getOldNickname() != null ? event.getOldNickname() : "لا يوجد";
-        String curr = event.getNewNickname() != null ? event.getNewNickname() : "إعادة تعيين";
-        String body = "### \uD83C\uDFF7\uFE0F تحديث لقب العضو\n" +
-                "**العضو:** `" + event.getUser().getName() + "`\n" +
-                "**المعرف:** `" + event.getUser().getId() + "`\n" +
-                "**اللقب السابق:** `" + old + "`\n" +
-                "**اللقب الجديد:** `" + curr + "`\n" +
-                "**الوقت:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("تغيير اللقب", body, EmbedUtil.GOLD)).queue();
+        String old = event.getOldNickname() != null ? event.getOldNickname() : "None";
+        String curr = event.getNewNickname() != null ? event.getNewNickname() : "Reset";
+        String body = "### \uD83C\uDFF7\uFE0F Nickname Updated\n" +
+                "**User:** `" + event.getUser().getName() + "`\n" +
+                "**ID:** `" + event.getUser().getId() + "`\n" +
+                "**Old Nickname:** `" + old + "`\n" +
+                "**New Nickname:** `" + curr + "`\n" +
+                "**Time:** " + now();
+        ch.sendMessageComponents(EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD)).queue();
     }
 }

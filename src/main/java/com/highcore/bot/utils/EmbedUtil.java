@@ -28,49 +28,36 @@ public class EmbedUtil {
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String RULES_TEXT = """
-            ## \uD83D\uDCCB قوانين وكالة هايكور | Haikore Agency
+            ## \uD83D\uDCCB Haikore Agency Rules
             
-            ### 🛡️ أولاً : القواعد العامة (General Rules)
+            ### 🛡️ 1. General Rules
+            1. **Mutual Respect**: Harassment, bullying, or offensive language is strictly prohibited.
+            2. **Professionalism**: Use clear nicknames and avoid inappropriate profile pictures.
+            3. **Privacy**: Never share personal information (Doxxing) of any member or client.
             
-            1- الاحترام المتبادل : يمنع الإساءة، التنمر، أو استخدام الألفاظ النابية نحن مجتمع مبني على الدعم والرقي
+            ### \uD83D\uDCBC 2. Business & Service Rules
+            1. **Serious Projects**: Order channels are for work only. Mockery or fake orders may lead to restrictions.
+            2. **Copyright**: All development and design rights belong to Haikore Agency unless agreed otherwise.
+            3. **Official Channels**: Financial or technical agreements must go through Tickets.
             
-            2- الهوية المهنية : يفضل استخدام أسماء واضحة (أو مستعارة محترمة) وتجنب الصور الشخصية غير اللائقة
-            
-            3- الخصوصية: يمنع منعاً باتاً نشر معلومات شخصية (Doxxing) لأي عضو أو عميل داخل السيرفر
-            
-            ### \uD83D\uDCBC ثانياً : قوانين التعاملات والعمل (Business Rules)
-            
-            1- الجدية في الطلبات : رومات الطلبات مخصصة للعمل فقط أي استهزاء أو طلبات وهمية قد تؤدي لتقييد وصولك
-            
-            2- حقوق الملكية : جميع الحقوق البرمجية والتصميمية او اي خدمه تعود لوكالة "هايكور" ما لم يتم الاتفاق على خلاف ذلك مع العميل
-            
-            3- التواصل الرسمي : أي اتفاق مالي أو تقني يجب أن يتم عبر "التكتات" (Tickets) لضمان حق الطرفين وتوثيق العمل
-            
-            ### \uD83D\uDEAB ثالثاً : المحظورات (Prohibitions)
-            
-            1- ممنوع الإعلانات (No Ads) : يمنع نشر روابط سيرفرات أخرى أو الترويج لخدمات خارجية دون إذن الإدارة
-            
-            2- السبام (No Spam) : تجنب تكرار الرسائل أو المنشن العشوائي للإدارة ؛ الجميع هنا لخدمتك وفق جدول زمني
-            
-            3- المحتوى الحساس : يمنع نشر أي محتوى سياسي، ديني متطرف، أو خادش للحياء
-            
-            ### \u26A0\uFE0F رابعاً : الإجراءات الإدارية
-            
-            1- قرار الإدارة قطعي : الإدارة لها الحق في اتخاذ الإجراء المناسب (تحذير/طرد/باند) في حال مخالفة الروح العامة للوكالة، حتى لو لم  ينص القانون على المخالفة نصاً
+            ### \uD83D\uDEAB 3. Prohibitions
+            1. **No Ads**: No promotion of external servers or services without permission.
+            2. **No Spam**: Avoid excessive mentions or message repetition.
+            3. **Content**: No political, religious extremism, or NSFW content.
             """;
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl) {
-        return containerBranded(sector, title, body, imageUrl, null);
+    public static Container containerBranded(String category, String topic, String body, String imageUrl) {
+        return containerBranded(category, topic, body, imageUrl, null);
     }
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
+    public static Container containerBranded(String category, String topic, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         
         if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
 
-        layout.add(TextDisplay.of("### \u25C8 قسم " + sector.toUpperCase() + " \u30FB " + title.toUpperCase()));
+        layout.add(TextDisplay.of("### \u25C8 " + category.toUpperCase() + " \u30FB " + topic.toUpperCase()));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
@@ -82,34 +69,34 @@ public class EmbedUtil {
             layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
-        layout.add(TextDisplay.of("` \u2022 نظام وكالة هايكور الموحد \u2022 GOLDEN TERMINAL 1.2.0 \u2022 `"));
+        layout.add(TextDisplay.of("` \u2022 Haikore Agency Unified System \u2022 v1.2.0 \u2022 `"));
 
         return Container.of(layout);
     }
 
     public static Container startupPanel(ActionRow... rows) {
-        String body = "أهلاً بك في وكالة هايكور.\n" +
-                "نقدم حلولاً رقمية احترافية في التصميم، البرمجة، المونتاج، وخدمات ماينكرافت.\n\n" +
-                "تفضل ببدء تجربتك عبر القوائم أدناه.";
-        return containerBranded("بداية", "مركز التحكم", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
+        String body = "Welcome to Haikore Agency.\n" +
+                "We provide professional digital solutions in Design, Coding, and Minecraft services.\n\n" +
+                "Please use the menu below to navigate our services.";
+        return containerBranded("Main", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
     }
 
     public static Container rulesPanel() {
-        return containerBranded("PROTOCOL", "Compliance System", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"));
+        return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"));
     }
 
-    public static Container accessDenied() { return error("غير مصرح", "عذراً، لا تملك الصلاحيات الكافية للوصول لهذا القسم."); }
-    public static Container error(String title, String description) { return containerBranded("خطأ", title, "[\u274C] " + description, BANNER_SUPPORT); }
-    public static Container success(String title, String description) { return containerBranded("نجاح", title, "[\u2705] " + description, BANNER_MAIN); }
-    public static Container info(String title, String description) { return containerBranded("معلومات", title, "[\u2139\uFE0F] " + description, BANNER_MAIN); }
+    public static Container accessDenied() { return error("Unauthorized", "You do not have the required permissions to access this section."); }
+    public static Container error(String title, String description) { return containerBranded("Error", title, "[\u274C] " + description, BANNER_SUPPORT); }
+    public static Container success(String title, String description) { return containerBranded("Success", title, "[\u2705] " + description, BANNER_MAIN); }
+    public static Container info(String title, String description) { return containerBranded("Information", title, "[\u2139\uFE0F] " + description, BANNER_MAIN); }
 
-    public static Container activityLog(String type, String details, Color color) { return containerBranded("سجل", type, details, BANNER_MAIN); }
+    public static Container activityLog(String type, String details, Color color) { return containerBranded("System", type, details, null); }
     public static Container giveaway(String prize, int winners, int duration) {
-        String body = "### \uD83C\uDF81 **مسابقة جديدة!**\n" +
-                "**الجائزة:** `" + prize + "`\n" +
-                "**الفائزون:** `" + winners + "`\n" +
-                "**المدة:** `" + duration + " دقيقة`\n\n" +
-                "اضغط على الزر أدناه للدخول في السحب.";
-        return containerBranded("مسابقة", "توزيع المكافآت", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
+        String body = "### \uD83C\uDF81 **New Giveaway!**\n" +
+                "**Prize:** `" + prize + "`\n" +
+                "**Winners:** `" + winners + "`\n" +
+                "**Duration:** `" + duration + " minutes`\n\n" +
+                "Click the button below to participate.";
+        return containerBranded("Event", "Giveaway", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
     }
 }

@@ -15,8 +15,8 @@ import org.jetbrains.annotations.NotNull;
 public class OrderCommands extends ListenerAdapter {
 
     public static SlashCommandData getCommandData() {
-        return Commands.slash("order-status", "الاستعلام عن حالة مشروعك المسجل في الوكالة")
-                .addOption(OptionType.STRING, "number", "رقم المشروع الخاص بك (مثال: HC-007)", true)
+        return Commands.slash("order-status", "Query the status of your project at Haikore Agency")
+                .addOption(OptionType.STRING, "number", "Your project ID (Example: HC-007)", true)
                 .setDefaultPermissions(DefaultMemberPermissions.ENABLED);
     }
 
@@ -29,21 +29,21 @@ public class OrderCommands extends ListenerAdapter {
 
         JsonObject order = SupabaseClient.getOrder(num);
         if (order == null) {
-            PanelService.replyEphemeral(event, EmbedUtil.error("خطأ في البيانات", "### \u274C لم يتم العثور على الطلب\n" + 
-                    "رقم الطلب `" + num + "` غير موجود في سجلات وكالة هايكور."));
+            PanelService.replyEphemeral(event, EmbedUtil.error("Data Error", "### \u274C Project Not Found\n" + 
+                    "Project ID `" + num + "` was not found in our records."));
             return;
         }
 
         String statusRaw = order.get("status").getAsString();
-        String cat = order.has("category") && !order.get("category").isJsonNull() ? order.get("category").getAsString() : "عام";
+        String cat = order.has("category") && !order.get("category").isJsonNull() ? order.get("category").getAsString() : "General";
         String name = order.has("specs") && order.get("specs").isJsonObject() && order.getAsJsonObject("specs").has("name") 
-                        ? order.getAsJsonObject("specs").get("name").getAsString() : "مشروع خاص";
+                        ? order.getAsJsonObject("specs").get("name").getAsString() : "Custom Project";
 
-        String statusAr = switch (statusRaw) {
-            case "COMPLETED" -> "مكتمل بنجاح";
-            case "IN_PROGRESS" -> "قيد التنفيذ حالياً";
-            case "CANCELLED" -> "ملغى";
-            case "PENDING" -> "في انتظار المراجعة";
+        String statusEn = switch (statusRaw) {
+            case "COMPLETED" -> "Successfully Completed";
+            case "IN_PROGRESS" -> "Currently In Progress";
+            case "CANCELLED" -> "Cancelled";
+            case "PENDING" -> "Awaiting Review";
             default -> statusRaw;
         };
 
@@ -54,12 +54,12 @@ public class OrderCommands extends ListenerAdapter {
             default -> "\u23F3";
         };
 
-        String body = "## " + emoji + " الحالة: " + statusAr + "\n\n"
-                + "**رقم المشروع:** `" + num + "`\n"
-                + "**اسم الخدمة:** " + name + "\n"
-                + "**القسم:** " + cat.toUpperCase() + "\n"
-                + "**ملاحظات العمل:** " + (order.has("status_notes") && !order.get("status_notes").isJsonNull() ? order.get("status_notes").getAsString() : "لا توجد ملاحظات عامة متاحة حالياً.");
+        String body = "## " + emoji + " Status: " + statusEn + "\n\n"
+                + "**Project ID:** `" + num + "`\n"
+                + "**Service Name:** " + name + "\n"
+                + "**Category:** " + cat.toUpperCase() + "\n"
+                + "**Notes:** " + (order.has("status_notes") && !order.get("status_notes").isJsonNull() ? order.get("status_notes").getAsString() : "No status updates available at this time.");
 
-        PanelService.reply(event, EmbedUtil.containerBranded("السجلات", "بيان المشروع", body, EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("Records", "Project Update", body, EmbedUtil.BANNER_MAIN));
     }
 }
