@@ -23,10 +23,15 @@ public class WelcomeCardService {
         // Highcore Agency Precision Template (1126x398) - Loaded from Config
         BufferedImage background = null;
         try {
-            String url = com.highcore.bot.config.Config.WELCOME_BG_URL;
-            log.debug("Attempting to load welcome background from: [{}]", url);
-            background = ImageIO.read(new URL(url));
+            String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
+            log.debug("Attempting to load welcome background from: [{}]", urlStr);
+            
+            java.net.URL url = new java.net.URL(urlStr);
+            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            background = ImageIO.read(connection.getInputStream());
         } catch (Exception e) {
+            log.error("Error loading background image: {}", e.getMessage());
             throw new Exception("Source image unreachable or invalid format: " + e.getMessage());
         }
 
