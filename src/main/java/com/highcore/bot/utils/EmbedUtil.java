@@ -51,17 +51,17 @@ public class EmbedUtil {
             """;
 
     public static final String TERMS_TEXT = """
-            ### 🛡️ 1. ARCHITECTURAL OVERVIEW
-            High Core Agency operates as a premier digital solutions provider. By interacting with our services, you agree to these protocols. We prioritize user empowerment and data integrity above all.
+            ### 🛡️ 1. OUR PROMISE
+            We are High Core Agency. We provide top-quality digital work. By using our services, you agree to these simple rules. Your work and safety are our priority.
 
-            ### 📹 2. MEDIA & CLIP DISPOSITION POLICY (GOOGLE STANDARD)
-            - **Ownership:** Clients retain primary IP rights over raw assets. High Core retains rights to technical enhancements.
-            - **Security:** Clips are stored in encrypted environments. No 3rd-party sharing.
-            - **Purge:** Assets are deleted from primary cache **30 days** after delivery.
+            ### 📹 2. CLIPS & MEDIA POLICY
+            - **Your Rights:** You own any clip or file you give us. We only keep rights to the special edits we add.
+            - **Privacy:** We save your clips in a private place. We never share your files with anyone else.
+            - **Cleanup:** We delete your clips from our system **30 days** after we finish the job.
 
-            ### 🔒 3. PRIVACY & INTEGRITY
-            - **Clarity:** We follow the Google Privacy Model: Minimal data footprint.
-            - **Security:** Your ID and data are guarded by our Terminal Security layer.
+            ### 🔒 3. SECURITY & PRIVACY
+            - **Simple Data:** We don't track you. We only use your Discord ID to manage your orders.
+            - **Safe System:** Our bot uses professional security to keep your information secret.
             """;
 
     public static Container containerBranded(String category, String topic, String body, String imageUrl) {
