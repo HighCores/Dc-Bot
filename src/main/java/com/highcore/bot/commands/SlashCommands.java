@@ -27,13 +27,18 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
+        // IMMEDIATE DEFERRAL PROTOCOL: Ensures absolute stability and prevents timeout errors
+        if (name.equals("startup") || name.equals("tickets") || name.equals("services") || name.equals("stats")) {
+            event.deferReply(name.equals("services")).queue();
+        }
+
         switch (name) {
             case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else event.reply("Unauthorized.").setEphemeral(true).queue(); }
             case "tickets" -> PanelService.sendTicketPanel(event);
             case "services" -> PanelService.sendServicesCategory(event);
             case "stats" -> PanelService.sendStatsPanel(event);
             case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else event.reply("Unauthorized.").setEphemeral(true).queue(); }
-            default -> CommandService.executeSlash(event); // Handles 70+ dynamic commands (Supabase)
+            default -> CommandService.executeSlash(event);
         }
     }
 

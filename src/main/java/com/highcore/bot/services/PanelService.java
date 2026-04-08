@@ -29,31 +29,29 @@ public class PanelService {
 
         if (interaction instanceof IReplyCallback replyCallback) {
             try {
-                if (!replyCallback.isAcknowledged()) {
-                    // FAST RESPONSE PROTOCOL: Direct reply is safer to prevent 'thinking' hangs
-                    var replyAction = replyCallback.reply("### \u25C8 ACCESSING INFRASTRUCTURE...")
-                            .setEphemeral(ephemeral);
-                    
-                    if (!components.isEmpty()) {
-                        replyAction.setComponents(components);
-                        replyAction.getContent(); // Keep it minimal
-                    }
-                    
-                    replyAction.queue(hook -> {
-                        // Clean up initial text to make it look premium
-                        hook.editOriginal("").queue();
-                    }, e -> {
-                        // Fallback in case of race condition
-                        try { replyCallback.getHook().sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
-                    });
-                } else {
+                if (replyCallback.isAcknowledged()) {
+                    // SECURE HOOK PROTOCOL: Use the existing hook to update the message after deferral
                     InteractionHook hook = replyCallback.getHook();
                     var edit = hook.editOriginal("");
                     if (!components.isEmpty()) {
                         edit.setComponents(components);
                         edit.useComponentsV2(true);
                     }
-                    edit.queue();
+                    edit.queue(null, e -> {
+                        // Silent fallback for hooks that timed out or closed
+                    });
+                } else {
+                    // FALLBACK: If not deferred, use immediate reply
+                    var replyAction = replyCallback.reply("### \u25C8 ACCESSING INFRASTRUCTURE...")
+                            .setEphemeral(ephemeral);
+                    
+                    if (!components.isEmpty()) {
+                        replyAction.setComponents(components);
+                    }
+                    
+                    replyAction.queue(hook -> hook.editOriginal("").queue(), e -> {
+                        try { replyCallback.getHook().sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+                    });
                 }
             } catch (Exception e) {
                 try { replyCallback.getHook().sendMessage("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
@@ -70,7 +68,7 @@ public class PanelService {
         );
         ActionRow row2 = ActionRow.of(
             Button.secondary("hub_partners", "◈ PARTNERS").withEmoji(Emoji.fromUnicode("\uD83E\uDD1D")),
-            Button.success("hub_tickets", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F")) // Changed to Button from Link
+            Button.success("hub_tickets", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F"))
         );
         
         handleReply(target, EmbedUtil.containerBranded("HIGH CORE THE UNLIMITED AGENCY", null, body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
