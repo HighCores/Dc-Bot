@@ -75,7 +75,7 @@ public class PanelService {
         
         ActionRow row3 = ActionRow.of(
             Button.secondary("hub_rules", "SERVER PROTOCOLS").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("hub_social", "OFFICIAL CHANNELS").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
+            Button.secondary("hub_social", "SOCIAL MEDIA").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")) // Refined label
         );
         
         // Startup remains public (false = NOT ephemeral), sub-panels remain ephemeral
@@ -106,6 +106,7 @@ public class PanelService {
                 **🆘 TECHNICAL OPS:**
                 \u25B8 <#1488798547947159612> ✉️ Support Tickets
                 """;
+        // PLACEHOLDER: Put Map Image URL here
         replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAIN));
     }
 
@@ -117,6 +118,7 @@ public class PanelService {
             Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7")), 
             Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30"))
         );
+        // PLACEHOLDER: Put Social Media Image URL here
         replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_MAIN, null, row));
     }
 
