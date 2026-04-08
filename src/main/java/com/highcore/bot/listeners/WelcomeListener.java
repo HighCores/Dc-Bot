@@ -60,7 +60,9 @@ public class WelcomeListener extends ListenerAdapter {
                 Dont forget to visit the line : <#1488795130470072321>
                 """, member.getAsMention(), guild.getMemberCount());
 
-        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, "attachment://welcome.png");
+        // Intelligent Fallback: Only use attachment:// if image generation succeeded
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
+        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
@@ -78,7 +80,10 @@ public class WelcomeListener extends ListenerAdapter {
                 Dont forget to visit the line : <#%s>
                 """, member.getUser().getAsMention(), member.getGuild().getMemberCount(), hub);
 
-        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, "attachment://welcome.png");
+        // Intelligent Fallback for DM as well
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
+        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
+        
         member.getUser().openPrivateChannel().queue(
                 dm -> {
                     var msg = dm.sendMessageComponents(c).useComponentsV2(true);

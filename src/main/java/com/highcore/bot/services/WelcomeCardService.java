@@ -17,7 +17,17 @@ public class WelcomeCardService {
      */
     public static byte[] generateWelcomeCard(Member member) throws Exception {
         // Highcore Agency Precision Template (1126x398)
-        BufferedImage background = ImageIO.read(new URL("https://media.discordapp.net/attachments/1488900668042510568/1491413582108430386/IMG_20260408_152445.png?ex=69d79aa3&is=69d64923&hm=3c5b32bb1aaa54ad4267d5a9ef9eba50ac0ac997a111ab515254d5126460aa66&=&format=webp&quality=lossless&width=1126&height=398"));
+        BufferedImage background = null;
+        try {
+            background = ImageIO.read(new URL("https://media.discordapp.net/attachments/1488900668042510568/1491413582108430386/IMG_20260408_152445.png?ex=69d79aa3&is=69d64923&hm=3c5b32bb1aaa54ad4267d5a9ef9eba50ac0ac997a111ab515254d5126460aa66&=&format=webp&quality=lossless&width=1126&height=398"));
+        } catch (Exception e) {
+            throw new Exception("Source image unreachable or invalid format: " + e.getMessage());
+        }
+
+        if (background == null) {
+            throw new Exception("Background image is null after read attempt.");
+        }
+
         int width = background.getWidth();
         int height = background.getHeight();
 
