@@ -23,23 +23,34 @@ public class WelcomeCardService {
         // Highcore Agency Precision Template (1126x398) - Loaded from Config
         BufferedImage background = null;
         try {
-            String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
-            log.debug("Attempting to load welcome background from: [{}]", urlStr);
+            // Priority 1: Multi-Path Local Search (Highly Robust for Railway/Docker)
+            String[] commonPaths = {"welcome.png", "src/main/resources/welcome.png", "/app/welcome.png"};
+            for (String path : commonPaths) {
+                java.io.File file = new java.io.File(path);
+                if (file.exists()) {
+                    log.info("Asset detected at: [{}]. Initializing...", path);
+                    background = ImageIO.read(file);
+                    break;
+                }
+            }
             
-            java.net.URL url = new java.net.URL(urlStr);
-            java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            connection.setConnectTimeout(5000);
-            connection.setReadTimeout(5000);
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-            connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
-            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9");
-            connection.setRequestProperty("Cache-Control", "no-cache");
-            connection.setRequestProperty("Pragma", "no-cache");
-            
-            background = ImageIO.read(connection.getInputStream());
+            // Priority 2: Remote URL (Fallback)
+            if (background == null) {
+                String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
+                log.debug("Local asset not found. Requesting remote fallback: [{}]", urlStr);
+                
+                java.net.URL url = new java.net.URL(urlStr);
+                java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
+                connection.setConnectTimeout(5000);
+                connection.setReadTimeout(5000);
+                connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+                connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+                
+                background = ImageIO.read(connection.getInputStream());
+            }
         } catch (Exception e) {
-            log.error("Fatal error loading background [{}]: {}", e.getClass().getName(), e.getMessage());
-            throw new Exception("Source image unreachable or invalid format: " + e.getMessage());
+            log.error("Asset initialization failed: {}", e.getMessage());
+            throw new Exception("Background initialization aborted: " + e.getMessage());
         }
 
         if (background == null) {
