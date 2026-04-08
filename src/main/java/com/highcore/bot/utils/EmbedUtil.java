@@ -52,21 +52,25 @@ public class EmbedUtil {
     public static Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         
+        // 1. ELITE HEADER
         layout.add(TextDisplay.of("**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**"));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
+        // 2. TECHNICAL BODY
         if (body != null) {
             layout.add(TextDisplay.of(body));
         }
 
+        // 3. ACTION INTERFACE
         if (rows != null && rows.length > 0) {
             for (ActionRow row : rows) {
                 layout.add(row);
             }
         }
 
+        // 4. INFRASTRUCTURE FOOTER
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-        layout.add(TextDisplay.of("` \u2022 High Core Unified System \u2022 v1.2.0 \u2022 `"));
+        layout.add(TextDisplay.of("` \u2022 High Core Unified System \u2022 v1.7.0 \u2022 `"));
 
         return Container.of(layout);
     }

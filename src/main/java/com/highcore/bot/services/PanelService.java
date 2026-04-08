@@ -21,60 +21,50 @@ public class PanelService {
     public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
+        List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
-        List<ActionRow> rows = new ArrayList<>();
         
-        // 1. ELITE BRANDING: The Gold Standard Banner
-        EmbedBuilder mainEmbed = new EmbedBuilder()
+        // 1. BRANDING GUARANTEE: The Gold Standard Banner (Embed)
+        embeds.add(new EmbedBuilder()
             .setImage(EmbedUtil.BANNER_MAIN)
-            .setColor(EmbedUtil.GOLD);
+            .setColor(EmbedUtil.GOLD)
+            .build());
 
-        // 2. ABSOLUTE STABILITY: Use Direct Strike Standard Embeds with Terminal Formatting
+        // 2. V2 PAYLOAD (Container)
         if (content instanceof Container c) {
-            StringBuilder sb = new StringBuilder();
-            sb.append("` [+] High Core Cyber-Infrastructure Protocol `\n");
-            sb.append("\u250C\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2510\n");
-            
-            for (Object comp : c.getComponents()) {
-                if (comp instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay td) {
-                    String text = td.getContent().replace("###", "").replace("◈", "").replace("**", "").replace("\u25C8", "").trim();
-                    if (!text.isEmpty()) sb.append("\u2502 **\u25B8 ").append(text).append("**\n");
-                } else if (comp instanceof ActionRow ar) {
-                    rows.add(ar);
-                } else if (comp instanceof net.dv8tion.jda.api.components.separator.Separator) {
-                    sb.append("\u2502 \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500 \n");
-                }
-            }
-            
-            sb.append("\u2514\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2518\n");
-            sb.append("` \u2022 v1.8.0 \u2022 Unified System \u2022 `");
-            
-            mainEmbed.setDescription(sb.toString());
-            embeds.add(mainEmbed.build());
+            components.add(c);
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         } else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof MessageEmbed me) embeds.add(me);
-                else if (obj instanceof ActionRow ar) rows.add(ar);
+                if (obj instanceof Container c) components.add(c);
+                else if (obj instanceof MessageEmbed me) embeds.add(me);
+                else if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                else if (obj instanceof ActionRow ar) components.add(ar);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DIRECT STRIKE - The only 100% way to kill "Thinking" hangs
+            // STEP 1: DEFER IMMEDIATELY - SECURE THE CONNECTION
             if (!replyCallback.isAcknowledged()) {
-                replyCallback.reply("` [+] High Core System Protocol Loaded `")
-                    .setEphemeral(ephemeral)
-                    .addEmbeds(embeds)
-                    .addComponents(rows)
-                    .queue();
+                replyCallback.deferReply(ephemeral).queue(hook -> {
+                    // STEP 2: FULFILL WITH ELITE HYBRID PAYLOAD
+                    var edit = hook.editOriginal("` [+] High Core Unified Protocol Executed `")
+                        .setEmbeds(embeds)
+                        .setComponents(components);
+                    
+                    if (!components.isEmpty()) edit.useComponentsV2(true);
+                    edit.queue();
+                });
             } else {
                 // FALLBACK VIA HOOK
                 var hook = replyCallback.getHook();
-                hook.editOriginal("` [+] High Core System Protocol Updated `")
+                var edit = hook.editOriginal("` [+] High Core Unified Protocol Updated `")
                     .setEmbeds(embeds)
-                    .setComponents(rows)
-                    .queue();
+                    .setComponents(components);
+                
+                if (!components.isEmpty()) edit.useComponentsV2(true);
+                edit.queue();
             }
         }
     }
