@@ -134,7 +134,7 @@ public class ServerLogListener extends ListenerAdapter {
         if (content.length() > 800) content = content.substring(0, 800) + "...";
         
         String body = "### \uD83D\uDCAC Message Sent\n" +
-                "**Author:** **" + event.getAuthor().getName() + "**\n" +
+                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
                 "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**ID:** `" + event.getAuthor().getId() + "`\n" +
                 "**Content:** ```" + content + "```\n" +
@@ -152,7 +152,7 @@ public class ServerLogListener extends ListenerAdapter {
         if (content.length() > 800) content = content.substring(0, 800) + "...";
 
         String body = "### \u270F\uFE0F Message Edited\n" +
-                "**Author:** **" + event.getAuthor().getName() + "**\n" +
+                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
                 "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**New Content:** ```" + content + "```\n" +
                 "**Time:** " + now();

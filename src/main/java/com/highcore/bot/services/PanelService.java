@@ -29,27 +29,35 @@ public class PanelService {
         if (interaction instanceof IReplyCallback replyCallback) {
             if (!replyCallback.isAcknowledged()) {
                 replyCallback.deferReply(ephemeral).queue(hook -> {
+                    try {
+                        var edit = hook.editOriginal("");
+                        if (!components.isEmpty()) {
+                            edit.setComponents(components);
+                            edit.useComponentsV2(true);
+                        }
+                        edit.queue();
+                    } catch (Exception e) {
+                        try { hook.editOriginal("### \u26A0 STABILITY PROTECTOR\nError: `" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+                    }
+                });
+            } else {
+                var hook = replyCallback.getHook();
+                try {
                     var edit = hook.editOriginal("");
                     if (!components.isEmpty()) {
                         edit.setComponents(components);
                         edit.useComponentsV2(true);
                     }
                     edit.queue();
-                });
-            } else {
-                var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("");
-                if (!components.isEmpty()) {
-                    edit.setComponents(components);
-                    edit.useComponentsV2(true);
+                } catch (Exception e) {
+                    try { hook.sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
                 }
-                edit.queue();
             }
         }
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 High Core The Unlimited Agency\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
+        String body = "### \u25C8 High Core The Unlimited Agency\nGlobal infrastructure logic. Use the protocols below.";
         ActionRow row1 = ActionRow.of(Button.primary("hub_map", " \u25C8            NAVIGATE SERVER MAP            \u25C8 ").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")));
         ActionRow row2 = ActionRow.of(
             Button.success("hub_pings", "NOTIFY RULE").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
@@ -91,14 +99,15 @@ public class PanelService {
 
     public static void sendSocialPanel(Object target) {
         String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nStay updated through our official frequencies.";
+        // SAFE EMOJIS (Unicode) to prevent "Thinking..." hang until IDs are fixed
         ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromFormatted(":X_icon_2:")),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromFormatted(":MT_TikTok:")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromFormatted(":Instagram:"))
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDDA4")),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\uD83D\uDCF1")),
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7"))
         );
         ActionRow row2 = ActionRow.of(
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromFormatted(":Threads:")),
-            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromFormatted(":telegram1:"))
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30")),
+            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
         );
         replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
     }
