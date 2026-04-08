@@ -24,13 +24,13 @@ public class PanelService {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
         
-        // 1. BRANDING: The verified Discord CDN banner for 100% display
+        // 1. BRANDING: The Gold Banner Embed (Always at the Top for stability)
         embeds.add(new EmbedBuilder()
             .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
             .build());
 
-        // 2. MODERN V2 PAYLOAD (Lightweight Format)
+        // 2. PAYLOAD EXTRACTION (Maintaining the technical technical Terminal sequence)
         if (content instanceof Container c) {
             components.add(c);
         } else if (content instanceof MessageEmbed me) {
@@ -44,27 +44,25 @@ public class PanelService {
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DIRECT STRIKE - Instant V2 Reply to Kill "Thinking" Bubble
+            // STEP 1: DEFER IMMEDIATELY TO KILL "DID NOT RESPOND" ERRORS
             if (!replyCallback.isAcknowledged()) {
-                var reply = replyCallback.reply("` [+] High Core System Protocol Executed `")
-                    .setEphemeral(ephemeral)
-                    .addEmbeds(embeds);
-                
-                if (!components.isEmpty()) {
-                    reply.addComponents(components);
-                    reply.useComponentsV2(true);
-                }
-                reply.queue();
+                replyCallback.deferReply(ephemeral).queue(hook -> {
+                    // STEP 2: FULFILL WITH THE FULL ELITE PAYLOAD
+                    var edit = hook.editOriginal("` [+] High Core Unified Protocol Executed `")
+                        .setEmbeds(embeds)
+                        .setComponents(components);
+                    
+                    if (!components.isEmpty()) edit.useComponentsV2(true);
+                    edit.queue();
+                });
             } else {
-                // FALLBACK IF ALREADY ACKNOWLEDGED
+                // UPDATE VIA HOOK
                 var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("` [+] High Core System Protocol Updated `")
-                    .setEmbeds(embeds);
+                var edit = hook.editOriginal("` [+] High Core Unified Protocol Updated `")
+                    .setEmbeds(embeds)
+                    .setComponents(components);
                 
-                if (!components.isEmpty()) {
-                    edit.setComponents(components);
-                    edit.useComponentsV2(true);
-                }
+                if (!components.isEmpty()) edit.useComponentsV2(true);
                 edit.queue();
             }
         }
