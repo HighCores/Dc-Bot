@@ -18,6 +18,11 @@ import java.util.Arrays;
 public class EmbedUtil {
 
     public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69d6cec3&is=69d57d43&hm=fb7fa5371021b0967abe71019d9cf5b2ed5f7ce1efc3b75cdd6cd8d8bc67b50d&format=webp&quality=lossless&width=1572&height=884";
+    public static final String BANNER_MAP = BANNER_MAIN; // REPLACE WITH MAP LINK
+    public static final String BANNER_PINGS = BANNER_MAIN; // REPLACE WITH PINGS LINK
+    public static final String BANNER_COLORS = BANNER_MAIN; // REPLACE WITH COLORS LINK
+    public static final String BANNER_RULES = BANNER_MAIN; // REPLACE WITH RULES LINK
+    public static final String BANNER_SOCIAL = BANNER_MAIN; // REPLACE WITH SOCIAL MEDIA LINK
     public static final String BANNER_SUPPORT = BANNER_MAIN;
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
     

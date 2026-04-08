@@ -106,8 +106,8 @@ public class PanelService {
                 **🆘 TECHNICAL OPS:**
                 \u25B8 <#1488798547947159612> ✉️ Support Tickets
                 """;
-        // PLACEHOLDER: Put Map Image URL here
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAIN));
+        // UNIQUE BANNER: Map Index
+        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAP));
     }
 
     public static void sendSocialPanel(Object target) {
@@ -118,8 +118,8 @@ public class PanelService {
             Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7")), 
             Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30"))
         );
-        // PLACEHOLDER: Put Social Media Image URL here
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_MAIN, null, row));
+        // UNIQUE BANNER: Social Media
+        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row));
     }
 
     public static void sendPingsPanel(Object target) {
@@ -134,13 +134,15 @@ public class PanelService {
             Button.secondary("ping_1489764018989301840", "Start Hiring").withEmoji(Emoji.fromUnicode("\uD83D\uDCBC"))
         );
         
-        replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_MAIN, null, r1, r2));
+        // UNIQUE BANNER: Notification Matrix
+        replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_PINGS, null, r1, r2));
     }
 
     public static void sendColorsPanel(Object target) {
         ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
         ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence within the grid.", EmbedUtil.BANNER_MAIN, null, r1, r2));
+        // UNIQUE BANNER: Identity Calibration
+        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence within the grid.", EmbedUtil.BANNER_COLORS, null, r1, r2));
     }
 
     public static void sendServicesCategory(Object target) {
