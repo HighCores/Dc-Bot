@@ -71,7 +71,7 @@ public class ModerationCommands extends ListenerAdapter {
         User u = event.getOption("user", OptionMapping::getAsUser);
         String reason = getReason(event);
         if (u == null) return;
-        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> PanelService.reply(event, EmbedUtil.success("Ban System", u.getName() + " has been banned from the server.\nReason: " + reason)));
+        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> PanelService.reply(event, EmbedUtil.success("\u0646\u0638\u0627\u0645 \u0627\u0644\u062D\u0638\u0631", "\u062A\u0645 \u062D\u0638\u0631 " + u.getName() + " \u0645\u0646 \u0627\u0644\u0633\u0641\u0631 \u0628\u0646\u062C\u0627\u062D.\n\u0627\u0644\u0633\u0628\u0628: " + reason)));
     }
 
     private void handleUnban(SlashCommandInteractionEvent event) {
@@ -298,11 +298,17 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleAddEmoji(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.MANAGE_GUILD_EXPRESSIONS)) return;
         String name = event.getOption("name", OptionMapping::getAsString);
-        String url = event.getOption("url", OptionMapping::getAsString);
-        try {
-            net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(new java.net.URL(url).openStream());
-            event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("Assets Update", "Emoji `" + name + "` has been created successfully.")));
-        } catch (Exception e) { PanelService.reply(event, EmbedUtil.error("Action Failed", "Please verify the image URL and format.")); }
+        OptionMapping imgMapping = event.getOption("image");
+        if (imgMapping == null) return;
+        
+        imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
+            try {
+                net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
+                event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("\u062A\u062D\u062F\u064A\u062B \u0627\u0644\u0645\u0644\u062D\u0642\u0627\u062A", "\u062A\u0645 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0625\u064A\u0645\u0648\u062C\u064A `" + name + "` \u0628\u0646\u062C\u0627\u062D.")));
+            } catch (Exception e) { 
+                PanelService.reply(event, EmbedUtil.error("\u0641\u0634\u0644 \u0627\u0644\u0625\u062C\u0631\u0627\u0621", "\u064A\u0631\u062C\u0649 \u0627\u0644\u062A\u0623\u0643\u0622 \u0645\u0646 \u062C\u0648\u0624\u0629 \u0627\u0644\u0635\u0648\u0631\u0629 \u0648\u062D\u062C\u0645\u0647\u0627.")); 
+            }
+        });
     }
 
     private boolean hasPerm(SlashCommandInteractionEvent e, Permission p) {

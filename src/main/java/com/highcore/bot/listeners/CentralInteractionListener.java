@@ -19,6 +19,8 @@ import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import java.util.List;
+import java.util.ArrayList;
 
 public class CentralInteractionListener extends ListenerAdapter {
 
@@ -127,8 +129,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "cat_minecraft" -> "Full Server Setup, Custom Map Architecture, Plugin Logic Design.";
             default -> "Sector data unavailable.";
         };
-        event.getHook().editOriginalComponents(ActionRow.of(Button.success("order_start", "Start Order")))
-             .setEmbeds(EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN).getEmbeds())
+        event.getHook().editOriginal("\u200B")
+             .setComponents(List.of(
+                 EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN),
+                 ActionRow.of(Button.success("order_start", "Start Order"))
+             ))
+             .useComponentsV2(true)
              .queue();
     }
 
@@ -140,7 +146,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "price_minecraft" -> "**Server Setup:** $50+\n**Map Design:** $40+\n**Plugin Config:** $20+";
             default -> "Pricing data unavailable.";
         };
-        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN).getEmbeds())
+        event.getHook().editOriginal("\u200B")
+             .setComponents(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN))
+             .useComponentsV2(true)
              .queue();
     }
 

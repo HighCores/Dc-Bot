@@ -89,7 +89,7 @@ public class Main {
 
                 // ===== Moderation =====
                 Commands.slash("setnick", "Change a member nickname").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "nick", "New nickname", true),
-                Commands.slash("ban", "Ban a member from the server").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "reason", "Reason", false),
+                Commands.slash("ban", "\u062D\u0638\u0631 \u0639\u0636\u0648 \u0645\u0646 \u0627\u0644\u0633\u0641\u0631").addOption(OptionType.USER, "user", "\u0627\u0644\u0639\u0636\u0648", true).addOption(OptionType.STRING, "reason", "\u0627\u0644\u0633\u0628\u0628", false),
                 Commands.slash("unban", "Unban a member").addOption(OptionType.STRING, "user_id", "Member identifier ID", true),
                 Commands.slash("unban-all", "Clear the entire ban list"),
                 Commands.slash("kick", "Kick a member from the server").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "reason", "Reason", false),
@@ -117,7 +117,7 @@ public class Main {
                 Commands.slash("hide", "Hide the current channel"),
                 Commands.slash("show", "Show the current channel"),
                 Commands.slash("slowmode", "Enable channel slowmode").addOption(OptionType.INTEGER, "seconds", "Seconds", true),
-                Commands.slash("add-emoji", "Add an emoji to the server").addOption(OptionType.STRING, "name", "Emoji name", true).addOption(OptionType.STRING, "url", "Image URL", true),
+                Commands.slash("add-emoji", "\u0625\u0636\u0627\u0641\u0629 \u0625\u064A\u0645\u0648\u062C\u064A \u0644\u0644\u0633\u064A\u0631\u0641\u0631").addOption(OptionType.ATTACHMENT, "image", "\u0627\u0644\u0635\u0648\u0631\u0629", true).addOption(OptionType.STRING, "name", "\u0627\u0633\u0645 \u0627\u0644\u0625\u064A\u0645\u0648\u062C\u064A", true),
                 Commands.slash("role-multiple", "Bulk role management").addOption(OptionType.ROLE, "role", "Target role", true).addOption(OptionType.STRING, "action", "Action (Add/Remove)", true),
 
                 // ===== Giveaways =====
@@ -130,7 +130,7 @@ public class Main {
                 // ===== Information =====
                 Commands.slash("profile", "View member profile").addOption(OptionType.USER, "user", "Target member", false),
                 Commands.slash("user", "View member information").addOption(OptionType.USER, "user", "Target member", false),
-                Commands.slash("avatar", "View member avatar").addOption(OptionType.USER, "user", "Target member", false),
+                Commands.slash("avatar", "\u0639\u0631\u0636 \u0635\u0648\u0631\u0629 \u0627\u0644\u062D\u0633\u0627\u0628").addOption(OptionType.USER, "user", "\u0627\u0644\u0639\u0636\u0648", false),
                 Commands.slash("server", "View server information"),
                 Commands.slash("roles", "List server roles"),
                 Commands.slash("banner", "View member banner").addOption(OptionType.USER, "user", "Target member", false),
