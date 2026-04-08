@@ -95,10 +95,13 @@ public class CommandService {
                     default -> Button.primary(actionId, label);
                 };
 
+/* 
+                // Basic Mode: Strip dynamic emojis
                 if (emoji != null && !emoji.isEmpty()) {
                     try { btn = btn.withEmoji(Emoji.fromFormatted(emoji)); } 
                     catch (Exception ignored) {}
                 }
+                */
                 buttons.add(btn);
             }
             if (!buttons.isEmpty()) rows.add(ActionRow.of(buttons));

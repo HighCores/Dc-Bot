@@ -34,20 +34,20 @@ public class EmbedUtil {
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String RULES_TEXT = """
-            ### 🛡️ 1. General Rules
-            1. **Mutual Respect**: Harassment, bullying, or offensive language is strictly prohibited.
-            2. **Professionalism**: Use clear nicknames and avoid inappropriate profile pictures.
-            3. **Privacy**: Never share personal information (Doxxing) of any member or client.
+            1. General Rules
+            - Mutual Respect: No harassment or offensive language.
+            - Professionalism: Clear nicknames, appropriate profiles.
+            - Privacy: No personal information sharing.
 
-            ### 💼 2. Business & Service Rules
-            1. **Serious Projects**: Order channels are for work only. Mockery or fake orders may lead to restrictions.
-            2. **Copyright**: All development and design rights belong to High Core unless agreed otherwise.
-            3. **Official Channels**: Financial or technical agreements must go through Tickets.
+            2. Business Rules
+            - Orders are for work only.
+            - Copyright remains with High Core unless specified.
+            - All business must go through Tickets.
 
-            ### 🚫 3. Prohibitions
-            1. **No Ads**: No promotion of external servers or services without permission.
-            2. **No Spam**: Avoid excessive mentions or message repetition.
-            3. **Content**: No political, religious extremism, or NSFW content.
+            3. Prohibitions
+            - No advertisements or external promotions.
+            - No spamming or excessive mentions.
+            - No NSFW, political, or religious content.
             """;
 
     public static Container containerBranded(String category, String topic, String body, String imageUrl) {
@@ -61,13 +61,11 @@ public class EmbedUtil {
         // 1. BRANDING BANNER
         if (imageUrl != null) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
         // 2. ELITE HEADER
-        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**\u25C8 " + title.toUpperCase() + "**" : "**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**";
+        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**" + title.toUpperCase() + "**" : "**" + title.toUpperCase() + " : " + subtitle.toUpperCase() + "**";
         layout.add(TextDisplay.of(headerText));
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         // 3. TECHNICAL BODY
         if (body != null) {
@@ -85,8 +83,7 @@ public class EmbedUtil {
     }
 
     public static Container startupPanel(ActionRow... rows) {
-        String body = "◈ High Core The Unlimited Agency\n" +
-                "Global infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
+        String body = "High Core Agency\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
         return containerBranded("HUB", "Main Dashboard", body, BANNER_MAIN, null, rows);
     }
 
@@ -100,15 +97,15 @@ public class EmbedUtil {
     }
 
     public static Container error(String title, String description) {
-        return containerBranded("Error", title, "[\u274C] " + description, BANNER_SUPPORT);
+        return containerBranded("Error", title, description, BANNER_SUPPORT);
     }
 
     public static Container success(String title, String description) {
-        return containerBranded("Success", title, "[\u2705] " + description, BANNER_MAIN);
+        return containerBranded("Success", title, description, BANNER_MAIN);
     }
 
     public static Container info(String title, String description) {
-        return containerBranded("Information", title, "[\u2139\uFE0F] " + description, BANNER_MAIN);
+        return containerBranded("Information", title, description, BANNER_MAIN);
     }
 
     public static Container activityLog(String type, String details, Color color) {
@@ -116,11 +113,11 @@ public class EmbedUtil {
     }
 
     public static Container giveaway(String prize, int winners, int duration) {
-        String body = "### \uD83C\uDF81 **New Giveaway!**\n" +
-                "**Prize:** `" + prize + "`\n" +
-                "**Winners:** `" + winners + "`\n" +
-                "**Duration:** `" + duration + " minutes`\n\n" +
+        String body = "New Giveaway\n" +
+                "Prize: " + prize + "\n" +
+                "Winners: " + winners + "\n" +
+                "Duration: " + duration + " minutes\n\n" +
                 "Click the button below to participate.";
-        return containerBranded("Event", "Giveaway", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
+        return containerBranded("Event", "Giveaway", body, BANNER_GIVEAWAY, null);
     }
 }

@@ -31,7 +31,6 @@ public class PanelService {
             try {
                 InteractionHook hook = replyCallback.getHook();
                 if (ephemeral) {
-                    // COMPLIANT V2: No content/embeds mixed with V2 Components
                     net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                     if (!components.isEmpty()) {
                         mcb.setComponents(components);
@@ -39,11 +38,8 @@ public class PanelService {
                     } else {
                         mcb.setContent("\u200B");
                     }
-                    hook.sendMessage(mcb.build()).setEphemeral(true).queue(null, e -> {
-                        try { hook.sendMessage("### \u26A0 POPUP ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
-                    });
+                    hook.sendMessage(mcb.build()).setEphemeral(true).queue(null, e -> {});
                 } else {
-                    // COMPLIANT V2: No content/embeds mixed with V2 Components
                     net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
                     if (!components.isEmpty()) {
                         meb.setComponents(components);
@@ -51,37 +47,31 @@ public class PanelService {
                     } else {
                         meb.setContent("\u200B");
                     }
-                    hook.editOriginal(meb.build()).queue(null, e -> {
-                        try { hook.editOriginal("### \u26A0 UPDATE ERROR\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
-                    });
+                    hook.editOriginal(meb.build()).queue(null, e -> {});
                 }
-            } catch (Exception e) {
-                try { ((IReplyCallback) interaction).getHook().sendMessage("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
-            }
+            } catch (Exception e) {}
         }
     }
 
     public static void sendStartupHub(Object target) {
-        String title = "** HIGH CORE AGENCY **";
+        String title = "HIGH CORE AGENCY";
         String body = """
-                ### ◈ **PREMIUM MULTI-SECTOR AGENCY OPERATIONS**
-                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. **HIGH CORE** provides high-fidelity solutions across system development, visual architecture, and strategic media management.
+                PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS
+                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. HIGH CORE provides high-fidelity solutions across system development, visual architecture, and strategic media management.
                 
                 Our internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.
                 
                 By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.
                 
-                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
-                
-                ### ◈ **SYSTEM NAVIGATION PROTOCOLS**
+                SYSTEM NAVIGATION PROTOCOLS
                 Examine our operational modules and establish a secure connection using the authorized protocols below.
                 """;
         
         ActionRow row = ActionRow.of(
-            Button.secondary("hub_highcore", "◈ AGENCY").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5")),
-            Button.secondary("hub_about", "◈ INFOS").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-            Button.secondary("hub_partners", "◈ NETWORK").withEmoji(Emoji.fromUnicode("\uD83E\uDDE1")),
-            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u2709\uFE0F"))
+            Button.secondary("hub_highcore", "HIGHCORE"),
+            Button.secondary("hub_about", "ABOUT US"),
+            Button.secondary("hub_partners", "PARTNERS"),
+            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "SUPPORT")
         );
         
         handleReply(target, EmbedUtil.containerBranded(title, null, body, EmbedUtil.BANNER_MAIN, null, row), false);
@@ -93,85 +83,76 @@ public class PanelService {
 
     public static void sendServerMap(Object target) {
         String body = """
-                ### \uD83D\uDDA5\uFE0F SERVER ARCHITECTURE
-                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                SERVER ARCHITECTURE
                 
-                ### \uD83D\uDCE1 MAIN OPERATIONS
-                \u2213 <#1488795130470072321> \u231B Start Up
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1489158831916454070> \uD83D\uDCCB Service Terms
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1488797040732278814> \uD83D\uDD14 Updates
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1490334592375324772> \u231B Partners
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1490334823565365308> \u231B Giveaway
+                MAIN OPERATIONS
+                - Start Up: <#1488795130470072321>
+                - Service Terms: <#1489158831916454070>
+                - Updates: <#1488797040732278814>
+                - Partners: <#1490334592375324772>
+                - Giveaway: <#1490334823565365308>
                 
-                ### \uD83D\uDDAF\uFE0F USER FEEDBACK
-                \u2213 <#1490431863494545598> \u231B Design Feedback
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1490783479342960640> \u231B Developer Feedback
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1490783523873882294> \u231B Minecraft Feedback
+                USER FEEDBACK
+                - Design Feedback: <#1490431863494545598>
+                - Developer Feedback: <#1490783479342960640>
+                - Minecraft Feedback: <#1490783523873882294>
                 
-                ### \uD83D\uDCB3 COST MATRIX
-                \u2213 <#1488800669375795272> \u231B Developer Price
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1488800570629427251> \u231B Design Price
-                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
-                \u2213 <#1488795131019526151> \u231B Minecraft Price
+                COST MATRIX
+                - Developer Price: <#1488800669375795272>
+                - Design Price: <#1488800570629427251>
+                - Minecraft Price: <#1488795131019526151>
                 
-                ### \u26D1\uFE0F TECHNICAL OPS
-                \u2213 <#1488798547947159612> \u2709\uFE0F Support Tickets
+                TECHNICAL OPS
+                - Support Tickets: <#1488798547947159612>
                 """;
         
         ActionRow configRow = ActionRow.of(
-            Button.success("hub_pings", "NOTIFY RULE").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
-            Button.primary("hub_colors", "IDENTITY CALIBRATION").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
-            Button.secondary("hub_rules", "SERVER RULES").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
+            Button.success("hub_pings", "NOTIFY RULE"),
+            Button.primary("hub_colors", "IDENTITY CALIBRATION"),
+            Button.secondary("hub_rules", "SERVER RULES")
         );
         
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure Index", body, EmbedUtil.BANNER_MAP, null, configRow));
+        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure Index", body, EmbedUtil.BANNER_MAIN, null, configRow));
     }
 
     public static void sendAboutUs(Object target) {
-        String body = "### \uD83D\uDCD6 AGENCY IDENTITY\n◈ High Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
+        String body = "AGENCY IDENTITY\nHigh Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
         
         ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\u1F426")),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\u26AB")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7"))
+            Button.link("https://x.com/CoreHigh70331", "X"),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"),
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram")
         );
         ActionRow row2 = ActionRow.of(
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")),
-            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\u2708\uFE0F"))
+            Button.link("https://www.threads.com/@high_core_agency", "Threads"),
+            Button.link("https://t.me/Beta_Team1/1", "Telegram")
         );
         
-        replyEphemeral(target, EmbedUtil.containerBranded("ABOUT", "The Unlimited Agency", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
+        replyEphemeral(target, EmbedUtil.containerBranded("ABOUT", "The Unlimited Agency", body, EmbedUtil.BANNER_MAIN, null, row1, row2));
     }
 
     public static void sendPartnersPanel(Object target) {
-        String body = "### \uD83E\uDD1D STRATEGIC PARTNERS\n◈ Our strategic network of partners and collaborators. Connectivity established soon.";
+        String body = "STRATEGIC PARTNERS\nOur strategic network of partners and collaborators. Connectivity established soon.";
         replyEphemeral(target, EmbedUtil.containerBranded("PARTNERS", "Collaborative Network", body, EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(Object target) {
-        String body = "### \uD83D\uDCE2 PING NOTIFICATIONS\nSelect frequencies for alerts.";
+        String body = "PING NOTIFICATIONS\nSelect frequencies for alerts.";
         ActionRow r1 = ActionRow.of(
-            Button.secondary("ping_1488916736639238357", "Server Updates").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
-            Button.secondary("ping_1488916921687736421", "Giveaway Notify").withEmoji(Emoji.fromUnicode("\uD83C\uDF81"))
+            Button.secondary("ping_1488916736639238357", "Server Updates"),
+            Button.secondary("ping_1488916921687736421", "Giveaway Notify")
         );
         ActionRow r2 = ActionRow.of(
-            Button.secondary("ping_1488916879186596081", "Offers & Promotions").withEmoji(Emoji.fromUnicode("\uD83D\uDCAF")),
-            Button.secondary("ping_1489764018989301840", "Start Hiring").withEmoji(Emoji.fromUnicode("\uD83D\uDCBC"))
+            Button.secondary("ping_1488916879186596081", "Offers & Promotions"),
+            Button.secondary("ping_1489764018989301840", "Start Hiring")
         );
-        replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_PINGS, null, r1, r2));
+        replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_MAIN, null, r1, r2));
     }
 
     public static void sendColorsPanel(Object target) {
         ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
         ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence.", EmbedUtil.BANNER_COLORS, null, r1, r2));
+        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence.", EmbedUtil.BANNER_MAIN, null, r1, r2));
     }
 
     public static void sendServicesCategory(Object target) {
@@ -185,90 +166,76 @@ public class PanelService {
     }
 
     public static void sendStatsPanel(Object target) {
-        reply(target, EmbedUtil.containerBranded("TELEMETRY", "System Data", "Status: `Operational` | Matrix v1.2.0", EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
+        reply(target, EmbedUtil.containerBranded("TELEMETRY", "System Status", "Status: Operational | Matrix v1.2.0", EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendTicketPanel(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Case Type...").addOption("Order Placement", "purchase").addOption("Technical Ops", "tech_support").addOption("General Report", "complaint").build();
-        reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link. Room: <#1488798547947159612>", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
+        reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link. Room: <#1488798547947159612>", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
     }
 
     public static void sendOrderPanel(Object target) {
         String body = """
-                ### \uD83D\uDDA5\uFE0F HIGH CORE SERVICES
-                ◈ Select a sector to view professional rates and modules.
+                HIGH CORE SERVICES
+                Select a sector to view professional rates and modules.
                 
-                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                DESIGNER SECTOR
+                - Logos (30$)
+                - Visual Identity (60$)
+                - Posters & Ads (90$)
+                - Social Media (20$)
+                - Welcome Package (20$)
+                - Covers (30$)
+                - Prints (25$)
+                - Motion (90$)
+                - UI/UX (120$)
+                - Infographic (40$)
                 
-                ### \uD83C\uDFA8 DESIGNER SECTOR
-                \u2213 Logos (30$)
-                \u2213 Visual Identity (60$)
-                \u2213 Posters & Ads (90$)
-                \u2213 Social Media Design (20$)
-                \u2213 Welcome Packages (20$)
-                \u2213 Covers & Banners (30$)
-                \u2213 Prints & Brochure (25$)
-                \u2213 Motion Graphics (90$)
-                \u2213 UI/UX Design (120$)
-                \u2213 Infographic (40$)
-                \u2213 Emojis / Stickers (30$)
-                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
+                DEVELOPER SECTOR
+                - Web (50$)
+                - Bots (50$)
+                - Full-Stack (100$)
+                - Front-End (30$)
+                - Back-End (40$)
+                - AI Automation (100$)
                 
-                ### \uD83D\uDCBB DEVELOPER SECTOR
-                \u2213 Web Developer (50$)
-                \u2213 Bots Developer (50$)
-                \u2213 Full-Stack (100$)
-                \u2213 Front-End (30$)
-                \u2213 Back-End (40$)
-                \u2213 AI & Automation (100$)
-                \u2213 Database Admin (30$)
-                **Secondes:** Rush (70$), AI/PSD (150$), 2x Revisions (180$)
+                EDITING SECTOR
+                - Reels (60$)
+                - Long Video (120$)
+                - Animation (150$)
                 
-                ### \uD83C\uDFAC EDITING & ANIMATION
-                \u2213 Reels/Shorts (60$)
-                \u2213 Long-form Video (120$)
-                \u2213 Animation (150$)
-                \u2213 Gaming Editor (150$)
-                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
-                
-                ### \u26CF\uFE0F MINECRAFT DEVELOPER
-                \u2213 Plugin Developer (50$)
-                \u2213 Config Specialist (80$)
-                \u2213 Map Maker / Builder (30$)
-                \u2213 Texture Creator (130$)
-                \u2213 3D Modeler (65$)
-                \u2213 SysAdmin (55$)
-                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
+                MINECRAFT SECTOR
+                - Plugin (50$)
+                - Config (80$)
+                - Map (30$)
                 """;
         
         ActionRow row = ActionRow.of(
-            Button.success("order_initiate", "◈ START ORDER").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-            Button.link("https://discord.com/channels/1488795130470072320/1488795131019526146", "◈ ORDER ROOM").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1"))
+            Button.success("order_initiate", "START ORDER"),
+            Button.link("https://discord.com/channels/1488795130470072320/1488795131019526146", "ORDER ROOM")
         );
         
-        reply(target, EmbedUtil.containerBranded("ORDER", "Service Portfolio", body, EmbedUtil.BANNER_SUPPORT, null, row));
+        reply(target, EmbedUtil.containerBranded("ORDER", "Service Portfolio", body, EmbedUtil.BANNER_MAIN, null, row));
     }
 
     public static void sendServiceTerms(Object target) {
         String body = """
-                ### \u2696\uFE0F SERVICE TERMS
-                ◈ Professional engagement protocols for High Core Agency.
+                SERVICE TERMS
+                Professional engagement protocols for High Core Agency.
                 
-                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                PROTOCOLS
+                1. Payments are upfront.
+                2. Deadlines are fixed.
+                3. Revisions vary by sector.
+                4. Source files cost extra.
                 
-                ### \uD83D\uDCDC PROTOCOLS
-                1. Payments are upfront unless stated otherwise.
-                2. Deadlines are fixed upon project initiation.
-                3. Revisions are subject to the specific sector rules.
-                4. Source files require premium upgrades.
-                
-                \u203B By initiating an order, you agree to the full spectral terms of the agency.
+                By initiating an order, you agree to the terms.
                 """;
-        reply(target, EmbedUtil.containerBranded("LEGAL", "Terms of Operation", body, EmbedUtil.BANNER_RULES));
+        reply(target, EmbedUtil.containerBranded("LEGAL", "Terms of Operation", body, EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendGiveawayPanel(Object target) {
         ActionRow row = ActionRow.of(Button.success("giveaway_start", "Deploy New Event"), Button.danger("giveaway_end", "Terminate Active Event"));
-        reply(target, EmbedUtil.containerBranded("EVENTS", "Distribution Control", "Manage system rewards.", EmbedUtil.BANNER_GIVEAWAY, null, row));
+        reply(target, EmbedUtil.containerBranded("EVENTS", "Distribution", "Manage system rewards.", EmbedUtil.BANNER_MAIN, null, row));
     }
 }
