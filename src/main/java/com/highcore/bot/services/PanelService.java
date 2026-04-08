@@ -21,47 +21,45 @@ public class PanelService {
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        MessageEmbed embed = null;
-        if (content instanceof Container c) components.add(c);
-        else if (content instanceof MessageEmbed me) embed = me;
+        List<MessageEmbed> embeds = new ArrayList<>();
+        
+        if (content instanceof Container c) {
+            components.add(c);
+            // GUARANTEE IMAGE STABILITY: Always add a standard Embed for Branding when sending a Container
+            embeds.add(new net.dv8tion.jda.api.EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.GOLD).build());
+        } else if (content instanceof MessageEmbed me) {
+            embeds.add(me);
+        }
 
         if (interaction instanceof ModalInteractionEvent modalEvent) {
             if (!modalEvent.isAcknowledged()) modalEvent.deferReply(ephemeral).queue();
             var hook = modalEvent.getHook().editOriginal("");
-            if (embed != null) hook.setEmbeds(embed);
+            if (!embeds.isEmpty()) hook.setEmbeds(embeds);
             hook.setComponents(components);
             hook.useComponentsV2(true);
             hook.queue();
         } else if (interaction instanceof IReplyCallback replyCallback) {
-            // FORCE NEW REPLY FOR EPHEMERAL OR UNACKNOWLEDGED
             if (ephemeral || !replyCallback.isAcknowledged()) {
                 var replier = replyCallback.reply("").setEphemeral(ephemeral);
-                if (embed != null) replier.setEmbeds(embed);
+                if (!embeds.isEmpty()) replier.setEmbeds(embeds);
                 replier.setComponents(components);
                 replier.useComponentsV2(true);
                 replier.queue();
             } else {
-                // FALLBACK TO EDIT FOR PUBLIC ACKNOWLEDGED MESSAGES
                 if (replyCallback instanceof IMessageEditCallback editCallback) {
                     var edit = editCallback.editMessage("");
-                    if (embed != null) edit.setEmbeds(embed);
+                    if (!embeds.isEmpty()) edit.setEmbeds(embeds);
                     edit.setComponents(components);
                     edit.useComponentsV2(true);
                     edit.queue();
                 } else {
                     var hook = replyCallback.getHook().editOriginal("");
-                    if (embed != null) hook.setEmbeds(embed);
+                    if (!embeds.isEmpty()) hook.setEmbeds(embeds);
                     hook.setComponents(components);
                     hook.useComponentsV2(true);
                     hook.queue();
                 }
             }
-        } else if (interaction instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            var sender = channel.sendMessage("");
-            if (embed != null) sender.setEmbeds(embed);
-            sender.setComponents(components);
-            sender.useComponentsV2(true);
-            sender.queue();
         }
     }
 

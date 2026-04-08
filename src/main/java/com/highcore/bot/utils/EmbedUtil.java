@@ -1,5 +1,7 @@
 package com.highcore.bot.utils;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
@@ -8,7 +10,6 @@ import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import com.google.gson.JsonObject;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,14 +17,14 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=4";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=4";
-    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=4";
+    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
     
-    public static final Color SUCCESS = Color.decode("#D4AF37"); // Metallic Gold
-    public static final Color DANGER = Color.decode("#8B0000");  // Deep Red for Danger
-    public static final Color WARNING = Color.decode("#FFD700"); // Bright Gold
-    public static final Color INFO = Color.decode("#C0C0C0");    // Silver for Info
+    public static final Color SUCCESS = Color.decode("#D4AF37");
+    public static final Color DANGER = Color.decode("#8B0000");
+    public static final Color WARNING = Color.decode("#FFD700");
+    public static final Color INFO = Color.decode("#C0C0C0");
     public static final Color GOLD = Color.decode("#D4AF37");
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
     
@@ -74,9 +75,8 @@ public class EmbedUtil {
 
     public static Container startupPanel(ActionRow... rows) {
         String body = "Welcome to High Core.\n" +
-                "We provide professional digital solutions in Design, Coding, and Minecraft services.\n\n" +
-                "Please use the menu below to navigate our services.";
-        return containerBranded("Main", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
+                "We provide professional digital solutions in Design, Coding, and Minecraft services.";
+        return containerBranded("HUB", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
     }
 
     public static Container rulesPanel(ActionRow... rows) {
