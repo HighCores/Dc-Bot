@@ -21,44 +21,48 @@ public class PanelService {
     public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
-        // ULTIMATE STABILITY: For Ephemeral (New private messages), use standard MessageEmbed + ActionRows
-        // This bypasses Discord "Thinking..." hangs seen with some Containers/V2 systems.
+        List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
-        List<ActionRow> rows = new ArrayList<>();
         
+        // PREPARE BRANDING EMBED
+        embeds.add(new EmbedBuilder()
+            .setImage(EmbedUtil.BANNER_MAIN)
+            .setColor(EmbedUtil.GOLD)
+            .setFooter("\u2022 High Core Unified System \u2022 v1.2.5 \u2022")
+            .build());
+
         if (content instanceof Container c) {
-            // CONVERT CONTAINER TO STABLE EMBED FOR EPHEMERAL
-            EmbedBuilder eb = new EmbedBuilder()
-                .setImage(EmbedUtil.BANNER_MAIN)
-                .setColor(EmbedUtil.GOLD)
-                .setFooter("\u2022 High Core Unified System \u2022 v1.2.0 \u2022");
-            
-            // Extract text from the Container children if possible (simplified approach)
-            eb.setDescription("` [+] High Core System Protocol Loaded `\n\n**" + c.toString() + "**");
-            embeds.add(eb.build());
+            components.add(c);
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         } else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof MessageEmbed me) embeds.add(me);
-                else if (obj instanceof ActionRow ar) rows.add(ar);
+                if (obj instanceof Container c) components.add(c);
+                else if (obj instanceof MessageEmbed me) embeds.add(me);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // 1. FASTEST ACKNOWLEDGMENT
+            // STEP 1: STOP THINKING IMMEDIATELY
             if (!replyCallback.isAcknowledged()) {
-                replyCallback.deferReply(ephemeral).queue();
+                var reply = replyCallback.reply("` [+] High Core System Protocol Initiated `")
+                    .setEphemeral(ephemeral)
+                    .setEmbeds(embeds)
+                    .setComponents(components);
+                
+                // Ensure V2 compatibility for Containers
+                if (content instanceof Container || content instanceof List) reply.useComponentsV2(true);
+                reply.queue();
+            } else {
+                // STEP 2: FULFILL IF ALREADY DEFERRED
+                var hook = replyCallback.getHook();
+                var edit = hook.editOriginal("` [+] High Core System Protocol Executed `")
+                    .setEmbeds(embeds)
+                    .setComponents(components);
+                
+                if (content instanceof Container || content instanceof List) edit.useComponentsV2(true);
+                edit.queue();
             }
-            
-            // 2. STABLE FOLLOW-UP
-            var hook = replyCallback.getHook();
-            var action = hook.editOriginal("` [+] High Core System Protocol Fulfilling `");
-            
-            if (!embeds.isEmpty()) action.setEmbeds(embeds);
-            if (!rows.isEmpty()) action.setComponents(rows);
-            
-            action.queue();
         }
     }
 
