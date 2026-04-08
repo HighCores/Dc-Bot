@@ -24,13 +24,13 @@ public class PanelService {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
         
-        // 1. BRANDING GUARANTEE: Embed at the top to ensure image loading 100%
+        // 1. BRANDING GUARANTEE: Embed at the top for instant visual confirmation
         embeds.add(new EmbedBuilder()
             .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
             .build());
 
-        // 2. MODERN PAYLOAD (CONTAINER V2) - The "Black Box" look
+        // 2. HYBRID PAYLOAD: Maximize stability while keeping the Container look
         if (content instanceof Container c) {
             components.add(c);
         } else if (content instanceof MessageEmbed me) {
@@ -40,31 +40,30 @@ public class PanelService {
                 if (obj instanceof Container c) components.add(c);
                 else if (obj instanceof MessageEmbed me) embeds.add(me);
                 else if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                else if (obj instanceof ActionRow ar) components.add(ar);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DIRECT STRIKE - Instant V2 Reply to kill "Thinking" bubble
+            // STEP 1: DEFER IMMEDIATELY - The only 100% way to stop "Did Not Respond"
             if (!replyCallback.isAcknowledged()) {
-                var reply = replyCallback.reply("` [+] High Core System Protocol Initiated `")
-                    .setEphemeral(ephemeral)
-                    .addEmbeds(embeds);
-                
-                if (!components.isEmpty()) {
-                    reply.addComponents(components);
-                    reply.useComponentsV2(true);
-                }
-                reply.queue();
+                replyCallback.deferReply(ephemeral).queue(hook -> {
+                    // STEP 2: FULFILL WITH HYBRID STABILITY
+                    var edit = hook.editOriginal("` [+] High Core System Protocol Executed `")
+                        .setEmbeds(embeds)
+                        .setComponents(components);
+                    
+                    if (!components.isEmpty()) edit.useComponentsV2(true);
+                    edit.queue();
+                });
             } else {
-                // FALLBACK VIA HOOK
+                // UPDATE VIA HOOK
                 var hook = replyCallback.getHook();
                 var edit = hook.editOriginal("` [+] High Core System Protocol Updated `")
-                    .setEmbeds(embeds);
+                    .setEmbeds(embeds)
+                    .setComponents(components);
                 
-                if (!components.isEmpty()) {
-                    edit.setComponents(components);
-                    edit.useComponentsV2(true);
-                }
+                if (!components.isEmpty()) edit.useComponentsV2(true);
                 edit.queue();
             }
         }
