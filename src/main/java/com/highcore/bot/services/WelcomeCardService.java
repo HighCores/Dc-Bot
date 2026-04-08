@@ -89,8 +89,8 @@ public class WelcomeCardService {
         
         // 1. Digital Avatar Container (Surgically Calibrated)
         int avatarSize = 185; 
-        int avatarX = 218; // 310 - (185/2)
-        int avatarY = 98;  // Final uplift for 'Two Clicks' perfection
+        int avatarX = 218; 
+        int avatarY = 105; // Lowered from 98 for centering
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
@@ -99,20 +99,20 @@ public class WelcomeCardService {
         // 2. Welcome Headline Layer (Fixed)
         int headlineY = 145;
 
-        // 3. Member Identity Engine (Reduced Font)
+        // 3. Member Identity Engine (Sleek Font)
         String name = member.getUser().getName().toUpperCase(); 
         if (name.length() > 14) name = name.substring(0, 12) + "..";
 
-        int fontSize = 38; // Reduced as requested to prevent overflow
+        int fontSize = 32; // Shrunk for elegance
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.08); // Extra tech look
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.1); // Tech spacing
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
         int nameX = 420; 
-        int nameY = 215 + (metrics.getAscent() / 3); // Centered in the 215 zone
+        int nameY = 208 + (metrics.getAscent() / 3); // Raised for better box flow
 
         // A. Drop Shadow Case
         g.setColor(new Color(0, 0, 0, 180));
