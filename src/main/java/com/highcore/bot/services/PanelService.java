@@ -34,17 +34,20 @@ public class PanelService {
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // DIRECT REPLY FOR MAXIMUM SPEED (Avoid Defer if possible)
+            // THE PINNACLE OF JDA 6 STABILITY: Defer the reply to stop the Thinking bubble immediately
             if (!replyCallback.isAcknowledged()) {
-                var replier = replyCallback.reply("").setEphemeral(ephemeral);
-                if (!embeds.isEmpty()) replier.setEmbeds(embeds);
-                if (!components.isEmpty()) replier.setComponents(components);
-                replier.useComponentsV2(true);
-                replier.queue();
+                replyCallback.deferReply(ephemeral).queue(hook -> {
+                    // Fill the deferral with our Hybrid UI
+                    var edit = hook.editOriginal("` [+] High Core System Protocol Loaded `");
+                    if (!embeds.isEmpty()) edit.setEmbeds(embeds);
+                    if (!components.isEmpty()) edit.setComponents(components);
+                    edit.useComponentsV2(true);
+                    edit.queue();
+                });
             } else {
-                // FULFILL IF ALREADY DEFERRED (e.g. earlier logic)
+                // If already acknowledged, just fill the original
                 var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("");
+                var edit = hook.editOriginal("` [+] High Core System Protocol Updated `");
                 if (!embeds.isEmpty()) edit.setEmbeds(embeds);
                 if (!components.isEmpty()) edit.setComponents(components);
                 edit.useComponentsV2(true);
