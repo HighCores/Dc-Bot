@@ -62,27 +62,20 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 Welcome to High Core\nWe provide professional digital solutions in Design, Coding, and specialized Minecraft services.\nNavigate through our sectors below to begin.";
+        String body = "### \u25C8 High Core Unified Terminal\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
         
         ActionRow row1 = ActionRow.of(
             Button.secondary("hub_map", "Server Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
-            Button.primary("hub_services", "Our Services").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
-            Button.primary("hub_prices", "Price List").withEmoji(Emoji.fromUnicode("\uD83D\uDCA2"))
+            Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
+            Button.secondary("hub_social", "Social Media").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
         );
         
         ActionRow row2 = ActionRow.of(
-            Button.secondary("hub_stats", "Network Stats").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")),
-            Button.secondary("hub_colors", "Identity Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
-            Button.secondary("hub_pings", "Ping Roles").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
+            Button.secondary("hub_colors", "Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
+            Button.secondary("hub_pings", "Pings").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
         );
         
-        ActionRow row3 = ActionRow.of(
-            Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("hub_social", "Official Links").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
-            Button.success("order_start", "Draft New Project").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4"))
-        );
-        
-        reply(target, EmbedUtil.containerBranded("HUB", "Main Dashboard", body, EmbedUtil.BANNER_MAIN, null, row1, row2, row3));
+        reply(target, EmbedUtil.containerBranded("HUB", "Main Dashboard", body, EmbedUtil.BANNER_MAIN, null, row1, row2));
     }
 
     public static void sendServerMap(Object target) {
