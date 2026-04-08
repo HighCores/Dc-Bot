@@ -49,11 +49,10 @@ public class WelcomeListener extends ListenerAdapter {
         if (ch == null) return;
 
         String body = String.format("""
-                ## Welcome to High Core!
-                
-                Hello %s, we are thrilled to have you here. 
-                Explore our professional services and feel free to reach out to our staff.
-                """, member.getUser().getName());
+                👋 System Entry Detected: %s
+                👤 Member Order: #%d
+                🌐 Global Hub Connection: <#1488795130470072321>
+                """, member.getAsMention(), guild.getMemberCount());
 
         Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, null);
         
