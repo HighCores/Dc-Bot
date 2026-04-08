@@ -24,13 +24,13 @@ public class PanelService {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
         
-        // 1. BRANDING GUARANTEE
+        // 1. BRANDING: The verified Discord CDN banner for 100% display
         embeds.add(new EmbedBuilder()
             .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
             .build());
 
-        // 2. MODERN PAYLOAD (CONTAINER V2)
+        // 2. MODERN V2 PAYLOAD (Lightweight Format)
         if (content instanceof Container c) {
             components.add(c);
         } else if (content instanceof MessageEmbed me) {
@@ -44,25 +44,27 @@ public class PanelService {
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DEFER TO SECURE THE CONNECTION (THE ONLY STABLE V2 WAY)
+            // STEP 1: DIRECT STRIKE - Instant V2 Reply to Kill "Thinking" Bubble
             if (!replyCallback.isAcknowledged()) {
-                replyCallback.deferReply(ephemeral).queue(hook -> {
-                    // STEP 2: FULFILL WITH FULL V2 CONTENT
-                    var edit = hook.editOriginal("` [+] High Core Unified Protocol Executed `")
-                        .setEmbeds(embeds)
-                        .setComponents(components);
-                    
-                    if (!components.isEmpty()) edit.useComponentsV2(true);
-                    edit.queue();
-                });
-            } else {
-                // UPDATE VIA HOOK
-                var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("` [+] High Core Unified Protocol Updated `")
-                    .setEmbeds(embeds)
-                    .setComponents(components);
+                var reply = replyCallback.reply("` [+] High Core System Protocol Executed `")
+                    .setEphemeral(ephemeral)
+                    .addEmbeds(embeds);
                 
-                if (!components.isEmpty()) edit.useComponentsV2(true);
+                if (!components.isEmpty()) {
+                    reply.addComponents(components);
+                    reply.useComponentsV2(true);
+                }
+                reply.queue();
+            } else {
+                // FALLBACK IF ALREADY ACKNOWLEDGED
+                var hook = replyCallback.getHook();
+                var edit = hook.editOriginal("` [+] High Core System Protocol Updated `")
+                    .setEmbeds(embeds);
+                
+                if (!components.isEmpty()) {
+                    edit.setComponents(components);
+                    edit.useComponentsV2(true);
+                }
                 edit.queue();
             }
         }

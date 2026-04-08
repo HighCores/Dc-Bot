@@ -49,25 +49,23 @@ public class EmbedUtil {
         return containerBranded(category, topic, body, imageUrl, null);
     }
 
-    public static Container containerBranded(String category, String topic, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
+    public static Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        }
-
-        layout.add(TextDisplay.of("### \u25C8 " + category.toUpperCase() + " \u30FB " + topic.toUpperCase()));
+        layout.add(TextDisplay.of("**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**"));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
-        String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
-        layout.add(TextDisplay.of(content));
-
-        if (rows != null && rows.length > 0) {
-            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-            layout.addAll(Arrays.asList(rows));
-            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        if (body != null) {
+            layout.add(TextDisplay.of(body));
         }
 
+        if (rows != null && rows.length > 0) {
+            for (ActionRow row : rows) {
+                layout.add(row);
+            }
+        }
+
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of("` \u2022 High Core Unified System \u2022 v1.2.0 \u2022 `"));
 
         return Container.of(layout);
