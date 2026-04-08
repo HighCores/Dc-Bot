@@ -32,25 +32,29 @@ public class PanelService {
             hook.setComponents(components);
             hook.useComponentsV2(true);
             hook.queue();
-        } else if (interaction instanceof IMessageEditCallback editCallback && !((IReplyCallback)interaction).isAcknowledged()) {
-            var edit = editCallback.editMessage("");
-            if (embed != null) edit.setEmbeds(embed);
-            edit.setComponents(components);
-            edit.useComponentsV2(true);
-            edit.queue();
         } else if (interaction instanceof IReplyCallback replyCallback) {
-            if (replyCallback.isAcknowledged()) {
-                var hook = replyCallback.getHook().editOriginal("");
-                if (embed != null) hook.setEmbeds(embed);
-                hook.setComponents(components);
-                hook.useComponentsV2(true);
-                hook.queue();
-            } else {
+            // FORCE NEW REPLY FOR EPHEMERAL OR UNACKNOWLEDGED
+            if (ephemeral || !replyCallback.isAcknowledged()) {
                 var replier = replyCallback.reply("").setEphemeral(ephemeral);
                 if (embed != null) replier.setEmbeds(embed);
                 replier.setComponents(components);
                 replier.useComponentsV2(true);
                 replier.queue();
+            } else {
+                // FALLBACK TO EDIT FOR PUBLIC ACKNOWLEDGED MESSAGES
+                if (replyCallback instanceof IMessageEditCallback editCallback) {
+                    var edit = editCallback.editMessage("");
+                    if (embed != null) edit.setEmbeds(embed);
+                    edit.setComponents(components);
+                    edit.useComponentsV2(true);
+                    edit.queue();
+                } else {
+                    var hook = replyCallback.getHook().editOriginal("");
+                    if (embed != null) hook.setEmbeds(embed);
+                    hook.setComponents(components);
+                    hook.useComponentsV2(true);
+                    hook.queue();
+                }
             }
         } else if (interaction instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             var sender = channel.sendMessage("");

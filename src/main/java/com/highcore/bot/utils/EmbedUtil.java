@@ -16,9 +16,9 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
-    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
+    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=3";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=3";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=3";
     
     public static final Color SUCCESS = Color.decode("#D4AF37"); // Metallic Gold
     public static final Color DANGER = Color.decode("#8B0000");  // Deep Red for Danger
