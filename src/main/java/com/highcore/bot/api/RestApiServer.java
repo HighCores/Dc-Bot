@@ -121,7 +121,7 @@ public class RestApiServer {
         if (guild != null) {
             TextChannel channel = guild.getTextChannelById(channelId);
             if (channel != null) {
-                channel.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **CLOSED**\nClosed by: **" + "API/n8n" + "**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
+                channel.sendMessageComponents(EmbedUtil.containerBranded("الأرشيف", "نهاية الجلسة", "الحالة: **مغلقة**\nأُغلق بواسطة: **" + "الإدارة" + "**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
             }
         }
 
@@ -148,11 +148,11 @@ public class RestApiServer {
             return;
         }
         StringBuilder sb = new StringBuilder();
-        for (var el : messages) {
-            var msg = el.getAsJsonObject();
-            String user = msg.has("user_name") ? msg.get("user_name").getAsString() : "Unknown";
-            String content = msg.has("content") ? msg.get("content").getAsString() : "";
-            String time = msg.has("created_at") ? msg.get("created_at").getAsString() : "";
+        for (int i = 0; i < messages.size(); i++) {
+            var el = messages.get(i).getAsJsonObject();
+            String user = el.has("user_name") ? el.get("user_name").getAsString() : "Unknown";
+            String content = el.has("content") ? el.get("content").getAsString() : "";
+            String time = el.has("created_at") ? el.get("created_at").getAsString() : "";
             sb.append("[").append(time).append("] ").append(user).append(": ").append(content).append("\n");
         }
         ctx.json(Map.of("ticket_id", id, "transcript", sb.toString()));

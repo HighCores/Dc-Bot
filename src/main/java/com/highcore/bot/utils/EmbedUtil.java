@@ -16,16 +16,16 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
-    public static final String BANNER_SUPPORT = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop";
-    public static final String BANNER_GIVEAWAY = "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2070&auto=format&fit=crop";
+    public static final String BANNER_MAIN = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
     
-    public static final Color SUCCESS = Color.decode("#10b981"); 
-    public static final Color DANGER = Color.decode("#f43f5e");  
-    public static final Color WARNING = Color.decode("#f59e0b"); 
-    public static final Color INFO = Color.decode("#3b82f6");
-    public static final Color GOLD = Color.decode("#fbbf24");
-    public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
+    public static final Color SUCCESS = Color.decode("#D4AF37"); // Metallic Gold
+    public static final Color DANGER = Color.decode("#8B0000");  // Deep Red for Danger
+    public static final Color WARNING = Color.decode("#FFD700"); // Bright Gold
+    public static final Color INFO = Color.decode("#C0C0C0");    // Silver for Info
+    public static final Color GOLD = Color.decode("#D4AF37");
+    public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String RULES_TEXT = """
             ## \uD83D\uDCCB قوانين وكالة هايكور | Haikore Agency
@@ -70,7 +70,7 @@ public class EmbedUtil {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
 
-        layout.add(TextDisplay.of("### \u25C8 " + sector.toUpperCase() + " SECTOR \u30FB " + title.toUpperCase()));
+        layout.add(TextDisplay.of("### \u25C8 قسم " + sector.toUpperCase() + " \u30FB " + title.toUpperCase()));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
@@ -82,34 +82,34 @@ public class EmbedUtil {
             layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
-        layout.add(TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.5 \u2022 HIGHCORE AGENCY \u2022 `"));
+        layout.add(TextDisplay.of("` \u2022 نظام وكالة هايكور الموحد \u2022 GOLDEN TERMINAL 1.2.0 \u2022 `"));
 
         return Container.of(layout);
     }
 
     public static Container startupPanel(ActionRow... rows) {
-        String body = "Welcome to Highcore Agency Operative.\n" +
-                "We provide high-fidelity digital solutions in Design, Development, Editing, and Minecraft Services.\n\n" +
-                "Initialize your guidance via the command modules below.";
-        return containerBranded("INIT", "Onboarding Sequence", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
+        String body = "أهلاً بك في وكالة هايكور.\n" +
+                "نقدم حلولاً رقمية احترافية في التصميم، البرمجة، المونتاج، وخدمات ماينكرافت.\n\n" +
+                "تفضل ببدء تجربتك عبر القوائم أدناه.";
+        return containerBranded("بداية", "مركز التحكم", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
     }
 
     public static Container rulesPanel() {
         return containerBranded("PROTOCOL", "Compliance System", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"));
     }
 
-    public static Container accessDenied() { return error("ACCESS RESTRICTED", "Credentials insufficient for this terminal node."); }
-    public static Container error(String title, String description) { return containerBranded("ERROR", title, "[\u274C] " + description, BANNER_SUPPORT); }
-    public static Container success(String title, String description) { return containerBranded("SUCCESS", title, "[\u2705] " + description, BANNER_MAIN); }
-    public static Container info(String title, String description) { return containerBranded("INFO", title, "[\u2139\uFE0F] " + description, BANNER_MAIN); }
+    public static Container accessDenied() { return error("غير مصرح", "عذراً، لا تملك الصلاحيات الكافية للوصول لهذا القسم."); }
+    public static Container error(String title, String description) { return containerBranded("خطأ", title, "[\u274C] " + description, BANNER_SUPPORT); }
+    public static Container success(String title, String description) { return containerBranded("نجاح", title, "[\u2705] " + description, BANNER_MAIN); }
+    public static Container info(String title, String description) { return containerBranded("معلومات", title, "[\u2139\uFE0F] " + description, BANNER_MAIN); }
 
-    public static Container activityLog(String type, String details, Color color) { return containerBranded("activity", type, details, BANNER_MAIN); }
+    public static Container activityLog(String type, String details, Color color) { return containerBranded("سجل", type, details, BANNER_MAIN); }
     public static Container giveaway(String prize, int winners, int duration) {
-        String body = "### \uD83C\uDF81 **GIVEAWAY ACTIVATED**\n" +
-                "**Prize:** `" + prize + "`\n" +
-                "**Winners:** `" + winners + "`\n" +
-                "**Duration:** `" + duration + " minutes`\n\n" +
-                "Click the button below to initialize your entry into the participant pool.";
-        return containerBranded("SWEEPSTAKES", "Active Reward Distribution", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
+        String body = "### \uD83C\uDF81 **مسابقة جديدة!**\n" +
+                "**الجائزة:** `" + prize + "`\n" +
+                "**الفائزون:** `" + winners + "`\n" +
+                "**المدة:** `" + duration + " دقيقة`\n\n" +
+                "اضغط على الزر أدناه للدخول في السحب.";
+        return containerBranded("مسابقة", "توزيع المكافآت", body, BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
     }
 }

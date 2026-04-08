@@ -62,28 +62,28 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 Welcome Operative\nHighcore Agency is a premier collective delivering high-fidelity digital solutions.\nInitialize your session via the modules below.";
-        ActionRow row1 = ActionRow.of(Button.secondary("hub_map", "Server Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")), Button.primary("hub_services", "Our Services").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")), Button.primary("hub_prices", "Our Prices").withEmoji(Emoji.fromUnicode("\uD83D\uDCA2")));
-        ActionRow row2 = ActionRow.of(Button.success("hub_stats", "Statistics").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")), Button.secondary("hub_colors", "Identity Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")), Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")));
-        ActionRow row3 = ActionRow.of(Button.secondary("hub_social", "Social Media").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")), Button.success("order_start", "Start Order").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")));
-        reply(target, EmbedUtil.containerBranded("HUB", "Main Onboarding Node", body, EmbedUtil.BANNER_MAIN, null, row1, row2, row3));
+        String body = "### \u25C8 أهلاً بك يا بطل\nوكالة هايكور هي وجهتك الأولى للحلول الرقمية المتكاملة.\nابدأ رحلتك معنا عبر القوائم أدناه.";
+        ActionRow row1 = ActionRow.of(Button.secondary("hub_map", "خريطة السيرفر").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")), Button.primary("hub_services", "خدماتنا").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")), Button.primary("hub_prices", "الأسعار").withEmoji(Emoji.fromUnicode("\uD83D\uDCA2")));
+        ActionRow row2 = ActionRow.of(Button.success("hub_stats", "الإحصائيات").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")), Button.secondary("hub_colors", "ألوان الهوية").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")), Button.secondary("hub_rules", "قوانين السيرفر").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")));
+        ActionRow row3 = ActionRow.of(Button.secondary("hub_social", "وسائل التواصل").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")), Button.success("order_start", "طلب جديد").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")));
+        reply(target, EmbedUtil.containerBranded("المركز", "لوحة التحكم الرئيسية", body, EmbedUtil.BANNER_MAIN, null, row1, row2, row3));
     }
 
     public static void sendServerMap(Object target) {
-        String body = "### \uD83D\uDDFA\uFE0F Server Navigation Map\n\u25CF Reception Node \u2192 Welcome\n\u25CF Protocol \u2192 Rules\n\u25CF Logistics \u2192 Orders\n\u25CF Square \u2192 Social";
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Digital Topography", body, EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
+        String body = "### \uD83D\uDDFA\uFE0F خريطة الوصول\n\u25CF الاستقبال \u2192 الترحيب\n\u25CF القوانين \u2192 النظام\n\u25CF التذاكر \u2192 الطلبات\n\u25CF الساحة \u2192 التواصل الاجتماعي";
+        replyEphemeral(target, EmbedUtil.containerBranded("الخريطة", "تخطيط السيرفر", body, EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "العودة للرئيسية"))));
     }
 
     public static void sendSocialPanel(Object target) {
-        String body = "### \uD83D\uDDA5\uFE0F Agency Presence\nOfficial Highcore digital channels.";
+        String body = "### \uD83D\uDDA5\uFE0F قنواتنا الرسمية\nتابع وكالة هايكور على منصات التواصل الاجتماعي.";
         ActionRow row = ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"), Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"), Button.link("https://www.instagram.com/high_core_agency/", "Instagram"), Button.link("https://www.threads.com/@high_core_agency", "Threads"));
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Connectivity", body, EmbedUtil.BANNER_MAIN, null, row));
+        replyEphemeral(target, EmbedUtil.containerBranded("التواصل", "الروابط الرسمية", body, EmbedUtil.BANNER_MAIN, null, row));
     }
 
     public static void sendColorsPanel(Object target) {
         ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
         ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Spectrum Calibration", "Select your operative status color.", EmbedUtil.BANNER_MAIN, null, r1, r2));
+        replyEphemeral(target, EmbedUtil.containerBranded("الألوان", "اختيار لون التميز", "اختر اللون الذي يمثل شخصيتك في السيرفر.", EmbedUtil.BANNER_MAIN, null, r1, r2));
     }
 
     public static void sendServicesCategory(Object target) {
@@ -92,21 +92,21 @@ public class PanelService {
     }
 
     public static void sendPricesCategory(Object target) {
-        StringSelectMenu menu = StringSelectMenu.create("view_prices_cat").setPlaceholder("Accounting Sector...").addOption("Designer Prices", "price_designer").addOption("Developer Prices", "price_developer").addOption("Editor Prices", "price_editor").addOption("Minecraft Prices", "price_minecraft").build();
-        replyEphemeral(target, EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", "Examine financial requirements.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
+        StringSelectMenu menu = StringSelectMenu.create("view_prices_cat").setPlaceholder("قطاع الحسابات...").addOption("أسعار التصميم", "price_designer").addOption("أسعار البرمجة", "price_developer").addOption("أسعار المونتاج", "price_editor").addOption("أسعار ماينكرافت", "price_minecraft").build();
+        replyEphemeral(target, EmbedUtil.containerBranded("الأسعار", "قائمة التكاليف", "اطلع على أسعار خدماتنا الاحترافية.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
     }
 
     public static void sendStatsPanel(Object target) {
-        reply(target, EmbedUtil.containerBranded("TELEMETRY", "Health Analytics", "Status: `ONLINE` | v2.5", EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
+        reply(target, EmbedUtil.containerBranded("الإحصائيات", "بيانات النظام", "الحالة: `نشط` | إصدار v2.5", EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "العودة للرئيسية"))));
     }
 
     public static void sendTicketPanel(Object target) {
-        StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Support Category...").addOption("Order", "purchase").addOption("Support", "tech_support").addOption("Complaint", "complaint").build();
-        reply(target, EmbedUtil.containerBranded("LOGISTICS", "Ticket Node", "Initialize session below.", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
+        StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("نوع الدعم...").addOption("طلب خدمة", "purchase").addOption("دعم فني", "tech_support").addOption("شكوى", "complaint").build();
+        reply(target, EmbedUtil.containerBranded("التذاكر", "فتح تذكرة جديدة", "ابدأ جلسة دعم فني أو طلب خدمة أدناه.", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
     }
 
     public static void sendGiveawayPanel(Object target) {
-        ActionRow row = ActionRow.of(Button.success("giveaway_start", "Launch New Sweepstakes"), Button.danger("giveaway_end", "Terminate Active Giveaway"));
-        reply(target, EmbedUtil.containerBranded("SWEEPSTAKES", "Control Node", "Operate rewards distribution system.", EmbedUtil.BANNER_GIVEAWAY, null, row));
+        ActionRow row = ActionRow.of(Button.success("giveaway_start", "إطلاق مسابقة جديدة"), Button.danger("giveaway_end", "إنهاء المسابقة الحالية"));
+        reply(target, EmbedUtil.containerBranded("المسابقات", "لوحة التحكم", "إدارة نظام توزيع الجوائز.", EmbedUtil.BANNER_GIVEAWAY, null, row));
     }
 }

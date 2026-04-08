@@ -39,20 +39,9 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
-        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. Nitro Basic")
-                .setRequired(true)
-                .build();
-
-        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. 1")
-                .setRequired(true)
-                .build();
-
-        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
-                .setPlaceholder("e.g. 60")
-                .setRequired(true)
-                .build();
+        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT).build();
+        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT).build();
+        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT).build();
 
         Modal modal = Modal.create("modal_giveaway", "GIVEAWAY CONFIG")
                 .addComponents(Label.of("Prize", prizeInput))
@@ -77,11 +66,11 @@ public class GiveawayCommands extends ListenerAdapter {
         net.dv8tion.jda.api.components.buttons.Button joinBtn = net.dv8tion.jda.api.components.buttons.Button.primary("gw_join_" + giveawayId, "Join Giveaway")
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
-        // JDA 6.4.1 FINAL FIX: Use replyComponents(Container, ActionRow) in a single call
-        event.replyComponents(EmbedUtil.giveaway(prizeStr, winCount, duration), ActionRow.of(joinBtn))
+        String body = "### \uD83C\uDF81 Active Giveaway\n**Prize:** " + prizeStr + "\n**Winners:** **" + winCount + "**\n**Ends In:** **" + duration + "** minutes";
+        event.replyComponents(EmbedUtil.containerBranded("SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY, null, ActionRow.of(joinBtn)))
                 .queue(hook -> {
                     LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
-                            "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), EmbedUtil.INFO);
+                            "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), com.highcore.bot.utils.EmbedUtil.INFO);
                     
                     scheduler.schedule(() -> {
                         List<String> participants = entries.get(giveawayId);
