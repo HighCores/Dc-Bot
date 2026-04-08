@@ -37,7 +37,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
         if (id.equals("hub_prices")) { PanelService.sendPricesCategory(event); return; }
         if (id.equals("hub_rules")) { 
-            PanelService.replyEphemeral(event, EmbedUtil.rulesPanel(ActionRow.of(Button.danger("menu_main", " \u21DC  RETURN TO HUB ").withEmoji(Emoji.fromUnicode("\u23EA")))));
+            PanelService.replyEphemeral(event, EmbedUtil.rulesPanel());
             return; 
         }
         if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
