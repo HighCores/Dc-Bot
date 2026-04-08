@@ -48,13 +48,16 @@ public class WelcomeListener extends ListenerAdapter {
         TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
         if (ch == null) return;
 
+        // 1. Precise 3-line message
         String body = String.format("""
-                👋 System Entry Detected: %s
-                👤 Member Order: #%d
-                🌐 Global Hub Connection: <#1488795130470072321>
+                Welcome : %s, 
+                You are the %d'th member .
+                Dont forget to visit the line : <#1488795130470072321>
                 """, member.getAsMention(), guild.getMemberCount());
 
-        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, null);
+        // 2. Build Container using the attached image as a Banner (attachment://welcome.png)
+        // This ensures the image is part of the primary UI structure.
+        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, "attachment://welcome.png");
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
@@ -64,25 +67,13 @@ public class WelcomeListener extends ListenerAdapter {
     }
 
     private void sendStartupDM(Member member) {
-        String dp = Config.CH_DEV_PRICES, dsp = Config.CH_DESIGN_PRICES, mp = Config.CH_MINECRAFT_PRICES;
-        String o = Config.CH_ORDER, t = Config.CH_TICKET;
+        String hub = "1488795130470072321";
 
         String body = String.format("""
-                ## 📖 Welcome Guide - High Core
-                
-                Hello! Here are the most important links to get you started:
-                
-                📒 **Pricing & Rules:**
-                - <#%s> | <#%s> | <#%s>
-                
-                🛒 **Request a Service:**
-                - <#%s>
-                
-                ✉️ **Technical Support:**
-                - <#%s>
-                
-                *Our team is always here to help you.*
-                """, dp, dsp, mp, o, t);
+                Welcome : %s, 
+                You are the %d'th member .
+                Dont forget to visit the line : <#%s>
+                """, member.getUser().getAsMention(), member.getGuild().getMemberCount(), hub);
 
         Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, EmbedUtil.BANNER_MAIN);
         member.getUser().openPrivateChannel().queue(
