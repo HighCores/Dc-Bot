@@ -28,10 +28,17 @@ public class WelcomeCardService {
             
             java.net.URL url = new java.net.URL(urlStr);
             java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            connection.setConnectTimeout(5000);
+            connection.setReadTimeout(5000);
+            connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+            connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
+            connection.setRequestProperty("Accept-Language", "en-US,en;q=0.9");
+            connection.setRequestProperty("Cache-Control", "no-cache");
+            connection.setRequestProperty("Pragma", "no-cache");
+            
             background = ImageIO.read(connection.getInputStream());
         } catch (Exception e) {
-            log.error("Error loading background image: {}", e.getMessage());
+            log.error("Fatal error loading background [{}]: {}", e.getClass().getName(), e.getMessage());
             throw new Exception("Source image unreachable or invalid format: " + e.getMessage());
         }
 
