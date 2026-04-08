@@ -99,15 +99,15 @@ public class PanelService {
 
     public static void sendSocialPanel(Object target) {
         String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nStay updated through our official frequencies.";
-        // SAFE EMOJIS (Unicode) to prevent "Thinking..." hang until IDs are fixed
+        // Re-applying custom emojis as requested. Note: Ensure IDs are correct if they don't appear.
         ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDDA4")),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\uD83D\uDCF1")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7"))
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromFormatted(":X_icon_2:")),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromFormatted(":MT_TikTok:")),
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromFormatted(":Instagram:"))
         );
         ActionRow row2 = ActionRow.of(
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30")),
-            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromFormatted(":Threads:")),
+            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromFormatted(":telegram1:"))
         );
         replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
     }
