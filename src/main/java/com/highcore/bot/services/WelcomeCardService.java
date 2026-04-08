@@ -23,34 +23,30 @@ public class WelcomeCardService {
         // Highcore Agency Precision Template (1126x398) - Loaded from Config
         BufferedImage background = null;
         try {
-            // Priority 1: Multi-Path Local Search (Highly Robust for Railway/Docker)
-            String[] commonPaths = {"welcome.png", "IMG_20260408_171922.png", "src/main/resources/welcome.png", "/app/welcome.png"};
-            for (String path : commonPaths) {
-                java.io.File file = new java.io.File(path);
-                if (file.exists()) {
-                    log.info("Asset detected at: [{}]. Initializing...", path);
-                    background = ImageIO.read(file);
-                    break;
-                }
+            // Priority 1: Classpath Resource (Best for Railway/Jar packaging)
+            java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
+            if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
+            
+            if (is != null) {
+                log.info("Branding asset found in classpath. Decoding...");
+                background = ImageIO.read(is);
             }
             
-            // Priority 2: Remote URL (Fallback)
+            // Priority 2: Remote URL (Emergency Fallback)
             if (background == null) {
                 String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
-                log.debug("Local asset not found. Requesting remote fallback: [{}]", urlStr);
+                log.warn("Resource missing. Attempting emergency remote fetch: [{}]", urlStr);
                 
                 java.net.URL url = new java.net.URL(urlStr);
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(5000);
-                connection.setReadTimeout(5000);
+                connection.setConnectTimeout(8000); // More time for cloud stability
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-                connection.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
                 
                 background = ImageIO.read(connection.getInputStream());
             }
         } catch (Exception e) {
-            log.error("Asset initialization failed: {}", e.getMessage());
-            throw new Exception("Background initialization aborted: " + e.getMessage());
+            log.error("Resource pipeline failure: {}", e.getMessage());
+            throw new Exception("Branding pipeline failure: " + e.getMessage());
         }
 
         if (background == null) {
