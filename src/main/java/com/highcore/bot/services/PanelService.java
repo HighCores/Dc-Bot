@@ -30,26 +30,24 @@ public class PanelService {
         if (interaction instanceof IReplyCallback replyCallback) {
             try {
                 if (replyCallback.isAcknowledged()) {
-                    // SECURE HOOK PROTOCOL: Use the existing hook to update the message after deferral
                     InteractionHook hook = replyCallback.getHook();
-                    var edit = hook.editOriginal("");
+                    // Using Zero-Width Space to ensure Discord accepts the message content
+                    var edit = hook.editOriginal("\u200B");
                     if (!components.isEmpty()) {
                         edit.setComponents(components);
                         edit.useComponentsV2(true);
                     }
-                    edit.queue(null, e -> {
-                        // Silent fallback for hooks that timed out or closed
-                    });
+                    edit.queue(null, e -> {});
                 } else {
-                    // FALLBACK: If not deferred, use immediate reply
-                    var replyAction = replyCallback.reply("### \u25C8 ACCESSING INFRASTRUCTURE...")
-                            .setEphemeral(ephemeral);
-                    
-                    if (!components.isEmpty()) {
-                        replyAction.setComponents(components);
-                    }
-                    
-                    replyAction.queue(hook -> hook.editOriginal("").queue(), e -> {
+                    // DEFER FIRST: This is the safest way to prevent 'interaction failed' on complex V2 rendering
+                    replyCallback.deferReply(ephemeral).queue(hook -> {
+                        var edit = hook.editOriginal("\u200B");
+                        if (!components.isEmpty()) {
+                            edit.setComponents(components);
+                            edit.useComponentsV2(true);
+                        }
+                        edit.queue();
+                    }, e -> {
                         try { replyCallback.getHook().sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
                     });
                 }
@@ -125,12 +123,12 @@ public class PanelService {
         String body = "### \uD83D\uDCD6 AGENCY IDENTITY\n◈ High Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
         
         ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDD35")),
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\u1F426")),
             Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\u26AB")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83C\uDF10"))
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7"))
         );
         ActionRow row2 = ActionRow.of(
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\u1F5D2")),
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")),
             Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\u2708\uFE0F"))
         );
         
