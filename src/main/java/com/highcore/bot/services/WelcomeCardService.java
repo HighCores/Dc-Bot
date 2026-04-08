@@ -85,40 +85,37 @@ public class WelcomeCardService {
             gAv.dispose();
         }
 
-        int avatarSize = 175; 
-        int avatarX = 195;    // Micro-shifted LEFT from 205 for absolute center
-        int avatarY = 110;    // Micro-shifted DOWN from 105 for better visual balance
+        // --- USER-DEFINED GEOMETRY (PIXEL-PERFECT) ---
+        int avatarSize = 185; 
+        int avatarX = 218;    // Center 310 - (185/2)
+        int avatarY = 108;    // Center 200 - (185/2)
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
         // 3. Name - Premium Typography (Golden Gradient + Shadow)
-        String name = member.getUser().getName().toUpperCase(); // Tech Look
-        if (name.length() > 16) name = name.substring(0, 14) + "..";
+        String name = member.getUser().getName().toUpperCase(); 
+        if (name.length() > 14) name = name.substring(0, 12) + "..";
 
-        int fontSize = 28; 
+        int fontSize = 50; // User Request: 50pt
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
-        // Letter Spacing / Tracking implementation (+5% for premium look)
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.1); 
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.05); 
         g.setFont(g.getFont().deriveFont(attributes));
 
-        FontMetrics metrics = g.getFontMetrics();
-        int boxCenterX = 635; // Micro-shifted RIGHT from 600 for perfect box symmetry
-        int boxCenterY = 245; // Micro-shifted UP from 248 for better padding
-        int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
-        int nameY = boxCenterY + (metrics.getAscent() / 4);
+        int nameX = 420; // User Request: Start at 420px
+        int nameY = 245; // Calibrated for baseline within the 215px center zone
 
         // A. Drop Shadow
         g.setColor(new Color(0, 0, 0, 180));
-        g.drawString(name, nameX + 2, nameY + 2);
+        g.drawString(name, nameX + 3, nameY + 3);
 
         // B. Golden Gradient Body
         GradientPaint gp = new GradientPaint(
-            nameX, nameY - fontSize, new Color(197, 160, 89), // #C5A059
-            nameX, nameY, new Color(142, 115, 65)             // #8E7341
+            nameX, nameY - fontSize, new Color(197, 160, 89), 
+            nameX, nameY, new Color(142, 115, 65) 
         );
         g.setPaint(gp);
         g.drawString(name, nameX, nameY);
