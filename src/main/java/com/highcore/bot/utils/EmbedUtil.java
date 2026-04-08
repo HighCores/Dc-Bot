@@ -18,11 +18,11 @@ import java.util.Arrays;
 public class EmbedUtil {
 
     public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69d6cec3&is=69d57d43&hm=fb7fa5371021b0967abe71019d9cf5b2ed5f7ce1efc3b75cdd6cd8d8bc67b50d&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_MAP = BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491333834577281117/096a0e39-3e6f-4c0c-88a8-16dbe65d67b9.png?ex=69d7505d&is=69d5fedd&hm=623ca264421546f78fc5548d1639739445201523e7ca9e5248ddca05c195260a&";
-    public static final String BANNER_PINGS = BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491334697438150676/d2dfda42-f703-4949-bb18-130c6a3740cf.png?ex=69d7512b&is=69d5ffab&hm=e98a31b2ee16ef0f1452982b677ce0c6c87ff7dea9d86edafca2ea02715bf1a1&";
-    public static final String BANNER_COLORS = BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491334863029276722/45269a83-132c-4f4b-a693-ea261ddad457.png?ex=69d75153&is=69d5ffd3&hm=13e655a2b0c1dced8e9a72b311351b32b55088a5bb406317f79e88b2e4f77527&";
-    public static final String BANNER_RULES = BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491335141874733127/07c22c1b-bb01-4415-8e27-0b96fafdd919.png?ex=69d75195&is=69d60015&hm=174c290a487d8d5485b1c13a38c2d9085978907b89d88baf4368d76f60f73b77&";
-    public static final String BANNER_SOCIAL = BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491335292504772619/914b0747-24ce-4b42-b257-38b3b8a4bece.png?ex=69d751b9&is=69d60039&hm=f36702400869f38e60a7156ea955bb6358421146bbfd3bfa9c5aa031967e5dd1&";
+    public static final String BANNER_MAP = "https://cdn.discordapp.com/attachments/1488795131296354460/1491333834577281117/096a0e39-3e6f-4c0c-88a8-16dbe65d67b9.png?ex=69d7505d&is=69d5fedd&hm=623ca264421546f78fc5548d1639739445201523e7ca9e5248ddca05c195260a&";
+    public static final String BANNER_PINGS = "https://cdn.discordapp.com/attachments/1488795131296354460/1491334697438150676/d2dfda42-f703-4949-bb18-130c6a3740cf.png?ex=69d7512b&is=69d5ffab&hm=e98a31b2ee16ef0f1452982b677ce0c6c87ff7dea9d86edafca2ea02715bf1a1&";
+    public static final String BANNER_COLORS = "https://cdn.discordapp.com/attachments/1488795131296354460/1491334863029276722/45269a83-132c-4f4b-a693-ea261ddad457.png?ex=69d75153&is=69d5ffd3&hm=13e655a2b0c1dced8e9a72b311351b32b55088a5bb406317f79e88b2e4f77527&";
+    public static final String BANNER_RULES = "https://cdn.discordapp.com/attachments/1488795131296354460/1491335141874733127/07c22c1b-bb01-4415-8e27-0b96fafdd919.png?ex=69d75195&is=69d60015&hm=174c290a487d8d5485b1c13a38c2d9085978907b89d88baf4368d76f60f73b77&";
+    public static final String BANNER_SOCIAL = "https://cdn.discordapp.com/attachments/1488795131296354460/1491335292504772619/914b0747-24ce-4b42-b257-38b3b8a4bece.png?ex=69d751b9&is=69d60039&hm=f36702400869f38e60a7156ea955bb6358421146bbfd3bfa9c5aa031967e5dd1&";
     public static final String BANNER_SUPPORT = BANNER_MAIN;
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
 
