@@ -17,9 +17,9 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
-    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=5";
+    public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69d6cec3&is=69d57d43&hm=fb7fa5371021b0967abe71019d9cf5b2ed5f7ce1efc3b75cdd6cd8d8bc67b50d&format=webp&quality=lossless&width=1572&height=884";
+    public static final String BANNER_SUPPORT = BANNER_MAIN;
+    public static final String BANNER_GIVEAWAY = BANNER_MAIN;
     
     public static final Color SUCCESS = Color.decode("#D4AF37");
     public static final Color DANGER = Color.decode("#8B0000");
@@ -74,9 +74,9 @@ public class EmbedUtil {
     }
 
     public static Container startupPanel(ActionRow... rows) {
-        String body = "Welcome to High Core.\n" +
-                "We provide professional digital solutions in Design, Coding, and Minecraft services.";
-        return containerBranded("HUB", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
+        String body = "◈ High Core Unified Terminal\n" +
+                "Global infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
+        return containerBranded("HUB", "Main Dashboard", body, BANNER_MAIN, null, rows);
     }
 
     public static Container rulesPanel(ActionRow... rows) {
