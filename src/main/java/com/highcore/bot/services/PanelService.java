@@ -62,10 +62,10 @@ public class PanelService {
         String bodySection2 = "By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.\n\nSYSTEM NAVIGATION PROTOCOLS\nExamine our operational modules and establish a secure connection using the authorized protocols below.";
         
         ActionRow row = ActionRow.of(
-            Button.secondary("hub_highcore", "HIGHCORE"),
-            Button.secondary("hub_about", "ABOUT US"),
-            Button.secondary("hub_partners", "PARTNERS"),
-            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "SUPPORT")
+            Button.secondary("hub_highcore", "Highcore"),
+            Button.secondary("hub_about", "About Us"),
+            Button.secondary("hub_partners", "Partners"),
+            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "Support")
         );
         
         List<ContainerChildComponent> layout = new ArrayList<>();
@@ -76,7 +76,7 @@ public class PanelService {
         layout.add(TextDisplay.of(bodySection1));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of(bodySection2));
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        layout.add(Separator.createDivider(Separator.Spacing.LARGE));
         layout.add(row);
         
         handleReply(target, Container.of(layout), false);
