@@ -53,12 +53,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
-            if (id.equals("hub_support_jump")) {
-                List<net.dv8tion.jda.api.components.container.ContainerChildComponent> jumpLayout = new java.util.ArrayList<>();
-                jumpLayout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of("Access established. Point of entry: <#1488798547947159612>"));
-                event.getHook().editOriginal(net.dv8tion.jda.api.interactions.components.LayoutComponent.of(net.dv8tion.jda.api.components.container.Container.of(jumpLayout))).queue();
-                return;
-            }
 
 
             // PING ROLE HANDLING
