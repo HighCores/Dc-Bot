@@ -53,32 +53,51 @@ public class WelcomeCardService {
         // 1. Draw Template
         g.drawImage(background, 0, 0, width, height, null);
 
-        // 2. Overlay Avatar (Covering placeholder cowboy)
+        // 2. Avatar - Calibrated for the new clean circle
         String avatarUrl = member.getUser().getEffectiveAvatarUrl() + "?size=256";
         BufferedImage avatar = ImageIO.read(new URL(avatarUrl));
 
-        int avatarSize = 216;
-        int avatarX = 187; // Precision calibrated for the template circle
-        int avatarY = 88;
+        int avatarSize = 196; 
+        int avatarX = 227;    // Precise horizontal center for the new template circle
+        int avatarY = 101;    // Precise vertical center
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // 3. Overlay Name (Covering placeholder "2mw_x")
-        g.setFont(new Font("SansSerif", Font.BOLD, 68));
-        g.setColor(new Color(212, 175, 55)); // Gold matching the template theme
-        
-        String name = member.getUser().getName();
-        if (name.length() > 12) name = name.substring(0, 10) + "..";
-        
-        // Horizontal centering logic for the name box
-        FontMetrics metrics = g.getFontMetrics();
-        int boxCenterX = 560; // Approximate center of the name rectangle
-        int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
-        int nameY = 245;
+        // 3. Name - Premium Typography (Golden Gradient + Shadow)
+        String name = member.getUser().getName().toUpperCase(); // Tech Look
+        if (name.length() > 14) name = name.substring(0, 12) + "..";
 
+        int fontSize = 42; 
+        g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
+        
+        // Letter Spacing / Tracking implementation (+2%)
+        java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.05); // Subtle tech spacing
+        g.setFont(g.getFont().deriveFont(attributes));
+
+        FontMetrics metrics = g.getFontMetrics();
+        int boxCenterX = 585; 
+        int boxCenterY = 245;
+        int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
+        int nameY = boxCenterY + (metrics.getAscent() / 3); // Better visual centering
+
+        // A. Drop Shadow
+        g.setColor(new Color(0, 0, 0, 180));
+        g.drawString(name, nameX + 2, nameY + 2);
+
+        // B. Golden Gradient Body
+        GradientPaint gp = new GradientPaint(
+            nameX, nameY - fontSize, new Color(197, 160, 89), // #C5A059
+            nameX, nameY, new Color(142, 115, 65)             // #8E7341
+        );
+        g.setPaint(gp);
         g.drawString(name, nameX, nameY);
+
+        // C. Subtle Highlight (Overlaying slightly shifted for gloss)
+        g.setColor(new Color(240, 230, 140, 100)); // #F0E68C with alpha
+        g.drawString(name, nameX, nameY - 1); 
 
         g.dispose();
 

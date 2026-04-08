@@ -50,7 +50,7 @@ public class Config {
     public static String CH_MINECRAFT_PRICES = get("CH_MINECRAFT_PRICES");
     public static String CH_TICKET = get("CH_TICKET");
     public static String BOT_PREFIX = getOrDefault("BOT_PREFIX", "!");
-    public static String WELCOME_BG_URL = getOrDefault("WELCOME_BG_URL", "https://media.discordapp.net/attachments/1488900668042510568/1491413582108430386/IMG_20260408_152445.png?ex=69d79aa3&is=69d64923&hm=3c5b32bb1aaa54ad4267d5a9ef9eba50ac0ac997a111ab515254d5126460aa66&format=png&quality=lossless&width=1126&height=398");
+    public static String WELCOME_BG_URL = getOrDefault("WELCOME_BG_URL", "https://cdn.discordapp.net/attachments/1488900668042510568/1491442428237054122/IMG_20260408_171922.png?ex=69d7b580&is=69d66400&hm=ac1b5b0da49726696c8deaacfedc1a9f9e966f677384da269173e7680e2089b1&format=png");
 
     public static final String LOG_JOIN_LEFT = "\u26D4\uFE0Fjoin\u30FBleft\u30FBlogs";
     public static final String LOG_MESSAGE = "\u26D4\uFE0Fmessage\u30FBlogs";
