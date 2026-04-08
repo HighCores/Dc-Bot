@@ -31,23 +31,27 @@ public class PanelService {
             try {
                 InteractionHook hook = replyCallback.getHook();
                 if (ephemeral) {
-                    // Send NEW ephemeral message (Popup)
-                    var msg = hook.sendMessage("\u200B");
+                    // COMPLIANT V2: No content/embeds mixed with V2 Components
+                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                     if (!components.isEmpty()) {
-                        msg.setComponents(components);
-                        msg.useComponentsV2(true);
+                        mcb.setComponents(components);
+                        mcb.useComponentsV2(true);
+                    } else {
+                        mcb.setContent("\u200B");
                     }
-                    msg.setEphemeral(true).queue(null, e -> {
+                    hook.sendMessage(mcb.build()).setEphemeral(true).queue(null, e -> {
                         try { hook.sendMessage("### \u26A0 POPUP ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
                     });
                 } else {
-                    // Update existing message (Hub)
-                    var edit = hook.editOriginal("\u200B");
+                    // COMPLIANT V2: No content/embeds mixed with V2 Components
+                    net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
                     if (!components.isEmpty()) {
-                        edit.setComponents(components);
-                        edit.useComponentsV2(true);
+                        meb.setComponents(components);
+                        meb.useComponentsV2(true);
+                    } else {
+                        meb.setContent("\u200B");
                     }
-                    edit.queue(null, e -> {
+                    hook.editOriginal(meb.build()).queue(null, e -> {
                         try { hook.editOriginal("### \u26A0 UPDATE ERROR\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
                     });
                 }

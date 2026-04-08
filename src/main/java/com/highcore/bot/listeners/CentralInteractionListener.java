@@ -132,13 +132,14 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "cat_minecraft" -> "Full Server Setup, Custom Map Architecture, Plugin Logic Design.";
             default -> "Sector data unavailable.";
         };
-        event.getHook().editOriginal("\u200B")
-             .setComponents(List.of(
-                 EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN),
-                 ActionRow.of(Button.success("order_start", "Start Order"))
-             ))
-             .useComponentsV2(true)
-             .queue();
+        net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
+        meb.setComponents(List.of(
+             EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN),
+             ActionRow.of(Button.success("order_start", "Start Order"))
+        ));
+        meb.useComponentsV2(true);
+        
+        event.getHook().editOriginal(meb.build()).queue();
     }
 
     private void handlePriceDisplay(StringSelectInteractionEvent event, String val) {
@@ -149,10 +150,11 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "price_minecraft" -> "**Server Setup:** $50+\n**Map Design:** $40+\n**Plugin Config:** $20+";
             default -> "Pricing data unavailable.";
         };
-        event.getHook().editOriginal("\u200B")
-             .setComponents(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN))
-             .useComponentsV2(true)
-             .queue();
+        net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
+        meb.setComponents(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN));
+        meb.useComponentsV2(true);
+        
+        event.getHook().editOriginal(meb.build()).queue();
     }
 
     @Override

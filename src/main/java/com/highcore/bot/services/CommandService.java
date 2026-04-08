@@ -45,7 +45,11 @@ public class CommandService {
         String trigger = event.getName().toLowerCase();
         JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
         if (menu != null) {
-            event.replyComponents(buildMenuContainer(menu)).useComponentsV2(true).queue();
+            // COMPLIANT V2: Use discrete builder for slash replies
+            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+            mcb.setComponents(buildMenuContainer(menu));
+            mcb.useComponentsV2(true);
+            event.reply(mcb.build()).queue();
             return;
         }
 
@@ -60,14 +64,17 @@ public class CommandService {
     }
 
     public static void sendMenu(MessageChannel channel, JsonObject menu) {
-        channel.sendMessageComponents(buildMenuContainer(menu)).useComponentsV2(true).queue();
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(buildMenuContainer(menu));
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
     }
 
     private static Container buildMenuContainer(JsonObject menu) {
-        String title = menu.get("title").getAsString();
-        String desc = menu.get("description").getAsString().replace("\\n", "\n");
+        String title = menu.has("title") && !menu.get("title").isJsonNull() ? menu.get("title").getAsString() : "Terminal Module";
+        String desc = menu.has("description") && !menu.get("description").isJsonNull() ? menu.get("description").getAsString().replace("\\n", "\n") : "System data unavailable.";
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
-        String menuId = menu.get("menu_id").getAsString();
+        String menuId = menu.has("menu_id") && !menu.get("menu_id").isJsonNull() ? menu.get("menu_id").getAsString() : "unknown";
 
         List<ActionRow> rows = new ArrayList<>();
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);

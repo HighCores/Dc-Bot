@@ -63,19 +63,22 @@ public class TicketService {
                 .queue(channel -> {
                     SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, "Project Order", "High", orderData);
                     String summary = "Total: **$" + total + "**\nWizard Session: **" + wizId + "**";
-                    channel.sendMessageComponents(
-                        getWelcomeContainer(ticketId, user.getName(), type, summary, 
-                            ActionRow.of(getTicketButtons("open")), 
-                            ActionRow.of(getPaymentButtons(ticketId)))
-                    ).useComponentsV2(true).queue();
+                    
+                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                    mcb.setComponents(getWelcomeContainer(ticketId, user.getName(), type, summary, 
+                             ActionRow.of(getTicketButtons("open")), 
+                             ActionRow.of(getPaymentButtons(ticketId))));
+                    mcb.useComponentsV2(true);
+                    channel.sendMessage(mcb.build()).queue();
                 });
     }
 
     private static void finalizeTicket(TextChannel channel, User user, String ticketId, String type, String subject, String priority) {
         String body = "Subject: **" + subject + "**\nPriority: **" + priority + "**";
-        channel.sendMessageComponents(
-            getWelcomeContainer(ticketId, user.getName(), type, body, ActionRow.of(getTicketButtons("open")))
-        ).useComponentsV2(true).queue();
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(getWelcomeContainer(ticketId, user.getName(), type, body, ActionRow.of(getTicketButtons("open"))));
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
     }
 
     private static List<Button> getTicketButtons(String status) {
@@ -107,21 +110,25 @@ public class TicketService {
 
     public static void claimTicket(TextChannel channel, Member claimer) {
         channel.getManager().setTopic("Assigned: " + claimer.getEffectiveName()).queue();
-        channel.sendMessageComponents(
-            EmbedUtil.containerBranded("CLAIM", "Agent Notified", "Operative **" + claimer.getEffectiveName() + "** has entered the session.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\u2705"),
-                ActionRow.of(getTicketButtons("claimed")))
-        ).useComponentsV2(true).queue();
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(EmbedUtil.containerBranded("CLAIM", "Agent Notified", "Operative **" + claimer.getEffectiveName() + "** has entered the session.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\u2705"),
+                ActionRow.of(getTicketButtons("claimed"))));
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
-        channel.sendMessageComponents(
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(
             EmbedUtil.containerBranded("LOGISTICS", "Closure Sequence", "End session request initialized by **" + closer.getEffectiveName() + "**.\nConfirm project status below.", EmbedUtil.BANNER_SUPPORT),
             ActionRow.of(
                 Button.success("order_status_update_DELIVERED", "Delivered"),
                 Button.secondary("order_status_update_CANCELLED", "Cancelled"),
                 Button.danger("order_status_update_CLOSED", "Terminate Session")
             )
-        ).useComponentsV2(true).queue();
+        );
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
@@ -134,7 +141,14 @@ public class TicketService {
         channel.sendMessageComponents(
             EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **" + status + "**\nThis channel is now locked.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
                 ActionRow.of(getTicketButtons("closed")))
-        ).useComponentsV2(true).queue();
+        ); // Keeping this shorthand for non-ambiguous messages, but mcb is safer.
+        
+        // Let's use MCB to be safe everywhere
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **" + status + "**\nThis channel is now locked.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
+                ActionRow.of(getTicketButtons("closed"))));
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
 
         String ownerId = ticket != null ? ticket.get("user_id").getAsString() : null;
         if (ownerId != null) {
@@ -149,19 +163,22 @@ public class TicketService {
             Member owner = channel.getGuild().getMemberById(ownerId);
             if (owner != null) channel.upsertPermissionOverride(owner).grant(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND).queue();
         }
-        channel.sendMessageComponents(
-            EmbedUtil.containerBranded("RESTORED", "Session Reopened", "Access to this node has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD04"),
-                ActionRow.of(getTicketButtons("open")))
-        ).useComponentsV2(true).queue();
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+        mcb.setComponents(EmbedUtil.containerBranded("RESTORED", "Session Reopened", "Access to this node has been restored by **" + reopener.getEffectiveName() + "**.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD04"),
+                ActionRow.of(getTicketButtons("open"))));
+        mcb.useComponentsV2(true);
+        channel.sendMessage(mcb.build()).queue();
     }
 
     public static void sendVisualReceipt(TextChannel channel, JsonObject data) {
         try {
             byte[] receiptData = ReceiptService.generateReceipt(data, channel.getName());
             FileUpload upload = FileUpload.fromData(receiptData, "invoice.png");
-            channel.sendMessageComponents(
-                EmbedUtil.containerBranded("FINANCE", "Payment Protocol Verified", "Total: **$" + data.get("total").getAsInt() + "**\nReceipt attached below.", EmbedUtil.BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83D\uDCB3"))
-            ).addFiles(upload).useComponentsV2(true).queue();
+            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+            mcb.setComponents(EmbedUtil.containerBranded("FINANCE", "Payment Protocol Verified", "Total: **$" + data.get("total").getAsInt() + "**\nReceipt attached below.", EmbedUtil.BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83D\uDCB3")));
+            mcb.addFiles(upload);
+            mcb.useComponentsV2(true);
+            channel.sendMessage(mcb.build()).queue();
         } catch (Exception e) { log.error("Receipt failure", e); }
     }
 }
