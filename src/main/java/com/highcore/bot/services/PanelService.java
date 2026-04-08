@@ -30,16 +30,29 @@ public class PanelService {
         if (interaction instanceof IReplyCallback replyCallback) {
             try {
                 InteractionHook hook = replyCallback.getHook();
-                var edit = hook.editOriginal("\u200B");
-                if (!components.isEmpty()) {
-                    edit.setComponents(components);
-                    edit.useComponentsV2(true);
+                if (ephemeral) {
+                    // Send NEW ephemeral message (Popup)
+                    var msg = hook.sendMessage("\u200B");
+                    if (!components.isEmpty()) {
+                        msg.setComponents(components);
+                        msg.useComponentsV2(true);
+                    }
+                    msg.setEphemeral(true).queue(null, e -> {
+                        try { hook.sendMessage("### \u26A0 POPUP ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+                    });
+                } else {
+                    // Update existing message (Hub)
+                    var edit = hook.editOriginal("\u200B");
+                    if (!components.isEmpty()) {
+                        edit.setComponents(components);
+                        edit.useComponentsV2(true);
+                    }
+                    edit.queue(null, e -> {
+                        try { hook.editOriginal("### \u26A0 UPDATE ERROR\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+                    });
                 }
-                edit.queue(null, e -> {
-                    try { hook.editOriginal("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
-                });
             } catch (Exception e) {
-                try { ((IReplyCallback) interaction).getHook().editOriginal("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+                try { ((IReplyCallback) interaction).getHook().sendMessage("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
             }
         }
     }

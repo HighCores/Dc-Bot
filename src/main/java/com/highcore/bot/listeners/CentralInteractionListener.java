@@ -26,10 +26,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        // SEQUENTIAL COORDINATION: Defers first, then processes logic in callback
-        boolean isEphemeral = !event.getComponentId().equals("menu_main");
+        // SILENT COORDINATION: deferEdit acknowledges instantly WITHOUT showing 'thinking...'
         if (!event.isAcknowledged()) {
-            event.deferReply(isEphemeral).queue(hook -> processButton(event));
+            event.deferEdit().queue(hook -> processButton(event));
         } else {
             processButton(event);
         }
@@ -101,9 +100,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        // SEQUENTIAL COORDINATION: Defers first, then processes logic in callback
+        // SILENT COORDINATION for menus too: deferEdit to keep UI clean
         if (!event.isAcknowledged()) {
-            event.deferReply(true).queue(hook -> processSelect(event));
+            event.deferEdit().queue(hook -> processSelect(event));
         } else {
             processSelect(event);
         }
@@ -117,11 +116,11 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("view_services_cat")) { handleServiceDisplay(event, val); }
             else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
             else if (id.equals("ticket_type_select")) {
-                event.getHook().editOriginal("Initializing terminal session...").queue();
+                event.getHook().sendMessage("Initializing terminal session...").setEphemeral(true).queue();
                 TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
             }
         } catch (Exception e) {
-            try { event.getHook().editOriginal("### \u26A0 SELECTION FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+            try { event.getHook().sendMessage("### \u26A0 SELECTION FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
         }
     }
 
