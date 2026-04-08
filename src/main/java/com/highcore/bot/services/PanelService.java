@@ -65,17 +65,18 @@ public class PanelService {
         String body = "### \u25C8 High Core Unified Terminal\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
         
         ActionRow row1 = ActionRow.of(
-            Button.secondary("hub_map", "Server Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
+            Button.primary("hub_map", "Server Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
             Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("hub_social", "Social Media").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
+            Button.primary("hub_social", "Social Media").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
         );
         
+        // Stretched buttons for visual balance with Row 1
         ActionRow row2 = ActionRow.of(
-            Button.secondary("hub_colors", "Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
-            Button.secondary("hub_pings", "Pings").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
+            Button.secondary("hub_colors", "      Colors      ").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
+            Button.secondary("hub_pings", "      Pings      ").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
         );
         
-        reply(target, EmbedUtil.containerBranded("HUB", "Main Dashboard", body, EmbedUtil.BANNER_MAIN, null, row1, row2));
+        replyEphemeral(target, EmbedUtil.containerBranded("HUB", "Main Dashboard", body, EmbedUtil.BANNER_MAIN, null, row1, row2));
     }
 
     public static void sendServerMap(Object target) {
@@ -113,7 +114,7 @@ public class PanelService {
             Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7")), 
             Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30"))
         );
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_MAIN, null, row));
+        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_MAIN, null, row, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendPingsPanel(Object target) {
@@ -134,12 +135,12 @@ public class PanelService {
     public static void sendColorsPanel(Object target) {
         ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
         ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence within the grid.", EmbedUtil.BANNER_MAIN, null, r1, r2));
+        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence within the grid.", EmbedUtil.BANNER_MAIN, null, r1, r2, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendServicesCategory(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("view_services_cat").setPlaceholder("Select Capability...").addOption("Design Sector", "cat_designer").addOption("Code Sector", "cat_developer").addOption("Media Sector", "cat_editor").addOption("Minecraft Sector", "cat_minecraft").build();
-        replyEphemeral(target, EmbedUtil.containerBranded("CAPABILITIES", "Agency Assets", "Examine our operational modules.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
+        replyEphemeral(target, EmbedUtil.containerBranded("CAPABILITIES", "Agency Assets", "Examine our operational modules.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu), ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendPricesCategory(Object target) {
