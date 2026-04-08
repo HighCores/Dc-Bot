@@ -44,7 +44,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
             if (id.equals("hub_about") || id.equals("hub_social")) { PanelService.sendAboutUs(event); return; }
             if (id.equals("hub_partners")) { PanelService.sendPartnersPanel(event); return; }
-            if (id.equals("hub_colors")) { PanelService.sendColorsPanel(event); return; }
             if (id.equals("hub_pings")) { PanelService.sendPingsPanel(event); return; }
             if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
             if (id.equals("hub_prices")) { PanelService.sendPricesCategory(event); return; }
@@ -55,23 +54,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
 
-            // COLOR ROLE HANDLING
-            if (id.startsWith("color_")) {
-                String roleId = id.replace("color_", "");
-                Role role = event.getGuild().getRoleById(roleId);
-                if (role != null) {
-                    List<String> colorRoles = java.util.Arrays.asList(
-                        "1489744978719543408", "1489744984092442704", "1489744981835911238",
-                        "1489744986424479927", "1489744990962716732", "1489744988936867880"
-                    );
-                    for (Role r : member.getRoles()) {
-                        if (colorRoles.contains(r.getId())) event.getGuild().removeRoleFromMember(member, r).queue();
-                    }
-                    event.getGuild().addRoleToMember(member, role).queue(v -> 
-                        event.getHook().editOriginal("Identity color calibrated: **" + role.getName() + "**").queue());
-                }
-                return;
-            }
 
             // PING ROLE HANDLING
             if (id.startsWith("ping_")) {

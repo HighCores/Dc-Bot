@@ -8,6 +8,9 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import java.util.*;
 
@@ -71,10 +74,17 @@ public class PanelService {
             Button.secondary("hub_highcore", "HIGHCORE"),
             Button.secondary("hub_about", "ABOUT US"),
             Button.secondary("hub_partners", "PARTNERS"),
-            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "SUPPORT")
+            Button.secondary("hub_tickets", "SUPPORT")
         );
         
-        handleReply(target, EmbedUtil.containerBranded(title, null, body, EmbedUtil.BANNER_MAIN, null, row), false);
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        layout.add(TextDisplay.of("**" + title + "**"));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        layout.add(TextDisplay.of(body));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        layout.add(row);
+        
+        handleReply(target, Container.of(layout), false);
     }
 
     public static void sendRulesPanel(Object target) {
@@ -108,7 +118,6 @@ public class PanelService {
         
         ActionRow configRow = ActionRow.of(
             Button.success("hub_pings", "NOTIFY RULE"),
-            Button.primary("hub_colors", "IDENTITY CALIBRATION"),
             Button.secondary("hub_rules", "SERVER RULES")
         );
         
@@ -147,12 +156,6 @@ public class PanelService {
             Button.secondary("ping_1489764018989301840", "Start Hiring")
         );
         replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_MAIN, null, r1, r2));
-    }
-
-    public static void sendColorsPanel(Object target) {
-        ActionRow r1 = ActionRow.of(Button.secondary("color_1489744978719543408", "Sunset Orange"), Button.secondary("color_1489744984092442704", "Emerald Green"), Button.secondary("color_1489744981835911238", "Ocean Blue"));
-        ActionRow r2 = ActionRow.of(Button.secondary("color_1489744986424479927", "Royal Purple"), Button.secondary("color_1489744990962716732", "Golden Yellow"), Button.secondary("color_1489744988936867880", "Rose Pink"));
-        replyEphemeral(target, EmbedUtil.containerBranded("IDENTITY", "Color Selection", "Define your presence.", EmbedUtil.BANNER_MAIN, null, r1, r2));
     }
 
     public static void sendServicesCategory(Object target) {
