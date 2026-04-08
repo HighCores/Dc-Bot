@@ -85,9 +85,9 @@ public class WelcomeCardService {
             gAv.dispose();
         }
 
-        int avatarSize = 188; // Slightly smaller for better padding within the gold frame
-        int avatarX = 185;    // Shifted LEFT to center within the template's gold circle
-        int avatarY = 105;    // Shifted DOWN to center vertically
+        int avatarSize = 175; // Smaller to fit perfectly inside the template frame
+        int avatarX = 205;    // Precisely centered horizontally for the gold frame
+        int avatarY = 105;    // Vertical centering
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
@@ -97,19 +97,19 @@ public class WelcomeCardService {
         String name = member.getUser().getName().toUpperCase(); // Tech Look
         if (name.length() > 16) name = name.substring(0, 14) + "..";
 
-        int fontSize = 32; // Reduced size for elegant fit
+        int fontSize = 28; // Elegant and safe within the box
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
-        // Letter Spacing / Tracking implementation (+2%)
+        // Letter Spacing / Tracking implementation (+5% for premium look)
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.08); // Extra tech spacing
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.1); 
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
-        int boxCenterX = 670; // Re-centered to the right box area
+        int boxCenterX = 600; // Shifted LEFT to properly center in the black box
         int boxCenterY = 248; 
         int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
-        int nameY = boxCenterY + (metrics.getAscent() / 3);
+        int nameY = boxCenterY + (metrics.getAscent() / 4);
 
         // A. Drop Shadow
         g.setColor(new Color(0, 0, 0, 180));
