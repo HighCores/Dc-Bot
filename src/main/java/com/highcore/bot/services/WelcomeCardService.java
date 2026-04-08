@@ -87,38 +87,32 @@ public class WelcomeCardService {
 
         // --- THE DESIGNER'S BLUEPRINT (PIXEL-PERFECT ARCHITECTURE) ---
         
-        // 1. Digital Avatar Container (Center: 310, 200 | Size: 185)
+        // 1. Digital Avatar Container (Surgically Calibrated)
         int avatarSize = 185; 
-        int avatarX = 310 - (avatarSize / 2); // Surgical centering
-        int avatarY = 200 - (avatarSize / 2); // Surgical centering
+        int avatarX = 218; // 310 - (185/2)
+        int avatarY = 98;  // Final uplift for 'Two Clicks' perfection
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // 2. Welcome Headline Layer (Center: 580, 145 | Size: 22pt)
-        g.setFont(new Font("SansSerif", Font.PLAIN, 22));
-        g.setColor(new Color(255, 255, 255, 180)); // Soft white
-        String headline = "Welcome To The Future";
-        int headlineX = 580 - (g.getFontMetrics().stringWidth(headline) / 2);
+        // 2. Welcome Headline Layer (Fixed)
         int headlineY = 145;
-        // g.drawString(headline, headlineX, headlineY); // Optional: Drawing to reinforce template quality
 
-        // 3. Member Identity Engine (Start: 420, 215 | Size: 50pt)
+        // 3. Member Identity Engine (Reduced Font)
         String name = member.getUser().getName().toUpperCase(); 
         if (name.length() > 14) name = name.substring(0, 12) + "..";
 
-        int fontSize = 50; 
+        int fontSize = 38; // Reduced as requested to prevent overflow
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.05); 
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.08); // Extra tech look
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
         int nameX = 420; 
-        // Vertical calibration: Center Y 215 -> Offset for baseline
-        int nameY = 215 + (metrics.getAscent() / 2) - 5; 
+        int nameY = 215 + (metrics.getAscent() / 3); // Centered in the 215 zone
 
         // A. Drop Shadow Case
         g.setColor(new Color(0, 0, 0, 180));
