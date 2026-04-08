@@ -25,30 +25,29 @@ public class PanelService {
         
         if (content instanceof Container c) {
             components.add(c);
-            embeds.add(new net.dv8tion.jda.api.EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.GOLD).build());
+            embeds.add(new net.dv8tion.jda.api.EmbedBuilder()
+                .setImage(EmbedUtil.BANNER_MAIN)
+                .setColor(EmbedUtil.GOLD)
+                .build());
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // IMMEDIATE DEFER to prevent timeout
+            // 1. MUST DEFER IMMEDIATELY to stop the "Thinking" or timeout
             if (!replyCallback.isAcknowledged()) {
                 replyCallback.deferReply(ephemeral).queue();
             }
             
-            // USE HOOK FOR MISSION-CRITICAL STABILITY
+            // 2. FULFILL THE DEFERRAL properly using editOriginal
             var hook = replyCallback.getHook();
-            if (ephemeral) {
-                // For New Ephemeral Replies: Send via webhook
-                hook.sendMessage("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).setEphemeral(true).queue();
-            } else {
-                // For Public Updates: Edit original if applicable or send via webhook
-                if (replyCallback instanceof IMessageEditCallback) {
-                    hook.editOriginal("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).queue();
-                } else {
-                    hook.sendMessage("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).queue();
-                }
-            }
+            var edit = hook.editOriginal("");
+            
+            if (!embeds.isEmpty()) edit.setEmbeds(embeds);
+            if (!components.isEmpty()) edit.setComponents(components);
+            
+            edit.useComponentsV2(true);
+            edit.queue();
         }
     }
 
