@@ -73,10 +73,11 @@ public class PanelService {
         ActionRow row2 = ActionRow.of(
             Button.secondary("hub_stats", "Network Stats").withEmoji(Emoji.fromUnicode("\uD83D\uDCCA")),
             Button.secondary("hub_colors", "Identity Colors").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
-            Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
+            Button.secondary("hub_pings", "Ping Roles").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2"))
         );
         
         ActionRow row3 = ActionRow.of(
+            Button.secondary("hub_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
             Button.secondary("hub_social", "Official Links").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
             Button.success("order_start", "Draft New Project").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4"))
         );
@@ -85,14 +86,56 @@ public class PanelService {
     }
 
     public static void sendServerMap(Object target) {
-        String body = "### \uD83D\uDDFA\uFE0F NAVIGATION INDEX\n\u25CF Reception \u2192 Welcome Area\n\u25CF Protocols \u2192 Server Rules\n\u25CF Operations \u2192 Request Center\n\u25CF Community \u2192 Social Channels";
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure", body, EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
+        String body = """
+                ### 🗺️ SERVER INFRASTRUCTURE
+                
+                **📡 MAIN OPERATIONS:**
+                \u25B8 <#1488795130470072321> \u231B Start Up
+                \u25B8 <#1489158831916454070> 📋 Service Terms
+                \u25B8 <#1488797040732278814> 🔔 Updates
+                \u25B8 <#1490334592375324772> 🤝 Partners
+                \u25B8 <#1490334823565365308> 🎁 Giveaway
+                
+                **🗯️ USER FEEDBACK:**
+                \u25B8 <#1490431863494545598> 🎨 Design FeedBack
+                \u25B8 <#1490783479342960640> 💻 Developer FeedBack
+                \u25B8 <#1490783523873882294> ⛏️ Minecraft FeedBack
+                
+                **💳 COST MATRIX:**
+                \u25B8 <#1488800669375795272> 💻 Developer Price
+                \u25B8 <#1488800570629427251> 🎨 Design Price
+                \u25B8 <#1488795131019526151> ⛏️ Minecraft Price
+                
+                **🆘 TECHNICAL OPS:**
+                \u25B8 <#1488798547947159612> ✉️ Support Tickets
+                """;
+        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAIN, null, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendSocialPanel(Object target) {
         String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nFollow High Core across all official industrial channels.";
-        ActionRow row = ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"), Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"), Button.link("https://www.instagram.com/high_core_agency/", "Instagram"), Button.link("https://www.threads.com/@high_core_agency", "Threads"));
+        ActionRow row = ActionRow.of(
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDC26")), 
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\uD83D\uDCF9")), 
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7")), 
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30"))
+        );
         replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_MAIN, null, row));
+    }
+
+    public static void sendPingsPanel(Object target) {
+        String body = "### \uD83D\uDCE2 PING NOTIFICATIONS\nSelect the frequencies you wish to receive alerts for. Multiple selections are authorized.";
+        
+        ActionRow r1 = ActionRow.of(
+            Button.secondary("ping_1488916736639238357", "Server Updates").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
+            Button.secondary("ping_1488916921687736421", "Giveaway Notify").withEmoji(Emoji.fromUnicode("\uD83C\uDF81"))
+        );
+        ActionRow r2 = ActionRow.of(
+            Button.secondary("ping_1488916879186596081", "Offers & Promotions").withEmoji(Emoji.fromUnicode("\uD83D\uDCAF")),
+            Button.secondary("ping_1489764018989301840", "Start Hiring").withEmoji(Emoji.fromUnicode("\uD83D\uDCBC"))
+        );
+        
+        replyEphemeral(target, EmbedUtil.containerBranded("PINGS", "Notification Matrix", body, EmbedUtil.BANNER_MAIN, null, r1, r2, ActionRow.of(Button.secondary("menu_main", "Return to Hub"))));
     }
 
     public static void sendColorsPanel(Object target) {

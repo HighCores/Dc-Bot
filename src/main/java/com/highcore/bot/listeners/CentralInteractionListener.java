@@ -32,22 +32,48 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
         if (id.equals("hub_social")) { PanelService.sendSocialPanel(event); return; }
         if (id.equals("hub_colors")) { PanelService.sendColorsPanel(event); return; }
+        if (id.equals("hub_pings")) { PanelService.sendPingsPanel(event); return; }
         if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
         if (id.equals("hub_prices")) { PanelService.sendPricesCategory(event); return; }
         if (id.equals("hub_rules")) { PanelService.replyEphemeral(event, EmbedUtil.rulesPanel()); return; }
         if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
         if (id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
 
-        // COLOR ROLE HANDLING
+        // COLOR ROLE HANDLING (Auto-Remove previous)
         if (id.startsWith("color_")) {
             String roleId = id.replace("color_", "");
             Role role = event.getGuild().getRoleById(roleId);
             if (role != null) {
+                java.util.List<String> colorRoles = java.util.Arrays.asList(
+                    "1489744978719543408", "1489744984092442704", "1489744981835911238",
+                    "1489744986424479927", "1489744990962716732", "1489744988936867880"
+                );
+                
+                for (Role r : member.getRoles()) {
+                    if (colorRoles.contains(r.getId())) event.getGuild().removeRoleFromMember(member, r).queue();
+                }
+
                 event.getGuild().addRoleToMember(member, role).queue(v -> {
                     event.reply("Identity color calibrated: **" + role.getName() + "**").setEphemeral(true).queue();
                 }, e -> event.reply("Failed to adjust color. Permission error.").setEphemeral(true).queue());
             } else {
                 event.reply("Selected color role ID is invalid.").setEphemeral(true).queue();
+            }
+            return;
+        }
+
+        // PING ROLE HANDLING (Toggle)
+        if (id.startsWith("ping_")) {
+            String roleId = id.replace("ping_", "");
+            Role role = event.getGuild().getRoleById(roleId);
+            if (role != null) {
+                if (member.getRoles().contains(role)) {
+                    event.getGuild().removeRoleFromMember(member, role).queue(v -> 
+                        event.reply("Notification frequency disabled: **" + role.getName() + "**").setEphemeral(true).queue());
+                } else {
+                    event.getGuild().addRoleToMember(member, role).queue(v -> 
+                        event.reply("Notification frequency enabled: **" + role.getName() + "**").setEphemeral(true).queue());
+                }
             }
             return;
         }

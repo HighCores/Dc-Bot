@@ -28,19 +28,17 @@ public class EmbedUtil {
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String RULES_TEXT = """
-            ## \uD83D\uDCCB High Core Rules
-            
             ### 🛡️ 1. General Rules
             1. **Mutual Respect**: Harassment, bullying, or offensive language is strictly prohibited.
             2. **Professionalism**: Use clear nicknames and avoid inappropriate profile pictures.
             3. **Privacy**: Never share personal information (Doxxing) of any member or client.
             
-            ### \uD83D\uDCBC 2. Business & Service Rules
+            ### 💼 2. Business & Service Rules
             1. **Serious Projects**: Order channels are for work only. Mockery or fake orders may lead to restrictions.
             2. **Copyright**: All development and design rights belong to High Core unless agreed otherwise.
             3. **Official Channels**: Financial or technical agreements must go through Tickets.
             
-            ### \uD83D\uDEAB 3. Prohibitions
+            ### 🚫 3. Prohibitions
             1. **No Ads**: No promotion of external servers or services without permission.
             2. **No Spam**: Avoid excessive mentions or message repetition.
             3. **Content**: No political, religious extremism, or NSFW content.
