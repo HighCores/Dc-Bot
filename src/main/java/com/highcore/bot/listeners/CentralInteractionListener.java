@@ -53,6 +53,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
+            if (id.equals("hub_support_jump")) {
+                event.getHook().editOriginal("Access established. Point of entry: <#1488798547947159612>").queue();
+                return;
+            }
 
 
             // PING ROLE HANDLING

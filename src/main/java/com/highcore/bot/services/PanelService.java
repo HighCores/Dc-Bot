@@ -65,7 +65,7 @@ public class PanelService {
             Button.secondary("hub_highcore", "Highcore"),
             Button.secondary("hub_about", "About Us"),
             Button.secondary("hub_partners", "Partners"),
-            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "Support")
+            Button.secondary("hub_support_jump", "Support")
         );
         
         List<ContainerChildComponent> layout = new ArrayList<>();
