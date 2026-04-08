@@ -2,6 +2,7 @@ package com.highcore.bot.services;
 
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
@@ -20,39 +21,44 @@ public class PanelService {
     public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
-        List<MessageTopLevelComponent> components = new ArrayList<>();
+        // ULTIMATE STABILITY: For Ephemeral (New private messages), use standard MessageEmbed + ActionRows
+        // This bypasses Discord "Thinking..." hangs seen with some Containers/V2 systems.
         List<MessageEmbed> embeds = new ArrayList<>();
+        List<ActionRow> rows = new ArrayList<>();
         
         if (content instanceof Container c) {
-            components.add(c);
-            embeds.add(new net.dv8tion.jda.api.EmbedBuilder()
+            // CONVERT CONTAINER TO STABLE EMBED FOR EPHEMERAL
+            EmbedBuilder eb = new EmbedBuilder()
                 .setImage(EmbedUtil.BANNER_MAIN)
                 .setColor(EmbedUtil.GOLD)
-                .build());
+                .setFooter("\u2022 High Core Unified System \u2022 v1.2.0 \u2022");
+            
+            // Extract text from the Container children if possible (simplified approach)
+            eb.setDescription("` [+] High Core System Protocol Loaded `\n\n**" + c.toString() + "**");
+            embeds.add(eb.build());
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
+        } else if (content instanceof List<?> list) {
+            for (Object obj : list) {
+                if (obj instanceof MessageEmbed me) embeds.add(me);
+                else if (obj instanceof ActionRow ar) rows.add(ar);
+            }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // THE PINNACLE OF JDA 6 STABILITY: Defer the reply to stop the Thinking bubble immediately
+            // 1. FASTEST ACKNOWLEDGMENT
             if (!replyCallback.isAcknowledged()) {
-                replyCallback.deferReply(ephemeral).queue(hook -> {
-                    // Fill the deferral with our Hybrid UI
-                    var edit = hook.editOriginal("` [+] High Core System Protocol Loaded `");
-                    if (!embeds.isEmpty()) edit.setEmbeds(embeds);
-                    if (!components.isEmpty()) edit.setComponents(components);
-                    edit.useComponentsV2(true);
-                    edit.queue();
-                });
-            } else {
-                // If already acknowledged, just fill the original
-                var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("` [+] High Core System Protocol Updated `");
-                if (!embeds.isEmpty()) edit.setEmbeds(embeds);
-                if (!components.isEmpty()) edit.setComponents(components);
-                edit.useComponentsV2(true);
-                edit.queue();
+                replyCallback.deferReply(ephemeral).queue();
             }
+            
+            // 2. STABLE FOLLOW-UP
+            var hook = replyCallback.getHook();
+            var action = hook.editOriginal("` [+] High Core System Protocol Fulfilling `");
+            
+            if (!embeds.isEmpty()) action.setEmbeds(embeds);
+            if (!rows.isEmpty()) action.setComponents(rows);
+            
+            action.queue();
         }
     }
 
