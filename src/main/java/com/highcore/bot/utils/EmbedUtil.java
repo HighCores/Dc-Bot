@@ -50,6 +50,20 @@ public class EmbedUtil {
             - No NSFW, political, or religious content.
             """;
 
+    public static final String TERMS_TEXT = """
+            ### 🛡️ 1. ARCHITECTURAL OVERVIEW
+            High Core Agency operates as a premier digital solutions provider. By interacting with our services, you agree to these protocols. We prioritize user empowerment and data integrity above all.
+
+            ### 📹 2. MEDIA & CLIP DISPOSITION POLICY (GOOGLE STANDARD)
+            - **Ownership:** Clients retain primary IP rights over raw assets. High Core retains rights to technical enhancements.
+            - **Security:** Clips are stored in encrypted environments. No 3rd-party sharing.
+            - **Purge:** Assets are deleted from primary cache **30 days** after delivery.
+
+            ### 🔒 3. PRIVACY & INTEGRITY
+            - **Clarity:** We follow the Google Privacy Model: Minimal data footprint.
+            - **Security:** Your ID and data are guarded by our Terminal Security layer.
+            """;
+
     public static Container containerBranded(String category, String topic, String body, String imageUrl) {
         return containerBranded(category, topic, body, imageUrl, null);
     }
@@ -89,6 +103,11 @@ public class EmbedUtil {
 
     public static Container rulesPanel(ActionRow... rows) {
         return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_RULES, Emoji.fromUnicode("\uD83D\uDCDC"),
+                rows);
+    }
+
+    public static Container termsPanel(ActionRow... rows) {
+        return containerBranded("Terms", "Transparency", TERMS_TEXT, BANNER_MAIN, Emoji.fromUnicode("\u2696\uFE0F"),
                 rows);
     }
 

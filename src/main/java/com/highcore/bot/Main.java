@@ -84,6 +84,7 @@ public class Main {
                 Commands.slash("services", "List our services and categories"),
                 Commands.slash("stats", "Show agency and system statistics"),
                 Commands.slash("help", "Display the help manual and commands"),
+                Commands.slash("terms", "View our service policies and media protocols"),
                 Commands.slash("ping", "Check the bot connectivity status"),
                 Commands.slash("bc", "Broadcast a message").addOption(OptionType.STRING, "message", "The message content", true).addOption(OptionType.ROLE, "role", "Target role", false).addOption(OptionType.ATTACHMENT, "attachment", "Media attachment", false),
 
