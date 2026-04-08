@@ -24,12 +24,18 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
+        // HYPER-FAST DEFERRAL: Kills 'loading...' hang and prevents 'interaction failed' instantly
+        if (!event.isAcknowledged()) {
+            boolean isEphemeral = !event.getComponentId().equals("menu_main"); // Only main hub edit is public
+            event.deferReply(isEphemeral).queue();
+        }
+
         try {
             String id = event.getComponentId();
             Member member = event.getMember();
             if (member == null) return;
-
-            // HUB NAVIGATION
+            
+            // ... (rest of the logic)
             if (id.equals("menu_main")) { PanelService.sendStartupHub(event); return; }
             if (id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
             if (id.equals("hub_about") || id.equals("hub_social")) { PanelService.sendAboutUs(event); return; }
@@ -60,10 +66,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                     }
 
                     event.getGuild().addRoleToMember(member, role).queue(v -> {
-                        event.reply("Identity color calibrated: **" + role.getName() + "**").setEphemeral(true).queue();
-                    }, e -> event.reply("Failed to adjust color. Permission error.").setEphemeral(true).queue());
+                        event.getHook().editOriginal("Identity color calibrated: **" + role.getName() + "**").queue();
+                    }, e -> event.getHook().editOriginal("Failed to adjust color. Permission error.").queue());
                 } else {
-                    event.reply("Selected color role ID is invalid.").setEphemeral(true).queue();
+                    event.getHook().editOriginal("Selected color role ID is invalid.").queue();
                 }
                 return;
             }
@@ -75,18 +81,18 @@ public class CentralInteractionListener extends ListenerAdapter {
                 if (role != null) {
                     if (member.getRoles().contains(role)) {
                         event.getGuild().removeRoleFromMember(member, role).queue(v -> 
-                            event.reply("Notification frequency disabled: **" + role.getName() + "**").setEphemeral(true).queue());
+                            event.getHook().editOriginal("Notification frequency disabled: **" + role.getName() + "**").queue());
                     } else {
                         event.getGuild().addRoleToMember(member, role).queue(v -> 
-                            event.reply("Notification frequency enabled: **" + role.getName() + "**").setEphemeral(true).queue());
+                            event.getHook().editOriginal("Notification frequency enabled: **" + role.getName() + "**").queue());
                     }
                 }
                 return;
             }
 
             // TICKET OPS
-            if (id.equals("ticket_claim")) { TicketService.claimTicket(event.getChannel().asTextChannel(), member); event.deferEdit().queue(); }
-            else if (id.equals("ticket_close")) { TicketService.closeTicket(event.getChannel().asTextChannel(), member); event.deferEdit().queue(); }
+            if (id.equals("ticket_claim")) { TicketService.claimTicket(event.getChannel().asTextChannel(), member); event.getHook().editOriginal("Ticket claimed.").queue(); }
+            else if (id.equals("ticket_close")) { TicketService.closeTicket(event.getChannel().asTextChannel(), member); event.getHook().editOriginal("Ticket closing process initiated.").queue(); }
             else if (id.equals("ticket_delete")) { event.getChannel().delete().queue(); }
         } catch (Exception e) {
             try { event.getHook().sendMessage("### \u26A0 INTERACTION ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
@@ -95,14 +101,21 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        String id = event.getComponentId();
-        String val = event.getValues().get(0);
+        // HYPER-FAST DEFERRAL for select menus too
+        if (!event.isAcknowledged()) event.deferReply(true).queue();
 
-        if (id.equals("view_services_cat")) { handleServiceDisplay(event, val); }
-        else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
-        else if (id.equals("ticket_type_select")) {
-            event.reply("Initializing terminal session...").setEphemeral(true).queue();
-            TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
+        try {
+            String id = event.getComponentId();
+            String val = event.getValues().get(0);
+
+            if (id.equals("view_services_cat")) { handleServiceDisplay(event, val); }
+            else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
+            else if (id.equals("ticket_type_select")) {
+                event.getHook().editOriginal("Initializing terminal session...").queue();
+                TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
+            }
+        } catch (Exception e) {
+            try { event.getHook().sendMessage("### \u26A0 SELECTION ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
         }
     }
 
@@ -114,8 +127,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "cat_minecraft" -> "Full Server Setup, Custom Map Architecture, Plugin Logic Design.";
             default -> "Sector data unavailable.";
         };
-        event.replyComponents(EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN), 
-                ActionRow.of(Button.success("order_start", "Start Order"))).setEphemeral(true).queue();
+        event.getHook().editOriginalComponents(ActionRow.of(Button.success("order_start", "Start Order")))
+             .setEmbeds(EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN).getEmbeds())
+             .queue();
     }
 
     private void handlePriceDisplay(StringSelectInteractionEvent event, String val) {
@@ -126,7 +140,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "price_minecraft" -> "**Server Setup:** $50+\n**Map Design:** $40+\n**Plugin Config:** $20+";
             default -> "Pricing data unavailable.";
         };
-        event.replyComponents(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN)).setEphemeral(true).queue();
+        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN).getEmbeds())
+             .queue();
     }
 
     @Override
