@@ -85,9 +85,9 @@ public class WelcomeCardService {
             gAv.dispose();
         }
 
-        int avatarSize = 175; // Smaller to fit perfectly inside the template frame
-        int avatarX = 205;    // Precisely centered horizontally for the gold frame
-        int avatarY = 105;    // Vertical centering
+        int avatarSize = 175; 
+        int avatarX = 195;    // Micro-shifted LEFT from 205 for absolute center
+        int avatarY = 110;    // Micro-shifted DOWN from 105 for better visual balance
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
@@ -97,7 +97,7 @@ public class WelcomeCardService {
         String name = member.getUser().getName().toUpperCase(); // Tech Look
         if (name.length() > 16) name = name.substring(0, 14) + "..";
 
-        int fontSize = 28; // Elegant and safe within the box
+        int fontSize = 28; 
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         // Letter Spacing / Tracking implementation (+5% for premium look)
@@ -106,8 +106,8 @@ public class WelcomeCardService {
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
-        int boxCenterX = 600; // Shifted LEFT to properly center in the black box
-        int boxCenterY = 248; 
+        int boxCenterX = 635; // Micro-shifted RIGHT from 600 for perfect box symmetry
+        int boxCenterY = 245; // Micro-shifted UP from 248 for better padding
         int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
         int nameY = boxCenterY + (metrics.getAscent() / 4);
 
