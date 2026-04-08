@@ -25,39 +25,28 @@ public class PanelService {
         
         if (content instanceof Container c) {
             components.add(c);
-            // GUARANTEE IMAGE STABILITY: Always add a standard Embed for Branding when sending a Container
             embeds.add(new net.dv8tion.jda.api.EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.GOLD).build());
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         }
 
-        if (interaction instanceof ModalInteractionEvent modalEvent) {
-            if (!modalEvent.isAcknowledged()) modalEvent.deferReply(ephemeral).queue();
-            var hook = modalEvent.getHook().editOriginal("");
-            if (!embeds.isEmpty()) hook.setEmbeds(embeds);
-            hook.setComponents(components);
-            hook.useComponentsV2(true);
-            hook.queue();
-        } else if (interaction instanceof IReplyCallback replyCallback) {
-            if (ephemeral || !replyCallback.isAcknowledged()) {
-                var replier = replyCallback.reply("").setEphemeral(ephemeral);
-                if (!embeds.isEmpty()) replier.setEmbeds(embeds);
-                replier.setComponents(components);
-                replier.useComponentsV2(true);
-                replier.queue();
+        if (interaction instanceof IReplyCallback replyCallback) {
+            // IMMEDIATE DEFER to prevent timeout
+            if (!replyCallback.isAcknowledged()) {
+                replyCallback.deferReply(ephemeral).queue();
+            }
+            
+            // USE HOOK FOR MISSION-CRITICAL STABILITY
+            var hook = replyCallback.getHook();
+            if (ephemeral) {
+                // For New Ephemeral Replies: Send via webhook
+                hook.sendMessage("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).setEphemeral(true).queue();
             } else {
-                if (replyCallback instanceof IMessageEditCallback editCallback) {
-                    var edit = editCallback.editMessage("");
-                    if (!embeds.isEmpty()) edit.setEmbeds(embeds);
-                    edit.setComponents(components);
-                    edit.useComponentsV2(true);
-                    edit.queue();
+                // For Public Updates: Edit original if applicable or send via webhook
+                if (replyCallback instanceof IMessageEditCallback) {
+                    hook.editOriginal("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).queue();
                 } else {
-                    var hook = replyCallback.getHook().editOriginal("");
-                    if (!embeds.isEmpty()) hook.setEmbeds(embeds);
-                    hook.setComponents(components);
-                    hook.useComponentsV2(true);
-                    hook.queue();
+                    hook.sendMessage("").setEmbeds(embeds).setComponents(components).useComponentsV2(true).queue();
                 }
             }
         }
