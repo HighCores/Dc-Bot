@@ -1,6 +1,9 @@
 package com.highcore.bot.services;
 
 import net.dv8tion.jda.api.entities.Member;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.geom.Ellipse2D;
@@ -9,6 +12,7 @@ import java.io.ByteArrayOutputStream;
 import java.net.URL;
 
 public class WelcomeCardService {
+    private static final Logger log = LoggerFactory.getLogger(WelcomeCardService.class);
 
     /**
      * Generates a high-fidelity welcome card using Highcore Agency branding.
