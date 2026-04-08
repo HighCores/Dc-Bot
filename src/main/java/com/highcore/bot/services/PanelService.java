@@ -49,10 +49,10 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 High Core Unified Terminal\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
+        String body = "### \u25C8 High Core The Unlimited Agency\nGlobal infrastructure at your fingertips. Use the protocols below to navigate our sectors.";
         ActionRow row1 = ActionRow.of(Button.primary("hub_map", " \u25C8            NAVIGATE SERVER MAP            \u25C8 ").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")));
         ActionRow row2 = ActionRow.of(
-            Button.success("hub_pings", "NOTIFICATION NODES").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
+            Button.success("hub_pings", "NOTIFY RULE").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
             Button.primary("hub_colors", "IDENTITY CALIBRATION").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8"))
         );
         ActionRow row3 = ActionRow.of(
@@ -68,36 +68,39 @@ public class PanelService {
 
     public static void sendServerMap(Object target) {
         String body = """
-                ### 🗺️ SERVER INFRASTRUCTURE
-                **📡 MAIN OPERATIONS:**
+                ### \uD83D\uDDFA\uFE0F SERVER INFRASTRUCTURE
+                **\uD83D\uDCE1 MAIN OPERATIONS:**
                 \u25B8 <#1488795130470072321> \u231B Start Up
-                \u25B8 <#1489158831916454070> 📋 Service Terms
-                \u25B8 <#1488797040732278814> 🔔 Updates
-                \u25B8 <#1490334592375324772> 🤝 Partners
-                \u25B8 <#1490334823565365308> 🎁 Giveaway
-                **🗯️ USER FEEDBACK:**
-                \u25B8 <#1490431863494545598> 🎨 Design FeedBack
-                \u25B8 <#1490783479342960640> 💻 Developer FeedBack
-                \u25B8 <#1490783523873882294> ⛏️ Minecraft FeedBack
-                **💳 COST MATRIX:**
-                \u25B8 <#1488800669375795272> 💻 Developer Price
-                \u25B8 <#1488800570629427251> 🎨 Design Price
-                \u25B8 <#1488795131019526151> ⛏️ Minecraft Price
-                **🆘 TECHNICAL OPS:**
-                \u25B8 <#1488798547947159612> ✉️ Support Tickets
+                \u25B8 <#1489158831916454070> \uD83D\uDCCB Service Terms
+                \u25B8 <#1488797040732278814> \uD83D\uDD14 Updates
+                \u25B8 <#1490334592375324772> \uD83E\uDD1D Partners
+                \u25B8 <#1490334823565365308> \uD83C\uDF81 Giveaway
+                **\uD83D\uDDAF\uFE0F USER FEEDBACK:**
+                \u25B8 <#1490431863494545598> \uD83C\uDFA8 Design FeedBack
+                \u25B8 <#1490783479342960640> \uD83D\uDCBB Developer FeedBack
+                \u25B8 <#1490783523873882294> \u26CF\uFE0F Minecraft FeedBack
+                **\uD83D\uDCB3 COST MATRIX:**
+                \u25B8 <#1488800669375795272> \uD83D\uDCBB Developer Price
+                \u25B8 <#1488800570629427251> \uD83C\uDFA8 Design Price
+                \u25B8 <#1488795131019526151> \u26CF\uFE0F Minecraft Price
+                **\uD83C\uDD98 TECHNICAL OPS:**
+                \u25B8 <#1488798547947159612> \u2709\uFE0F Support Tickets
                 """;
         replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAP));
     }
 
     public static void sendSocialPanel(Object target) {
-        String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nFollow High Core across all official industrial channels.";
-        ActionRow row = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDC26")),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\uD83D\uDCF9")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83D\uDCF7")),
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\uD83D\uDD30"))
+        String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nStay updated through our official frequencies.";
+        ActionRow row1 = ActionRow.of(
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromFormatted(":X_icon_2:")),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromFormatted(":MT_TikTok:")),
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromFormatted(":Instagram:"))
         );
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row));
+        ActionRow row2 = ActionRow.of(
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromFormatted(":Threads:")),
+            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromFormatted(":telegram1:"))
+        );
+        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
     }
 
     public static void sendPingsPanel(Object target) {
