@@ -34,20 +34,22 @@ public class PanelService {
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // 1. MUST DEFER IMMEDIATELY to stop the "Thinking" or timeout
+            // DIRECT REPLY FOR MAXIMUM SPEED (Avoid Defer if possible)
             if (!replyCallback.isAcknowledged()) {
-                replyCallback.deferReply(ephemeral).queue();
+                var replier = replyCallback.reply("").setEphemeral(ephemeral);
+                if (!embeds.isEmpty()) replier.setEmbeds(embeds);
+                if (!components.isEmpty()) replier.setComponents(components);
+                replier.useComponentsV2(true);
+                replier.queue();
+            } else {
+                // FULFILL IF ALREADY DEFERRED (e.g. earlier logic)
+                var hook = replyCallback.getHook();
+                var edit = hook.editOriginal("");
+                if (!embeds.isEmpty()) edit.setEmbeds(embeds);
+                if (!components.isEmpty()) edit.setComponents(components);
+                edit.useComponentsV2(true);
+                edit.queue();
             }
-            
-            // 2. FULFILL THE DEFERRAL properly using editOriginal
-            var hook = replyCallback.getHook();
-            var edit = hook.editOriginal("");
-            
-            if (!embeds.isEmpty()) edit.setEmbeds(embeds);
-            if (!components.isEmpty()) edit.setComponents(components);
-            
-            edit.useComponentsV2(true);
-            edit.queue();
         }
     }
 
