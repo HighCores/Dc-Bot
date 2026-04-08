@@ -8,6 +8,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.interactions.InteractionHook;
 import java.util.*;
 
 public class PanelService {
@@ -27,31 +28,35 @@ public class PanelService {
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            if (!replyCallback.isAcknowledged()) {
-                replyCallback.deferReply(ephemeral).queue(hook -> {
-                    try {
-                        var edit = hook.editOriginal("");
-                        if (!components.isEmpty()) {
-                            edit.setComponents(components);
-                            edit.useComponentsV2(true);
-                        }
-                        edit.queue();
-                    } catch (Exception e) {
-                        try { hook.editOriginal("### \u26A0 STABILITY PROTECTOR\nError: `" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+            try {
+                if (!replyCallback.isAcknowledged()) {
+                    // FAST RESPONSE PROTOCOL: Direct reply is safer to prevent 'thinking' hangs
+                    var replyAction = replyCallback.reply("### \u25C8 ACCESSING INFRASTRUCTURE...")
+                            .setEphemeral(ephemeral);
+                    
+                    if (!components.isEmpty()) {
+                        replyAction.setComponents(components);
+                        replyAction.getContent(); // Keep it minimal
                     }
-                });
-            } else {
-                var hook = replyCallback.getHook();
-                try {
+                    
+                    replyAction.queue(hook -> {
+                        // Clean up initial text to make it look premium
+                        hook.editOriginal("").queue();
+                    }, e -> {
+                        // Fallback in case of race condition
+                        try { replyCallback.getHook().sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+                    });
+                } else {
+                    InteractionHook hook = replyCallback.getHook();
                     var edit = hook.editOriginal("");
                     if (!components.isEmpty()) {
                         edit.setComponents(components);
                         edit.useComponentsV2(true);
                     }
                     edit.queue();
-                } catch (Exception e) {
-                    try { hook.sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
                 }
+            } catch (Exception e) {
+                try { replyCallback.getHook().sendMessage("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
             }
         }
     }
@@ -65,7 +70,7 @@ public class PanelService {
         );
         ActionRow row2 = ActionRow.of(
             Button.secondary("hub_partners", "◈ PARTNERS").withEmoji(Emoji.fromUnicode("\uD83E\uDD1D")),
-            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F"))
+            Button.success("hub_tickets", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F")) // Changed to Button from Link
         );
         
         handleReply(target, EmbedUtil.containerBranded("HIGH CORE THE UNLIMITED AGENCY", null, body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
@@ -121,7 +126,6 @@ public class PanelService {
     public static void sendAboutUs(Object target) {
         String body = "### \uD83D\uDCD6 AGENCY IDENTITY\n◈ High Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
         
-        // Using standard emojis for stability unless IDs are explicitly provided and verified
         ActionRow row1 = ActionRow.of(
             Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDD35")),
             Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\u26AB")),
@@ -175,7 +179,7 @@ public class PanelService {
 
     public static void sendTicketPanel(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Case Type...").addOption("Order Placement", "purchase").addOption("Technical Ops", "tech_support").addOption("General Report", "complaint").build();
-        reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link.", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
+        reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link. Room: <#1488798547947159612>", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
     }
 
     public static void sendOrderPanel(Object target) {
