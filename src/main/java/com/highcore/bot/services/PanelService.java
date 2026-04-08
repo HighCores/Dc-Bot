@@ -22,48 +22,39 @@ public class PanelService {
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        List<MessageEmbed> embeds = new ArrayList<>();
         
-        // 1. BRANDING GUARANTEE: The Gold Standard Banner (Embed)
-        embeds.add(new EmbedBuilder()
-            .setImage(EmbedUtil.BANNER_MAIN)
-            .setColor(EmbedUtil.GOLD)
-            .build());
-
-        // 2. V2 PAYLOAD (Container)
+        // V2 PAYLOAD (Container) - Standard Content/Embeds are NOT allowed with useComponentsV2(true)
         if (content instanceof Container c) {
             components.add(c);
-        } else if (content instanceof MessageEmbed me) {
-            embeds.add(me);
         } else if (content instanceof List<?> list) {
             for (Object obj : list) {
                 if (obj instanceof Container c) components.add(c);
-                else if (obj instanceof MessageEmbed me) embeds.add(me);
                 else if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
-                else if (obj instanceof ActionRow ar) components.add(ar);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: DEFER IMMEDIATELY - SECURE THE CONNECTION
+            // STEP 1: DEFER IMMEDIATELY
             if (!replyCallback.isAcknowledged()) {
                 replyCallback.deferReply(ephemeral).queue(hook -> {
-                    // STEP 2: FULFILL WITH ELITE HYBRID PAYLOAD
-                    var edit = hook.editOriginal("` [+] High Core Unified Protocol Executed `")
-                        .setEmbeds(embeds)
-                        .setComponents(components);
+                    // STEP 2: FULFILL WITH PURE V2 (No embeds/content permitted)
+                    var edit = hook.editOriginal(""); // Emptying standard components
                     
-                    if (!components.isEmpty()) edit.useComponentsV2(true);
+                    if (!components.isEmpty()) {
+                        edit.setComponents(components);
+                        edit.useComponentsV2(true);
+                    }
                     edit.queue();
                 });
             } else {
-                // FALLBACK VIA HOOK
+                // UPDATE VIA HOOK
                 var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("` [+] High Core Unified Protocol Updated `")
-                    .setEmbeds(embeds)
-                    .setComponents(components);
+                var edit = hook.editOriginal("");
                 
-                if (!components.isEmpty()) edit.useComponentsV2(true);
+                if (!components.isEmpty()) {
+                    edit.setComponents(components);
+                    edit.useComponentsV2(true);
+                }
                 edit.queue();
             }
         }

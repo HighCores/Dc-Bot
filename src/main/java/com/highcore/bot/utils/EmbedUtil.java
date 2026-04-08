@@ -52,11 +52,16 @@ public class EmbedUtil {
     public static Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         
-        // 1. ELITE HEADER
+        // 1. BRANDING BANNER (V2 COMPLIANT)
+        if (imageUrl != null) {
+            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        }
+
+        // 2. ELITE HEADER
         layout.add(TextDisplay.of("**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**"));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
-        // 2. TECHNICAL BODY
+        // 3. TECHNICAL BODY
         if (body != null) {
             layout.add(TextDisplay.of(body));
         }
