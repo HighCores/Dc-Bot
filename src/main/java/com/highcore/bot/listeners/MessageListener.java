@@ -30,8 +30,8 @@ public class MessageListener extends ListenerAdapter {
                 TextChannel logChannel = (logId != null && !logId.isEmpty()) ? event.getGuild().getTextChannelById(logId) : null;
                 if (logChannel != null) {
                     String logBody = "### \u26A0\uFE0F Security Alert: Restricted Content\n" +
-                            "**User:** " + event.getAuthor().getAsMention() + " (`" + event.getAuthor().getId() + "`)\n" +
-                            "**Location:** " + event.getChannel().getAsMention() + "\n" +
+                            "**User:** **" + event.getAuthor().getName() + "** (`" + event.getAuthor().getId() + "`)\n" +
+                            "**Channel:** #" + event.getChannel().getName() + "\n" +
                             "**Detected Text:**\n> " + content;
                     
                     logChannel.sendMessageComponents(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER))

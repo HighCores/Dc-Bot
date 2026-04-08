@@ -29,7 +29,7 @@ public class Main {
                 " |  __  |  | |  | | \u2514\u2510| |  __  ||  ___||  _  /|  ___||  __|  \n" +
                 " | |  | | _| |_ | |__| || |  | || |___ | | \\ \\| |___ | |____ \n" +
                 " |_|  |_||_____| \\____/ |_|  |_||_____||_|  \\_\\_____||______|\n" +
-                "            HIGHCORE AGENCY - GOLDEN TERMINAL v1.2.0\n" +
+                "               HIGH CORE - GOLDEN TERMINAL v1.2.0\n" +
                 "\u001B[0m");
 
         if (Config.DISCORD_TOKEN == null || Config.DISCORD_TOKEN.isEmpty()) { 
@@ -39,7 +39,7 @@ public class Main {
 
         JDA jda = JDABuilder.createDefault(Config.DISCORD_TOKEN)
                 .setStatus(OnlineStatus.ONLINE)
-                .setActivity(Activity.watching("Highcore Agency [v1.2.0]"))
+                .setActivity(Activity.watching("High Core [v1.2.0]"))
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT,
                         GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MODERATION, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_PRESENCES)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)

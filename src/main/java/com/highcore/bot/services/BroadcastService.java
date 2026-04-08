@@ -60,7 +60,7 @@ public class BroadcastService {
 
         m.getUser().openPrivateChannel().queue(pc -> {
             try {
-                Container c = EmbedUtil.containerBranded("MESSAGE", "Highcore Broadcast", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
+                Container c = EmbedUtil.containerBranded("MESSAGE", "High Core Message", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
 
                 pc.sendMessageComponents(c).useComponentsV2(true).queue(
                     s -> log.debug("Broadcast delivered to {}", m.getUser().getName()),

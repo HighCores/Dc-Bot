@@ -49,7 +49,7 @@ public class WelcomeListener extends ListenerAdapter {
         if (ch == null) return;
 
         String body = String.format("""
-                ## Welcome to Haikore Agency!
+                ## Welcome to High Core!
                 
                 Hello %s, we are thrilled to have you here. 
                 Explore our professional services and feel free to reach out to our staff.
@@ -69,7 +69,7 @@ public class WelcomeListener extends ListenerAdapter {
         String o = Config.CH_ORDER, t = Config.CH_TICKET;
 
         String body = String.format("""
-                ## 📖 Welcome Guide - Haikore Agency
+                ## 📖 Welcome Guide - High Core
                 
                 Hello! Here are the most important links to get you started:
                 

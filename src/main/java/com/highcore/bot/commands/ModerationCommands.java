@@ -301,8 +301,8 @@ public class ModerationCommands extends ListenerAdapter {
         String url = event.getOption("url", OptionMapping::getAsString);
         try {
             net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(new java.net.URL(url).openStream());
-            event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("تحديث الموارد", "تمت إضافة الإيموجي `" + name + "` بنجاح.")));
-        } catch (Exception e) { PanelService.reply(event, EmbedUtil.error("فشل العملية", "تأكد من صحة الرابط أو صيغة الملف.")); }
+            event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("Assets Update", "Emoji `" + name + "` has been created successfully.")));
+        } catch (Exception e) { PanelService.reply(event, EmbedUtil.error("Action Failed", "Please verify the image URL and format.")); }
     }
 
     private boolean hasPerm(SlashCommandInteractionEvent e, Permission p) {

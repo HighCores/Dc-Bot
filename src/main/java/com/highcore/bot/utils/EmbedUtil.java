@@ -16,9 +16,9 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
-    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/3ykfX5K/media-1775551414274.png";
+    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
     
     public static final Color SUCCESS = Color.decode("#D4AF37"); // Metallic Gold
     public static final Color DANGER = Color.decode("#8B0000");  // Deep Red for Danger
@@ -28,7 +28,7 @@ public class EmbedUtil {
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String RULES_TEXT = """
-            ## \uD83D\uDCCB Haikore Agency Rules
+            ## \uD83D\uDCCB High Core Rules
             
             ### 🛡️ 1. General Rules
             1. **Mutual Respect**: Harassment, bullying, or offensive language is strictly prohibited.
@@ -37,7 +37,7 @@ public class EmbedUtil {
             
             ### \uD83D\uDCBC 2. Business & Service Rules
             1. **Serious Projects**: Order channels are for work only. Mockery or fake orders may lead to restrictions.
-            2. **Copyright**: All development and design rights belong to Haikore Agency unless agreed otherwise.
+            2. **Copyright**: All development and design rights belong to High Core unless agreed otherwise.
             3. **Official Channels**: Financial or technical agreements must go through Tickets.
             
             ### \uD83D\uDEAB 3. Prohibitions
@@ -69,13 +69,13 @@ public class EmbedUtil {
             layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
-        layout.add(TextDisplay.of("` \u2022 Haikore Agency Unified System \u2022 v1.2.0 \u2022 `"));
+        layout.add(TextDisplay.of("` \u2022 High Core Unified System \u2022 v1.2.0 \u2022 `"));
 
         return Container.of(layout);
     }
 
     public static Container startupPanel(ActionRow... rows) {
-        String body = "Welcome to Haikore Agency.\n" +
+        String body = "Welcome to High Core.\n" +
                 "We provide professional digital solutions in Design, Coding, and Minecraft services.\n\n" +
                 "Please use the menu below to navigate our services.";
         return containerBranded("Main", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
