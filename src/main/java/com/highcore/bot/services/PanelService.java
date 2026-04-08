@@ -21,47 +21,45 @@ public class PanelService {
     public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
-        List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
+        List<ActionRow> rows = new ArrayList<>();
         
-        // PREPARE BRANDING EMBED
-        embeds.add(new EmbedBuilder()
+        // ULTIMATE STABILITY PROTOCOL: Convert all content to high-standard Embeds
+        EmbedBuilder mainEmbed = new EmbedBuilder()
             .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
-            .setFooter("\u2022 High Core Unified System \u2022 v1.2.5 \u2022")
-            .build());
+            .setFooter("\u2022 High Core Unified System \u2022 v1.3.0 \u2022");
 
         if (content instanceof Container c) {
-            components.add(c);
+            // Logically decode/map the container text to an embed description
+            mainEmbed.setTitle(" [+] CORE SYSTEM PROTOCOL EXECUTED ");
+            mainEmbed.setDescription("` High Core Cyber-Infrastructure Active `\n\n**LOGISTICS INDEX:**\n" + c.toString().replace("Container{", "").replace("}", ""));
+            embeds.add(mainEmbed.build());
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         } else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof Container c) components.add(c);
-                else if (obj instanceof MessageEmbed me) embeds.add(me);
+                if (obj instanceof MessageEmbed me) embeds.add(me);
+                else if (obj instanceof ActionRow ar) rows.add(ar);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
-            // STEP 1: STOP THINKING IMMEDIATELY
+            // STEP 1: DEFER TO SECURE THE CONNECTION
             if (!replyCallback.isAcknowledged()) {
-                var reply = replyCallback.reply("` [+] High Core System Protocol Initiated `")
-                    .setEphemeral(ephemeral)
-                    .setEmbeds(embeds)
-                    .setComponents(components);
-                
-                // Ensure V2 compatibility for Containers
-                if (content instanceof Container || content instanceof List) reply.useComponentsV2(true);
-                reply.queue();
+                replyCallback.deferReply(ephemeral).queue(hook -> {
+                    hook.editOriginal("` [+] High Core System Protocol Loaded `")
+                        .setEmbeds(embeds)
+                        .setComponents(rows)
+                        .queue();
+                });
             } else {
-                // STEP 2: FULFILL IF ALREADY DEFERRED
+                // STEP 2: FULFILL VIA HOOK
                 var hook = replyCallback.getHook();
-                var edit = hook.editOriginal("` [+] High Core System Protocol Executed `")
+                hook.editOriginal("` [+] High Core System Protocol Updated `")
                     .setEmbeds(embeds)
-                    .setComponents(components);
-                
-                if (content instanceof Container || content instanceof List) edit.useComponentsV2(true);
-                edit.queue();
+                    .setComponents(rows)
+                    .queue();
             }
         }
     }
