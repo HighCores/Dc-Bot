@@ -55,7 +55,21 @@ public class WelcomeCardService {
 
         // 2. Avatar - Calibrated for the new clean circle
         String avatarUrl = member.getUser().getEffectiveAvatarUrl() + "?size=256";
-        BufferedImage avatar = ImageIO.read(new URL(avatarUrl));
+        BufferedImage avatar = null;
+        try {
+            java.net.URL url = new java.net.URL(avatarUrl);
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
+            avatar = ImageIO.read(conn.getInputStream());
+        } catch (Exception e) {
+            log.warn("Failed to load user avatar: {}. Using generic fallback.", e.getMessage());
+            // Create a generic colored circle if avatar fails to avoid total failure
+            avatar = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D gAv = avatar.createGraphics();
+            gAv.setColor(new Color(212, 175, 55));
+            gAv.fillOval(0, 0, 256, 256);
+            gAv.dispose();
+        }
 
         int avatarSize = 196; 
         int avatarX = 227;    // Precise horizontal center for the new template circle
