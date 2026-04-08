@@ -58,29 +58,24 @@ public class PanelService {
 
     public static void sendStartupHub(Object target) {
         String title = "HIGH CORE AGENCY";
-        String body = """
-                PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS
-                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. HIGH CORE provides high-fidelity solutions across system development, visual architecture, and strategic media management.
-                
-                Our internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.
-                
-                By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.
-                
-                SYSTEM NAVIGATION PROTOCOLS
-                Examine our operational modules and establish a secure connection using the authorized protocols below.
-                """;
+        String bodySection1 = "PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS\n\nEstablishing the definitive global standard for advanced digital infrastructure and elite creative operations. HIGH CORE provides high-fidelity solutions across system development, visual architecture, and strategic media management.\n\nOur internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.";
+        String bodySection2 = "By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.\n\nSYSTEM NAVIGATION PROTOCOLS\nExamine our operational modules and establish a secure connection using the authorized protocols below.";
         
         ActionRow row = ActionRow.of(
             Button.secondary("hub_highcore", "HIGHCORE"),
             Button.secondary("hub_about", "ABOUT US"),
             Button.secondary("hub_partners", "PARTNERS"),
-            Button.secondary("hub_tickets", "SUPPORT")
+            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "SUPPORT")
         );
         
         List<ContainerChildComponent> layout = new ArrayList<>();
+        layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(TextDisplay.of("**" + title + "**"));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-        layout.add(TextDisplay.of(body));
+        layout.add(TextDisplay.of(bodySection1));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        layout.add(TextDisplay.of(bodySection2));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(row);
         
