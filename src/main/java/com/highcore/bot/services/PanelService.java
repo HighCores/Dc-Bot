@@ -21,63 +21,45 @@ public class PanelService {
     public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
 
     private static void handleReply(Object interaction, Object content, boolean ephemeral) {
+        List<MessageTopLevelComponent> components = new ArrayList<>();
         List<MessageEmbed> embeds = new ArrayList<>();
-        List<ActionRow> rows = new ArrayList<>();
         
-        EmbedBuilder mainEmbed = new EmbedBuilder()
+        // 1. BRANDING GUARANTEE: Always add the golden banner as a standard Embed for 100% stability
+        embeds.add(new EmbedBuilder()
+            .setImage(EmbedUtil.BANNER_MAIN)
             .setColor(EmbedUtil.GOLD)
-            .setFooter("\u2022 High Core Unified System \u2022 v1.3.5 \u2022");
+            .build());
 
-        // ONLY ADD IMAGE IF IT IS LIKELY WORKING (ImgBB check needed)
-        if (EmbedUtil.BANNER_MAIN != null && !EmbedUtil.BANNER_MAIN.isEmpty()) {
-            mainEmbed.setImage(EmbedUtil.BANNER_MAIN);
-        }
-
+        // 2. LAYOUT FIDELITY: Use the V2 Container for the elite technical look requested
         if (content instanceof Container c) {
-            mainEmbed.setTitle(" [+] CORE SYSTEM PROTOCOL EXECUTED ");
-            
-            // INTELLECTUAL TEXT EXTRACTION: Scan components for readable text
-            StringBuilder sb = new StringBuilder();
-            sb.append("` High Core Cyber-Infrastructure Active `\n\n");
-            
-            for (Object comp : c.getComponents()) {
-                if (comp instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay td) {
-                    String text = td.getContent().replace("###", "").replace("◈", "").trim();
-                    if (!text.isEmpty()) sb.append("**\u25B8 ").append(text).append("**\n");
-                } else if (comp instanceof ActionRow ar) {
-                    rows.add(ar);
-                }
-            }
-            
-            mainEmbed.setDescription(sb.toString());
-            embeds.add(mainEmbed.build());
+            components.add(c);
         } else if (content instanceof MessageEmbed me) {
             embeds.add(me);
         } else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof MessageEmbed me) embeds.add(me);
-                else if (obj instanceof ActionRow ar) rows.add(ar);
-                else if (obj instanceof Container c2) {
-                    // Recursive-like for list of containers
-                    handleReply(interaction, c2, ephemeral);
-                    return;
-                }
+                if (obj instanceof Container c) components.add(c);
+                else if (obj instanceof MessageEmbed me) embeds.add(me);
             }
         }
 
         if (interaction instanceof IReplyCallback replyCallback) {
+            // STEP 1: IMMEDIATE ACKNOWLEDGMENT (Thinking...)
             if (!replyCallback.isAcknowledged()) {
                 replyCallback.deferReply(ephemeral).queue(hook -> {
-                    hook.editOriginal("` [+] High Core System Protocol Loaded `")
+                    // STEP 2: INSTANT FULFILL WITH MODERN V2 PAYLOAD
+                    hook.editOriginal("` [+] High Core Unified Protocol Executed `")
                         .setEmbeds(embeds)
-                        .setComponents(rows)
+                        .setComponents(components)
+                        .useComponentsV2(true)
                         .queue();
                 });
             } else {
+                // UPDATE VIA HOOK
                 var hook = replyCallback.getHook();
-                hook.editOriginal("` [+] High Core System Protocol Updated `")
+                hook.editOriginal("` [+] High Core Unified Protocol Updated `")
                     .setEmbeds(embeds)
-                    .setComponents(rows)
+                    .setComponents(components)
+                    .useComponentsV2(true)
                     .queue();
             }
         }
