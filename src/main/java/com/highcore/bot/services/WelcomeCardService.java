@@ -85,9 +85,9 @@ public class WelcomeCardService {
             gAv.dispose();
         }
 
-        int avatarSize = 196; 
-        int avatarX = 227;    // Precise horizontal center for the new template circle
-        int avatarY = 101;    // Precise vertical center
+        int avatarSize = 188; // Slightly smaller for better padding within the gold frame
+        int avatarX = 185;    // Shifted LEFT to center within the template's gold circle
+        int avatarY = 105;    // Shifted DOWN to center vertically
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
@@ -95,21 +95,21 @@ public class WelcomeCardService {
 
         // 3. Name - Premium Typography (Golden Gradient + Shadow)
         String name = member.getUser().getName().toUpperCase(); // Tech Look
-        if (name.length() > 14) name = name.substring(0, 12) + "..";
+        if (name.length() > 16) name = name.substring(0, 14) + "..";
 
-        int fontSize = 42; 
+        int fontSize = 32; // Reduced size for elegant fit
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         // Letter Spacing / Tracking implementation (+2%)
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
-        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.05); // Subtle tech spacing
+        attributes.put(java.awt.font.TextAttribute.TRACKING, 0.08); // Extra tech spacing
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
-        int boxCenterX = 585; 
-        int boxCenterY = 245;
+        int boxCenterX = 670; // Re-centered to the right box area
+        int boxCenterY = 248; 
         int nameX = boxCenterX - (metrics.stringWidth(name) / 2);
-        int nameY = boxCenterY + (metrics.getAscent() / 3); // Better visual centering
+        int nameY = boxCenterY + (metrics.getAscent() / 3);
 
         // A. Drop Shadow
         g.setColor(new Color(0, 0, 0, 180));
