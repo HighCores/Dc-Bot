@@ -57,7 +57,7 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 High Core The Unlimited Agency \u25C8\n◈ Global infrastructure & professional agency services. Select a module below to initiate.";
+        String body = "◈ Global digital infrastructure & professional multi-sector agency services. High fidelity solutions for the modern era.";
         
         ActionRow row1 = ActionRow.of(
             Button.primary("hub_highcore", "◈ HIGHCORE").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
@@ -68,7 +68,7 @@ public class PanelService {
             Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F"))
         );
         
-        handleReply(target, EmbedUtil.containerBranded("HUB", "Central Infrastructure", body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
+        handleReply(target, EmbedUtil.containerBranded("HIGH CORE THE UNLIMITED AGENCY", null, body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
     }
 
     public static void sendRulesPanel(Object target) {
@@ -82,38 +82,56 @@ public class PanelService {
                 
                 ### \uD83D\uDCE1 MAIN OPERATIONS
                 \u2213 <#1488795130470072321> \u231B Start Up
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1489158831916454070> \uD83D\uDCCB Service Terms
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1488797040732278814> \uD83D\uDD14 Updates
-                \u2213 <#1490334592375324772> \uD83E\uDD1D Partners
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
+                \u2213 <#1490334592375324772> \u231B Partners
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1490334823565365308> \u231B Giveaway
                 
                 ### \uD83D\uDDAF\uFE0F USER FEEDBACK
                 \u2213 <#1490431863494545598> \u231B Design Feedback
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1490783479342960640> \u231B Developer Feedback
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1490783523873882294> \u231B Minecraft Feedback
                 
                 ### \uD83D\uDCB3 COST MATRIX
                 \u2213 <#1488800669375795272> \u231B Developer Price
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1488800570629427251> \u231B Design Price
+                \u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508\u2508
                 \u2213 <#1488795131019526151> \u231B Minecraft Price
                 
                 ### \u26D1\uFE0F TECHNICAL OPS
                 \u2213 <#1488798547947159612> \u2709\uFE0F Support Tickets
                 """;
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure Index", body, EmbedUtil.BANNER_MAP));
+        
+        ActionRow configRow = ActionRow.of(
+            Button.success("hub_pings", "NOTIFY RULE").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
+            Button.primary("hub_colors", "IDENTITY CALIBRATION").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8")),
+            Button.secondary("hub_rules", "SERVER RULES").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
+        );
+        
+        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure Index", body, EmbedUtil.BANNER_MAP, null, configRow));
     }
 
     public static void sendAboutUs(Object target) {
         String body = "### \uD83D\uDCD6 AGENCY IDENTITY\n◈ High Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
+        
+        // Using standard emojis for stability unless IDs are explicitly provided and verified
         ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromFormatted(":X_icon_2:")),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromFormatted(":MT_TikTok:")),
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromFormatted(":Instagram:"))
+            Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromUnicode("\uD83D\uDD35")),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromUnicode("\u26AB")),
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram").withEmoji(Emoji.fromUnicode("\uD83C\uDF10"))
         );
         ActionRow row2 = ActionRow.of(
-            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromFormatted(":Threads:")),
-            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromFormatted(":telegram1:"))
+            Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromUnicode("\u1F5D2")),
+            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\u2708\uFE0F"))
         );
+        
         replyEphemeral(target, EmbedUtil.containerBranded("ABOUT", "The Unlimited Agency", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
     }
 

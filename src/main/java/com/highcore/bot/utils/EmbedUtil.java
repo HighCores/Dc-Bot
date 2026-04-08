@@ -18,11 +18,11 @@ import java.util.Arrays;
 public class EmbedUtil {
 
     public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69d6cec3&is=69d57d43&hm=fb7fa5371021b0967abe71019d9cf5b2ed5f7ce1efc3b75cdd6cd8d8bc67b50d&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_MAP = "https://media.discordapp.net/attachments/1488795131296354460/1491342988260020224/IMG_20260408_104107.png?ex=69d758e4&is=69d60764&hm=63473ef0f5fc0e33cde142b62279bc46734c851e2f7b6812fb2e3aee15eff243&=&format=webp&quality=lossless&width=884&height=884";
-    public static final String BANNER_PINGS = "https://media.discordapp.net/attachments/1488795131296354460/1491342987731533864/IMG_20260408_104213.png?ex=69d758e4&is=69d60764&hm=242e1f3e3f18cb3ee742ab52fdddf849cfd985efe5c1b66bd367a3695cb84344&=&format=webp&quality=lossless&width=884&height=884";
-    public static final String BANNER_COLORS = "https://media.discordapp.net/attachments/1488795131296354460/1491342987332943912/IMG_20260408_104256.png?ex=69d758e3&is=69d60763&hm=08e6baa133a50a61261a5f8b4890d0f1094e06c8796bf2b6f795107722f39262&=&format=webp&quality=lossless&width=884&height=884";
-    public static final String BANNER_RULES = "https://media.discordapp.net/attachments/1488795131296354460/1491342986133373030/IMG_20260408_104319.png?ex=69d758e3&is=69d60763&hm=993f310ca45c6668aa031d7100633ccd59f289e34f3708b0daa56379f074ffd2&=&format=webp&quality=lossless&width=884&height=884";
-    public static final String BANNER_SOCIAL = "https://media.discordapp.net/attachments/1488795131296354460/1491342986787815484/IMG_20260408_104353.png?ex=69d758e3&is=69d60763&hm=2bfda85c0e99a39501f315cd2f4af6b302afa6dc26c7980c435e2dac25ec4e36&=&format=webp&quality=lossless&width=884&height=884";
+    public static final String BANNER_MAP = BANNER_MAIN;
+    public static final String BANNER_PINGS = BANNER_MAIN;
+    public static final String BANNER_COLORS = BANNER_MAIN;
+    public static final String BANNER_RULES = BANNER_MAIN;
+    public static final String BANNER_SOCIAL = BANNER_MAIN;
     public static final String BANNER_SUPPORT = BANNER_MAIN;
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
 
@@ -58,14 +58,15 @@ public class EmbedUtil {
             ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
-        // 1. BRANDING BANNER (V2 COMPLIANT - WIDE FIT)
+        // 1. BRANDING BANNER
         if (imageUrl != null) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
             layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         }
 
         // 2. ELITE HEADER
-        layout.add(TextDisplay.of("**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**"));
+        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**\u25C8 " + title.toUpperCase() + "**" : "**\u25C8 " + title.toUpperCase() + " \u30FB " + subtitle.toUpperCase() + "**";
+        layout.add(TextDisplay.of(headerText));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         // 3. TECHNICAL BODY
@@ -73,16 +74,12 @@ public class EmbedUtil {
             layout.add(TextDisplay.of(body));
         }
 
-        // 3. ACTION INTERFACE
+        // 4. ACTION INTERFACE
         if (rows != null && rows.length > 0) {
             for (ActionRow row : rows) {
                 layout.add(row);
             }
         }
-
-        // 4. INFRASTRUCTURE FOOTER
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-        layout.add(TextDisplay.of("` \u2022 High Core Agency Dev Team \u2022 v1.7.0 \u2022 `"));
 
         return Container.of(layout);
     }
