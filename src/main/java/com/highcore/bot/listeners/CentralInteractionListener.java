@@ -26,18 +26,21 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        // HYPER-FAST DEFERRAL COORDINATION
+        // SEQUENTIAL COORDINATION: Defers first, then processes logic in callback
         boolean isEphemeral = !event.getComponentId().equals("menu_main");
         if (!event.isAcknowledged()) {
-            event.deferReply(isEphemeral).queue();
+            event.deferReply(isEphemeral).queue(hook -> processButton(event));
+        } else {
+            processButton(event);
         }
+    }
 
+    private void processButton(ButtonInteractionEvent event) {
         try {
             String id = event.getComponentId();
             Member member = event.getMember();
             if (member == null) return;
             
-            // ... (rest of the logic)
             if (id.equals("menu_main")) { PanelService.sendStartupHub(event); return; }
             if (id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
             if (id.equals("hub_about") || id.equals("hub_social")) { PanelService.sendAboutUs(event); return; }
@@ -53,30 +56,25 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
 
-            // COLOR ROLE HANDLING (Auto-Remove previous)
+            // COLOR ROLE HANDLING
             if (id.startsWith("color_")) {
                 String roleId = id.replace("color_", "");
                 Role role = event.getGuild().getRoleById(roleId);
                 if (role != null) {
-                    java.util.List<String> colorRoles = java.util.Arrays.asList(
+                    List<String> colorRoles = java.util.Arrays.asList(
                         "1489744978719543408", "1489744984092442704", "1489744981835911238",
                         "1489744986424479927", "1489744990962716732", "1489744988936867880"
                     );
-                    
                     for (Role r : member.getRoles()) {
                         if (colorRoles.contains(r.getId())) event.getGuild().removeRoleFromMember(member, r).queue();
                     }
-
-                    event.getGuild().addRoleToMember(member, role).queue(v -> {
-                        event.getHook().editOriginal("Identity color calibrated: **" + role.getName() + "**").queue();
-                    }, e -> event.getHook().editOriginal("Failed to adjust color. Permission error.").queue());
-                } else {
-                    event.getHook().editOriginal("Selected color role ID is invalid.").queue();
+                    event.getGuild().addRoleToMember(member, role).queue(v -> 
+                        event.getHook().editOriginal("Identity color calibrated: **" + role.getName() + "**").queue());
                 }
                 return;
             }
 
-            // PING ROLE HANDLING (Toggle)
+            // PING ROLE HANDLING
             if (id.startsWith("ping_")) {
                 String roleId = id.replace("ping_", "");
                 Role role = event.getGuild().getRoleById(roleId);
@@ -97,15 +95,21 @@ public class CentralInteractionListener extends ListenerAdapter {
             else if (id.equals("ticket_close")) { TicketService.closeTicket(event.getChannel().asTextChannel(), member); event.getHook().editOriginal("Ticket closing process initiated.").queue(); }
             else if (id.equals("ticket_delete")) { event.getChannel().delete().queue(); }
         } catch (Exception e) {
-            try { event.getHook().sendMessage("### \u26A0 INTERACTION ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+            try { event.getHook().editOriginal("### \u26A0 INTERACTION FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
         }
     }
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        // HYPER-FAST DEFERRAL for select menus too
-        if (!event.isAcknowledged()) event.deferReply(true).queue();
+        // SEQUENTIAL COORDINATION: Defers first, then processes logic in callback
+        if (!event.isAcknowledged()) {
+            event.deferReply(true).queue(hook -> processSelect(event));
+        } else {
+            processSelect(event);
+        }
+    }
 
+    private void processSelect(StringSelectInteractionEvent event) {
         try {
             String id = event.getComponentId();
             String val = event.getValues().get(0);
@@ -117,7 +121,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
             }
         } catch (Exception e) {
-            try { event.getHook().sendMessage("### \u26A0 SELECTION ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+            try { event.getHook().editOriginal("### \u26A0 SELECTION FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
         }
     }
 

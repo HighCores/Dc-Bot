@@ -29,30 +29,17 @@ public class PanelService {
 
         if (interaction instanceof IReplyCallback replyCallback) {
             try {
-                if (replyCallback.isAcknowledged()) {
-                    InteractionHook hook = replyCallback.getHook();
-                    // Using Zero-Width Space to ensure Discord accepts the message content
-                    var edit = hook.editOriginal("\u200B");
-                    if (!components.isEmpty()) {
-                        edit.setComponents(components);
-                        edit.useComponentsV2(true);
-                    }
-                    edit.queue(null, e -> hook.editOriginal("### \u26A0 RENDER ERROR\n`" + e.getMessage() + "`").queue());
-                } else {
-                    // DEFER FIRST: This is the safest way to prevent 'interaction failed' on complex V2 rendering
-                    replyCallback.deferReply(ephemeral).queue(hook -> {
-                        var edit = hook.editOriginal("\u200B");
-                        if (!components.isEmpty()) {
-                            edit.setComponents(components);
-                            edit.useComponentsV2(true);
-                        }
-                        edit.queue(null, e -> hook.editOriginal("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").queue());
-                    }, e -> {
-                        try { replyCallback.getHook().editOriginal("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
-                    });
+                InteractionHook hook = replyCallback.getHook();
+                var edit = hook.editOriginal("\u200B");
+                if (!components.isEmpty()) {
+                    edit.setComponents(components);
+                    edit.useComponentsV2(true);
                 }
+                edit.queue(null, e -> {
+                    try { hook.editOriginal("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+                });
             } catch (Exception e) {
-                try { replyCallback.getHook().editOriginal("### \u26A0 HANDLER FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+                try { ((IReplyCallback) interaction).getHook().editOriginal("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
             }
         }
     }
