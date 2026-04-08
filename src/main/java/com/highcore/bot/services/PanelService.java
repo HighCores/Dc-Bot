@@ -57,17 +57,18 @@ public class PanelService {
     }
 
     public static void sendStartupHub(Object target) {
-        String body = "### \u25C8 High Core The Unlimited Agency\nGlobal infrastructure logic. Use the protocols below.";
-        ActionRow row1 = ActionRow.of(Button.primary("hub_map", " \u25C8            NAVIGATE SERVER MAP            \u25C8 ").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")));
+        String body = "### \u25C8 High Core The Unlimited Agency \u25C8\n◈ Global infrastructure & professional agency services. Select a module below to initiate.";
+        
+        ActionRow row1 = ActionRow.of(
+            Button.primary("hub_highcore", "◈ HIGHCORE").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
+            Button.primary("hub_about", "◈ ABOUT US").withEmoji(Emoji.fromUnicode("\uD83D\uDCD6"))
+        );
         ActionRow row2 = ActionRow.of(
-            Button.success("hub_pings", "NOTIFY RULE").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
-            Button.primary("hub_colors", "IDENTITY CALIBRATION").withEmoji(Emoji.fromUnicode("\uD83C\uDFA8"))
+            Button.secondary("hub_partners", "◈ PARTNERS").withEmoji(Emoji.fromUnicode("\uD83E\uDD1D")),
+            Button.link("https://discord.com/channels/1488795130470072320/1488798547947159612", "◈ SUPPORT").withEmoji(Emoji.fromUnicode("\u26D1\uFE0F"))
         );
-        ActionRow row3 = ActionRow.of(
-            Button.secondary("hub_rules", "SERVER RULES").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("hub_social", "SOCIAL MEDIA").withEmoji(Emoji.fromUnicode("\uD83C\uDF10"))
-        );
-        handleReply(target, EmbedUtil.containerBranded("HUB", "Main Dashboard", body, EmbedUtil.BANNER_MAIN, null, row1, row2, row3), false);
+        
+        handleReply(target, EmbedUtil.containerBranded("HUB", "Central Infrastructure", body, EmbedUtil.BANNER_MAIN, null, row1, row2), false);
     }
 
     public static void sendRulesPanel(Object target) {
@@ -76,30 +77,34 @@ public class PanelService {
 
     public static void sendServerMap(Object target) {
         String body = """
-                ### \uD83D\uDDFA\uFE0F SERVER INFRASTRUCTURE
-                **\uD83D\uDCE1 MAIN OPERATIONS:**
-                \u25B8 <#1488795130470072321> \u231B Start Up
-                \u25B8 <#1489158831916454070> \uD83D\uDCCB Service Terms
-                \u25B8 <#1488797040732278814> \uD83D\uDD14 Updates
-                \u25B8 <#1490334592375324772> \uD83E\uDD1D Partners
-                \u25B8 <#1490334823565365308> \uD83C\uDF81 Giveaway
-                **\uD83D\uDDAF\uFE0F USER FEEDBACK:**
-                \u25B8 <#1490431863494545598> \uD83C\uDFA8 Design FeedBack
-                \u25B8 <#1490783479342960640> \uD83D\uDCBB Developer FeedBack
-                \u25B8 <#1490783523873882294> \u26CF\uFE0F Minecraft FeedBack
-                **\uD83D\uDCB3 COST MATRIX:**
-                \u25B8 <#1488800669375795272> \uD83D\uDCBB Developer Price
-                \u25B8 <#1488800570629427251> \uD83C\uDFA8 Design Price
-                \u25B8 <#1488795131019526151> \u26CF\uFE0F Minecraft Price
-                **\uD83C\uDD98 TECHNICAL OPS:**
-                \u25B8 <#1488798547947159612> \u2709\uFE0F Support Tickets
+                ### \uD83D\uDDA5\uFE0F SERVER ARCHITECTURE
+                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                
+                ### \uD83D\uDCE1 MAIN OPERATIONS
+                \u2213 <#1488795130470072321> \u231B Start Up
+                \u2213 <#1489158831916454070> \uD83D\uDCCB Service Terms
+                \u2213 <#1488797040732278814> \uD83D\uDD14 Updates
+                \u2213 <#1490334592375324772> \uD83E\uDD1D Partners
+                \u2213 <#1490334823565365308> \u231B Giveaway
+                
+                ### \uD83D\uDDAF\uFE0F USER FEEDBACK
+                \u2213 <#1490431863494545598> \u231B Design Feedback
+                \u2213 <#1490783479342960640> \u231B Developer Feedback
+                \u2213 <#1490783523873882294> \u231B Minecraft Feedback
+                
+                ### \uD83D\uDCB3 COST MATRIX
+                \u2213 <#1488800669375795272> \u231B Developer Price
+                \u2213 <#1488800570629427251> \u231B Design Price
+                \u2213 <#1488795131019526151> \u231B Minecraft Price
+                
+                ### \u26D1\uFE0F TECHNICAL OPS
+                \u2213 <#1488798547947159612> \u2709\uFE0F Support Tickets
                 """;
-        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Logistics Index", body, EmbedUtil.BANNER_MAP));
+        replyEphemeral(target, EmbedUtil.containerBranded("MAP", "Infrastructure Index", body, EmbedUtil.BANNER_MAP));
     }
 
-    public static void sendSocialPanel(Object target) {
-        String body = "### \uD83D\uDDA5\uFE0F CONNECT WITH US\nStay updated through our official frequencies.";
-        // Re-applying custom emojis as requested. Note: Ensure IDs are correct if they don't appear.
+    public static void sendAboutUs(Object target) {
+        String body = "### \uD83D\uDCD6 AGENCY IDENTITY\n◈ High Core is an elite multi-sector agency delivering superior digital infrastructure and creative solutions.";
         ActionRow row1 = ActionRow.of(
             Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromFormatted(":X_icon_2:")),
             Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromFormatted(":MT_TikTok:")),
@@ -109,7 +114,12 @@ public class PanelService {
             Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromFormatted(":Threads:")),
             Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromFormatted(":telegram1:"))
         );
-        replyEphemeral(target, EmbedUtil.containerBranded("SOCIAL", "Media Links", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
+        replyEphemeral(target, EmbedUtil.containerBranded("ABOUT", "The Unlimited Agency", body, EmbedUtil.BANNER_SOCIAL, null, row1, row2));
+    }
+
+    public static void sendPartnersPanel(Object target) {
+        String body = "### \uD83E\uDD1D STRATEGIC PARTNERS\n◈ Our strategic network of partners and collaborators. Connectivity established soon.";
+        replyEphemeral(target, EmbedUtil.containerBranded("PARTNERS", "Collaborative Network", body, EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(Object target) {
@@ -148,6 +158,80 @@ public class PanelService {
     public static void sendTicketPanel(Object target) {
         StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Case Type...").addOption("Order Placement", "purchase").addOption("Technical Ops", "tech_support").addOption("General Report", "complaint").build();
         reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link.", EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(menu)));
+    }
+
+    public static void sendOrderPanel(Object target) {
+        String body = """
+                ### \uD83D\uDDA5\uFE0F HIGH CORE SERVICES
+                ◈ Select a sector to view professional rates and modules.
+                
+                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                
+                ### \uD83C\uDFA8 DESIGNER SECTOR
+                \u2213 Logos (30$)
+                \u2213 Visual Identity (60$)
+                \u2213 Posters & Ads (90$)
+                \u2213 Social Media Design (20$)
+                \u2213 Welcome Packages (20$)
+                \u2213 Covers & Banners (30$)
+                \u2213 Prints & Brochure (25$)
+                \u2213 Motion Graphics (90$)
+                \u2213 UI/UX Design (120$)
+                \u2213 Infographic (40$)
+                \u2213 Emojis / Stickers (30$)
+                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
+                
+                ### \uD83D\uDCBB DEVELOPER SECTOR
+                \u2213 Web Developer (50$)
+                \u2213 Bots Developer (50$)
+                \u2213 Full-Stack (100$)
+                \u2213 Front-End (30$)
+                \u2213 Back-End (40$)
+                \u2213 AI & Automation (100$)
+                \u2213 Database Admin (30$)
+                **Secondes:** Rush (70$), AI/PSD (150$), 2x Revisions (180$)
+                
+                ### \uD83C\uDFAC EDITING & ANIMATION
+                \u2213 Reels/Shorts (60$)
+                \u2213 Long-form Video (120$)
+                \u2213 Animation (150$)
+                \u2213 Gaming Editor (150$)
+                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
+                
+                ### \u26CF\uFE0F MINECRAFT DEVELOPER
+                \u2213 Plugin Developer (50$)
+                \u2213 Config Specialist (80$)
+                \u2213 Map Maker / Builder (30$)
+                \u2213 Texture Creator (130$)
+                \u2213 3D Modeler (65$)
+                \u2213 SysAdmin (55$)
+                **Secondes:** Rush (45$), AI/PSD (250$), Colors (35$), Animation (200$), Edit (35$), Size (10$), Text (25$)
+                """;
+        
+        ActionRow row = ActionRow.of(
+            Button.success("order_initiate", "◈ START ORDER").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
+            Button.link("https://discord.com/channels/1488795130470072320/1488795131019526146", "◈ ORDER ROOM").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1"))
+        );
+        
+        reply(target, EmbedUtil.containerBranded("ORDER", "Service Portfolio", body, EmbedUtil.BANNER_SUPPORT, null, row));
+    }
+
+    public static void sendServiceTerms(Object target) {
+        String body = """
+                ### \u2696\uFE0F SERVICE TERMS
+                ◈ Professional engagement protocols for High Core Agency.
+                
+                \u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014\u2014
+                
+                ### \uD83D\uDCDC PROTOCOLS
+                1. Payments are upfront unless stated otherwise.
+                2. Deadlines are fixed upon project initiation.
+                3. Revisions are subject to the specific sector rules.
+                4. Source files require premium upgrades.
+                
+                \u203B By initiating an order, you agree to the full spectral terms of the agency.
+                """;
+        reply(target, EmbedUtil.containerBranded("LEGAL", "Terms of Operation", body, EmbedUtil.BANNER_RULES));
     }
 
     public static void sendGiveawayPanel(Object target) {

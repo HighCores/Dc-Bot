@@ -30,8 +30,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         // HUB NAVIGATION
         if (id.equals("menu_main")) { PanelService.sendStartupHub(event); return; }
-        if (id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
-        if (id.equals("hub_social")) { PanelService.sendSocialPanel(event); return; }
+        if (id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendServerMap(event); return; }
+        if (id.equals("hub_about") || id.equals("hub_social")) { PanelService.sendAboutUs(event); return; }
+        if (id.equals("hub_partners")) { PanelService.sendPartnersPanel(event); return; }
         if (id.equals("hub_colors")) { PanelService.sendColorsPanel(event); return; }
         if (id.equals("hub_pings")) { PanelService.sendPingsPanel(event); return; }
         if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
@@ -41,7 +42,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             return; 
         }
         if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
-        if (id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
+        if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
 
         // COLOR ROLE HANDLING (Auto-Remove previous)
         if (id.startsWith("color_")) {
