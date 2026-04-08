@@ -92,6 +92,6 @@ public class GeneralCommands extends ListenerAdapter {
     private void handleTitle(SlashCommandInteractionEvent event) {
         String title = event.getOption("title", OptionMapping::getAsString);
         com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
-        PanelService.reply(event, EmbedUtil.success("اللقب الشخصي", "تم تحديث لقبك الشخصي إلى: **" + title + "**"));
+        PanelService.reply(event, EmbedUtil.success("Identity Update", "Your personal tile has been updated to: **" + title + "**"));
     }
 }

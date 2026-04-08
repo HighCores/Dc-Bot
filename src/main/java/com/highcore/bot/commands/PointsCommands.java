@@ -30,7 +30,7 @@ public class PointsCommands extends ListenerAdapter {
             case "check" -> {
                 int pts = SupabaseClient.getPoints(target.getId(), event.getGuild().getId());
                 PanelService.reply(event, EmbedUtil.containerBranded("MERIT", "Operational Standing", 
-                    "### \u2B50 Identity Summary\nOperative: " + target.getAsMention() + "\nTotal Merit: **" + pts + "** units.", EmbedUtil.BANNER_MAIN));
+                    "### \u2B50 Identity Summary\nOperative: **" + target.getUser().getName() + "**\nTotal Merit: **" + pts + "** units.", EmbedUtil.BANNER_MAIN));
             }
             case "add" -> {
                 if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) {
@@ -39,7 +39,7 @@ public class PointsCommands extends ListenerAdapter {
                 }
                 int amt = event.getOption("amount", OptionMapping::getAsInt);
                 SupabaseClient.addPoints(target.getId(), event.getGuild().getId(), amt, "Admin Allocation", event.getUser().getName());
-                PanelService.reply(event, EmbedUtil.success("MERIT ALLOCATED", "Subject: " + target.getAsMention() + "\nValue: **+" + amt + "** units."));
+                PanelService.reply(event, EmbedUtil.success("MERIT ALLOCATED", "Subject: **" + target.getUser().getName() + "**\nValue: **+" + amt + "** units."));
             }
             case "remove" -> {
                 if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) {
@@ -48,7 +48,7 @@ public class PointsCommands extends ListenerAdapter {
                 }
                 int amt = event.getOption("amount", OptionMapping::getAsInt);
                 SupabaseClient.addPoints(target.getId(), event.getGuild().getId(), -amt, "Admin Deallocation", event.getUser().getName());
-                PanelService.reply(event, EmbedUtil.success("MERIT DEALLOCATED", "Subject: " + target.getAsMention() + "\nValue: **-" + amt + "** units."));
+                PanelService.reply(event, EmbedUtil.success("MERIT DEALLOCATED", "Subject: **" + target.getUser().getName() + "**\nValue: **-" + amt + "** units."));
             }
             case "reset" -> {
                 if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) {
@@ -56,7 +56,7 @@ public class PointsCommands extends ListenerAdapter {
                     return;
                 }
                 SupabaseClient.setPoints(target.getId(), event.getGuild().getId(), 0, "Admin Reset", event.getUser().getName());
-                PanelService.reply(event, EmbedUtil.success("MERIT RESET", "Subject: " + target.getAsMention() + "\nProtocol: ZERO-POINT INITIALIZATION"));
+                PanelService.reply(event, EmbedUtil.success("MERIT RESET", "Subject: **" + target.getUser().getName() + "**\nProtocol: ZERO-POINT INITIALIZATION"));
             }
         }
     }
@@ -66,7 +66,8 @@ public class PointsCommands extends ListenerAdapter {
         StringBuilder sb = new StringBuilder("### \uD83C\uDFC6 Top Operative Ranking\n");
         for (int i = 0; i < top.size(); i++) {
             com.google.gson.JsonObject op = top.get(i).getAsJsonObject();
-            sb.append(i + 1).append(". <@").append(op.get("user_id").getAsString()).append("> \u2192 **").append(op.get("points").getAsInt()).append("** units\n");
+            String name = op.has("user_name") ? op.get("user_name").getAsString() : "Unknown Operative";
+            sb.append(i + 1).append(". **").append(name).append("** \u2192 **").append(op.get("points").getAsInt()).append("** units\n");
         }
         PanelService.reply(event, EmbedUtil.containerBranded("RANKING", "Performance Ledger", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
