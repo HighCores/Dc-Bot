@@ -37,7 +37,7 @@ public class PanelService {
                         edit.setComponents(components);
                         edit.useComponentsV2(true);
                     }
-                    edit.queue(null, e -> {});
+                    edit.queue(null, e -> hook.editOriginal("### \u26A0 RENDER ERROR\n`" + e.getMessage() + "`").queue());
                 } else {
                     // DEFER FIRST: This is the safest way to prevent 'interaction failed' on complex V2 rendering
                     replyCallback.deferReply(ephemeral).queue(hook -> {
@@ -46,13 +46,13 @@ public class PanelService {
                             edit.setComponents(components);
                             edit.useComponentsV2(true);
                         }
-                        edit.queue();
+                        edit.queue(null, e -> hook.editOriginal("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").queue());
                     }, e -> {
-                        try { replyCallback.getHook().sendMessage("### \u26A0 STABILITY ERROR\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+                        try { replyCallback.getHook().editOriginal("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
                     });
                 }
             } catch (Exception e) {
-                try { replyCallback.getHook().sendMessage("### \u26A0 CRITICAL FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
+                try { replyCallback.getHook().editOriginal("### \u26A0 HANDLER FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
             }
         }
     }

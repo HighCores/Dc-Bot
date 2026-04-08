@@ -26,9 +26,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        // HYPER-FAST DEFERRAL: Kills 'loading...' hang and prevents 'interaction failed' instantly
+        // HYPER-FAST DEFERRAL COORDINATION
+        boolean isEphemeral = !event.getComponentId().equals("menu_main");
         if (!event.isAcknowledged()) {
-            boolean isEphemeral = !event.getComponentId().equals("menu_main"); // Only main hub edit is public
             event.deferReply(isEphemeral).queue();
         }
 
