@@ -85,40 +85,56 @@ public class WelcomeCardService {
             gAv.dispose();
         }
 
-        // --- USER-DEFINED GEOMETRY (PIXEL-PERFECT) ---
+        // --- THE DESIGNER'S BLUEPRINT (PIXEL-PERFECT ARCHITECTURE) ---
+        
+        // 1. Digital Avatar Container (Center: 310, 200 | Size: 185)
         int avatarSize = 185; 
-        int avatarX = 218;    // Center 310 - (185/2)
-        int avatarY = 108;    // Center 200 - (185/2)
+        int avatarX = 310 - (avatarSize / 2); // Surgical centering
+        int avatarY = 200 - (avatarSize / 2); // Surgical centering
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // 3. Name - Premium Typography (Golden Gradient + Shadow)
+        // 2. Welcome Headline Layer (Center: 580, 145 | Size: 22pt)
+        g.setFont(new Font("SansSerif", Font.PLAIN, 22));
+        g.setColor(new Color(255, 255, 255, 180)); // Soft white
+        String headline = "Welcome To The Future";
+        int headlineX = 580 - (g.getFontMetrics().stringWidth(headline) / 2);
+        int headlineY = 145;
+        // g.drawString(headline, headlineX, headlineY); // Optional: Drawing to reinforce template quality
+
+        // 3. Member Identity Engine (Start: 420, 215 | Size: 50pt)
         String name = member.getUser().getName().toUpperCase(); 
         if (name.length() > 14) name = name.substring(0, 12) + "..";
 
-        int fontSize = 50; // User Request: 50pt
+        int fontSize = 50; 
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
         attributes.put(java.awt.font.TextAttribute.TRACKING, 0.05); 
         g.setFont(g.getFont().deriveFont(attributes));
 
-        int nameX = 420; // User Request: Start at 420px
-        int nameY = 245; // Calibrated for baseline within the 215px center zone
+        FontMetrics metrics = g.getFontMetrics();
+        int nameX = 420; 
+        // Vertical calibration: Center Y 215 -> Offset for baseline
+        int nameY = 215 + (metrics.getAscent() / 2) - 5; 
 
-        // A. Drop Shadow
+        // A. Drop Shadow Case
         g.setColor(new Color(0, 0, 0, 180));
         g.drawString(name, nameX + 3, nameY + 3);
 
-        // B. Golden Gradient Body
+        // B. Master Golden Gradient
         GradientPaint gp = new GradientPaint(
             nameX, nameY - fontSize, new Color(197, 160, 89), 
             nameX, nameY, new Color(142, 115, 65) 
         );
         g.setPaint(gp);
         g.drawString(name, nameX, nameY);
+
+        // C. Specular Highlight
+        g.setColor(new Color(255, 255, 255, 60));
+        g.drawString(name, nameX, nameY - 1);
 
         // C. Subtle Highlight (Overlaying slightly shifted for gloss)
         g.setColor(new Color(240, 230, 140, 100)); // #F0E68C with alpha
