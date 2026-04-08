@@ -66,7 +66,7 @@ public class PanelService {
         
         // Creative Layout: Large Header Button + Dual Grid
         ActionRow row1 = ActionRow.of(
-            Button.primary("hub_map", " \u25C8      NAVIGATE SERVER MAP      \u25C8 ").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F"))
+            Button.primary("hub_map", " \u25C8            NAVIGATE SERVER MAP            \u25C8 ").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F"))
         );
         
         ActionRow row2 = ActionRow.of(

@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.components.label.Label;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 public class CentralInteractionListener extends ListenerAdapter {
 
@@ -35,7 +36,10 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("hub_pings")) { PanelService.sendPingsPanel(event); return; }
         if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
         if (id.equals("hub_prices")) { PanelService.sendPricesCategory(event); return; }
-        if (id.equals("hub_rules")) { PanelService.replyEphemeral(event, EmbedUtil.rulesPanel()); return; }
+        if (id.equals("hub_rules")) { 
+            event.replyComponents(EmbedUtil.rulesPanel(ActionRow.of(Button.danger("menu_main", " \u21DC  RETURN TO HUB ").withEmoji(Emoji.fromUnicode("\u23EA"))))).setEphemeral(true).queue();
+            return; 
+        }
         if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
         if (id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
 

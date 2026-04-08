@@ -16,9 +16,9 @@ import java.util.Arrays;
 
 public class EmbedUtil {
 
-    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
-    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg";
+    public static final String BANNER_MAIN = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/L5T8S0j/IMG-8438.jpg?v=2";
     
     public static final Color SUCCESS = Color.decode("#D4AF37"); // Metallic Gold
     public static final Color DANGER = Color.decode("#8B0000");  // Deep Red for Danger
@@ -26,7 +26,7 @@ public class EmbedUtil {
     public static final Color INFO = Color.decode("#C0C0C0");    // Silver for Info
     public static final Color GOLD = Color.decode("#D4AF37");
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
-
+    
     public static final String RULES_TEXT = """
             ### 🛡️ 1. General Rules
             1. **Mutual Respect**: Harassment, bullying, or offensive language is strictly prohibited.
@@ -79,8 +79,8 @@ public class EmbedUtil {
         return containerBranded("Main", "Dashboard", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDE80"), rows);
     }
 
-    public static Container rulesPanel() {
-        return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"));
+    public static Container rulesPanel(ActionRow... rows) {
+        return containerBranded("Rules", "Compliance", RULES_TEXT, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCDC"), rows);
     }
 
     public static Container accessDenied() { return error("Unauthorized", "You do not have the required permissions to access this section."); }
