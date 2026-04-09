@@ -23,38 +23,33 @@ public class PanelService {
 
     private static void handleReply(Object target, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        boolean hasV2 = false;
-        if (content instanceof Container c) { components.add(c); hasV2 = true; }
+        List<net.dv8tion.jda.api.entities.MessageEmbed> embeds = new ArrayList<>();
+
+        if (content instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
         else if (content instanceof MessageTopLevelComponent mtc) components.add(mtc);
         else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof MessageTopLevelComponent mtc) {
-                    components.add(mtc);
-                    if (obj instanceof Container) hasV2 = true;
-                }
+                if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                else if (obj instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
             }
         }
 
-        net.dv8tion.jda.api.entities.MessageEmbed banner = hasV2 ? null : new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build();
-        
+        if (embeds.isEmpty()) {
+            embeds.add(new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build());
+        }
+
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
                 InteractionHook hook = event.getHook();
-                net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                    .setComponents(components).useComponentsV2(hasV2);
-                if (banner != null) meb.setEmbeds(banner);
-                hook.editOriginal(meb.build()).queue(s -> {}, f -> System.err.println("Follow-up failed: " + f.getMessage()));
+                hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                    .setEmbeds(embeds).setComponents(components).build()).queue();
             } else {
-                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setComponents(components).useComponentsV2(hasV2);
-                if (banner != null) mcb.addEmbeds(banner);
-                event.reply(mcb.build()).setEphemeral(ephemeral).queue();
+                event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .addEmbeds(embeds).setComponents(components).build()).setEphemeral(ephemeral).queue();
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                .setComponents(components).useComponentsV2(hasV2);
-            if (banner != null) mcb.addEmbeds(banner);
-            channel.sendMessage(mcb.build()).queue();
+            channel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                .addEmbeds(embeds).setComponents(components).build()).queue();
         }
     }
 
