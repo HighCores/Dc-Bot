@@ -67,7 +67,8 @@ public class GiveawayCommands extends ListenerAdapter {
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
         String body = "### \uD83C\uDF81 Active Giveaway\n**Prize:** " + prizeStr + "\n**Winners:** **" + winCount + "**\n**Ends In:** **" + duration + "** minutes";
-        event.replyComponents(EmbedUtil.containerBranded("SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY, null, ActionRow.of(joinBtn)))
+        event.replyEmbeds(EmbedUtil.containerBranded("SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY))
+                .setComponents(ActionRow.of(joinBtn))
                 .queue(hook -> {
                     LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
                             "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), com.highcore.bot.utils.EmbedUtil.INFO);

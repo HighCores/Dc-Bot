@@ -28,7 +28,7 @@ public class UserLogListener extends ListenerAdapter {
                 "**Old Name:** `" + event.getOldName() + "`\n" +
                 "**New Name:** `" + event.getNewName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD)).queue();
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD)).queue();
     }
 
     @Override
@@ -40,7 +40,7 @@ public class UserLogListener extends ListenerAdapter {
                 "**ID:** `" + event.getUser().getId() + "`\n" +
                 "**New Avatar:** [Click to view](" + event.getNewAvatarUrl() + ")\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD)).queue();
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD)).queue();
     }
 
     @Override
@@ -55,6 +55,6 @@ public class UserLogListener extends ListenerAdapter {
                 "**Old Nickname:** `" + old + "`\n" +
                 "**New Nickname:** `" + curr + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD)).queue();
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD)).queue();
     }
 }

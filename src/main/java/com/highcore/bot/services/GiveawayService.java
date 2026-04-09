@@ -10,7 +10,8 @@ import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.EmbedBuilder;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
@@ -64,30 +65,26 @@ public class GiveawayService {
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
 
         if (winners.isEmpty()) {
-            Container c = EmbedUtil.containerBranded("GIVEAWAY TERMINATED", "No Deployment Result", 
-                    "### \uD83C\uDF89 Sequence Finished\n> **Item:** " + prizeDetails + "\n\n\u274C Insufficient data points detected. No winner assigned.", EmbedUtil.BANNER_GIVEAWAY);
-            c.withAccentColor(EmbedUtil.DANGER.getRGB() & 0xFFFFFF);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
+            MessageEmbed me = EmbedUtil.containerBranded("GIVEAWAY TERMINATED", "No Deployment Result", 
+                    "Sequence Finished\n> **Item:** " + prizeDetails + "\n\n\u274C Insufficient data points detected. No winner assigned.", EmbedUtil.BANNER_GIVEAWAY);
+            ch.sendMessageEmbeds(me).queue();
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
-            Container c = EmbedUtil.containerBranded("GIVEAWAY CONCLUDED", "Successful Allocation", 
-                    "### \uD83C\uDFC6 Neural Selection Complete\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! Synchronization complete. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
-            c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
+            MessageEmbed me = EmbedUtil.containerBranded("GIVEAWAY CONCLUDED", "Successful Allocation", 
+                    "Neural Selection Complete\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! Synchronization complete. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
+            ch.sendMessageEmbeds(me).queue();
         }
 
         String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
         if (messageId != null) {
-            String statusBody = "### \uD83C\uDF89 Sequence Deactivated\n" +
+            String statusBody = "Sequence Deactivated\n" +
                     "> **Item:** " + prizeDetails + "\n" +
                     (winners.isEmpty() ? "\u274C No valid winners" : "\uD83C\uDFC6 Winner(s): " + String.join(", ", winners.stream().map(w -> "<@" + w + ">").toList())) +
                     "\n> Entries: **" + userIds.size() + "** subjects recorded.";
             
-            Container editC = EmbedUtil.containerBranded("GIVEAWAY ARCHIVE", "Sequence Finalized", statusBody, EmbedUtil.BANNER_GIVEAWAY);
-            editC.withAccentColor(0x2B2D31);
-            
-            ch.editMessageComponentsById(messageId, editC).setComponents(ActionRow.of(Button.secondary("giveaway_ended", "ARCHIVED").asDisabled())).useComponentsV2(true).queue(null, e -> {});
+            MessageEmbed editC = EmbedUtil.containerBranded("GIVEAWAY ARCHIVE", "Sequence Finalized", statusBody, EmbedUtil.BANNER_GIVEAWAY);
+            ch.editMessageEmbedsById(messageId, editC).setComponents(ActionRow.of(Button.secondary("giveaway_ended", "ARCHIVED").asDisabled())).queue(null, e -> {});
         }
     }
 
@@ -110,10 +107,9 @@ public class GiveawayService {
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
-            Container c = EmbedUtil.containerBranded("GIVEAWAY RE-CALIBRATED", "New Allocation", 
-                    "### \uD83C\uDFC6 New Selection Complete\n\n**Winner(s):** " + wb + "\n\nCongratulations! Structural integrity restored. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
-            c.withAccentColor(EmbedUtil.GOLD.getRGB() & 0xFFFFFF);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
+            MessageEmbed me = EmbedUtil.containerBranded("GIVEAWAY RE-CALIBRATED", "New Allocation", 
+                    "New Selection Complete\n\n**Winner(s):** " + wb + "\n\nCongratulations! Structural integrity restored. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
+            ch.sendMessageEmbeds(me).queue();
             
             SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
         }

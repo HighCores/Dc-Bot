@@ -13,7 +13,7 @@ import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -113,7 +113,7 @@ public class OrderService extends ListenerAdapter {
         
         SupabaseClient.createOrder(orderBody);
         
-        Container c = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
+        MessageEmbed me = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
                 "### \uD83D\uDCE6 Transmission Received\n" +
                 "**Project:** `" + name + "`\n" +
                 "**Type:** `" + type + "`\n" +
@@ -121,7 +121,7 @@ public class OrderService extends ListenerAdapter {
                 "**Contact:** `" + contact + "`\n\n" +
                 "Our team will review your requirements and reach out on Discord shortly.");
         
-        event.getHook().sendMessageComponents(c).setEphemeral(true).queue();
+        event.getHook().sendMessageEmbeds(me).setEphemeral(true).queue();
         
         LogManager.log(event.getGuild(), "NEW ORDER", 
                 "User: " + event.getUser().getAsMention() + "\n" +

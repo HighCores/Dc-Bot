@@ -34,8 +34,8 @@ public class MessageListener extends ListenerAdapter {
                             "**Channel:** #" + event.getChannel().getName() + "\n" +
                             "**Detected Text:**\n> " + content;
                     
-                    logChannel.sendMessageComponents(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER))
-                            .useComponentsV2(true).queue();
+                    logChannel.sendMessageEmbeds(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER)).queue();
+                    event.getChannel().sendMessageEmbeds(EmbedUtil.error("PROTECTION VIOLATION", "Link detection triggered. Structural integrity maintained.")).queue();
                 }
                 return;
             }

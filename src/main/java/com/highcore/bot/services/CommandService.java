@@ -64,8 +64,7 @@ public class CommandService {
 
     public static void sendMenu(MessageChannel channel, JsonObject menu) {
         net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-        mcb.setComponents(buildMenuContainer(menu));
-        mcb.useComponentsV2(true);
+        mcb.setEmbeds(buildMenuContainer(menu));
         channel.sendMessage(mcb.build()).queue();
     }
 

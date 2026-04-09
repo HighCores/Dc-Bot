@@ -160,11 +160,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             default -> "Sector data unavailable.";
         };
         net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-        meb.setComponents(List.of(
-             EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN),
-             ActionRow.of(Button.success("order_start", "Start Order"))
-        ));
-        meb.useComponentsV2(true);
+        meb.setEmbeds(EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN));
+        meb.setComponents(ActionRow.of(Button.success("order_start", "Start Order")));
         
         event.getHook().editOriginal(meb.build()).queue();
     }
@@ -178,8 +175,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             default -> "Pricing data unavailable.";
         };
         net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-        meb.setComponents(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN));
-        meb.useComponentsV2(true);
+        meb.setEmbeds(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN));
         
         event.getHook().editOriginal(meb.build()).queue();
     }
