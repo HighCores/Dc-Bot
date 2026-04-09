@@ -12,6 +12,10 @@ import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.interactions.InteractionHook;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
+import com.highcore.bot.services.InvoiceService;
 import java.util.*;
 
 public class PanelService {
@@ -170,31 +174,41 @@ public class PanelService {
     public static void sendTicketPanel(Object target) {
         reply(target, EmbedUtil.containerBranded("TICKETS", "Logistics Hub", EmbedUtil.TICKET_RULES, EmbedUtil.BANNER_SUPPORT, null,
                 ActionRow.of(
-                    Button.primary("ticket_init_support", "Technical Support \u001f\u001f\u001f\u001f\u001f\u001f"),
-                    Button.success("ticket_init_order", "New Order \u001f\u001f\u001f\u001f\u001f\u001f"),
-                    Button.danger("ticket_init_complaint", "File Complaint \u001f\u001f\u001f\u001f\u001f\u001f")
+                    Button.primary("ticket_init_support", "Technical Support \uD83D\uDEE1\uFE0F"),
+                    Button.success("ticket_init_order", "New Order \uD83D\uDED2"),
+                    Button.danger("ticket_init_complaint", "File Complaint \u26A0\uFE0F")
                 )
         ));
     }
 
     public static void handleSupportFlow(Object target) {
-        net.dv8tion.jda.api.components.textinput.TextInput issue = net.dv8tion.jda.api.components.textinput.TextInput.create("issue_desc", "What is the issue?", net.dv8tion.jda.api.components.textinput.TextInputStyle.PARAGRAPH).setRequired(true).build();
-        net.dv8tion.jda.api.components.textinput.TextInput service = net.dv8tion.jda.api.components.textinput.TextInput.create("issue_service", "Which service is this about?", net.dv8tion.jda.api.components.textinput.TextInputStyle.SHORT).setPlaceholder("Designer, Developer, Editor...").setRequired(true).build();
+        TextInput issue = TextInput.create("issue_desc", "What is the issue?", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        TextInput svc = TextInput.create("issue_service", "Which service?", TextInputStyle.SHORT).setPlaceholder("Designer, Developer...").setRequired(true).build();
         
         if (target instanceof IReplyCallback cb) {
-            cb.replyModal(net.dv8tion.jda.api.modals.Modal.create("modal_support_init", "TECHNICAL SUPPORT")
-                .addComponents(ActionRow.of(issue), ActionRow.of(service)).build()).queue();
+            cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
+                .addComponents(ActionRow.of(issue), ActionRow.of(svc)).build()).queue();
         }
     }
 
     public static void handleComplaintFlow(Object target) {
-        net.dv8tion.jda.api.components.textinput.TextInput targetAdmin = net.dv8tion.jda.api.components.textinput.TextInput.create("comp_target", "Who is the person involved?", net.dv8tion.jda.api.components.textinput.TextInputStyle.SHORT).setRequired(true).build();
-        net.dv8tion.jda.api.components.textinput.TextInput reason = net.dv8tion.jda.api.components.textinput.TextInput.create("comp_reason", "Is it a job issue or admin behavior?", net.dv8tion.jda.api.components.textinput.TextInputStyle.PARAGRAPH).setRequired(true).build();
+        TextInput targetAdmin = TextInput.create("comp_target", "Who is involved?", TextInputStyle.SHORT).setRequired(true).build();
+        TextInput reason = TextInput.create("comp_reason", "Reason/Behavior?", TextInputStyle.PARAGRAPH).setRequired(true).build();
 
         if (target instanceof IReplyCallback cb) {
-            cb.replyModal(net.dv8tion.jda.api.modals.Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
+            cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
                 .addComponents(ActionRow.of(targetAdmin), ActionRow.of(reason)).build()).queue();
         }
+    }
+
+    public static void handleOrderMetaModal(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        TextInput pName = TextInput.create("p_name", "Project Name", TextInputStyle.SHORT).setRequired(true).build();
+        TextInput cName = TextInput.create("p_client", "Client Name", TextInputStyle.SHORT).setRequired(true).build();
+        TextInput contact = TextInput.create("p_contact", "Contact Info", TextInputStyle.SHORT).setRequired(true).build();
+        TextInput eta = TextInput.create("p_eta", "Expected ETA", TextInputStyle.SHORT).setRequired(true).build();
+
+        event.replyModal(Modal.create("modal_order_finalize", "PROJECT CONFIGURATION")
+            .addComponents(ActionRow.of(pName), ActionRow.of(cName), ActionRow.of(contact), ActionRow.of(eta)).build()).queue();
     }
 
     public static void handleOrderFlow(Object target) {

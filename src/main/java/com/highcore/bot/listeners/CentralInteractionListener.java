@@ -5,6 +5,7 @@ import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.BroadcastService;
 import com.highcore.bot.services.TicketService;
+import com.highcore.bot.services.InvoiceService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Role;
@@ -161,7 +162,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             
             // For demo: creating dummy items since we don't have session state persistence yet
             // In a real scenario, we'd pull from a session map. 
-            List<InvoiceService.OrderItem> items = List.of(new InvoiceService.OrderItem("Primary Agency Service", 100.0));
+            List<com.highcore.bot.services.InvoiceService.OrderItem> items = List.of(new com.highcore.bot.services.InvoiceService.OrderItem("Primary Agency Service", 100.0));
             
             TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, contact, eta, items);
             event.getHook().sendMessage("Terminal session established. Order initiated.").queue();
