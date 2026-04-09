@@ -42,7 +42,8 @@ public class SlashCommands extends ListenerAdapter {
 
         // Defer EVERYTHING else (Core + Dynamic)
         if (!event.isAcknowledged()) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("bc");
+            // ONLY help and dynamic commands stay ephemeral. Hub/Tickets are public setup tools.
+            boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("services") && !name.equals("stats") && !name.equals("terms");
             event.deferReply(ephemeral).queue();
         }
 

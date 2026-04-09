@@ -47,12 +47,18 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("hub_partners")) { PanelService.sendPartnersPanel(event); return; }
             if (id.equals("hub_pings")) { PanelService.sendPingsPanel(event); return; }
             if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
-            if (id.equals("hub_prices")) { PanelService.sendPricesCategory(event); return; }
+            if (id.equals("view_prices_cat")) { PanelService.sendPricesCategory(event); return; }
             if (id.equals("hub_rules")) { 
                 PanelService.replyEphemeral(event, EmbedUtil.rulesPanel());
                 return; 
             }
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
+            
+            // TICKET HUB OPS
+            if (id.equals("ticket_init_support")) { PanelService.handleSupportFlow(event); return; }
+            if (id.equals("ticket_init_order")) { PanelService.handleOrderFlow(event); return; }
+            if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); return; }
+
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
             if (id.equals("order_final_meta")) { PanelService.handleOrderMetaModal(event); return; }
 
@@ -153,6 +159,22 @@ public class CentralInteractionListener extends ListenerAdapter {
                 BroadcastService.startBroadcast(event.getGuild(), event.getValue("message").getAsString(), s.roleId, s.attUrl);
                 event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
             }
+        } else if (id.equals("modal_support_init")) {
+            event.deferReply(true).queue();
+            String desc = event.getValue("issue_desc").getAsString();
+            String svc = event.getValue("issue_service").getAsString();
+            TicketService.createTicket(event.getGuild(), event.getUser(), "Support: " + svc, "MEDIUM", "SUPPORT").queue(t -> {
+                t.sendMessage("### \uD83D\uDCDC SUPPORT REQUEST\n**Topic:** " + svc + "\n**Details:** " + desc).queue();
+            });
+            event.getHook().sendMessage("Support session initialized. Staff will be with you shortly.").queue();
+        } else if (id.equals("modal_complaint_init")) {
+            event.deferReply(true).queue();
+            String target = event.getValue("comp_target").getAsString();
+            String reason = event.getValue("comp_reason").getAsString();
+            TicketService.createTicket(event.getGuild(), event.getUser(), "Complaint: " + target, "HIGH", "COMPLAINT").queue(t -> {
+                t.sendMessage("### \u26A0 REPORT FILED\n**Subject:** " + target + "\n**Details:** " + reason).queue();
+            });
+            event.getHook().sendMessage("Complaint filed. Management will investigate.").queue();
         } else if (id.equals("modal_order_finalize")) {
             event.deferReply(true).queue();
             String pName = event.getValue("p_name").getAsString();
@@ -160,10 +182,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             String contact = event.getValue("p_contact").getAsString();
             String eta = event.getValue("p_eta").getAsString();
             
-            // For demo: creating dummy items since we don't have session state persistence yet
-            // In a real scenario, we'd pull from a session map. 
             List<com.highcore.bot.services.InvoiceService.OrderItem> items = List.of(new com.highcore.bot.services.InvoiceService.OrderItem("Primary Agency Service", 100.0));
-            
             TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, contact, eta, items);
             event.getHook().sendMessage("Terminal session established. Order initiated.").queue();
         }

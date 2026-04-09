@@ -84,8 +84,8 @@ public class EmbedUtil {
             ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
-        // 1. BRANDING BANNER
-        if (imageUrl != null) {
+        // 1. BRANDING BANNER - Using MediaGallery for high-fidelity rendering
+        if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
 
@@ -94,14 +94,14 @@ public class EmbedUtil {
         layout.add(TextDisplay.of(headerText));
 
         // 3. TECHNICAL BODY
-        if (body != null) {
+        if (body != null && !body.isEmpty()) {
             layout.add(TextDisplay.of(body));
         }
 
         // 4. ACTION INTERFACE
         if (rows != null && rows.length > 0) {
             for (ActionRow row : rows) {
-                layout.add(row);
+                if (row != null) layout.add(row);
             }
         }
 
