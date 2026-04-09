@@ -182,13 +182,12 @@ public class PanelService {
     }
 
     public static void handleSupportFlow(Object target) {
-        // Correct JDA 6 signature: TextInput.create(id, style).setLabel(label)
         TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setLabel("What is the issue?").setRequired(true).build();
         TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).setLabel("Which service?").setPlaceholder("Designer, Developer...").setRequired(true).build();
         
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
-                .addActionRow(issue).addActionRow(svc).build()).queue();
+                .addComponents(ActionRow.of(issue), ActionRow.of(svc)).build()).queue();
         }
     }
 
@@ -198,7 +197,7 @@ public class PanelService {
 
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
-                .addActionRow(targetAdmin).addActionRow(reason).build()).queue();
+                .addComponents(ActionRow.of(targetAdmin), ActionRow.of(reason)).build()).queue();
         }
     }
 
@@ -209,7 +208,7 @@ public class PanelService {
         TextInput eta = TextInput.create("p_eta", TextInputStyle.SHORT).setLabel("Expected ETA").setRequired(true).build();
 
         event.replyModal(Modal.create("modal_order_finalize", "PROJECT CONFIGURATION")
-            .addActionRow(pName).addActionRow(cName).addActionRow(contact).addActionRow(eta).build()).queue();
+            .addComponents(ActionRow.of(pName), ActionRow.of(cName), ActionRow.of(contact), ActionRow.of(eta)).build()).queue();
     }
 
     public static void handleOrderFlow(Object target) {
