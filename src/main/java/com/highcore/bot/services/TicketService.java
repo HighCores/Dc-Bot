@@ -51,7 +51,7 @@ public class TicketService {
 
     private static net.dv8tion.jda.api.requests.RestAction<Category> getOrCreateCategory(Guild guild) {
         Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
-        if (cat != null) return net.dv8tion.jda.api.requests.RestAction.result(cat);
+        if (cat != null) return new net.dv8tion.jda.internal.requests.CompletedRestAction<>(guild.getJDA(), cat);
         return guild.createCategory("TICKETS");
     }
 
