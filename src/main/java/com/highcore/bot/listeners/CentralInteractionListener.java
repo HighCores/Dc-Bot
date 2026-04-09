@@ -86,12 +86,41 @@ public class CentralInteractionListener extends ListenerAdapter {
                 return;
             }
 
+            // HUB INTERFACE
+            if (id.equals("hub_highcore")) { PanelService.sendServerMap(event); }
+            else if (id.equals("hub_about")) { PanelService.sendAboutUs(event); }
+            else if (id.equals("hub_partners")) { // PanelService.sendPartnersPanel(event);
+                event.getHook().sendMessage("Strategic partnerships are currently being finalized.").setEphemeral(true).queue();
+            }
+            else if (id.equals("menu_main")) { PanelService.sendStartupHub(event); }
+            
+            // TICKET INITIALIZATION
+            else if (id.equals("ticket_init_support")) { PanelService.handleSupportFlow(event); }
+            else if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); }
+            else if (id.equals("ticket_init_order")) { PanelService.handleOrderFlow(event); }
+
             // TICKET OPS
-            if (id.equals("ticket_claim")) { TicketService.claimTicket(event.getChannel().asTextChannel(), member); event.getHook().editOriginal("Ticket claimed.").queue(); }
-            else if (id.equals("ticket_close")) { TicketService.closeTicket(event.getChannel().asTextChannel(), member); event.getHook().editOriginal("Ticket closing process initiated.").queue(); }
-            else if (id.equals("ticket_delete")) { event.getChannel().delete().queue(); }
+            else if (id.equals("ticket_claim")) { 
+                TicketService.claimTicket(event.getChannel().asTextChannel(), member); 
+            }
+            else if (id.equals("ticket_close")) { 
+                TicketService.closeTicket(event.getChannel().asTextChannel(), member); 
+            }
+            else if (id.equals("ticket_delete")) { 
+                event.getChannel().delete().queue(); 
+            }
+            else if (id.equals("ticket_reopen")) {
+                TicketService.reopenTicket(event.getChannel().asTextChannel(), member);
+            }
+            else if (id.startsWith("order_status_update_")) {
+                String status = id.replace("order_status_update_", "");
+                TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
+            }
         } catch (Exception e) {
-            try { event.getHook().editOriginal("### \u26A0 INTERACTION FAILURE\n`" + e.getMessage() + "`").queue(); } catch (Exception ignored) {}
+            try { 
+                if (event.isAcknowledged()) event.getHook().sendMessage("Selection failure: " + e.getMessage()).setEphemeral(true).queue();
+                else event.reply("Selection failure: " + e.getMessage()).setEphemeral(true).queue();
+            } catch (Exception ignored) {}
         }
     }
 
