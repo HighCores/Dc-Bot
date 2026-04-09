@@ -28,39 +28,39 @@ public class EmbedUtil {
     public static final Color GOLD = Color.decode("#D4AF37");
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
-    public static MessageEmbed eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
-        EmbedBuilder eb = new EmbedBuilder().setColor(ACCENT);
-        if (title != null && !title.isEmpty()) eb.setTitle(title);
-        if (description != null && !description.isEmpty()) eb.setDescription(description);
-        if (imageUrl != null && !imageUrl.isEmpty()) eb.setImage(imageUrl);
-        return eb.build();
+    public static net.dv8tion.jda.api.components.container.Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        if (title != null && !title.isEmpty()) layout.add(TextDisplay.of("### " + title));
+        if (description != null && !description.isEmpty()) layout.add(TextDisplay.of(description));
+        if (rows != null) for (ActionRow row : rows) if (row != null) layout.add(row);
+        return Container.of(layout);
     }
 
     // --- Core Legacy Suite ---
 
-    public static MessageEmbed giveaway(String prize, int winners, int duration) {
+    public static net.dv8tion.jda.api.components.container.Container giveaway(String prize, int winners, int duration) {
         String body = "Prize: **" + prize + "**\nWinners: **" + winners + "**\nDuration: **" + duration + "m**";
         return eliteContainer("New Giveaway", body, BANNER_GIVEAWAY);
     }
 
-    public static MessageEmbed containerBranded(String title, String subtitle, String body, String imageUrl) {
+    public static net.dv8tion.jda.api.components.container.Container containerBranded(String title, String subtitle, String body, String imageUrl) {
         return containerBranded(title, subtitle, body, imageUrl, null);
     }
 
-    public static MessageEmbed containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
+    public static net.dv8tion.jda.api.components.container.Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
         String fullTitle = (subtitle == null || subtitle.isEmpty()) ? title : title + " | " + subtitle;
-        return eliteContainer(fullTitle, body, imageUrl, rows);
+        return eliteContainer(fullTitle, body, null, rows);
     }
 
-    public static MessageEmbed success(String title, String description) { return eliteContainer("Success: " + title, description, null); }
-    public static MessageEmbed error(String title, String description) { return eliteContainer("Error: " + title, description, null); }
-    public static MessageEmbed info(String title, String description) { return eliteContainer("Info: " + title, description, null); }
-    public static MessageEmbed accessDenied() { return eliteContainer("Access Denied", "Unauthorized attempt.", null); }
-    public static MessageEmbed activityLog(String type, String details, Color color) { return eliteContainer("Log: " + type, details, null); }
+    public static net.dv8tion.jda.api.components.container.Container success(String title, String description) { return eliteContainer("Success: " + title, description, null); }
+    public static net.dv8tion.jda.api.components.container.Container error(String title, String description) { return eliteContainer("Error: " + title, description, null); }
+    public static net.dv8tion.jda.api.components.container.Container info(String title, String description) { return eliteContainer("Info: " + title, description, null); }
+    public static net.dv8tion.jda.api.components.container.Container accessDenied() { return eliteContainer("Access Denied", "Unauthorized attempt.", null); }
+    public static net.dv8tion.jda.api.components.container.Container activityLog(String type, String details, Color color) { return eliteContainer("Log: " + type, details, null); }
 
-    public static MessageEmbed rulesPanel(ActionRow... rows) { return eliteContainer("Rules", "Professional guidelines.", null, rows); }
-    public static MessageEmbed termsPanel(ActionRow... rows) { return eliteContainer("Terms", "Engagement protocols.", null, rows); }
-    public static MessageEmbed startupPanel(ActionRow... rows) { return eliteContainer("High Core", "Ready.", null, rows); }
+    public static net.dv8tion.jda.api.components.container.Container rulesPanel(ActionRow... rows) { return eliteContainer("Rules", "Professional guidelines.", null, rows); }
+    public static net.dv8tion.jda.api.components.container.Container termsPanel(ActionRow... rows) { return eliteContainer("Terms", "Engagement protocols.", null, rows); }
+    public static net.dv8tion.jda.api.components.container.Container startupPanel(ActionRow... rows) { return eliteContainer("High Core", "Ready.", null, rows); }
 
     public static MessageEmbed rulesEmbed() { return new EmbedBuilder().setTitle("Guidelines").setColor(ACCENT).build(); }
 }

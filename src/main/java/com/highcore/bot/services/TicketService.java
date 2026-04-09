@@ -49,7 +49,6 @@ public class TicketService {
                 channel.sendMessageEmbeds(banner).queue();
 
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setContent("Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**")
                     .setComponents(EmbedUtil.eliteContainer("Active Session", "Communication line initialized.", null, ActionRow.of(getTicketButtons("open"))))
                     .useComponentsV2(true);
                 
@@ -70,7 +69,6 @@ public class TicketService {
                 channel.sendMessageEmbeds(banner).queue();
 
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setContent("Hello " + user.getAsMention() + ",\n\nProject: **" + pName + "**\nExpected delivery: **" + eta + "**")
                     .setComponents(EmbedUtil.eliteContainer("Project Initiation", "Session created. Awaiting payment settlement.", null, ActionRow.of(getTicketButtons("open"))))
                     .useComponentsV2(true);
                 

@@ -24,32 +24,41 @@ public class PanelService {
     private static void handleReply(Object target, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         List<net.dv8tion.jda.api.entities.MessageEmbed> embeds = new ArrayList<>();
+        boolean hasV2 = false;
 
-        if (content instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
+        if (content instanceof net.dv8tion.jda.api.components.container.Container c) { components.add(c); hasV2 = true; }
         else if (content instanceof MessageTopLevelComponent mtc) components.add(mtc);
+        else if (content instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
         else if (content instanceof List<?> list) {
             for (Object obj : list) {
-                if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                if (obj instanceof net.dv8tion.jda.api.components.container.Container c) { components.add(c); hasV2 = true; }
+                else if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
                 else if (obj instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
             }
         }
 
-        if (embeds.isEmpty()) {
-            embeds.add(new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build());
-        }
+        net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build();
 
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
                 InteractionHook hook = event.getHook();
-                hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                    .setEmbeds(embeds).setComponents(components).build()).queue();
+                if (!hasV2) {
+                    hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder().setEmbeds(embeds.isEmpty() ? List.of(banner) : embeds).setComponents(components).build()).queue();
+                } else {
+                    hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder().setComponents(components).useComponentsV2(true).build()).queue();
+                }
             } else {
-                event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .addEmbeds(embeds).setComponents(components).build()).setEphemeral(ephemeral).queue();
+                if (!hasV2) {
+                    event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().addEmbeds(embeds.isEmpty() ? List.of(banner) : embeds).setComponents(components).build()).setEphemeral(ephemeral).queue();
+                } else {
+                    event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().setComponents(components).useComponentsV2(true).build()).setEphemeral(ephemeral).queue();
+                }
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+            if (hasV2) channel.sendMessageEmbeds(banner).queue();
             channel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                .addEmbeds(embeds).setComponents(components).build()).queue();
+                .addEmbeds(embeds.isEmpty() && !hasV2 ? List.of(banner) : embeds)
+                .setComponents(components).useComponentsV2(hasV2).build()).queue();
         }
     }
 
