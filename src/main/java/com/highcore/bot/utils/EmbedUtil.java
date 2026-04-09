@@ -4,8 +4,6 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
-import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
-import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
@@ -23,45 +21,48 @@ public class EmbedUtil {
     public static final String BANNER_RULES = BANNER_MAIN;
 
     public static final Color ACCENT = Color.decode("#D4AF37");
+    public static final Color SUCCESS = Color.decode("#D4AF37");
+    public static final Color DANGER = Color.decode("#8B0000");
+    public static final Color INFO = Color.decode("#C0C0C0");
+    public static final Color WARNING = Color.decode("#FFD700");
+    public static final Color GOLD = Color.decode("#D4AF37");
+    public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
-    /**
-     * eliteContainer: The premium interface for High Core Agency.
-     * Uses Title Case (Example) and clean typography.
-     */
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
-
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        }
-
-        if (title != null && !title.isEmpty()) {
-            layout.add(TextDisplay.of("### " + title));
-        }
-
-        if (description != null && !description.isEmpty()) {
-            layout.add(TextDisplay.of(description));
-        }
-
+        if (title != null && !title.isEmpty()) layout.add(TextDisplay.of("### " + title));
+        if (description != null && !description.isEmpty()) layout.add(TextDisplay.of(description));
         if (rows != null) {
-            for (ActionRow row : rows) {
-                if (row != null) layout.add(row);
-            }
+            for (ActionRow row : rows) if (row != null) layout.add(row);
         }
-
         return Container.of(layout);
     }
 
-    public static Container simpleContainer(String title, String body, String imageUrl) {
-        return eliteContainer(title, body, imageUrl);
+    // --- Core Legacy Suite ---
+
+    public static Container giveaway(String prize, int winners, int duration) {
+        String body = "Prize: **" + prize + "**\nWinners: **" + winners + "**\nDuration: **" + duration + "m**";
+        return eliteContainer("New Giveaway", body, BANNER_GIVEAWAY);
     }
 
-    public static MessageEmbed rulesEmbed() {
-        return new EmbedBuilder()
-            .setTitle("Community Guidelines")
-            .setDescription("1. Mutual Respect\n2. Professionalism\n3. Business through Tickets only.\n4. No advertisements.")
-            .setColor(ACCENT)
-            .setImage(BANNER_RULES)
-            .build();
+    public static Container containerBranded(String title, String subtitle, String body, String imageUrl) {
+        return containerBranded(title, subtitle, body, imageUrl, null);
     }
+
+    public static Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
+        String fullTitle = (subtitle == null || subtitle.isEmpty()) ? title : title + " | " + subtitle;
+        return eliteContainer(fullTitle, body, null, rows);
+    }
+
+    public static Container success(String title, String description) { return eliteContainer("Success: " + title, description, null); }
+    public static Container error(String title, String description) { return eliteContainer("Error: " + title, description, null); }
+    public static Container info(String title, String description) { return eliteContainer("Info: " + title, description, null); }
+    public static Container accessDenied() { return eliteContainer("Access Denied", "Unauthorized attempt.", null); }
+    public static Container activityLog(String type, String details, Color color) { return eliteContainer("Log: " + type, details, null); }
+
+    public static Container rulesPanel(ActionRow... rows) { return eliteContainer("Rules", "Professional guidelines.", null, rows); }
+    public static Container termsPanel(ActionRow... rows) { return eliteContainer("Terms", "Engagement protocols.", null, rows); }
+    public static Container startupPanel(ActionRow... rows) { return eliteContainer("High Core", "Ready.", null, rows); }
+
+    public static MessageEmbed rulesEmbed() { return new EmbedBuilder().setTitle("Guidelines").setColor(ACCENT).build(); }
 }

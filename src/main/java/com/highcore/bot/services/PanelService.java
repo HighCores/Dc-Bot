@@ -3,6 +3,7 @@ package com.highcore.bot.services;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
@@ -18,74 +19,102 @@ import java.util.*;
 
 public class PanelService {
 
-    public static void reply(Object interaction, Object content) { handleReply(interaction, content, false); }
-    public static void replyEphemeral(Object interaction, Object content) { handleReply(interaction, content, true); }
+    public static void reply(Object target, Object content) { handleReply(target, content, false); }
+    public static void replyEphemeral(Object target, Object content) { handleReply(target, content, true); }
 
-    private static void handleReply(Object interaction, Object content, boolean ephemeral) {
+    private static void handleReply(Object target, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         if (content instanceof Container c) components.add(c);
         else if (content instanceof List<?> list) {
             for (Object obj : list) if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
         }
 
-        if (interaction instanceof IReplyCallback replyCallback) {
-            InteractionHook hook = replyCallback.getHook();
-            
-            // Absolute Image Stability via separate Embed
-            net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder()
-                .setImage(EmbedUtil.BANNER_MAIN)
-                .setColor(EmbedUtil.ACCENT)
-                .build();
-            
-            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-            net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-            
-            if (ephemeral) {
-                mcb.setComponents(components).useComponentsV2(true).addEmbeds(banner);
-                hook.sendMessage(mcb.build()).setEphemeral(true).queue();
+        net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build();
+        
+        if (target instanceof IReplyCallback event) {
+            if (event.isAcknowledged()) {
+                InteractionHook hook = event.getHook();
+                if (ephemeral) hook.sendMessageEmbeds(banner).setComponents(components).setEphemeral(true).queue();
+                else hook.editOriginalEmbeds(banner).setComponents(components).queue();
             } else {
-                meb.setComponents(components).useComponentsV2(true).setEmbeds(banner);
-                hook.editOriginal(meb.build()).queue();
+                event.replyEmbeds(banner).setComponents(components).setEphemeral(ephemeral).queue();
             }
+        } else if (target instanceof MessageChannel channel) {
+            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().addEmbeds(banner).setComponents(components).useComponentsV2(true);
+            channel.sendMessage(mcb.build()).queue();
         }
     }
 
-    public static void sendStartupHub(Object target) {
-        String body = "Welcome to High Core Agency. We provide elite digital solutions, from advanced development to high-end creative design. Use the options below to explore our services and interact with our team.";
-        ActionRow row = ActionRow.of(
-            Button.secondary("hub_highcore", "Map").withEmoji(Emoji.fromUnicode("\uD83D\uDDFA\uFE0F")),
-            Button.secondary("hub_about", "About").withEmoji(Emoji.fromUnicode("\u2139\uFE0F")),
-            Button.secondary("hub_partners", "Partners").withEmoji(Emoji.fromUnicode("\uD83E\uDDE1")),
-            Button.link("https://discord.com/channels/1488795129996116212/1488798547947159612", "Support").withEmoji(Emoji.fromUnicode("\uD83D\uDEE1\uFE0F"))
-        );
-        reply(target, EmbedUtil.eliteContainer("High Core Agency", body, null, row));
+    public static void sendStartupHub(IReplyCallback event) {
+        ActionRow row = ActionRow.of(Button.secondary("hub_highcore", "Map"), Button.secondary("hub_about", "About"));
+        reply(event, EmbedUtil.eliteContainer("High Core Agency", "Global operations hub.", null, row));
     }
 
-    public static void sendServerMap(Object target) {
-        String body = "Main Rooms:\n- Startup: <#1488795130470072321>\n- Terms: <#1489158831916454070>\n- Updates: <#1488797040732278814>\n\nSupport:\n- Tickets: <#1488798547947159612>";
-        ActionRow row = ActionRow.of(
-            Button.success("hub_pings", "Notifications").withEmoji(Emoji.fromUnicode("\uD83D\uDD14")),
-            Button.secondary("hub_rules", "Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))
-        );
-        replyEphemeral(target, EmbedUtil.eliteContainer("Server Map", body, null, row));
+    public static void sendServerMap(IReplyCallback event) {
+        ActionRow row = ActionRow.of(Button.success("hub_pings", "Alerts"), Button.secondary("hub_rules", "Rules"));
+        replyEphemeral(event, EmbedUtil.eliteContainer("Map", "Internal navigation active.", null, row));
     }
 
-    public static void sendAboutUs(Object target) {
-        String body = "High Core is a premium digital agency specialized in creative identity and professional automation. We turn your vision into reality.";
-        ActionRow row = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X"),
-            Button.link("https://t.me/Beta_Team1/1", "Telegram").withEmoji(Emoji.fromUnicode("\u2708\uFE0F"))
-        );
-        replyEphemeral(target, EmbedUtil.eliteContainer("About Us", body, null, row));
+    public static void sendAboutUs(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("About Us", "Elite creative identity.", null, ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"))));
     }
 
-    public static void sendTicketPanel(Object target) {
-        reply(target, EmbedUtil.eliteContainer("Help Center", "Please select the type of request you wish to open.", null,
-                ActionRow.of(
-                    Button.primary("ticket_init_support", "Support").withEmoji(Emoji.fromUnicode("\uD83D\uDEE1\uFE0F")),
-                    Button.success("ticket_init_order", "Order").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
-                    Button.danger("ticket_init_complaint", "Complaint").withEmoji(Emoji.fromUnicode("\u26A0\uFE0F"))
-                )
-        ));
+    public static void sendPartnersPanel(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("Partners", "Strategic collaborations.", null));
+    }
+
+    public static void sendPingsPanel(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("Pings", "Select notification layers.", null));
+    }
+
+    public static void sendStatsPanel(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("Telemetry", "Systems Operational.", null));
+    }
+
+    public static void sendPricesCategory(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("Pricing", "Service modules processing.", null));
+    }
+
+    public static void sendServicesCategory(IReplyCallback event) {
+        replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null));
+    }
+
+    public static void sendTicketPanel(IReplyCallback event) {
+        ActionRow row = ActionRow.of(Button.primary("ticket_init_support", "Support"), Button.success("ticket_init_order", "Order"));
+        reply(event, EmbedUtil.eliteContainer("Help Center", "Select request type.", null, row));
+    }
+
+    public static void handleSupportFlow(IReplyCallback event) {
+        if (event instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modal) {
+            modal.replyModal(Modal.create("modal_support_init", "Support Request")
+                .addComponents(Label.of("Message", TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).build())).build()).queue();
+        }
+    }
+
+    public static void handleComplaintFlow(IReplyCallback event) {
+        if (event instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modal) {
+            modal.replyModal(Modal.create("modal_complaint_init", "Complaint")
+                .addComponents(Label.of("Reason", TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).build())).build()).queue();
+        }
+    }
+
+    public static void handleOrderFlow(IReplyCallback event) {
+        StringSelectMenu menu = StringSelectMenu.create("order_sector_select").setPlaceholder("Select Sector")
+            .addOption("Design", "sect_designer").addOption("Code", "sect_developer").build();
+        replyEphemeral(event, EmbedUtil.eliteContainer("New Order", "Identify project sector.", null, ActionRow.of(menu)));
+    }
+
+    public static void handleSectorSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, String val) {
+        reply(event, EmbedUtil.eliteContainer("Services", "Select requirements.", null));
+    }
+
+    public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
+        reply(event, EmbedUtil.eliteContainer("Finalizing", "Click to proceed.", null, ActionRow.of(Button.success("order_final_meta", "Proceed"))));
+    }
+
+    public static void handleOrderMetaModal(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        event.replyModal(Modal.create("modal_order_finalize", "Order Details")
+            .addComponents(Label.of("Project", TextInput.create("p_name", TextInputStyle.SHORT).build()))
+            .build()).queue();
     }
 }
