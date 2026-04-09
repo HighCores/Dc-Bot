@@ -45,15 +45,15 @@ public class TicketService {
             .queue(channel -> {
                 SupabaseClient.createTicket(ticketId, event.getUser().getId(), channel.getId(), type, subject, priority, null);
                 
-                net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_SUPPORT).setColor(EmbedUtil.ACCENT).build();
-                channel.sendMessageEmbeds(banner).queue();
+                String body = "### \uD83D\uDCDC Session Initialized\n" +
+                        "**Subject:** `" + subject + "`\n" +
+                        "**Priority:** `" + priority + "`\n\n" +
+                        "Welcome " + event.getUser().getAsMention() + ",\n" +
+                        "Our agency personnel will be with you shortly. " +
+                        "Please provide all relevant assets/data while you wait.";
 
-                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setContent("Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**")
-                    .setEmbeds(EmbedUtil.eliteContainer("Active Session", "Communication line initialized.", EmbedUtil.BANNER_SUPPORT))
-                    .setComponents(ActionRow.of(getTicketButtons("open")));
+                PanelService.reply(channel, EmbedUtil.containerBranded("ACTIVE SESSION", "Communication Link", body, EmbedUtil.BANNER_SUPPORT, null, ActionRow.of(getTicketButtons("open"))));
                 
-                channel.sendMessage(mcb.build()).queue();
                 event.getHook().sendMessage("Success! Your session is active: " + channel.getAsMention()).setEphemeral(true).queue();
             });
     }
@@ -66,23 +66,22 @@ public class TicketService {
         guild.createTextChannel(channelName, cat)
             .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
             .queue(channel -> {
-                net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_ORDER_TIK).setColor(EmbedUtil.ACCENT).build();
-                channel.sendMessageEmbeds(banner).queue();
+                String body = "### \uD83D\uDCC1 Project Initiation\n" +
+                        "**Client ID:** `" + cName + "`\n" +
+                        "**Project:** **" + pName + "**\n" +
+                        "**ETA:** `" + eta + "`\n\n" +
+                        "Hello " + user.getAsMention() + ",\n" +
+                        "Session stabilized. Awaiting initial document settlement.";
 
-                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setContent("Hello " + user.getAsMention() + ",\n\nProject: **" + pName + "**\nExpected delivery: **" + eta + "**")
-                    .setEmbeds(EmbedUtil.eliteContainer("Project Initiation", "Session created. Awaiting payment settlement.", EmbedUtil.BANNER_ORDER_TIK))
-                    .setComponents(ActionRow.of(getTicketButtons("open")));
+                PanelService.reply(channel, EmbedUtil.containerBranded("PROJECT SESSION", "Operational Hub", body, EmbedUtil.BANNER_ORDER_TIK, null, ActionRow.of(getTicketButtons("open"))));
                 
-                channel.sendMessage(mcb.build()).queue(m -> {
-                    byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
-                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder m2 = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                        .setContent("### Official Invoice")
-                        .setComponents(ActionRow.of(getPaymentButtons(ticketId)))
-                        .useComponentsV2(true);
-                    if (invoiceData != null) m2.addFiles(FileUpload.fromData(invoiceData, "invoice.png"));
-                    channel.sendMessage(m2.build()).queue();
-                });
+                byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder m2 = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .setContent("### Official Invoice")
+                    .setComponents(ActionRow.of(getPaymentButtons(ticketId)))
+                    .useComponentsV2(true);
+                if (invoiceData != null) m2.addFiles(FileUpload.fromData(invoiceData, "invoice.png"));
+                channel.sendMessage(m2.build()).queue();
             });
     }
 

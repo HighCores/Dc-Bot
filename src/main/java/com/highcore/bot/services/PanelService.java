@@ -34,7 +34,7 @@ public class PanelService {
             }
         }
 
-        if (embeds.isEmpty()) {
+        if (embeds.isEmpty() && components.isEmpty()) {
             embeds.add(new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build());
         }
 
@@ -42,14 +42,14 @@ public class PanelService {
             if (event.isAcknowledged()) {
                 InteractionHook hook = event.getHook();
                 hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                    .setEmbeds(embeds).setComponents(components).useComponentsV2(false).build()).queue();
+                    .setEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).queue();
             } else {
                 event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .addEmbeds(embeds).setComponents(components).useComponentsV2(false).build()).setEphemeral(ephemeral).queue();
+                    .addEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).setEphemeral(ephemeral).queue();
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             channel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                .addEmbeds(embeds).setComponents(components).useComponentsV2(false).build()).queue();
+                .addEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).queue();
         }
     }
 
@@ -74,8 +74,19 @@ public class PanelService {
     public static void sendServicesCategory(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null)); }
 
     public static void sendTicketPanel(IReplyCallback event) {
-        ActionRow row = ActionRow.of(Button.primary("ticket_init_support", "Support"), Button.success("ticket_init_order", "Order"));
-        reply(event, EmbedUtil.eliteContainer("Help Center", "Select request type.", null, row));
+        String body = "\uD83D\uDCDC **PROTOCOLS & COMPLIANCE**\n\n" +
+                "\u2022 **MUTUAL RESPECT:** Respect all staff members. Harassment or offensive language will result in an immediate ban.\n" +
+                "\u2022 **SINGLE SESSION:** Open only one ticket per issue. Do not duplicate requests to speed up response times.\n" +
+                "\u2022 **PRECISION:** Explain your issue fully before staff arrives to ensure a fast and effective resolution.\n" +
+                "\u2022 **CONTENT CONTROL:** External links and spam are strictly prohibited without staff authorization.\n" +
+                "\u2022 **MENTION BAN:** Strictly NO pinging/mentioning staff members within the ticket.";
+        
+        ActionRow row = ActionRow.of(
+            Button.primary("ticket_init_support", "Technical Support").withEmoji(Emoji.fromUnicode("\uD83D\uDCA1")),
+            Button.success("ticket_init_order", "New Order").withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
+            Button.danger("ticket_init_complaint", "File Complaint").withEmoji(Emoji.fromUnicode("\u26A0\uFE0F"))
+        );
+        reply(event, EmbedUtil.containerBranded("TICKETS : LOGISTICS HUB", null, body, EmbedUtil.BANNER_SUPPORT, null, row));
     }
 
     public static void handleSupportFlow(IReplyCallback event) {

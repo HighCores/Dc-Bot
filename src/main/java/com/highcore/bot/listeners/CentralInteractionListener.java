@@ -36,7 +36,6 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (isModalTrigger) {
             processButton(event);
         } else {
-            // EVERYTHING ELSE: Defer immediately to kill the "Thinking" state
             if (!event.isAcknowledged()) event.deferEdit().queue();
             processButton(event);
         }
@@ -61,7 +60,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             
-            // TICKET HUB OPS
             if (id.equals("ticket_init_support")) { PanelService.handleSupportFlow(event); return; }
             if (id.equals("ticket_init_order")) { PanelService.handleOrderFlow(event); return; }
             if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); return; }
@@ -69,8 +67,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
             if (id.equals("order_final_meta")) { PanelService.handleOrderMetaModal(event); return; }
 
-
-            // PING ROLE HANDLING
             if (id.startsWith("ping_")) {
                 String roleId = id.replace("ping_", "");
                 Role role = event.getGuild().getRoleById(roleId);
@@ -86,21 +82,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 return;
             }
 
-            // HUB INTERFACE
-            if (id.equals("hub_highcore")) { PanelService.sendServerMap(event); }
-            else if (id.equals("hub_about")) { PanelService.sendAboutUs(event); }
-            else if (id.equals("hub_partners")) { // PanelService.sendPartnersPanel(event);
-                event.getHook().sendMessage("Strategic partnerships are currently being finalized.").setEphemeral(true).queue();
-            }
-            else if (id.equals("menu_main")) { PanelService.sendStartupHub(event); }
-            
-            // TICKET INITIALIZATION
-            else if (id.equals("ticket_init_support")) { PanelService.handleSupportFlow(event); }
-            else if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); }
-            else if (id.equals("ticket_init_order")) { PanelService.handleOrderFlow(event); }
-
-            // TICKET OPS
-            else if (id.equals("ticket_claim")) { 
+            if (id.equals("ticket_claim")) { 
                 TicketService.claimTicket(event.getChannel().asTextChannel(), member); 
             }
             else if (id.equals("ticket_close")) { 
@@ -142,7 +124,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
             else if (id.equals("order_sector_select")) { PanelService.handleSectorSelection(event, val); }
             else if (id.startsWith("order_service_select_")) { PanelService.handleServiceSelection(event, event.getValues()); }
-            else if (id.equals("order_extras_select")) { /* Handled via Finalize button state */ }
             else if (id.equals("ticket_type_select")) {
                 TicketService.createTicket(event, "General Request", "MEDIUM", val);
             }
@@ -159,11 +140,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "cat_minecraft" -> "Full Server Setup, Custom Map Architecture, Plugin Logic Design.";
             default -> "Sector data unavailable.";
         };
-        net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-        meb.setEmbeds(EmbedUtil.containerBranded("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN));
-        meb.setComponents(ActionRow.of(Button.success("order_start", "Start Order")));
-        
-        event.getHook().editOriginal(meb.build()).queue();
+        PanelService.reply(event, EmbedUtil.containerBrandedRows("SERVICES", "Active Capabilities", body, EmbedUtil.BANNER_MAIN, ActionRow.of(Button.success("order_start", "Start Order"))));
     }
 
     private void handlePriceDisplay(StringSelectInteractionEvent event, String val) {
@@ -174,10 +151,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             case "price_minecraft" -> "**Server Setup:** $50+\n**Map Design:** $40+\n**Plugin Config:** $20+";
             default -> "Pricing data unavailable.";
         };
-        net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-        meb.setEmbeds(EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN));
-        
-        event.getHook().editOriginal(meb.build()).queue();
+        PanelService.reply(event, EmbedUtil.containerBranded("ACCOUNTING", "Price Matrix", body, EmbedUtil.BANNER_MAIN));
     }
 
     @Override
@@ -190,22 +164,16 @@ public class CentralInteractionListener extends ListenerAdapter {
                 event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
             }
         } else if (id.equals("modal_support_init")) {
-            String desc = event.getValue("issue_desc").getAsString();
-            String svc = event.getValue("issue_service").getAsString();
-            TicketService.createTicket(event, "Support: " + svc, "MEDIUM", "SUPPORT");
+            TicketService.createTicket(event, "Support Request", "MEDIUM", "SUPPORT");
         } else if (id.equals("modal_complaint_init")) {
-            String target = event.getValue("comp_target").getAsString();
-            String reason = event.getValue("comp_reason").getAsString();
-            TicketService.createTicket(event, "Complaint: " + target, "HIGH", "COMPLAINT");
+            TicketService.createTicket(event, "Complaint Filed", "HIGH", "COMPLAINT");
         } else if (id.equals("modal_order_finalize")) {
             event.deferReply(true).queue();
             String pName = event.getValue("p_name").getAsString();
             String cName = event.getValue("p_client").getAsString();
-            String contact = event.getValue("p_contact").getAsString();
-            String eta = event.getValue("p_eta").getAsString();
             
             List<com.highcore.bot.services.InvoiceService.OrderItem> items = List.of(new com.highcore.bot.services.InvoiceService.OrderItem("Primary Agency Service", 100.0));
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, contact, eta, items);
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, "Auto-Initiated", "7-14 Days", items);
             event.getHook().sendMessage("Terminal session established. Order initiated.").queue();
         }
     }

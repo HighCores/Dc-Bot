@@ -38,7 +38,6 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        // JDA 6.4.1 FINAL CORRECT PATTERN: TextInput(id, style).build() -> Label.of("Text", input)
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT).build();
         TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT).build();
         TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT).build();
@@ -67,31 +66,30 @@ public class GiveawayCommands extends ListenerAdapter {
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
 
         String body = "### \uD83C\uDF81 Active Giveaway\n**Prize:** " + prizeStr + "\n**Winners:** **" + winCount + "**\n**Ends In:** **" + duration + "** minutes";
-        event.replyEmbeds(EmbedUtil.containerBranded("SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY))
-                .setComponents(ActionRow.of(joinBtn))
-                .queue(hook -> {
-                    LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
-                            "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), com.highcore.bot.utils.EmbedUtil.INFO);
-                    
-                    scheduler.schedule(() -> {
-                        List<String> participants = entries.get(giveawayId);
-                        if (participants == null || participants.isEmpty()) {
-                            event.getChannel().sendMessage("Giveaway for **" + prizeStr + "** ended with no participants!").queue();
-                            return;
-                        }
+        
+        PanelService.reply(event, EmbedUtil.containerBrandedRows("SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(joinBtn)));
+        
+        LogManager.log(event.getGuild(), "GIVEAWAY STARTED", 
+                "Prize: " + prizeStr + "\nAdmin: " + event.getUser().getAsMention(), com.highcore.bot.utils.EmbedUtil.INFO);
+        
+        scheduler.schedule(() -> {
+            List<String> participants = entries.get(giveawayId);
+            if (participants == null || participants.isEmpty()) {
+                event.getChannel().sendMessage("Giveaway for **" + prizeStr + "** ended with no participants!").queue();
+                return;
+            }
 
-                        Random r = new Random();
-                        List<String> winnerMentions = new ArrayList<>();
-                        for (int i = 0; i < winCount && !participants.isEmpty(); i++) {
-                            int idx = r.nextInt(participants.size());
-                            winnerMentions.add("<@" + participants.remove(idx) + ">");
-                        }
+            Random r = new Random();
+            List<String> winnerMentions = new ArrayList<>();
+            for (int i = 0; i < winCount && !participants.isEmpty(); i++) {
+                int idx = r.nextInt(participants.size());
+                winnerMentions.add("<@" + participants.remove(idx) + ">");
+            }
 
-                        String msg = "### \uD83C\uDF89 GIVEAWAY ENDED\n**Prize:** " + prizeStr + "\n**Winners:** " + String.join(", ", winnerMentions);
-                        event.getChannel().sendMessage(msg).queue();
-                        entries.remove(giveawayId);
-                    }, duration, TimeUnit.MINUTES);
-                });
+            String msg = "### \uD83C\uDF89 GIVEAWAY ENDED\n**Prize:** " + prizeStr + "\n**Winners:** " + String.join(", ", winnerMentions);
+            event.getChannel().sendMessage(msg).queue();
+            entries.remove(giveawayId);
+        }, duration, TimeUnit.MINUTES);
     }
 
     @Override

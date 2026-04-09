@@ -4,12 +4,12 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -19,6 +19,14 @@ import java.util.List;
 
 public class CommandService {
     private static final Logger log = LoggerFactory.getLogger(CommandService.class);
+
+    public static void handleSectorSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, String val) {
+        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Select requirements.", null));
+    }
+ 
+    public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
+        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Finalizing", "Click to proceed.", null, ActionRow.of(Button.success("order_final_meta", "Proceed"))));
+    }
 
     public static boolean execute(Member member, MessageChannel channel, String command) {
         String trigger = command.trim().toLowerCase();
@@ -45,10 +53,7 @@ public class CommandService {
         String trigger = event.getName().toLowerCase();
         JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
         if (menu != null) {
-            // COMPLIANT V2: Use discrete builder for slash replies
-            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-            mcb.setEmbeds(buildMenuContainer(menu));
-            event.reply(mcb.build()).queue();
+            PanelService.reply(event, buildMenuContainer(menu));
             return;
         }
 
@@ -63,21 +68,18 @@ public class CommandService {
     }
 
     public static void sendMenu(MessageChannel channel, JsonObject menu) {
-        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-        mcb.setEmbeds(buildMenuContainer(menu));
-        channel.sendMessage(mcb.build()).queue();
+        PanelService.reply(channel, buildMenuContainer(menu));
     }
 
-    private static net.dv8tion.jda.api.entities.MessageEmbed buildMenuContainer(JsonObject menu) {
+    private static Object buildMenuContainer(JsonObject menu) {
         String title = menu.has("title") && !menu.get("title").isJsonNull() ? menu.get("title").getAsString() : "Terminal Module";
         String desc = menu.has("description") && !menu.get("description").isJsonNull() ? menu.get("description").getAsString().replace("\\n", "\n") : "System data unavailable.";
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
         String menuId = menu.has("menu_id") && !menu.get("menu_id").isJsonNull() ? menu.get("menu_id").getAsString() : "unknown";
 
-        List<ActionRow> rows = new ArrayList<>();
+        List<Button> buttons = new ArrayList<>();
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
         if (buttonsArr != null && buttonsArr.size() > 0) {
-            List<Button> buttons = new ArrayList<>();
             for (var el : buttonsArr) {
                 JsonObject btnObj = el.getAsJsonObject();
                 String label = btnObj.get("label").getAsString();
@@ -92,20 +94,18 @@ public class CommandService {
                     case "LINK" -> Button.link(actionId, label);
                     default -> Button.primary(actionId, label);
                 };
-
-/* 
-                // Basic Mode: Strip dynamic emojis
                 if (emoji != null && !emoji.isEmpty()) {
-                    try { btn = btn.withEmoji(Emoji.fromFormatted(emoji)); } 
-                    catch (Exception ignored) {}
+                    try { btn = btn.withEmoji(Emoji.fromFormatted(emoji)); } catch (Exception ignored) {}
                 }
-                */
                 buttons.add(btn);
             }
-            if (!buttons.isEmpty()) rows.add(ActionRow.of(buttons));
         }
 
-        return EmbedUtil.containerBranded("Operations", title, desc, imageUrl, null, rows.toArray(new ActionRow[0]));
+        if (buttons.isEmpty()) {
+            return EmbedUtil.containerBranded(title, null, desc, imageUrl);
+        } else {
+            return EmbedUtil.containerBrandedRows(title, null, desc, imageUrl, ActionRow.of(buttons));
+        }
     }
 
     private static boolean hasPermission(Member member, String perm) {

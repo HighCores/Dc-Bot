@@ -2,6 +2,7 @@ package com.highcore.bot.services;
 
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
+import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
@@ -113,15 +114,14 @@ public class OrderService extends ListenerAdapter {
         
         SupabaseClient.createOrder(orderBody);
         
-        MessageEmbed me = com.highcore.bot.utils.EmbedUtil.success("ORDER SUBMITTED", 
-                "### \uD83D\uDCE6 Transmission Received\n" +
+        String body = "### \uD83D\uDCE6 Transmission Received\n" +
                 "**Project:** `" + name + "`\n" +
                 "**Type:** `" + type + "`\n" +
                 "**Budget:** `$" + budget + "`\n" +
                 "**Contact:** `" + contact + "`\n\n" +
-                "Our team will review your requirements and reach out on Discord shortly.");
-        
-        event.getHook().sendMessageEmbeds(me).setEphemeral(true).queue();
+                "Our team will review your requirements and reach out on Discord shortly.";
+
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded("ORDER SUBMITTED", "Inbound Sequence", body, EmbedUtil.BANNER_MAIN, null));
         
         LogManager.log(event.getGuild(), "NEW ORDER", 
                 "User: " + event.getUser().getAsMention() + "\n" +

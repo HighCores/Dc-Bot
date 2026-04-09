@@ -2,65 +2,65 @@ package com.highcore.bot.utils;
 
 import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
-import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.components.container.ContainerChildComponent;
-import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.awt.Color;
-import java.util.ArrayList;
-import java.util.List;
 
 public class EmbedUtil {
+    public static final Color ACCENT = Color.decode("#C5A059");
+    public static final Color SUCCESS = Color.decode("#2ECC71");
+    public static final Color DANGER = Color.decode("#E74C3C");
+    public static final Color INFO = Color.decode("#3498DB");
+    public static final Color WARNING = Color.decode("#F1C40F");
+    
+    public static final String BANNER_MAIN = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
+    public static final String BANNER_SUPPORT = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
+    public static final String BANNER_GIVEAWAY = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
+    public static final String BANNER_ORDER_TIK = "https://i.ibb.co/C5XBr7mY/Untitled-1.png";
+    public static final String BANNER_INVOICE = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
 
-    public static final String BANNER_MAIN = "https://cdn.discordapp.com/attachments/1488795131296354460/1491194673048457399/banner.png";
-    public static final String BANNER_SUPPORT = "https://cdn.discordapp.com/attachments/1491791586479177768/1491810902243148027/IMG_20260409_174341.png";
-    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png";
-    public static final String BANNER_ORDER_TIK = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg";
-    public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_RULES = BANNER_MAIN;
-
-    public static final Color ACCENT = Color.decode("#D4AF37");
-    public static final Color SUCCESS = Color.decode("#D4AF37");
-    public static final Color DANGER = Color.decode("#8B0000");
-    public static final Color INFO = Color.decode("#C0C0C0");
-    public static final Color WARNING = Color.decode("#FFD700");
-    public static final Color GOLD = Color.decode("#D4AF37");
-    public static final Color ACCENT_GOLD = Color.decode("#FFD700");
-
-    public static MessageEmbed eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
-        EmbedBuilder eb = new EmbedBuilder().setColor(ACCENT);
-        if (title != null && !title.isEmpty()) eb.setTitle(title);
-        if (description != null && !description.isEmpty()) eb.setDescription(description);
-        if (imageUrl != null && !imageUrl.isEmpty()) eb.setImage(imageUrl);
-        return eb.build();
+    public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
+        if (imageUrl == null) imageUrl = BANNER_MAIN;
+        return Container.create()
+                .withTitle(title)
+                .withAccentColor(ACCENT.getRGB() & 0xFFFFFF)
+                .withMedia(imageUrl)
+                .addChildren(TextDisplay.of(description))
+                .addChildren(rows)
+                .build();
     }
 
-    // --- Core Legacy Suite ---
-
-    public static MessageEmbed giveaway(String prize, int winners, int duration) {
-        String body = "Prize: **" + prize + "**\nWinners: **" + winners + "**\nDuration: **" + duration + "m**";
-        return eliteContainer("New Giveaway", body, BANNER_GIVEAWAY);
+    public static Container containerBranded(String title, String subtitle, String body, String imageUrl) {
+        return containerBranded(title, subtitle, body, imageUrl, (Emoji) null);
     }
 
-    public static MessageEmbed containerBranded(String title, String subtitle, String body, String imageUrl) {
-        return containerBranded(title, subtitle, body, imageUrl, null);
-    }
-
-    public static MessageEmbed containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
+    public static Container containerBranded(String title, String subtitle, String body, String imageUrl, Emoji emoji, ActionRow... rows) {
         String fullTitle = (subtitle == null || subtitle.isEmpty()) ? title : title + " | " + subtitle;
         return eliteContainer(fullTitle, body, imageUrl, rows);
     }
+    
+    public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl, ActionRow... rows) {
+        return containerBranded(title, subtitle, body, imageUrl, (Emoji) null, rows);
+    }
 
-    public static MessageEmbed success(String title, String description) { return eliteContainer("Success: " + title, description, null); }
-    public static MessageEmbed error(String title, String description) { return eliteContainer("Error: " + title, description, null); }
-    public static MessageEmbed info(String title, String description) { return eliteContainer("Info: " + title, description, null); }
-    public static MessageEmbed accessDenied() { return eliteContainer("Access Denied", "Unauthorized attempt.", null); }
-    public static MessageEmbed activityLog(String type, String details, Color color) { return eliteContainer("Log: " + type, details, null); }
+    public static MessageEmbed success(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(SUCCESS).build(); }
+    public static MessageEmbed error(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(DANGER).build(); }
+    public static MessageEmbed info(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(INFO).build(); }
+    public static MessageEmbed accessDenied() { return new EmbedBuilder().setTitle("Access Denied").setDescription("Unauthorized attempt.").setColor(DANGER).build(); }
+    public static MessageEmbed activityLog(String type, String details, Color color) { return new EmbedBuilder().setTitle("Log: " + type).setDescription(details).setColor(color).build(); }
 
-    public static MessageEmbed rulesPanel(ActionRow... rows) { return eliteContainer("Rules", "Professional guidelines.", null, rows); }
-    public static MessageEmbed termsPanel(ActionRow... rows) { return eliteContainer("Terms", "Engagement protocols.", null, rows); }
-    public static MessageEmbed startupPanel(ActionRow... rows) { return eliteContainer("High Core", "Ready.", null, rows); }
+    public static MessageEmbed rulesPanel(ActionRow... rows) { return new EmbedBuilder().setTitle("Rules").setDescription("Professional guidelines.").setColor(ACCENT).build(); }
+    public static MessageEmbed termsPanel(ActionRow... rows) { return new EmbedBuilder().setTitle("Terms").setDescription("Engagement protocols.").setColor(ACCENT).build(); }
+
+    public static Container giveaway(String prize, int winners, int duration) {
+        String body = "### \uD83C\uDF81 Active Distribution\n" +
+                "**Prize:** `" + prize + "`\n" +
+                "**Winners:** `" + winners + "`\n" +
+                "**Duration:** `" + duration + "m`";
+        return eliteContainer("SWEEPSTAKES", body, BANNER_GIVEAWAY);
+    }
 
     public static MessageEmbed rulesEmbed() { return new EmbedBuilder().setTitle("Guidelines").setColor(ACCENT).build(); }
 }

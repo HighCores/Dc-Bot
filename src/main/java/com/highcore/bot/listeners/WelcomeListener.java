@@ -21,15 +21,9 @@ public class WelcomeListener extends ListenerAdapter {
         log.info("Member joined: {} in {}", event.getMember().getUser().getName(), event.getGuild().getName());
         
         try {
-            // Generate the dynamic card ONCE for usage in both Server and DM
             byte[] welcomeImage = WelcomeCardService.generateWelcomeCard(event.getMember());
-            
-            // 1. Send to Server Welcome Channel
             sendWelcomeMessage(event.getMember(), event.getGuild(), welcomeImage);
-            
-            // 2. Send to Member's Private DM
             sendStartupDM(event.getMember(), welcomeImage);
-            
         } catch (Exception e) {
             log.error("Failed to execute welcome protocol", e);
             sendWelcomeMessage(event.getMember(), event.getGuild(), null);
@@ -60,11 +54,10 @@ public class WelcomeListener extends ListenerAdapter {
                 Dont forget to visit the line : <#1488795130470072321>
                 """, member.getAsMention(), guild.getMemberCount());
 
-        // Intelligent Fallback: Only use attachment:// if image generation succeeded
-        String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
-        net.dv8tion.jda.api.entities.MessageEmbed c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
+        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
         
-        var message = ch.sendMessageEmbeds(c);
+        var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
             message.addFiles(FileUpload.fromData(image, "welcome.png"));
         }
@@ -80,13 +73,12 @@ public class WelcomeListener extends ListenerAdapter {
                 Dont forget to visit the line : <#%s>
                 """, member.getUser().getAsMention(), member.getGuild().getMemberCount(), hub);
 
-        // Intelligent Fallback for DM as well
-        String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
-        net.dv8tion.jda.api.entities.MessageEmbed c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
+        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
         
         member.getUser().openPrivateChannel().queue(
                 dm -> {
-                    var msg = dm.sendMessageEmbeds(c);
+                    var msg = dm.sendMessageComponents(c).useComponentsV2(true);
                     if (image != null) {
                         msg.addFiles(FileUpload.fromData(image, "welcome.png"));
                     }

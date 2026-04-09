@@ -61,8 +61,8 @@ public class BroadcastService {
 
         m.getUser().openPrivateChannel().queue(pc -> {
             try {
-                MessageEmbed embed = EmbedUtil.containerBranded("Broadcast", "Urgent Update", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
-                pc.sendMessageEmbeds(embed).queue(
+                Container c = EmbedUtil.containerBranded("Broadcast", "Urgent Update", personalized, media != null ? media : EmbedUtil.BANNER_MAIN, null);
+                pc.sendMessageComponents(c).useComponentsV2(true).queue(
                     s -> log.debug("Broadcast delivered to {}", m.getUser().getName()),
                     e -> log.warn("Broadcast failed for {}: {}", m.getUser().getName(), e.getMessage())
                 );
