@@ -29,18 +29,15 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
         
-        // MODAL TRIGGER DETECTION: ONLY bypass for buttons that call .replyModal()
-        // 'ticket_init_order' sends a menu, so it MUST be deferred/acknowledged normally.
         boolean isModalTrigger = id.equals("ticket_init_support") || 
                                  id.equals("ticket_init_complaint") || 
-                                 id.equals("order_final_meta") ||
-                                 id.equals("modal_bc");
+                                 id.equals("order_final_meta");
 
         if (isModalTrigger) {
             processButton(event);
-        } else if (!event.isAcknowledged()) {
-            event.deferEdit().queue(hook -> processButton(event));
         } else {
+            // EVERYTHING ELSE: Defer immediately to kill the "Thinking" state
+            if (!event.isAcknowledged()) event.deferEdit().queue();
             processButton(event);
         }
     }
@@ -118,8 +115,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             else if (id.startsWith("order_service_select_")) { PanelService.handleServiceSelection(event, event.getValues()); }
             else if (id.equals("order_extras_select")) { /* Handled via Finalize button state */ }
             else if (id.equals("ticket_type_select")) {
-                event.getHook().sendMessage("Initializing terminal session...").setEphemeral(true).queue();
-                TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
+                TicketService.createTicket(event, "General Request", "MEDIUM", val);
             }
         } catch (Exception e) {
             try { event.getHook().sendMessage("### \u26A0 SELECTION FAILURE\n`" + e.getMessage() + "`").setEphemeral(true).queue(); } catch (Exception ignored) {}
@@ -169,21 +165,13 @@ public class CentralInteractionListener extends ListenerAdapter {
                 event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
             }
         } else if (id.equals("modal_support_init")) {
-            event.deferReply(true).queue();
             String desc = event.getValue("issue_desc").getAsString();
             String svc = event.getValue("issue_service").getAsString();
-            TicketService.createTicket(event.getGuild(), event.getUser(), "Support: " + svc, "MEDIUM", "SUPPORT").queue(t -> {
-                t.sendMessage("### \uD83D\uDCDC SUPPORT REQUEST\n**Topic:** " + svc + "\n**Details:** " + desc).queue();
-            });
-            event.getHook().sendMessage("Support session initialized. Staff will be with you shortly.").queue();
+            TicketService.createTicket(event, "Support: " + svc, "MEDIUM", "SUPPORT");
         } else if (id.equals("modal_complaint_init")) {
-            event.deferReply(true).queue();
             String target = event.getValue("comp_target").getAsString();
             String reason = event.getValue("comp_reason").getAsString();
-            TicketService.createTicket(event.getGuild(), event.getUser(), "Complaint: " + target, "HIGH", "COMPLAINT").queue(t -> {
-                t.sendMessage("### \u26A0 REPORT FILED\n**Subject:** " + target + "\n**Details:** " + reason).queue();
-            });
-            event.getHook().sendMessage("Complaint filed. Management will investigate.").queue();
+            TicketService.createTicket(event, "Complaint: " + target, "HIGH", "COMPLAINT");
         } else if (id.equals("modal_order_finalize")) {
             event.deferReply(true).queue();
             String pName = event.getValue("p_name").getAsString();

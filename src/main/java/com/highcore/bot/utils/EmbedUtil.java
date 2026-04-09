@@ -84,14 +84,14 @@ public class EmbedUtil {
             ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
-        // 1. ELITE HEADER
-        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**" + title.toUpperCase() + "**" : "**" + title.toUpperCase() + " : " + subtitle.toUpperCase() + "**";
-        layout.add(TextDisplay.of(headerText));
-
-        // 2. BRANDING BANNER - Reinforced URL priority
+        // 1. BRANDING BANNER - High Priority Rendering
         if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
+
+        // 2. ELITE HEADER
+        String headerText = (subtitle == null || subtitle.isEmpty()) ? "### " + title.toUpperCase() : "### " + title.toUpperCase() + " : " + subtitle.toUpperCase();
+        layout.add(TextDisplay.of(headerText));
 
         // 3. TECHNICAL BODY
         if (body != null && !body.isEmpty()) {

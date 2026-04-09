@@ -26,38 +26,44 @@ import java.io.*;
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
-    public static net.dv8tion.jda.api.requests.RestAction<TextChannel> createTicket(Guild guild, User user, String subject, String priority, String type) {
-        Member member = guild.getMember(user);
-        if (member == null) return null;
+    public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, String subject, String priority, String type) {
+        Guild guild = event.getGuild();
+        if (guild == null) return;
         
-        String ticketId = String.format("%04d", new Random().nextInt(10000));
-        String channelName = type + "-" + ticketId;
+        getOrCreateCategory(guild).queue(cat -> {
+            String ticketId = String.format("%04d", new Random().nextInt(10000));
+            String channelName = type + "-" + ticketId;
 
-        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
-        if (cat == null) {
-            log.error("Ticket category 'TICKETS' not found in guild '{}'", guild.getName());
-            return null;
-        }
-
-        return guild.createTextChannel(channelName, cat)
-                .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
+            guild.createTextChannel(channelName, cat)
+                .addPermissionOverride(event.getMember(), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
-                .onSuccess(channel -> {
-                    SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, subject, priority, null);
-                    finalizeTicket(channel, user, ticketId, type, subject, priority);
+                .queue(channel -> {
+                    SupabaseClient.createTicket(ticketId, event.getUser().getId(), channel.getId(), type, subject, priority, null);
+                    finalizeTicket(channel, event.getUser(), ticketId, type, subject, priority);
+                    if (event.isAcknowledged()) {
+                        event.getHook().sendMessage("Terminal session established: " + channel.getAsMention()).setEphemeral(true).queue();
+                    } else {
+                        event.reply("Terminal session established: " + channel.getAsMention()).setEphemeral(true).queue();
+                    }
                 });
+        });
+    }
+
+    private static net.dv8tion.jda.api.requests.RestAction<Category> getOrCreateCategory(Guild guild) {
+        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
+        if (cat != null) return net.dv8tion.jda.api.requests.RestAction.result(cat);
+        return guild.createCategory("TICKETS");
     }
 
     public static void createOrderTicket(Guild guild, User user, String type, int total, String wizId, JsonObject orderData) {
         Member member = guild.getMember(user);
         if (member == null) return;
         
-        String ticketId = String.format("%04d", new Random().nextInt(10000));
-        String channelName = "order-" + ticketId;
-        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
-        if (cat == null) return;
+        getOrCreateCategory(guild).queue(cat -> {
+            String ticketId = String.format("%04d", new Random().nextInt(10000));
+            String channelName = "order-" + ticketId;
 
-        guild.createTextChannel(channelName, cat)
+            guild.createTextChannel(channelName, cat)
                 .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                 .queue(channel -> {
@@ -71,6 +77,7 @@ public class TicketService {
                     mcb.useComponentsV2(true);
                     channel.sendMessage(mcb.build()).queue();
                 });
+        });
     }
 
     private static void finalizeTicket(TextChannel channel, User user, String ticketId, String type, String subject, String priority) {
@@ -138,12 +145,7 @@ public class TicketService {
             String tid = ticket.get("ticket_id").getAsString();
             SupabaseClient.updateTicketStatus(tid, status.toUpperCase(), closer.getEffectiveName());
         }
-        channel.sendMessageComponents(
-            EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **" + status + "**\nThis channel is now locked.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
-                ActionRow.of(getTicketButtons("closed")))
-        ); // Keeping this shorthand for non-ambiguous messages, but mcb is safer.
         
-        // Let's use MCB to be safe everywhere
         net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
         mcb.setComponents(EmbedUtil.containerBranded("ARCHIVE", "Session Finalized", "Status: **" + status + "**\nThis channel is now locked.", EmbedUtil.BANNER_SUPPORT, Emoji.fromUnicode("\uD83D\uDD12"),
                 ActionRow.of(getTicketButtons("closed"))));
@@ -174,31 +176,30 @@ public class TicketService {
         Member member = guild.getMember(user);
         if (member == null) return;
 
-        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
-        if (cat == null) return;
+        getOrCreateCategory(guild).queue(cat -> {
+            String ticketId = String.format("%04d", new Random().nextInt(10000));
+            String channelName = "order-" + ticketId;
 
-        String ticketId = String.format("%04d", new Random().nextInt(10000));
-        String channelName = "order-" + ticketId;
+            guild.createTextChannel(channelName, cat)
+                .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+                .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) // LOCKED UNTIL PAYMENT
+                .queue(channel -> {
+                    String summary = "Project: **" + pName + "**\nETA: **" + eta + "**\n\n**STATUS: PENDING PAYMENT**\nChat is disabled until the transaction is verified.";
+                    
+                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                    mcb.setComponents(getWelcomeContainer(ticketId, user.getName(), "order", summary, 
+                        ActionRow.of(getTicketButtons("open")), 
+                        ActionRow.of(getPaymentButtons(ticketId))));
+                    mcb.useComponentsV2(true);
+                    channel.sendMessage(mcb.build()).queue();
 
-        guild.createTextChannel(channelName, cat)
-            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
-            .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) // LOCKED UNTIL PAYMENT
-            .queue(channel -> {
-                String summary = "Project: **" + pName + "**\nETA: **" + eta + "**\n\n**STATUS: PENDING PAYMENT**\nChat is disabled until the transaction is verified.";
-                
-                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-                mcb.setComponents(getWelcomeContainer(ticketId, user.getName(), "order", summary, 
-                    ActionRow.of(getTicketButtons("open")), 
-                    ActionRow.of(getPaymentButtons(ticketId))));
-                mcb.useComponentsV2(true);
-                channel.sendMessage(mcb.build()).queue();
-
-                // Generate and Send Invoice
-                byte[] invoiceImg = InvoiceService.generateInvoice(cName, pName, items);
-                if (invoiceImg != null) {
-                    channel.sendFiles(FileUpload.fromData(invoiceImg, "invoice.png")).queue();
-                }
-            });
+                    // Generate and Send Invoice
+                    byte[] invoiceImg = InvoiceService.generateInvoice(cName, pName, items);
+                    if (invoiceImg != null) {
+                        channel.sendFiles(FileUpload.fromData(invoiceImg, "invoice.png")).queue();
+                    }
+                });
+        });
     }
 
     public static void sendVisualReceipt(TextChannel channel, JsonObject data) {
