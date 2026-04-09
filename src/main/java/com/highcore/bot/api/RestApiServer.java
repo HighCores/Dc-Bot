@@ -121,7 +121,7 @@ public class RestApiServer {
         if (guild != null) {
             TextChannel channel = guild.getTextChannelById(channelId);
             if (channel != null) {
-                channel.sendMessageComponents(EmbedUtil.containerBranded("الأرشيف", "نهاية الجلسة", "الحالة: **مغلقة**\nأُغلق بواسطة: **" + "الإدارة" + "**", null)).useComponentsV2(true).queue();
+                channel.sendMessageEmbeds(EmbedUtil.containerBranded("الأرشيف", "نهاية الجلسة", "الحالة: **مغلقة**\nأُغلق بواسطة: **" + "الإدارة" + "**", EmbedUtil.BANNER_SUPPORT)).queue();
             }
         }
 
@@ -273,7 +273,7 @@ public class RestApiServer {
         TextChannel channel = guild.getTextChannelById(channelId);
         if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
 
-        channel.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.containerBranded("API", title, desc, null)).useComponentsV2(true).queue();
+        channel.sendMessageEmbeds(com.highcore.bot.utils.EmbedUtil.containerBranded("API", title, desc, image)).queue();
         
         ctx.json(Map.of("success", true, "channel", channelId));
     }

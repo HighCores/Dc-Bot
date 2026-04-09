@@ -49,8 +49,9 @@ public class TicketService {
                 channel.sendMessageEmbeds(banner).queue();
 
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setComponents(EmbedUtil.eliteContainer("Active Session", "Communication line initialized.", null, ActionRow.of(getTicketButtons("open"))))
-                    .useComponentsV2(true);
+                    .setContent("Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**")
+                    .setEmbeds(EmbedUtil.eliteContainer("Active Session", "Communication line initialized.", EmbedUtil.BANNER_SUPPORT))
+                    .setComponents(ActionRow.of(getTicketButtons("open")));
                 
                 channel.sendMessage(mcb.build()).queue();
                 event.getHook().sendMessage("Success! Your session is active: " + channel.getAsMention()).setEphemeral(true).queue();
@@ -69,8 +70,9 @@ public class TicketService {
                 channel.sendMessageEmbeds(banner).queue();
 
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setComponents(EmbedUtil.eliteContainer("Project Initiation", "Session created. Awaiting payment settlement.", null, ActionRow.of(getTicketButtons("open"))))
-                    .useComponentsV2(true);
+                    .setContent("Hello " + user.getAsMention() + ",\n\nProject: **" + pName + "**\nExpected delivery: **" + eta + "**")
+                    .setEmbeds(EmbedUtil.eliteContainer("Project Initiation", "Session created. Awaiting payment settlement.", EmbedUtil.BANNER_ORDER_TIK))
+                    .setComponents(ActionRow.of(getTicketButtons("open")));
                 
                 channel.sendMessage(mcb.build()).queue(m -> {
                     byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);

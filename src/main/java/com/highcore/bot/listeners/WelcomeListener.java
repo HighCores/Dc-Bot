@@ -46,7 +46,7 @@ public class WelcomeListener extends ListenerAdapter {
     private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
         TextChannel ch = com.highcore.bot.services.LogManager.get(guild, Config.LOG_JOIN_LEFT);
         if (ch != null) {
-            ch.sendMessageComponents(EmbedUtil.activityLog(title, body, color)).useComponentsV2(true).queue();
+            ch.sendMessageEmbeds(EmbedUtil.activityLog(title, body, color)).queue();
         }
     }
 
@@ -62,9 +62,9 @@ public class WelcomeListener extends ListenerAdapter {
 
         // Intelligent Fallback: Only use attachment:// if image generation succeeded
         String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
-        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
+        net.dv8tion.jda.api.entities.MessageEmbed c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
         
-        var message = ch.sendMessageComponents(c).useComponentsV2(true);
+        var message = ch.sendMessageEmbeds(c);
         if (image != null) {
             message.addFiles(FileUpload.fromData(image, "welcome.png"));
         }
@@ -82,11 +82,11 @@ public class WelcomeListener extends ListenerAdapter {
 
         // Intelligent Fallback for DM as well
         String bannerUrl = (image != null) ? "attachment://welcome.png" : null;
-        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
+        net.dv8tion.jda.api.entities.MessageEmbed c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
         
         member.getUser().openPrivateChannel().queue(
                 dm -> {
-                    var msg = dm.sendMessageComponents(c).useComponentsV2(true);
+                    var msg = dm.sendMessageEmbeds(c);
                     if (image != null) {
                         msg.addFiles(FileUpload.fromData(image, "welcome.png"));
                     }

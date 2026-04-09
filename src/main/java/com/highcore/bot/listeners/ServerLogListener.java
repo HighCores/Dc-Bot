@@ -59,7 +59,7 @@ public class ServerLogListener extends ListenerAdapter {
         if (age < 7) sb.append("\u26A0\uFE0F **New account (< 7 days)**\n");
         sb.append("**Time:** ").append(now());
 
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Joined", sb.toString(), EmbedUtil.SUCCESS))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Joined", sb.toString(), EmbedUtil.SUCCESS))
                 .useComponentsV2(true).queue();
     }
 
@@ -78,7 +78,7 @@ public class ServerLogListener extends ListenerAdapter {
             sb.append("**Roles:** ").append(m.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "))).append("\n");
         sb.append("**Time:** ").append(now());
 
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Left", sb.toString(), EmbedUtil.DANGER))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Left", sb.toString(), EmbedUtil.DANGER))
                 .useComponentsV2(true).queue();
     }
 
@@ -100,13 +100,13 @@ public class ServerLogListener extends ListenerAdapter {
                 if (e.getReason() != null) sb.append("**Reason:** ").append(e.getReason()).append("\n");
             }
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Banned", sb.toString(), java.awt.Color.BLACK))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Banned", sb.toString(), java.awt.Color.BLACK))
                     .useComponentsV2(true).queue();
         }, err -> { 
             String fallback = "### \uD83D\uDD28 " + u.getName() + " was banned\n" +
                     "**ID:** `" + u.getId() + "`\n" +
                     "**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Banned", fallback, java.awt.Color.BLACK))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Banned", fallback, java.awt.Color.BLACK))
                     .useComponentsV2(true).queue();
         });
     }
@@ -120,7 +120,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**User:** **" + u.getName() + "**\n" +
                 "**ID:** `" + u.getId() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Unbanned", body, EmbedUtil.SUCCESS))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Unbanned", body, EmbedUtil.SUCCESS))
                 .useComponentsV2(true).queue();
     }
 
@@ -139,7 +139,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**ID:** `" + event.getAuthor().getId() + "`\n" +
                 "**Content:** ```" + content + "```\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Log", body, EmbedUtil.INFO))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Message Log", body, EmbedUtil.INFO))
                 .useComponentsV2(true).queue();
     }
 
@@ -156,7 +156,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**New Content:** ```" + content + "```\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Edit", body, EmbedUtil.WARNING))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Message Edit", body, EmbedUtil.WARNING))
                 .useComponentsV2(true).queue();
     }
 
@@ -169,7 +169,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**Msg ID:** `" + event.getMessageId() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Deletion", body, EmbedUtil.DANGER))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Message Deletion", body, EmbedUtil.DANGER))
                 .useComponentsV2(true).queue();
     }
 
@@ -196,7 +196,7 @@ public class ServerLogListener extends ListenerAdapter {
             sb.append("### \uD83D\uDD00 Switched Voice\n**From:** ").append(left.getName()).append("\n**To:** ").append(joined.getName()).append("\n");
         }
         sb.append("**Time:** ").append(now());
-        ch.sendMessageComponents(EmbedUtil.activityLog("Voice Activity", sb.toString(), color))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Voice Activity", sb.toString(), color))
                 .useComponentsV2(true).queue();
     }
 
@@ -213,7 +213,7 @@ public class ServerLogListener extends ListenerAdapter {
             if (!entries.isEmpty() && entries.get(0).getUser() != null)
                 sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.SUCCESS))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.SUCCESS))
                     .useComponentsV2(true).queue();
         });
     }
@@ -230,7 +230,7 @@ public class ServerLogListener extends ListenerAdapter {
             if (!entries.isEmpty() && entries.get(0).getUser() != null)
                 sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.DANGER))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.DANGER))
                     .useComponentsV2(true).queue();
         });
     }
@@ -243,7 +243,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Before:** `" + event.getOldValue() + "`\n" +
                 "**After:** `" + event.getNewValue() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", body, EmbedUtil.WARNING))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Channel Activity", body, EmbedUtil.WARNING))
                 .useComponentsV2(true).queue();
     }
 
@@ -261,11 +261,11 @@ public class ServerLogListener extends ListenerAdapter {
             if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
                 sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Add", sb.toString(), EmbedUtil.SUCCESS))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Role Add", sb.toString(), EmbedUtil.SUCCESS))
                     .useComponentsV2(true).queue();
         }, err -> { 
             String fallback = "### \u2795 Role Added\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Add", fallback, EmbedUtil.SUCCESS))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Role Add", fallback, EmbedUtil.SUCCESS))
                     .useComponentsV2(true).queue();
         });
     }
@@ -284,11 +284,11 @@ public class ServerLogListener extends ListenerAdapter {
             if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
                 sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Remove", sb.toString(), EmbedUtil.WARNING))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Role Remove", sb.toString(), EmbedUtil.WARNING))
                     .useComponentsV2(true).queue();
         }, err -> { 
             String fallback = "### \u2796 Role Removed\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Remove", fallback, EmbedUtil.WARNING))
+            ch.sendMessageEmbeds(EmbedUtil.activityLog("Member Role Remove", fallback, EmbedUtil.WARNING))
                     .useComponentsV2(true).queue();
         });
     }
@@ -300,7 +300,7 @@ public class ServerLogListener extends ListenerAdapter {
         String body = "### \u2795 Role Created\n" +
                 "**Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.SUCCESS))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.SUCCESS))
                 .useComponentsV2(true).queue();
     }
 
@@ -311,7 +311,7 @@ public class ServerLogListener extends ListenerAdapter {
         String body = "### \u2796 Role Deleted\n" +
                 "**Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.DANGER))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.DANGER))
                 .useComponentsV2(true).queue();
     }
 
@@ -323,7 +323,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Before:** `" + event.getOldName() + "`\n" +
                 "**After:** `" + event.getNewName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
                 .useComponentsV2(true).queue();
     }
 
@@ -334,7 +334,7 @@ public class ServerLogListener extends ListenerAdapter {
         String body = "### \uD83D\uDD12 Role Permissions Changed\n" +
                 "**Role Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
+        ch.sendMessageEmbeds(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
                 .useComponentsV2(true).queue();
     }
 }

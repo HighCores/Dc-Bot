@@ -47,8 +47,7 @@ public class CommandService {
         if (menu != null) {
             // COMPLIANT V2: Use discrete builder for slash replies
             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-            mcb.setComponents(buildMenuContainer(menu));
-            mcb.useComponentsV2(true);
+            mcb.setEmbeds(buildMenuContainer(menu));
             event.reply(mcb.build()).queue();
             return;
         }
@@ -70,7 +69,7 @@ public class CommandService {
         channel.sendMessage(mcb.build()).queue();
     }
 
-    private static Container buildMenuContainer(JsonObject menu) {
+    private static net.dv8tion.jda.api.entities.MessageEmbed buildMenuContainer(JsonObject menu) {
         String title = menu.has("title") && !menu.get("title").isJsonNull() ? menu.get("title").getAsString() : "Terminal Module";
         String desc = menu.has("description") && !menu.get("description").isJsonNull() ? menu.get("description").getAsString().replace("\\n", "\n") : "System data unavailable.";
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
