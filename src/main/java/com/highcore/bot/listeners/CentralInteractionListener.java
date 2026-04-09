@@ -29,14 +29,11 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
         
-        // MODAL TRIGGER DETECTION: Modals CANNOT be sent after deferEdit/acknowledgement.
-        // We must process these IMMEDIATELY.
+        // MODAL TRIGGER DETECTION: ONLY bypass for buttons that call .replyModal()
+        // 'ticket_init_order' sends a menu, so it MUST be deferred/acknowledged normally.
         boolean isModalTrigger = id.equals("ticket_init_support") || 
-                                 id.equals("ticket_init_order") || 
                                  id.equals("ticket_init_complaint") || 
                                  id.equals("order_final_meta") ||
-                                 id.equals("modal_support_init") ||
-                                 id.equals("modal_complaint_init") ||
                                  id.equals("modal_bc");
 
         if (isModalTrigger) {
@@ -103,7 +100,6 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        // SILENT COORDINATION for menus too: deferEdit to keep UI clean
         if (!event.isAcknowledged()) {
             event.deferEdit().queue(hook -> processSelect(event));
         } else {
