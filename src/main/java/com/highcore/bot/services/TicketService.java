@@ -111,6 +111,12 @@ public class TicketService {
                .queue();
     }
 
+    public static void reopenTicket(TextChannel channel, Member reopener) {
+        channel.sendMessage("### Session Restored\nReactivated by **" + reopener.getEffectiveName() + "**.")
+               .setComponents(ActionRow.of(getTicketButtons("open")))
+               .queue();
+    }
+
     public static void closeTicket(TextChannel channel, Member closer) {
         channel.sendMessage("Closure initialized by **" + closer.getEffectiveName() + "**. Select protocol:")
                .setComponents(ActionRow.of(
