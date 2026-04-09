@@ -30,6 +30,9 @@ public class EmbedUtil {
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            layout.add(net.dv8tion.jda.api.components.media.MediaLayout.of(imageUrl));
+        }
         if (title != null && !title.isEmpty()) layout.add(TextDisplay.of("### " + title));
         if (description != null && !description.isEmpty()) layout.add(TextDisplay.of(description));
         if (rows != null) {
