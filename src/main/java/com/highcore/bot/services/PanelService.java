@@ -182,33 +182,34 @@ public class PanelService {
     }
 
     public static void handleSupportFlow(Object target) {
-        TextInput issue = TextInput.create("issue_desc", "What is the issue?", TextInputStyle.PARAGRAPH).setRequired(true).build();
-        TextInput svc = TextInput.create("issue_service", "Which service?", TextInputStyle.SHORT).setPlaceholder("Designer, Developer...").setRequired(true).build();
+        // Correct JDA 6 signature: TextInput.create(id, style).setLabel(label)
+        TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setLabel("What is the issue?").setRequired(true).build();
+        TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).setLabel("Which service?").setPlaceholder("Designer, Developer...").setRequired(true).build();
         
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
-                .addComponents(ActionRow.of(issue), ActionRow.of(svc)).build()).queue();
+                .addActionRow(issue).addActionRow(svc).build()).queue();
         }
     }
 
     public static void handleComplaintFlow(Object target) {
-        TextInput targetAdmin = TextInput.create("comp_target", "Who is involved?", TextInputStyle.SHORT).setRequired(true).build();
-        TextInput reason = TextInput.create("comp_reason", "Reason/Behavior?", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        TextInput targetAdmin = TextInput.create("comp_target", TextInputStyle.SHORT).setLabel("Who is involved?").setRequired(true).build();
+        TextInput reason = TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).setLabel("Reason/Behavior?").setRequired(true).build();
 
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
-                .addComponents(ActionRow.of(targetAdmin), ActionRow.of(reason)).build()).queue();
+                .addActionRow(targetAdmin).addActionRow(reason).build()).queue();
         }
     }
 
     public static void handleOrderMetaModal(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        TextInput pName = TextInput.create("p_name", "Project Name", TextInputStyle.SHORT).setRequired(true).build();
-        TextInput cName = TextInput.create("p_client", "Client Name", TextInputStyle.SHORT).setRequired(true).build();
-        TextInput contact = TextInput.create("p_contact", "Contact Info", TextInputStyle.SHORT).setRequired(true).build();
-        TextInput eta = TextInput.create("p_eta", "Expected ETA", TextInputStyle.SHORT).setRequired(true).build();
+        TextInput pName = TextInput.create("p_name", TextInputStyle.SHORT).setLabel("Project Name").setRequired(true).build();
+        TextInput cName = TextInput.create("p_client", TextInputStyle.SHORT).setLabel("Client Name").setRequired(true).build();
+        TextInput contact = TextInput.create("p_contact", TextInputStyle.SHORT).setLabel("Contact Info").setRequired(true).build();
+        TextInput eta = TextInput.create("p_eta", TextInputStyle.SHORT).setLabel("Expected ETA").setRequired(true).build();
 
         event.replyModal(Modal.create("modal_order_finalize", "PROJECT CONFIGURATION")
-            .addComponents(ActionRow.of(pName), ActionRow.of(cName), ActionRow.of(contact), ActionRow.of(eta)).build()).queue();
+            .addActionRow(pName).addActionRow(cName).addActionRow(contact).addActionRow(eta).build()).queue();
     }
 
     public static void handleOrderFlow(Object target) {
