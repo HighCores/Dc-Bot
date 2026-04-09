@@ -24,6 +24,7 @@ public class PanelService {
     private static void handleReply(Object target, Object content, boolean ephemeral) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
         if (content instanceof Container c) components.add(c);
+        else if (content instanceof MessageTopLevelComponent mtc) components.add(mtc);
         else if (content instanceof List<?> list) {
             for (Object obj : list) if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
         }
@@ -35,7 +36,7 @@ public class PanelService {
                 InteractionHook hook = event.getHook();
                 net.dv8tion.jda.api.utils.messages.MessageEditBuilder meb = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
                     .setEmbeds(banner).setComponents(components).useComponentsV2(true);
-                hook.editOriginal(meb.build()).queue();
+                hook.editOriginal(meb.build()).queue(s -> {}, f -> System.err.println("Follow-up failed: " + f.getMessage()));
             } else {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
                     .addEmbeds(banner).setComponents(components).useComponentsV2(true);
