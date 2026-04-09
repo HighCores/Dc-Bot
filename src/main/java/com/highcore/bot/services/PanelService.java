@@ -187,8 +187,8 @@ public class PanelService {
         TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).build();
         TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).build();
 
-        if (target instanceof IModalCallback cb) {
-            cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
+        if (target instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modalTarget) {
+            modalTarget.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
                 .addComponents(Label.of("What is the issue?", issue), Label.of("Which service?", svc))
                 .build()).queue();
         }
@@ -198,8 +198,8 @@ public class PanelService {
         TextInput targetAdmin = TextInput.create("comp_target", TextInputStyle.SHORT).build();
         TextInput reason = TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).build();
 
-        if (target instanceof IModalCallback cb) {
-            cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
+        if (target instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modalTarget) {
+            modalTarget.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
                 .addComponents(Label.of("Who is involved?", targetAdmin), Label.of("Reason/Behavior?", reason))
                 .build()).queue();
         }
