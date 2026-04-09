@@ -14,6 +14,7 @@ import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import com.highcore.bot.services.InvoiceService;
 import java.util.*;
@@ -182,33 +183,40 @@ public class PanelService {
     }
 
     public static void handleSupportFlow(Object target) {
-        TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setLabel("What is the issue?").setRequired(true).build();
-        TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).setLabel("Which service?").setPlaceholder("Designer, Developer...").setRequired(true).build();
+        TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).build();
+        TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).build(); // placeholder omitted due to API strictness
         
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
-                .addComponents(ActionRow.of(issue), ActionRow.of(svc)).build()).queue();
+                .addComponents(Label.of("What is the issue?", issue), Label.of("Which service?", svc))
+                .build()).queue();
         }
     }
 
     public static void handleComplaintFlow(Object target) {
-        TextInput targetAdmin = TextInput.create("comp_target", TextInputStyle.SHORT).setLabel("Who is involved?").setRequired(true).build();
-        TextInput reason = TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).setLabel("Reason/Behavior?").setRequired(true).build();
+        TextInput targetAdmin = TextInput.create("comp_target", TextInputStyle.SHORT).build();
+        TextInput reason = TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).build();
 
         if (target instanceof IReplyCallback cb) {
             cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
-                .addComponents(ActionRow.of(targetAdmin), ActionRow.of(reason)).build()).queue();
+                .addComponents(Label.of("Who is involved?", targetAdmin), Label.of("Reason/Behavior?", reason))
+                .build()).queue();
         }
     }
 
     public static void handleOrderMetaModal(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        TextInput pName = TextInput.create("p_name", TextInputStyle.SHORT).setLabel("Project Name").setRequired(true).build();
-        TextInput cName = TextInput.create("p_client", TextInputStyle.SHORT).setLabel("Client Name").setRequired(true).build();
-        TextInput contact = TextInput.create("p_contact", TextInputStyle.SHORT).setLabel("Contact Info").setRequired(true).build();
-        TextInput eta = TextInput.create("p_eta", TextInputStyle.SHORT).setLabel("Expected ETA").setRequired(true).build();
+        TextInput pName = TextInput.create("p_name", TextInputStyle.SHORT).build();
+        TextInput cName = TextInput.create("p_client", TextInputStyle.SHORT).build();
+        TextInput contact = TextInput.create("p_contact", TextInputStyle.SHORT).build();
+        TextInput eta = TextInput.create("p_eta", TextInputStyle.SHORT).build();
 
         event.replyModal(Modal.create("modal_order_finalize", "PROJECT CONFIGURATION")
-            .addComponents(ActionRow.of(pName), ActionRow.of(cName), ActionRow.of(contact), ActionRow.of(eta)).build()).queue();
+            .addComponents(
+                Label.of("Project Name", pName), 
+                Label.of("Client Name", cName), 
+                Label.of("Contact Info", contact), 
+                Label.of("Expected ETA", eta)
+            ).build()).queue();
     }
 
     public static void handleOrderFlow(Object target) {
