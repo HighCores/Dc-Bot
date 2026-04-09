@@ -3,6 +3,7 @@ package com.highcore.bot.services;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
@@ -184,9 +185,9 @@ public class PanelService {
 
     public static void handleSupportFlow(Object target) {
         TextInput issue = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).build();
-        TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).build(); // placeholder omitted due to API strictness
-        
-        if (target instanceof IReplyCallback cb) {
+        TextInput svc = TextInput.create("issue_service", TextInputStyle.SHORT).build();
+
+        if (target instanceof IModalCallback cb) {
             cb.replyModal(Modal.create("modal_support_init", "TECHNICAL SUPPORT")
                 .addComponents(Label.of("What is the issue?", issue), Label.of("Which service?", svc))
                 .build()).queue();
@@ -197,7 +198,7 @@ public class PanelService {
         TextInput targetAdmin = TextInput.create("comp_target", TextInputStyle.SHORT).build();
         TextInput reason = TextInput.create("comp_reason", TextInputStyle.PARAGRAPH).build();
 
-        if (target instanceof IReplyCallback cb) {
+        if (target instanceof IModalCallback cb) {
             cb.replyModal(Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
                 .addComponents(Label.of("Who is involved?", targetAdmin), Label.of("Reason/Behavior?", reason))
                 .build()).queue();
