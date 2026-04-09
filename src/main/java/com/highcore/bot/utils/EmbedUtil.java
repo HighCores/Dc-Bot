@@ -84,14 +84,14 @@ public class EmbedUtil {
             ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
-        // 1. BRANDING BANNER - Using MediaGallery for high-fidelity rendering
+        // 1. ELITE HEADER
+        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**" + title.toUpperCase() + "**" : "**" + title.toUpperCase() + " : " + subtitle.toUpperCase() + "**";
+        layout.add(TextDisplay.of(headerText));
+
+        // 2. BRANDING BANNER - Reinforced alignment
         if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
-
-        // 2. ELITE HEADER
-        String headerText = (subtitle == null || subtitle.isEmpty()) ? "**" + title.toUpperCase() + "**" : "**" + title.toUpperCase() + " : " + subtitle.toUpperCase() + "**";
-        layout.add(TextDisplay.of(headerText));
 
         // 3. TECHNICAL BODY
         if (body != null && !body.isEmpty()) {

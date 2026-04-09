@@ -27,8 +27,21 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        // SILENT COORDINATION: deferEdit acknowledges instantly WITHOUT showing 'thinking...'
-        if (!event.isAcknowledged()) {
+        String id = event.getComponentId();
+        
+        // MODAL TRIGGER DETECTION: Modals CANNOT be sent after deferEdit/acknowledgement.
+        // We must process these IMMEDIATELY.
+        boolean isModalTrigger = id.equals("ticket_init_support") || 
+                                 id.equals("ticket_init_order") || 
+                                 id.equals("ticket_init_complaint") || 
+                                 id.equals("order_final_meta") ||
+                                 id.equals("modal_support_init") ||
+                                 id.equals("modal_complaint_init") ||
+                                 id.equals("modal_bc");
+
+        if (isModalTrigger) {
+            processButton(event);
+        } else if (!event.isAcknowledged()) {
             event.deferEdit().queue(hook -> processButton(event));
         } else {
             processButton(event);
