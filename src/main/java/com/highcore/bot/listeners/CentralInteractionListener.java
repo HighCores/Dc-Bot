@@ -53,6 +53,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
             if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) { PanelService.sendTicketPanel(event); return; }
+            if (id.equals("order_final_meta")) { PanelService.handleOrderMetaModal(event); return; }
 
 
             // PING ROLE HANDLING
@@ -97,6 +98,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
             if (id.equals("view_services_cat")) { handleServiceDisplay(event, val); }
             else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
+            else if (id.equals("order_sector_select")) { PanelService.handleSectorSelection(event, val); }
+            else if (id.startsWith("order_service_select_")) { PanelService.handleServiceSelection(event, event.getValues()); }
+            else if (id.equals("order_extras_select")) { /* Handled via Finalize button state */ }
             else if (id.equals("ticket_type_select")) {
                 event.getHook().sendMessage("Initializing terminal session...").setEphemeral(true).queue();
                 TicketService.createTicket(event.getGuild(), event.getUser(), "General Request", "MEDIUM", val).queue();
@@ -148,6 +152,19 @@ public class CentralInteractionListener extends ListenerAdapter {
                 BroadcastService.startBroadcast(event.getGuild(), event.getValue("message").getAsString(), s.roleId, s.attUrl);
                 event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
             }
+        } else if (id.equals("modal_order_finalize")) {
+            event.deferReply(true).queue();
+            String pName = event.getValue("p_name").getAsString();
+            String cName = event.getValue("p_client").getAsString();
+            String contact = event.getValue("p_contact").getAsString();
+            String eta = event.getValue("p_eta").getAsString();
+            
+            // For demo: creating dummy items since we don't have session state persistence yet
+            // In a real scenario, we'd pull from a session map. 
+            List<InvoiceService.OrderItem> items = List.of(new InvoiceService.OrderItem("Primary Agency Service", 100.0));
+            
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, contact, eta, items);
+            event.getHook().sendMessage("Terminal session established. Order initiated.").queue();
         }
     }
 }

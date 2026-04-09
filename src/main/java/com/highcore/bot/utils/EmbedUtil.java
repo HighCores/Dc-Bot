@@ -23,8 +23,10 @@ public class EmbedUtil {
     public static final String BANNER_COLORS = BANNER_MAIN;
     public static final String BANNER_RULES = BANNER_MAIN;
     public static final String BANNER_SOCIAL = BANNER_MAIN;
-    public static final String BANNER_SUPPORT = BANNER_MAIN;
+    public static final String BANNER_SUPPORT = "https://cdn.discordapp.com/attachments/1491791586479177768/1491810902243148027/IMG_20260409_174341.png";
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
+    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png";
+    public static final String BANNER_ORDER_TIK = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg";
 
     public static final Color SUCCESS = Color.decode("#D4AF37");
     public static final Color DANGER = Color.decode("#8B0000");
@@ -48,6 +50,16 @@ public class EmbedUtil {
             - No advertisements or external promotions.
             - No spamming or excessive mentions.
             - No NSFW, political, or religious content.
+            """;
+
+    public static final String TICKET_RULES = """
+            ### 📜 PROTOCOLS & COMPLIANCE
+            
+            - **MUTUAL RESPECT:** Respect all staff members. Harassment or offensive language will result in an immediate ban.
+            - **SINGLE SESSION:** Open only one ticket per issue. Do not duplicate requests to speed up response times.
+            - **PRECISION:** Explain your issue fully before staff arrives to ensure a fast and effective resolution.
+            - **CONTENT CONTROL:** External links and spam are strictly prohibited without staff authorization.
+            - **MENTION BAN:** Strictly NO pinging/mentioning staff members within the ticket.
             """;
 
     public static final String TERMS_TEXT = """

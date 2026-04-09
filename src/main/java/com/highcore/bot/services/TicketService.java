@@ -170,6 +170,37 @@ public class TicketService {
         channel.sendMessage(mcb.build()).queue();
     }
 
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String eta, List<InvoiceService.OrderItem> items) {
+        Member member = guild.getMember(user);
+        if (member == null) return;
+
+        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
+        if (cat == null) return;
+
+        String ticketId = String.format("%04d", new Random().nextInt(10000));
+        String channelName = "order-" + ticketId;
+
+        guild.createTextChannel(channelName, cat)
+            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+            .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) // LOCKED UNTIL PAYMENT
+            .queue(channel -> {
+                String summary = "Project: **" + pName + "**\nETA: **" + eta + "**\n\n**STATUS: PENDING PAYMENT**\nChat is disabled until the transaction is verified.";
+                
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                mcb.setComponents(getWelcomeContainer(ticketId, user.getName(), "order", summary, 
+                    ActionRow.of(getTicketButtons("open")), 
+                    ActionRow.of(getPaymentButtons(ticketId))));
+                mcb.useComponentsV2(true);
+                channel.sendMessage(mcb.build()).queue();
+
+                // Generate and Send Invoice
+                byte[] invoiceImg = InvoiceService.generateInvoice(cName, pName, items);
+                if (invoiceImg != null) {
+                    channel.sendFiles(FileUpload.fromData(invoiceImg, "invoice.png")).queue();
+                }
+            });
+    }
+
     public static void sendVisualReceipt(TextChannel channel, JsonObject data) {
         try {
             byte[] receiptData = ReceiptService.generateReceipt(data, channel.getName());

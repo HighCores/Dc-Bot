@@ -168,8 +168,108 @@ public class PanelService {
     }
 
     public static void sendTicketPanel(Object target) {
-        StringSelectMenu menu = StringSelectMenu.create("ticket_type_select").setPlaceholder("Case Type...").addOption("Order Placement", "purchase").addOption("Technical Ops", "tech_support").addOption("General Report", "complaint").build();
-        reply(target, EmbedUtil.containerBranded("SESSIONS", "Initiate Request", "Establish a secure link. Room: <#1488798547947159612>", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
+        reply(target, EmbedUtil.containerBranded("TICKETS", "Logistics Hub", EmbedUtil.TICKET_RULES, EmbedUtil.BANNER_SUPPORT, null,
+                ActionRow.of(
+                    Button.primary("ticket_init_support", "Technical Support \u001f\u001f\u001f\u001f\u001f\u001f"),
+                    Button.success("ticket_init_order", "New Order \u001f\u001f\u001f\u001f\u001f\u001f"),
+                    Button.danger("ticket_init_complaint", "File Complaint \u001f\u001f\u001f\u001f\u001f\u001f")
+                )
+        ));
+    }
+
+    public static void handleSupportFlow(Object target) {
+        net.dv8tion.jda.api.components.textinput.TextInput issue = net.dv8tion.jda.api.components.textinput.TextInput.create("issue_desc", "What is the issue?", net.dv8tion.jda.api.components.textinput.TextInputStyle.PARAGRAPH).setRequired(true).build();
+        net.dv8tion.jda.api.components.textinput.TextInput service = net.dv8tion.jda.api.components.textinput.TextInput.create("issue_service", "Which service is this about?", net.dv8tion.jda.api.components.textinput.TextInputStyle.SHORT).setPlaceholder("Designer, Developer, Editor...").setRequired(true).build();
+        
+        if (target instanceof IReplyCallback cb) {
+            cb.replyModal(net.dv8tion.jda.api.modals.Modal.create("modal_support_init", "TECHNICAL SUPPORT")
+                .addComponents(ActionRow.of(issue), ActionRow.of(service)).build()).queue();
+        }
+    }
+
+    public static void handleComplaintFlow(Object target) {
+        net.dv8tion.jda.api.components.textinput.TextInput targetAdmin = net.dv8tion.jda.api.components.textinput.TextInput.create("comp_target", "Who is the person involved?", net.dv8tion.jda.api.components.textinput.TextInputStyle.SHORT).setRequired(true).build();
+        net.dv8tion.jda.api.components.textinput.TextInput reason = net.dv8tion.jda.api.components.textinput.TextInput.create("comp_reason", "Is it a job issue or admin behavior?", net.dv8tion.jda.api.components.textinput.TextInputStyle.PARAGRAPH).setRequired(true).build();
+
+        if (target instanceof IReplyCallback cb) {
+            cb.replyModal(net.dv8tion.jda.api.modals.Modal.create("modal_complaint_init", "OFFICIAL COMPLAINT")
+                .addComponents(ActionRow.of(targetAdmin), ActionRow.of(reason)).build()).queue();
+        }
+    }
+
+    public static void handleOrderFlow(Object target) {
+        StringSelectMenu menu = StringSelectMenu.create("order_sector_select")
+            .setPlaceholder("Select Creative Sector...")
+            .addOption("Designer Sector", "sect_designer")
+            .addOption("Developer Sector", "sect_developer")
+            .addOption("Editing & Animation", "sect_editor")
+            .addOption("Minecraft Developer", "sect_mcdev")
+            .build();
+        
+        replyEphemeral(target, EmbedUtil.containerBranded("ORDER", "Sector Selection", "Identify the specialized department for your request.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu)));
+    }
+
+    public static void handleSectorSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, String val) {
+        StringSelectMenu.Builder menu = StringSelectMenu.create("order_service_select_" + val)
+            .setPlaceholder("Select Services (Multiple Allowed)...")
+            .setMinValues(1).setMaxValues(5);
+
+        switch (val) {
+            case "sect_designer" -> {
+                menu.addOption("Scary Logos ($30)", "Logo-30")
+                    .addOption("Visual Identity ($60)", "Identity-60")
+                    .addOption("Posters & Ads ($90)", "Posters-90")
+                    .addOption("Social Media ($20)", "Social-20")
+                    .addOption("Welcome/Discord Packs ($20)", "Discord-20")
+                    .addOption("Covers & Banners ($30)", "Covers-30")
+                    .addOption("Prints ($25)", "Prints-25")
+                    .addOption("Motion Graphics ($90)", "Motion-90")
+                    .addOption("UI/UX Design ($120)", "UIUX-120")
+                    .addOption("Infographic ($40)", "Info-40")
+                    .addOption("Emoji / Stickers ($30)", "Emoji-30");
+            }
+            case "sect_developer" -> {
+                menu.addOption("Web Developer ($50)", "Web-50")
+                    .addOption("Bot Developer ($50)", "Bots-50")
+                    .addOption("Full-Stack Engine ($100)", "FullStack-100")
+                    .addOption("Front-End ($30)", "Front-30")
+                    .addOption("Back-End ($40)", "Back-40")
+                    .addOption("AI & Automation ($100)", "AI-100")
+                    .addOption("Database Admin ($30)", "DB-30");
+            }
+            case "sect_editor" -> {
+                menu.addOption("Reels/Shorts Editor ($60)", "Shorts-60")
+                    .addOption("Long-form Editor ($120)", "Long-120")
+                    .addOption("Animation Editor ($150)", "Anim-150")
+                    .addOption("Gaming Editor ($150)", "Game-150");
+            }
+            case "sect_mcdev" -> {
+                menu.addOption("Plugin Developer ($50)", "Plugin-50")
+                    .addOption("Config Specialist ($80)", "Config-80")
+                    .addOption("Map Maker ($30)", "Map-30")
+                    .addOption("Texture Creator ($130)", "Tex-130")
+                    .addOption("3D Modeler ($65)", "3D-65")
+                    .addOption("Technical Admin ($55)", "Sys-55");
+            }
+        }
+        
+        reply(event, EmbedUtil.containerBranded("CATALOG", "Service Matrix", "Select your primary technical requirements.", EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu.build())));
+    }
+
+    public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
+        StringSelectMenu.Builder menu = StringSelectMenu.create("order_extras_select")
+            .setPlaceholder("Select Extras (Optional)...")
+            .setMinValues(0).setMaxValues(5);
+
+        menu.addOption("Rush Delivery ($45-70)", "Rush-70")
+            .addOption("Source Files (AI/PSD) ($150-250)", "Source-250")
+            .addOption("Animation Add-on ($200)", "AnimExtra-200")
+            .addOption("Multi-Color Variants ($35)", "Variants-35")
+            .addOption("Extra Revisions ($35-180)", "Revisions-180")
+            .addOption("Copywriting ($25)", "Copy-25");
+        
+        String summary = "You have selected " + vals.size() + " items. Proceed to refine with extras.";
+        reply(event, EmbedUtil.containerBranded("EXTRAS", "The Seconds", summary, EmbedUtil.BANNER_MAIN, null, ActionRow.of(menu.build()), ActionRow.of(Button.success("order_final_meta", "Finalize Details"))));
     }
 
     public static void sendOrderPanel(Object target) {
