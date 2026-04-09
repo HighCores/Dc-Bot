@@ -3,6 +3,7 @@ package com.highcore.bot.services;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
@@ -11,6 +12,7 @@ import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,7 +30,6 @@ public class TicketService {
         
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) {
-            log.warn("Elite category not found. Creating fallback.");
             guild.createCategory("Tickets").queue(c -> proceedWithTicket(event, c, subject, priority, type));
             return;
         }
@@ -45,16 +46,17 @@ public class TicketService {
             .queue(channel -> {
                 SupabaseClient.createTicket(ticketId, event.getUser().getId(), channel.getId(), type, subject, priority, null);
                 
-                String welcome = "Welcome " + event.getUser().getAsMention() + ", our team will be with you shortly regarding: **" + subject + "**";
+                String welcome = "Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**";
+                
+                // Bulletproof Image + Components
+                net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_SUPPORT).setColor(EmbedUtil.ACCENT).build();
+                
+                channel.sendMessageEmbeds(banner).queue();
                 channel.sendMessage(welcome)
-                       .setComponents(EmbedUtil.eliteContainer("Support Ticket", "Active session created for your request.", EmbedUtil.BANNER_SUPPORT, ActionRow.of(getTicketButtons("open"))))
+                       .setComponents(EmbedUtil.eliteContainer("Support Ticket", "Your active session has been initialized.", null, ActionRow.of(getTicketButtons("open"))))
                        .queue();
 
-                if (event.isAcknowledged()) {
-                    event.getHook().sendMessage("Success! Your ticket is ready: " + channel.getAsMention()).setEphemeral(true).queue();
-                } else {
-                    event.reply("Success! Your ticket is ready: " + channel.getAsMention()).setEphemeral(true).queue();
-                }
+                event.getHook().sendMessage("Success! Your ticket is ready: " + channel.getAsMention()).setEphemeral(true).queue();
             });
     }
 
@@ -66,18 +68,19 @@ public class TicketService {
         guild.createTextChannel(channelName, cat)
             .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
             .queue(channel -> {
-                // Message 1: Project Details
                 String welcome = "Hello " + user.getAsMention() + ",\n\n" +
                                 "Project: **" + pName + "**\nEstimated delivery: **" + eta + "**\n\n" +
-                                "*Note: This chat will remain locked until the payment below is verified.*";
+                                "*The secure chat environment will be unlocked once payment is settled.*";
                 
+                net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_ORDER_TIK).setColor(EmbedUtil.ACCENT).build();
+                channel.sendMessageEmbeds(banner).queue();
+
                 channel.sendMessage(welcome)
-                       .setComponents(EmbedUtil.eliteContainer("Project Request", "Session created. Awaiting payment to initialize development.", EmbedUtil.BANNER_ORDER_TIK, ActionRow.of(getTicketButtons("open"))))
+                       .setComponents(EmbedUtil.eliteContainer("Project Request", "Session created. Awaiting payment to initialize development.", null, ActionRow.of(getTicketButtons("open"))))
                        .queue(m -> {
-                            // Message 2: Invoice & Payment
                             byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
                             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder m2 = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-                            m2.addContent("### Invoice details");
+                            m2.addContent("### Invoice Details");
                             if (invoiceData != null) m2.addFiles(FileUpload.fromData(invoiceData, "invoice.png"));
                             m2.setComponents(ActionRow.of(getPaymentButtons(ticketId)));
                             channel.sendMessage(m2.build()).queue();
@@ -88,28 +91,28 @@ public class TicketService {
     public static List<Button> getTicketButtons(String status) {
         List<Button> buttons = new ArrayList<>();
         if (status.equals("open")) {
-            buttons.add(Button.primary("ticket_claim", "Claim Ticket"));
-            buttons.add(Button.danger("ticket_close", "Close Ticket"));
+            buttons.add(Button.primary("ticket_claim", "Claim Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")));
+            buttons.add(Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12")));
         } else if (status.equals("claimed")) {
-            buttons.add(Button.danger("ticket_close", "Close Ticket"));
+            buttons.add(Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12")));
         } else if (status.equals("closed")) {
-            buttons.add(Button.success("ticket_reopen", "Reopen Ticket"));
-            buttons.add(Button.danger("ticket_delete", "Delete Ticket"));
+            buttons.add(Button.success("ticket_reopen", "Reopen Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD04")));
+            buttons.add(Button.danger("ticket_delete", "Delete Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F")));
         }
         return buttons;
     }
 
     public static List<Button> getPaymentButtons(String ticketId) {
         return List.of(
-            Button.secondary("pay_paypal_" + ticketId, "Paypal"),
-            Button.secondary("pay_stripe_" + ticketId, "Stripe"),
-            Button.secondary("pay_local_" + ticketId, "Local transfer")
+            Button.secondary("pay_paypal_" + ticketId, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+            Button.secondary("pay_stripe_" + ticketId, "Stripe").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
+            Button.secondary("pay_local_" + ticketId, "Local Transfer").withEmoji(Emoji.fromUnicode("\uD83D\uDCE6"))
         );
     }
 
     public static void claimTicket(TextChannel channel, Member claimer) {
         channel.getManager().setTopic("Handled by: " + claimer.getEffectiveName()).queue();
-        channel.sendMessage("Welcome! **" + claimer.getEffectiveName() + "** has joined the chat and will assist you shortly.")
+        channel.sendMessage("### Agent Notification\n**" + claimer.getEffectiveName() + "** has joined the chat and will assist you shortly.")
                .setComponents(ActionRow.of(getTicketButtons("claimed")))
                .queue();
     }
@@ -117,8 +120,8 @@ public class TicketService {
     public static void closeTicket(TextChannel channel, Member closer) {
         channel.sendMessage("Preparation for closure finalized by **" + closer.getEffectiveName() + "**. Please confirm the next action:")
                .setComponents(ActionRow.of(
-                   Button.success("order_status_update_TRANSCRIPT", "Transcript"),
-                   Button.danger("ticket_delete", "Delete Ticket")
+                   Button.success("order_status_update_TRANSCRIPT", "Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
+                   Button.danger("ticket_delete", "Delete Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F"))
                )).queue();
     }
 
@@ -129,9 +132,8 @@ public class TicketService {
                 log.sendMessage("Archive recorded: **" + channel.getName() + "** | Operator: " + closer.getEffectiveName()).queue();
             }
         }
-        
         channel.getManager().setTopic("Status: Closed").queue();
-        channel.sendMessage("### Ticket finalized\nThe session is now archived.")
+        channel.sendMessage("### Ticket Finalized\nThe session is now archived.")
                .setComponents(ActionRow.of(getTicketButtons("closed")))
                .queue();
 
@@ -153,13 +155,5 @@ public class TicketService {
         channel.sendMessage("Ticket reopened by **" + reopener.getEffectiveName() + "**. Communication restored.")
                .setComponents(ActionRow.of(getTicketButtons("open")))
                .queue();
-    }
-
-    public static void sendVisualReceipt(TextChannel channel, JsonObject data) {
-        try {
-            byte[] receipt = ReceiptService.generateReceipt(data, channel.getName());
-            channel.sendFiles(FileUpload.fromData(receipt, "invoice.png")).queue();
-            channel.sendMessage("Payment confirmed. Your project is now being initialized.").queue();
-        } catch (Exception e) { log.error("Receipt failure", e); }
     }
 }
