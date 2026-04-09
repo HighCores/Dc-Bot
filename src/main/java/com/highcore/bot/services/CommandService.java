@@ -107,7 +107,7 @@ public class CommandService {
             if (!buttons.isEmpty()) rows.add(ActionRow.of(buttons));
         }
 
-        return EmbedUtil.containerBranded("OPERATIONS", title, desc, imageUrl, null, rows.toArray(new ActionRow[0]));
+        return EmbedUtil.containerBranded("Operations", title, desc, imageUrl, null, rows.toArray(new ActionRow[0]));
     }
 
     private static boolean hasPermission(Member member, String perm) {

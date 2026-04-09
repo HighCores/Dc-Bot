@@ -27,10 +27,9 @@ public class TicketService {
     public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, String subject, String priority, String type) {
         Guild guild = event.getGuild();
         if (guild == null) return;
-        
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) {
-            guild.createCategory("Tickets").queue(c -> proceedWithTicket(event, c, subject, priority, type));
+            guild.createCategory("Agency Tickets").queue(c -> proceedWithTicket(event, c, subject, priority, type));
             return;
         }
         proceedWithTicket(event, cat, subject, priority, type);
@@ -46,17 +45,16 @@ public class TicketService {
             .queue(channel -> {
                 SupabaseClient.createTicket(ticketId, event.getUser().getId(), channel.getId(), type, subject, priority, null);
                 
-                String welcome = "Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**";
-                
-                // Bulletproof Image + Components
                 net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_SUPPORT).setColor(EmbedUtil.ACCENT).build();
-                
                 channel.sendMessageEmbeds(banner).queue();
-                channel.sendMessage(welcome)
-                       .setComponents(EmbedUtil.eliteContainer("Support Ticket", "Your active session has been initialized.", null, ActionRow.of(getTicketButtons("open"))))
-                       .queue();
 
-                event.getHook().sendMessage("Success! Your ticket is ready: " + channel.getAsMention()).setEphemeral(true).queue();
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .setContent("Welcome " + event.getUser().getAsMention() + ",\nOur support team will be with you shortly regarding: **" + subject + "**")
+                    .setComponents(EmbedUtil.eliteContainer("Active Session", "Communication line initialized.", null, ActionRow.of(getTicketButtons("open"))))
+                    .useComponentsV2(true);
+                
+                channel.sendMessage(mcb.build()).queue();
+                event.getHook().sendMessage("Success! Your session is active: " + channel.getAsMention()).setEphemeral(true).queue();
             });
     }
 
@@ -68,57 +66,53 @@ public class TicketService {
         guild.createTextChannel(channelName, cat)
             .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
             .queue(channel -> {
-                String welcome = "Hello " + user.getAsMention() + ",\n\n" +
-                                "Project: **" + pName + "**\nEstimated delivery: **" + eta + "**\n\n" +
-                                "*The secure chat environment will be unlocked once payment is settled.*";
-                
                 net.dv8tion.jda.api.entities.MessageEmbed banner = new EmbedBuilder().setImage(EmbedUtil.BANNER_ORDER_TIK).setColor(EmbedUtil.ACCENT).build();
                 channel.sendMessageEmbeds(banner).queue();
 
-                channel.sendMessage(welcome)
-                       .setComponents(EmbedUtil.eliteContainer("Project Request", "Session created. Awaiting payment to initialize development.", null, ActionRow.of(getTicketButtons("open"))))
-                       .queue(m -> {
-                            byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
-                            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder m2 = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-                            m2.addContent("### Invoice Details");
-                            if (invoiceData != null) m2.addFiles(FileUpload.fromData(invoiceData, "invoice.png"));
-                            m2.setComponents(ActionRow.of(getPaymentButtons(ticketId)));
-                            channel.sendMessage(m2.build()).queue();
-                       });
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mcb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .setContent("Hello " + user.getAsMention() + ",\n\nProject: **" + pName + "**\nExpected delivery: **" + eta + "**")
+                    .setComponents(EmbedUtil.eliteContainer("Project Initiation", "Session created. Awaiting payment settlement.", null, ActionRow.of(getTicketButtons("open"))))
+                    .useComponentsV2(true);
+                
+                channel.sendMessage(mcb.build()).queue(m -> {
+                    byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
+                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder m2 = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                        .setContent("### Official Invoice")
+                        .setComponents(ActionRow.of(getPaymentButtons(ticketId)))
+                        .useComponentsV2(true);
+                    if (invoiceData != null) m2.addFiles(FileUpload.fromData(invoiceData, "invoice.png"));
+                    channel.sendMessage(m2.build()).queue();
+                });
             });
     }
 
     public static List<Button> getTicketButtons(String status) {
-        List<Button> buttons = new ArrayList<>();
-        if (status.equals("open")) {
-            buttons.add(Button.primary("ticket_claim", "Claim Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")));
-            buttons.add(Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12")));
-        } else if (status.equals("claimed")) {
-            buttons.add(Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12")));
-        } else if (status.equals("closed")) {
-            buttons.add(Button.success("ticket_reopen", "Reopen Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD04")));
-            buttons.add(Button.danger("ticket_delete", "Delete Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F")));
-        }
-        return buttons;
+        if (status.equals("open")) return List.of(
+            Button.primary("ticket_claim", "Claim").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+            Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+        );
+        if (status.equals("claimed")) return List.of(Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12")));
+        return List.of(
+            Button.success("ticket_reopen", "Reopen").withEmoji(Emoji.fromUnicode("\uD83D\uDD04")),
+            Button.danger("ticket_delete", "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F"))
+        );
     }
 
-    public static List<Button> getPaymentButtons(String ticketId) {
+    public static List<Button> getPaymentButtons(String id) {
         return List.of(
-            Button.secondary("pay_paypal_" + ticketId, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
-            Button.secondary("pay_stripe_" + ticketId, "Stripe").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F")),
-            Button.secondary("pay_local_" + ticketId, "Local Transfer").withEmoji(Emoji.fromUnicode("\uD83D\uDCE6"))
+            Button.secondary("pay_paypal_" + id, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+            Button.secondary("pay_stripe_" + id, "Stripe").withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
         );
     }
 
     public static void claimTicket(TextChannel channel, Member claimer) {
-        channel.getManager().setTopic("Handled by: " + claimer.getEffectiveName()).queue();
-        channel.sendMessage("### Agent Notification\n**" + claimer.getEffectiveName() + "** has joined the chat and will assist you shortly.")
+        channel.sendMessage("### Agent Notification\n**" + claimer.getEffectiveName() + "** has entered the session.")
                .setComponents(ActionRow.of(getTicketButtons("claimed")))
                .queue();
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
-        channel.sendMessage("Preparation for closure finalized by **" + closer.getEffectiveName() + "**. Please confirm the next action:")
+        channel.sendMessage("Closure initialized by **" + closer.getEffectiveName() + "**. Select protocol:")
                .setComponents(ActionRow.of(
                    Button.success("order_status_update_TRANSCRIPT", "Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
                    Button.danger("ticket_delete", "Delete Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F"))
@@ -128,32 +122,10 @@ public class TicketService {
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
         if (status.equals("TRANSCRIPT")) {
             TextChannel log = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
-            if (log != null) {
-                log.sendMessage("Archive recorded: **" + channel.getName() + "** | Operator: " + closer.getEffectiveName()).queue();
-            }
+            if (log != null) log.sendMessage("Archive Recorded: **" + channel.getName() + "**").queue();
         }
-        channel.getManager().setTopic("Status: Closed").queue();
-        channel.sendMessage("### Ticket Finalized\nThe session is now archived.")
+        channel.sendMessage("### Ticket Archived\nCommunication line secured.")
                .setComponents(ActionRow.of(getTicketButtons("closed")))
-               .queue();
-
-        JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-        if (ticket != null) {
-            String uid = ticket.get("user_id").getAsString();
-            Member owner = channel.getGuild().getMemberById(uid);
-            if (owner != null) channel.upsertPermissionOverride(owner).deny(Permission.VIEW_CHANNEL).queue();
-        }
-    }
-
-    public static void reopenTicket(TextChannel channel, Member reopener) {
-        JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-        if (ticket != null) {
-            String uid = ticket.get("user_id").getAsString();
-            Member owner = channel.getGuild().getMemberById(uid);
-            if (owner != null) channel.upsertPermissionOverride(owner).grant(Permission.VIEW_CHANNEL).queue();
-        }
-        channel.sendMessage("Ticket reopened by **" + reopener.getEffectiveName() + "**. Communication restored.")
-               .setComponents(ActionRow.of(getTicketButtons("open")))
                .queue();
     }
 }
