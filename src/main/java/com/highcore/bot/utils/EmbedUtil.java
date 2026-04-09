@@ -143,9 +143,8 @@ public class EmbedUtil {
         return containerBranded("System", type, details, null);
     }
 
-    public static java.util.List<MessageTopLevelComponent> helpPanel() {
-        String title = "TERMINAL OPERATIONAL GUIDE";
-        String body = "Operational interface for High Core Agency. Access to multi-sector modules and system telemetry is restricted to authorized personnel.\n\n### COMMAND REGISTER\n- `/startup`: Initialize Hub\n- `/tickets`: Access Logistics\n- `/services`: Capability Matrix\n- `/stats`: Telemetry Status";
+    public static java.util.List<net.dv8tion.jda.api.components.LayoutComponent> helpPanel() {
+        String body = "TERMINAL OPERATIONAL GUIDE\n\nOperational interface for High Core Agency. Access to multi-sector modules and system telemetry is restricted to authorized personnel.\n\n### COMMAND REGISTER\n- `/startup`: Initialize Hub\n- `/tickets`: Access Logistics\n- `/services`: Capability Matrix\n- `/stats`: Telemetry Status";
         return List.of(containerBranded("HELP", "Manual", body, BANNER_MAIN));
     }
 
