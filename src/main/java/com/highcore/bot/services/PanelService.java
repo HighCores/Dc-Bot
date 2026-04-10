@@ -191,8 +191,8 @@ public class PanelService {
             TextInput issueInput   = TextInput.create("issue_desc",   TextInputStyle.PARAGRAPH).build();
             TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).build();
             modal.replyModal(Modal.create("modal_support_init", "Technical Support")
-                .addComponents(Label.of("What is your issue?", issueInput))
-                .addComponents(Label.of("Which service? (Designer / Developer / Editor / Minecraft)", serviceInput))
+                .addComponents(Label.of("Describe your issue", issueInput))
+                .addComponents(Label.of("Service (Designer/Dev/Editor/MC)", serviceInput))
                 .build()).queue();
         }
     }

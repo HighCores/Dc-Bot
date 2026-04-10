@@ -59,7 +59,7 @@ public class TicketService {
                 SupabaseClient.createTicket(ticketId, event.getUser().getId(),
                         channel.getId(), type, subject, priority, null);
 
-                String banner = type.equalsIgnoreCase("SUPPORT") ? EmbedUtil.BANNER_SUPPORT : EmbedUtil.BANNER_MAIN;
+                String banner = "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";
                 String header = switch (type.toUpperCase()) {
                     case "SUPPORT"   -> "Support Center";
                     case "COMPLAINT" -> "Complaint Board";
@@ -67,12 +67,10 @@ public class TicketService {
                 };
 
                 String body = String.format(
-                    "Hey %s, welcome to **High Core Agency** support.\n\n" +
-                    "A member of our team will be with you shortly. " +
-                    "Please describe your issue in as much detail as possible so we can help you faster.\n\n" +
-                    "**Type:** `%s`  ·  **Priority:** `%s`\n" +
-                    "**Subject:** `%s`" +
-                    "%s",
+                    "Welcome %s \uD83D\uDC4B\n\n" +
+                    "**Type:** `%s` · **Priority:** `%s` · **Subject:** `%s`" +
+                    "%s\n\n" +
+                    "A staff member will be with you shortly — please describe your issue in full detail.",
                     event.getUser().getAsMention(), type, priority, subject,
                     (details != null && !details.isBlank() ? "\n\n" + details : ""));
 
