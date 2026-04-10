@@ -1,7 +1,6 @@
 package com.highcore.bot.services;
 
 import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -116,7 +115,7 @@ public class PanelService {
         }
 
         if (embeds.isEmpty() && components.isEmpty()) {
-            embeds.add(new EmbedBuilder().setImage(EmbedUtil.BANNER_MAIN).setColor(EmbedUtil.ACCENT).build());
+            components.add(EmbedUtil.info("High Core Agency", "No content provided."));
         }
 
         if (target instanceof IReplyCallback event) {
@@ -305,27 +304,46 @@ public class PanelService {
         OrderSession session = ORDER_SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
         session.addons = new ArrayList<>(vals);
 
-        StringBuilder summary = new StringBuilder("**Your selections are confirmed.**\n\n");
-        if (!session.mainServices.isEmpty()) {
-            summary.append("**Main Services:**\n");
-            for (String s : session.mainServices) {
-                InvoiceService.OrderItem item = getOrderItem(s);
-                if (item != null) summary.append("— ").append(item.name)
-                    .append(item.price > 0 ? " — **$" + (int) item.price + "**" : " — *Price: Varies*").append("\n");
+        double total = 0;
+        StringBuilder mainLines = new StringBuilder();
+        StringBuilder addonLines = new StringBuilder();
+
+        for (String s : session.mainServices) {
+            InvoiceService.OrderItem item = getOrderItem(s);
+            if (item == null) continue;
+            if (item.price > 0) {
+                mainLines.append("`$").append(String.format("%-6.0f", item.price)).append("` ").append(item.name).append("\n");
+                total += item.price;
+            } else {
+                mainLines.append("`TBD  ` ").append(item.name).append("\n");
             }
         }
-        if (!session.addons.isEmpty()) {
-            summary.append("\n**Add-Ons:**\n");
-            for (String a : session.addons) {
-                InvoiceService.OrderItem item = getOrderItem(a);
-                if (item != null) summary.append("— ").append(item.name)
-                    .append(item.price > 0 ? " — **$" + (int) item.price + "**" : " — *Price: Varies*").append("\n");
+        for (String a : session.addons) {
+            InvoiceService.OrderItem item = getOrderItem(a);
+            if (item == null) continue;
+            if (item.price > 0) {
+                addonLines.append("`$").append(String.format("%-6.0f", item.price)).append("` ").append(item.name).append("\n");
+                total += item.price;
+            } else {
+                addonLines.append("`TBD  ` ").append(item.name).append("\n");
             }
         }
-        summary.append("\nClick **Proceed** to fill in your project details and open the ticket.");
+
+        StringBuilder summary = new StringBuilder();
+        summary.append("Here's a review of everything you selected.\n\n");
+        if (mainLines.length() > 0) {
+            summary.append("**\uD83D\uDCCC Main Services**\n").append(mainLines);
+        }
+        if (addonLines.length() > 0) {
+            summary.append("\n**\u2795 Add-Ons**\n").append(addonLines);
+        }
+        if (total > 0) {
+            summary.append("\n**\uD83D\uDCB0 Estimated Total: `$").append(String.format("%.0f", total)).append("+`**\n");
+        }
+        summary.append("\nWhen you're ready, click **Proceed** to enter your project details and open the ticket.");
 
         reply(event, EmbedUtil.eliteContainer("Order Summary", summary.toString(), null,
-            ActionRow.of(Button.success("order_final_meta", "Proceed to Project Details \u2192")
+            ActionRow.of(Button.success("order_final_meta", "Proceed \u2192")
                 .withEmoji(Emoji.fromUnicode("\u2705")))));
     }
 
