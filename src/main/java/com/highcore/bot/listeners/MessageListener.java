@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.AIService;
 import com.highcore.bot.services.AutoReplyService;
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.WordFilterService;
 import com.highcore.bot.config.Config;
 import com.highcore.bot.utils.EmbedUtil;
@@ -34,8 +35,8 @@ public class MessageListener extends ListenerAdapter {
                             "**Channel:** #" + event.getChannel().getName() + "\n" +
                             "**Detected Text:**\n> " + content;
                     
-                    logChannel.sendMessageEmbeds(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER)).queue();
-                    event.getChannel().sendMessageEmbeds(EmbedUtil.error("PROTECTION VIOLATION", "Link detection triggered. Structural integrity maintained.")).queue();
+                    PanelService.reply(logChannel, EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER));
+                    PanelService.reply(event.getChannel(), EmbedUtil.error("PROTECTION VIOLATION", "Link detection triggered. Structural integrity maintained."));
                 }
                 return;
             }

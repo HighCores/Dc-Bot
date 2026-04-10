@@ -1,6 +1,7 @@
 package com.highcore.bot.listeners;
 
 import com.highcore.bot.config.Config;
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.WelcomeCardService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Guild;
@@ -40,7 +41,7 @@ public class WelcomeListener extends ListenerAdapter {
     private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
         TextChannel ch = com.highcore.bot.services.LogManager.get(guild, Config.LOG_JOIN_LEFT);
         if (ch != null) {
-            ch.sendMessageEmbeds(EmbedUtil.activityLog(title, body, color)).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog(title, body, color));
         }
     }
 

@@ -1,5 +1,6 @@
 package com.highcore.bot.listeners;
 
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
@@ -28,7 +29,7 @@ public class UserLogListener extends ListenerAdapter {
                 "**Old Name:** `" + event.getOldName() + "`\n" +
                 "**New Name:** `" + event.getNewName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageEmbeds(EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD)).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD));
     }
 
     @Override
@@ -40,7 +41,7 @@ public class UserLogListener extends ListenerAdapter {
                 "**ID:** `" + event.getUser().getId() + "`\n" +
                 "**New Avatar:** [Click to view](" + event.getNewAvatarUrl() + ")\n" +
                 "**Time:** " + now();
-        ch.sendMessageEmbeds(EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD)).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD));
     }
 
     @Override
@@ -55,6 +56,6 @@ public class UserLogListener extends ListenerAdapter {
                 "**Old Nickname:** `" + old + "`\n" +
                 "**New Nickname:** `" + curr + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageEmbeds(EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD)).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD));
     }
 }
