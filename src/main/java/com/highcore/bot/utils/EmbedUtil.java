@@ -27,8 +27,8 @@ public class EmbedUtil {
     public static final String BANNER_GIVEAWAY = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
     public static final String BANNER_INVOICE  = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
     // NOTE: Discord CDN URLs expire — re-upload to a permanent host if needed
-    public static final String BANNER_TICKET_PANEL = BANNER_SUPPORT;
-    public static final String BANNER_ORDER_TIK    = BANNER_INVOICE;
+    public static final String BANNER_TICKET_PANEL = BANNER_MAIN;
+    public static final String BANNER_ORDER_TIK    = BANNER_MAIN;
 
     // ── Banner containers (image + title + text + buttons) ────────────────────
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
