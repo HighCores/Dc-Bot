@@ -7,6 +7,12 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
+import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
@@ -148,24 +154,35 @@ public class PanelService {
 
     // ── /tickets command ──────────────────────────────────────────────────────
     public static void sendTicketPanel(IReplyCallback event) {
-        String body =
-            "📜 **RULES & GUIDELINES**\n\n" +
-            "**Mutual Respect** — Please respect all staff members. " +
-                "Any form of offensive behavior or harassment will not be tolerated.\n\n" +
-            "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets " +
-                "for the same problem, inquiry, or to follow up on an existing ticket.\n\n" +
-            "**Clarity** — Please fully describe your issue or request before a staff member " +
-                "responds, to speed up the process.\n\n" +
-            "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
-            "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly " +
-                "forbidden under any circumstances.";
+        String imageUrl = "https://media.discordapp.net/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69da98a1&is=69d94721&hm=c51f95d1c03e2a090c01a0f571951522b6912351eba6604af0bf933e9921b5dc&=&format=webp&quality=lossless&width=1845&height=807";
 
-        ActionRow row = ActionRow.of(
-            Button.primary("ticket_init_support",   "Technical Support").withEmoji(Emoji.fromUnicode("\uD83D\uDCA1")),
-            Button.success("ticket_init_order",     "New Order")        .withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
-            Button.danger("ticket_init_complaint",  "File Complaint")   .withEmoji(Emoji.fromUnicode("\u26A0\uFE0F"))
-        );
-        reply(event, EmbedUtil.containerBranded("TICKET SUPPORT", "High Core Agency", body, EmbedUtil.BANNER_TICKET_PANEL, null, row));
+        String rules =
+            "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
+            "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +
+            "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem, inquiry, or to follow up on an existing ticket.\n\n" +
+            "**Clarity** — Please fully describe your issue or request before a staff member responds, to speed up the process.\n\n" +
+            "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
+            "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden under any circumstances.";
+
+        List<ContainerChildComponent> children = new ArrayList<>();
+        // 1. Banner image
+        children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        // 2. Title
+        children.add(TextDisplay.of("## TICKET SUPPORT | High Core Agency"));
+        // 3. Separator line
+        children.add(Separator.createDivider(Spacing.SMALL));
+        // 4. Rules text
+        children.add(TextDisplay.of(rules));
+        // 5. Separator line
+        children.add(Separator.createDivider(Spacing.SMALL));
+        // 6. Buttons
+        children.add(ActionRow.of(
+            Button.primary("ticket_init_support",  "Technical Support").withEmoji(Emoji.fromUnicode("\uD83D\uDCA1")),
+            Button.success("ticket_init_order",    "New Order")        .withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
+            Button.danger("ticket_init_complaint", "File Complaint")   .withEmoji(Emoji.fromUnicode("\u26A0\uFE0F"))
+        ));
+
+        reply(event, Container.of(children));
     }
 
     // ── Support flow — modal with 2 fields ───────────────────────────────────
