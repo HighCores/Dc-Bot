@@ -4,32 +4,42 @@ import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
+import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.awt.Color;
+import java.util.ArrayList;
+import java.util.List;
 
 public class EmbedUtil {
-    public static final Color ACCENT = Color.decode("#C5A059");
-    public static final Color SUCCESS = Color.decode("#2ECC71");
-    public static final Color DANGER = Color.decode("#E74C3C");
-    public static final Color INFO = Color.decode("#3498DB");
-    public static final Color WARNING = Color.decode("#F1C40F");
-    
-    public static final String BANNER_MAIN = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
-    public static final String BANNER_SUPPORT = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
+    public static final Color ACCENT      = Color.decode("#C5A059");
+    public static final Color SUCCESS     = Color.decode("#2ECC71");
+    public static final Color DANGER      = Color.decode("#E74C3C");
+    public static final Color INFO        = Color.decode("#3498DB");
+    public static final Color WARNING     = Color.decode("#F1C40F");
+    public static final Color GOLD        = Color.decode("#D4AF37");
+    public static final Color ACCENT_GOLD = Color.decode("#FFD700");
+
+    public static final String BANNER_MAIN     = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
+    public static final String BANNER_SUPPORT  = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
     public static final String BANNER_GIVEAWAY = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
-    public static final String BANNER_ORDER_TIK = "https://i.ibb.co/C5XBr7mY/Untitled-1.png";
-    public static final String BANNER_INVOICE = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
+    public static final String BANNER_INVOICE  = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
+    // NOTE: Discord CDN URLs expire — re-upload to a permanent host if needed
+    public static final String BANNER_TICKET_PANEL = "https://cdn.discordapp.com/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69d9efe1&is=69d89e61&hm=a3118a8daea8b3d1f354d539a59a2178c731ba9f73bb9672521009319a8eea33&";
+    public static final String BANNER_ORDER_TIK    = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69d90a6b&is=69d7b8eb&hm=17fab0d49c3cf3fa371c696e795f3977a72636c72a743b521a939c35f62ef298&";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         if (imageUrl == null) imageUrl = BANNER_MAIN;
-        return Container.create()
-                .withTitle(title)
-                .withAccentColor(ACCENT.getRGB() & 0xFFFFFF)
-                .withMedia(imageUrl)
-                .addChildren(TextDisplay.of(description))
-                .addChildren(rows)
-                .build();
+        List<ContainerChildComponent> children = new ArrayList<>();
+        children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        String text = (description != null && !description.isEmpty())
+                ? "## " + title + "\n" + description
+                : "## " + title;
+        children.add(TextDisplay.of(text));
+        for (ActionRow row : rows) children.add(row);
+        return Container.of(children).withAccentColor(ACCENT.getRGB() & 0xFFFFFF);
     }
 
     public static Container containerBranded(String title, String subtitle, String body, String imageUrl) {
@@ -40,19 +50,19 @@ public class EmbedUtil {
         String fullTitle = (subtitle == null || subtitle.isEmpty()) ? title : title + " | " + subtitle;
         return eliteContainer(fullTitle, body, imageUrl, rows);
     }
-    
+
     public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl, ActionRow... rows) {
         return containerBranded(title, subtitle, body, imageUrl, (Emoji) null, rows);
     }
 
-    public static MessageEmbed success(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(SUCCESS).build(); }
-    public static MessageEmbed error(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(DANGER).build(); }
-    public static MessageEmbed info(String title, String description) { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(INFO).build(); }
-    public static MessageEmbed accessDenied() { return new EmbedBuilder().setTitle("Access Denied").setDescription("Unauthorized attempt.").setColor(DANGER).build(); }
+    public static MessageEmbed success(String title, String description)       { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(SUCCESS).build(); }
+    public static MessageEmbed error(String title, String description)         { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(DANGER).build(); }
+    public static MessageEmbed info(String title, String description)          { return new EmbedBuilder().setTitle(title).setDescription(description).setColor(INFO).build(); }
+    public static MessageEmbed accessDenied()                                  { return new EmbedBuilder().setTitle("Access Denied").setDescription("Unauthorized attempt.").setColor(DANGER).build(); }
     public static MessageEmbed activityLog(String type, String details, Color color) { return new EmbedBuilder().setTitle("Log: " + type).setDescription(details).setColor(color).build(); }
 
-    public static MessageEmbed rulesPanel(ActionRow... rows) { return new EmbedBuilder().setTitle("Rules").setDescription("Professional guidelines.").setColor(ACCENT).build(); }
-    public static MessageEmbed termsPanel(ActionRow... rows) { return new EmbedBuilder().setTitle("Terms").setDescription("Engagement protocols.").setColor(ACCENT).build(); }
+    public static MessageEmbed rulesPanel(ActionRow... rows)  { return new EmbedBuilder().setTitle("Rules").setDescription("Professional guidelines.").setColor(ACCENT).build(); }
+    public static MessageEmbed termsPanel(ActionRow... rows)  { return new EmbedBuilder().setTitle("Terms").setDescription("Engagement protocols.").setColor(ACCENT).build(); }
 
     public static Container giveaway(String prize, int winners, int duration) {
         String body = "### \uD83C\uDF81 Active Distribution\n" +

@@ -124,6 +124,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             else if (id.equals("view_prices_cat")) { handlePriceDisplay(event, val); }
             else if (id.equals("order_sector_select")) { PanelService.handleSectorSelection(event, val); }
             else if (id.startsWith("order_service_select_")) { PanelService.handleServiceSelection(event, event.getValues()); }
+            else if (id.startsWith("order_addon_select_")) { PanelService.handleAddonSelection(event, event.getValues()); }
             else if (id.equals("ticket_type_select")) {
                 TicketService.createTicket(event, "General Request", "MEDIUM", val);
             }
@@ -164,17 +165,44 @@ public class CentralInteractionListener extends ListenerAdapter {
                 event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
             }
         } else if (id.equals("modal_support_init")) {
-            TicketService.createTicket(event, "Support Request", "MEDIUM", "SUPPORT");
+            String issueDesc   = event.getValue("issue_desc").getAsString();
+            String serviceType = event.getValue("service_type").getAsString();
+            String subject  = issueDesc.length() > 80 ? issueDesc.substring(0, 77) + "..." : issueDesc;
+            String details  = "**Service:** " + (serviceType.isBlank() ? "Not specified" : serviceType);
+            TicketService.createTicket(event, subject, "MEDIUM", "SUPPORT", details);
         } else if (id.equals("modal_complaint_init")) {
-            TicketService.createTicket(event, "Complaint Filed", "HIGH", "COMPLAINT");
+            String compType   = event.getValue("comp_type").getAsString();
+            String compPerson = event.getValue("comp_person").getAsString();
+            String compDesc   = event.getValue("comp_desc").getAsString();
+            String subject  = compType.length() > 80 ? compType.substring(0, 77) + "..." : compType;
+            String details  = "**Regarding:** " + compPerson + "\n**Details:** " + compDesc;
+            TicketService.createTicket(event, subject, "HIGH", "COMPLAINT", details);
         } else if (id.equals("modal_order_finalize")) {
             event.deferReply(true).queue();
-            String pName = event.getValue("p_name").getAsString();
-            String cName = event.getValue("p_client").getAsString();
-            
-            List<com.highcore.bot.services.InvoiceService.OrderItem> items = List.of(new com.highcore.bot.services.InvoiceService.OrderItem("Primary Agency Service", 100.0));
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, "Auto-Initiated", "7-14 Days", items);
-            event.getHook().sendMessage("Terminal session established. Order initiated.").queue();
+            String pName   = event.getValue("p_name").getAsString();
+            String cName   = event.getValue("p_client").getAsString();
+            String contact = event.getValue("p_contact").getAsString();
+            String eta     = event.getValue("p_eta").getAsString();
+
+            com.highcore.bot.services.PanelService.OrderSession session =
+                com.highcore.bot.services.PanelService.ORDER_SESSIONS.remove(event.getUser().getId());
+            List<com.highcore.bot.services.InvoiceService.OrderItem> items = new ArrayList<>();
+            if (session != null) {
+                for (String svc : session.mainServices) {
+                    com.highcore.bot.services.InvoiceService.OrderItem item =
+                        com.highcore.bot.services.PanelService.getOrderItem(svc);
+                    if (item != null) items.add(item);
+                }
+                for (String addon : session.addons) {
+                    com.highcore.bot.services.InvoiceService.OrderItem item =
+                        com.highcore.bot.services.PanelService.getOrderItem(addon);
+                    if (item != null) items.add(item);
+                }
+            }
+            if (items.isEmpty()) items.add(new com.highcore.bot.services.InvoiceService.OrderItem("Agency Service Package", 0.0));
+
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), pName, cName, contact, eta, items);
+            event.getHook().sendMessage("Your order has been submitted. Please check your new ticket channel.").setEphemeral(true).queue();
         }
     }
 }
