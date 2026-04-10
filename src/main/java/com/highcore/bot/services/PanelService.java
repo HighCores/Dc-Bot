@@ -7,7 +7,6 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.interactions.InteractionHook;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
@@ -102,34 +101,30 @@ public class PanelService {
     public static void replyEphemeral(Object target, Object content) { handleReply(target, content, true); }
 
     private static void handleReply(Object target, Object content, boolean ephemeral) {
+        // Collect top-level components (Container, ActionRow, etc.)
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        List<net.dv8tion.jda.api.entities.MessageEmbed> embeds = new ArrayList<>();
-
-        if (content instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
-        else if (content instanceof MessageTopLevelComponent mtc) components.add(mtc);
-        else if (content instanceof List<?> list) {
-            for (Object obj : list) {
+        if (content instanceof MessageTopLevelComponent mtc) {
+            components.add(mtc);
+        } else if (content instanceof List<?> list) {
+            for (Object obj : list)
                 if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
-                else if (obj instanceof net.dv8tion.jda.api.entities.MessageEmbed me) embeds.add(me);
-            }
         }
 
-        if (embeds.isEmpty() && components.isEmpty()) {
+        if (components.isEmpty()) {
             components.add(EmbedUtil.info("High Core Agency", "No content provided."));
         }
 
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
-                InteractionHook hook = event.getHook();
-                hook.editOriginal(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                    .setEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).queue();
+                // Use the dedicated Component V2 edit method
+                event.getHook().editOriginalComponents(components).queue();
             } else {
-                event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .addEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).setEphemeral(ephemeral).queue();
+                // Use the dedicated Component V2 reply method
+                event.replyComponents(components).setEphemeral(ephemeral).queue();
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            channel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                .addEmbeds(embeds).setComponents(components).useComponentsV2(true).build()).queue();
+            // Use the dedicated Component V2 send method
+            channel.sendMessageComponents(components).queue();
         }
     }
 
