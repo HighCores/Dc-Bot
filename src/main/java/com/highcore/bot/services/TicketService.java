@@ -24,7 +24,6 @@ import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.*;
-import java.util.stream.Collectors;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
@@ -63,12 +62,18 @@ public class TicketService {
         String ticketId   = String.format("%d", timestamp).substring(9);
         String channelName = type.toLowerCase() + "-" + ticketId;
 
-        cat.createTextChannel(channelName)
+        Role adminRole = cat.getGuild().getRoleById(ADMIN_ROLE_ID);
+        var builder = cat.createTextChannel(channelName)
             .addPermissionOverride(event.getMember(),
                     EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
             .addPermissionOverride(cat.getGuild().getPublicRole(),
-                    null, EnumSet.of(Permission.VIEW_CHANNEL))
-            .queue(channel -> {
+                    null, EnumSet.of(Permission.VIEW_CHANNEL));
+        if (adminRole != null) {
+            builder = builder.addPermissionOverride(adminRole,
+                    EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND,
+                               Permission.MESSAGE_HISTORY, Permission.MESSAGE_ATTACH_FILES), null);
+        }
+        builder.queue(channel -> {
                 SupabaseClient.createTicket(ticketId, event.getUser().getId(),
                         channel.getId(), type, subject, priority, null);
 
@@ -177,16 +182,9 @@ public class TicketService {
 
     // ── Ticket actions ────────────────────────────────────────────────────────
     public static void claimTicket(TextChannel channel, Member claimer) {
-        String roles = claimer.getRoles().stream()
-            .filter(r -> !r.isPublicRole())
-            .limit(4)
-            .map(Role::getName)
-            .collect(Collectors.joining(" · "));
-
         List<ContainerChildComponent> children = new ArrayList<>();
         children.add(TextDisplay.of(
-            "\uD83D\uDCE1 **Ticket Claimed** · " + claimer.getAsMention() +
-            (roles.isEmpty() ? "" : "\n`" + roles + "`")));
+            "\uD83D\uDCE1 **Ticket Claimed** · " + claimer.getAsMention()));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
             Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
@@ -226,30 +224,42 @@ public class TicketService {
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
         if (status.equals("TRANSCRIPT")) {
+            TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
             JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-            TextChannel logCh  = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+            String closedBy = closer.getEffectiveName();
 
-            if (ticket != null && logCh != null) {
-                String ticketId  = ticket.has("ticket_id")  ? ticket.get("ticket_id").getAsString()  : channel.getName();
-                String type      = ticket.has("type")       ? ticket.get("type").getAsString()       : "—";
-                String tickStatus= ticket.has("status")     ? ticket.get("status").getAsString()     : "closed";
-                String openedAt  = ticket.has("created_at") ? ticket.get("created_at").getAsString() : "—";
-                String closedBy  = closer.getEffectiveName();
+            // Use channel name as fallback if Supabase returns nothing
+            String ticketId = channel.getName();
+            String type     = "—";
+            String openedAt = "—";
+            if (ticket != null) {
+                if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
+                if (ticket.has("type"))       type     = ticket.get("type").getAsString();
+                if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
+            }
 
-                byte[] html = TranscriptService.generate(ticketId, channel.getName(),
-                        type, tickStatus, openedAt, closedBy);
-
+            if (logCh != null) {
+                byte[] html = TranscriptService.generate(ticketId, channel.getName(), type, "closed", openedAt, closedBy);
                 PanelService.reply(logCh, Container.of(TextDisplay.of(
                     "\uD83D\uDCCE **Transcript Saved** · `#" + ticketId + "` (`" + channel.getName() + "`)\n" +
                     "Closed by: **" + closedBy + "**")));
-
                 if (html != null) {
                     logCh.sendFiles(FileUpload.fromData(html, "transcript-" + ticketId + ".html")).queue();
                 }
+            } else {
+                log.warn("Transcript log channel {} not found", TRANSCRIPT_CHANNEL_ID);
+            }
 
+            if (ticket != null) {
                 SupabaseClient.updateTicketStatus(ticketId, "closed", closedBy);
             }
         }
+
+        // Lock channel: remove all member-specific overrides so only role access remains
+        // (admin role keeps access, ticket opener loses it)
+        channel.getPermissionOverrides().stream()
+            .filter(po -> po.isMemberOverride())
+            .forEach(po -> po.delete().queue());
 
         List<ContainerChildComponent> children = new ArrayList<>();
         children.add(TextDisplay.of("\uD83D\uDD12 **Ticket Closed** · `Channel is now locked.`"));

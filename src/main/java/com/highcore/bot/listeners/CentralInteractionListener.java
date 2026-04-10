@@ -25,24 +25,37 @@ import java.util.ArrayList;
 
 public class CentralInteractionListener extends ListenerAdapter {
 
+    private static final String STAFF_ROLE_ID = "1488795130008961040";
+
+    private boolean isStaff(Member member) {
+        return member != null && member.getRoles().stream()
+            .anyMatch(r -> r.getId().equals(STAFF_ROLE_ID));
+    }
+
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
+        Member member = event.getMember();
+        if (member == null) return;
 
         // Modal triggers must NOT be deferred — they open a modal directly
         boolean isModalTrigger = id.equals("ticket_init_support") ||
                                  id.equals("ticket_init_complaint") ||
                                  id.equals("order_final_meta");
 
-        // Channel-level actions: acknowledge silently (deferEdit keeps original message)
-        boolean isChannelAction = id.equals("ticket_claim") || id.equals("ticket_close") ||
-                                  id.equals("ticket_delete") || id.equals("ticket_reopen") ||
-                                  id.startsWith("order_status_update_");
+        // Staff-only channel actions
+        boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") ||
+                                id.equals("ticket_delete") || id.equals("ticket_reopen") ||
+                                id.startsWith("order_status_update_");
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
                 // no defer — modal reply comes from processButton
-            } else if (isChannelAction) {
+            } else if (isStaffAction) {
+                if (!isStaff(member)) {
+                    event.reply("\u26D4 This action is restricted to staff members.").setEphemeral(true).queue();
+                    return;
+                }
                 event.deferEdit().queue();
             } else {
                 // Hub navigation / ping toggles / ticket panel → ephemeral response
