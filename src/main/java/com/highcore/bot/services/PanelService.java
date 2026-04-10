@@ -116,15 +116,12 @@ public class PanelService {
 
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
-                // Use the dedicated Component V2 edit method
-                event.getHook().editOriginalComponents(components).queue();
+                event.getHook().editOriginalComponents(components).useComponentsV2(true).queue();
             } else {
-                // Use the dedicated Component V2 reply method
-                event.replyComponents(components).setEphemeral(ephemeral).queue();
+                event.replyComponents(components).useComponentsV2(true).setEphemeral(ephemeral).queue();
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            // Use the dedicated Component V2 send method
-            channel.sendMessageComponents(components).queue();
+            channel.sendMessageComponents(components).useComponentsV2(true).queue();
         }
     }
 
