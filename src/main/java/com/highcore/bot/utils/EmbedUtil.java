@@ -29,7 +29,7 @@ public class EmbedUtil {
     public static final String BANNER_SUPPORT       = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
     public static final String BANNER_GIVEAWAY      = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
     public static final String BANNER_INVOICE       = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
-    public static final String BANNER_TICKET_PANEL  = BANNER_SUPPORT;
+    public static final String BANNER_TICKET_PANEL  = BANNER_MAIN;
     public static final String BANNER_ORDER_TIK     = BANNER_INVOICE;
 
     // ── Core builder — adds MediaGallery ONLY when imageUrl is non-null ───────
