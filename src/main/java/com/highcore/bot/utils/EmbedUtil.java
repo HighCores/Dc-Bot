@@ -25,21 +25,20 @@ public class EmbedUtil {
     // ── Upload these to a permanent host (e.g. imgur, cdn.discordapp) ──────────
     // ibb.co blocks Discord hotlinking — set to null to disable banner until
     // re-hosted
-    public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488900668042510568/1491409986277085224/banner.png?ex=69da3a49&is=69d8e8c9&hm=0a9d640c8668b0f682e0ba27f2d9db7e35e46b34ddc50570dc7364d8ee0aca22&=&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_SUPPORT = "https://cdn.discordapp.com/attachments/1488900668042510568/1491803731312906261/7101585d-b014-4163-9016-a8eaffb0d27c.png?ex=69d9aebd&is=69d85d3d&hm=c2387d4dcc5123476d2a423cb6678755d7681532efff0da73f6adb0a0bd56de6&";
-    public static final String BANNER_GIVEAWAY = null;
-    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png?ex=69d9aaff&is=69d8597f&hm=78cb60f4ec51bdc2baae65a16debbcee47bd108827815c2854a446bada209200&";
-    public static final String BANNER_TICKET_PANEL = "https://cdn.discordapp.com/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69d9efe1&is=69d89e61&hm=a3118a8daea8b3d1f354d539a59a2178c731ba9f73bb9672521009319a8eea33&";
-    public static final String BANNER_ORDER_TIK = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69d9b32b&is=69d861ab&hm=c183c88688cafd019b038435193973560837cdb71fcfdbb5dd62d90d26d2e62e&";
+    public static final String BANNER_MAIN         = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
+    public static final String BANNER_SUPPORT       = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
+    public static final String BANNER_GIVEAWAY      = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
+    public static final String BANNER_INVOICE       = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
+    public static final String BANNER_TICKET_PANEL  = BANNER_SUPPORT;
+    public static final String BANNER_ORDER_TIK     = BANNER_INVOICE;
 
     // ── Core builder — adds MediaGallery ONLY when imageUrl is non-null ───────
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         List<ContainerChildComponent> children = new ArrayList<>();
 
-        // Banner image (only if URL is provided and non-empty)
-        if (imageUrl != null && !imageUrl.isBlank()) {
-            children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        }
+        // Banner image — fall back to BANNER_MAIN when null
+        if (imageUrl == null || imageUrl.isBlank()) imageUrl = BANNER_MAIN;
+        children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
 
         // Title + body
         String text = (description != null && !description.isEmpty())
