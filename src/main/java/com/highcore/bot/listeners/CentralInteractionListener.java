@@ -16,10 +16,10 @@ import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionE
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import java.util.List;
 
@@ -121,19 +121,19 @@ public class CentralInteractionListener extends ListenerAdapter {
         
         if (id.equals("order_start")) { OrderService.startWizard(event); return; }
         if (id.equals("support_start")) {
-            TextInput subject = TextInput.create("subject", "Problem Brief", TextInputStyle.SHORT)
+            TextInput subject = TextInput.create("subject", TextInputStyle.SHORT)
                     .setPlaceholder("Describe the technical issue...").setRequired(true).build();
             Modal m = Modal.create("modal_ticket_open", "Support Request")
-                    .addActionRow(subject)
+                    .addComponents(Label.of("Problem Brief", subject))
                     .build();
             event.replyModal(m).queue();
             return;
         }
         if (id.equals("report_start")) {
-            TextInput reason = TextInput.create("reason", "Report Context", TextInputStyle.PARAGRAPH)
+            TextInput reason = TextInput.create("reason", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("What are you reporting?").setRequired(true).build();
             Modal m = Modal.create("modal_report_open", "Submit a Report")
-                    .addActionRow(reason)
+                    .addComponents(Label.of("Report Context", reason))
                     .build();
             event.replyModal(m).queue();
             return;
@@ -170,15 +170,40 @@ public class CentralInteractionListener extends ListenerAdapter {
         }
 
         if (id.startsWith("pay_")) {
-            String type = id.split("_")[1].toUpperCase();
-            String info = switch (type) {
-                case "PAYPAL" -> "**Registry Email:** `billing@highcore.agency`";
-                case "STRIPE" -> "**Access Hub:** `https://pay.highcore.agency/checkout`";
-                case "VISA" -> "**Direct Merchant Entry:** Use terminal code `HCA-993-8B`";
-                case "LOCAL" -> "**Bank Node:** Al-Rajhi \u2022 IBAN: `SA99 8000 0000 1234 5678 9012`";
-                default -> "**Support:** Contact a financial advisor <@&" + Config.ROLE_STAFF + ">";
+            // id format: pay_<method>_<ticketId>
+            String[] parts = id.split("_", 3);
+            String method = parts.length > 1 ? parts[1].toUpperCase() : "UNKNOWN";
+            String info = switch (method) {
+                case "PAYPAL"  ->
+                    "### \uD83D\uDCB3 PayPal\n" +
+                    "**Email:** `billing@highcore.agency`\n" +
+                    "**Note:** Send as **Friends & Family** and include your ticket ID in the note.";
+                case "STRIPE"  ->
+                    "### \uD83C\uDF10 Stripe\n" +
+                    "Contact a staff member to receive a secure Stripe payment link.\n" +
+                    "**Support:** <@&" + Config.ROLE_STAFF + ">";
+                case "BANK"    ->
+                    "### \uD83C\uDFE6 Bank Transfer — Al-Rajhi Bank\n" +
+                    "**Account Name:** `High Core Agency`\n" +
+                    "**IBAN:** `SA29 8000 0000 1234 5678 1234`\n" +
+                    "**Swift:** `RJHISARI`\n" +
+                    "After transfer, send the receipt screenshot here.";
+                case "USDT"    ->
+                    "### \uD83D\uDCB0 USDT — TRC20 Network\n" +
+                    "**Wallet Address:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n" +
+                    "\u26A0\uFE0F **Use TRC20 network only.** Other networks will result in lost funds.\n" +
+                    "Send the transaction hash after payment.";
+                case "STCPAY"  ->
+                    "### \uD83D\uDCF1 STC Pay\n" +
+                    "**Number:** `+966 55 123 4567`\n" +
+                    "**Name:** `High Core Agency`\n" +
+                    "Screenshot the confirmation and send it here.";
+                default ->
+                    "Contact a staff member for payment assistance.\n<@&" + Config.ROLE_STAFF + ">";
             };
-            PanelService.reply(event, EmbedUtil.paymentGateway(type, info));
+            PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
+                "PAYMENT", "Gateway — " + method,
+                info, EmbedUtil.BANNER_MAIN));
             return;
         }
 
@@ -218,14 +243,18 @@ public class CentralInteractionListener extends ListenerAdapter {
             switch (choice) {
                 case "purchase" -> OrderService.startWizard(event);
                 case "tech_support" -> {
+                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
+                        .setPlaceholder("Describe the technical issue...").setRequired(true).build();
                     Modal m = Modal.create("modal_ticket_open", "Support Request")
-                        .addActionRow(TextInput.create("subject", "Problem Brief", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build())
+                        .addComponents(Label.of("Problem Brief", subjectInput))
                         .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
+                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("What are you reporting?").setRequired(true).build();
                     Modal m = Modal.create("modal_report_open", "Submit a Report")
-                        .addActionRow(TextInput.create("reason", "Report Context", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build())
+                        .addComponents(Label.of("Report Context", reasonInput))
                         .build();
                     event.replyModal(m).queue();
                 }
@@ -273,6 +302,32 @@ public class CentralInteractionListener extends ListenerAdapter {
             BroadcastService.startBroadcast(event.getGuild(), message, sess.roleId, sess.attUrl);
             PanelService.reply(event, EmbedUtil.success("Broadcast Engine", "Sequential broadcast protocol initialized."));
             SlashCommands.BC_SESSIONS.remove(sessionId);
+        }
+
+        // ── Order — final details modal ───────────────────────────────────────
+        if (id.equals("order_modal")) {
+            String pName   = event.getValue("o_project").getAsString();
+            String cName   = event.getValue("o_name").getAsString();
+            String contact = event.getValue("o_contact").getAsString();
+            String eta     = event.getValue("o_eta").getAsString();
+
+            String userId = event.getUser().getId();
+            OrderService.OrderSession session = OrderService.sessions.remove(userId);
+
+            List<InvoiceService.OrderItem> items = new java.util.ArrayList<>();
+            if (session != null) {
+                List<String> allIds = new java.util.ArrayList<>(session.selectedServices);
+                allIds.addAll(session.selectedAddons);
+                items = OrderService.resolveItems(allIds);
+            }
+
+            net.dv8tion.jda.api.entities.Guild guild = event.getGuild();
+            if (guild != null) {
+                TicketService.createHighEndOrderTicket(guild, event.getUser(), pName, cName, contact, eta, items);
+            }
+
+            PanelService.reply(event, EmbedUtil.success("ORDER SUBMITTED",
+                "Your ticket has been created. It will be unlocked once payment is confirmed."));
         }
     }
 }

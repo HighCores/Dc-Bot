@@ -123,20 +123,15 @@ public class ReceiptService {
     }
 
     private static void renderItem(Graphics2D g, String cat, String id, int y, int width, boolean isMain) {
-        OrderService.ServiceItem found = null;
-        List<OrderService.ServiceItem> list = OrderService.SERVICES.get(cat);
-        if (list != null) for (var i : list) if (i.id.equals(id)) found = i;
-        if (found == null) {
-            List<OrderService.ServiceItem> alist = OrderService.ADDONS.get(cat);
-            if (alist != null) for (var i : alist) if (i.id.equals(id)) found = i;
-        }
+        String name  = OrderService.ITEM_NAMES.get(id);
+        double[] priceArr = OrderService.ITEM_PRICES.get(id);
 
-        if (found != null) {
+        if (name != null && priceArr != null) {
             g.setColor(isMain ? TEXT_WHITE : TEXT_GRAY);
-            g.drawString((isMain ? "\u25B8 " : "\u25AB ") + found.name, 45, y);
-            
+            g.drawString((isMain ? "\u25B8 " : "\u25AB ") + name, 45, y);
+
             g.setFont(new Font("Consolas", Font.BOLD, 15));
-            String p = "$" + found.price;
+            String p = priceArr[0] == 0 ? "Quote" : "$" + (int) priceArr[0];
             int pW = g.getFontMetrics().stringWidth(p);
             g.drawString(p, width - 65 - pW, y);
             g.setFont(new Font("Segoe UI", Font.PLAIN, 15));

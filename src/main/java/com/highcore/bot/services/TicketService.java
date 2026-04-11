@@ -2,6 +2,7 @@ package com.highcore.bot.services;
 
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
+import com.highcore.bot.services.InvoiceService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -30,7 +31,7 @@ public class TicketService {
         Member member = guild.getMember(user);
         if (member == null) return null;
         
-        String ticketId = String.format("%04d", new Random().nextInt(10000));
+        String ticketId = String.format("%03d", SupabaseClient.getNextTicketNumber());
         String channelName = type + "-" + ticketId;
 
         Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
@@ -48,11 +49,78 @@ public class TicketService {
                 });
     }
 
+    // ── High-end order ticket (locked until payment) ──────────────────────────
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName,
+                                                String contact, String eta,
+                                                List<InvoiceService.OrderItem> items) {
+        Member member = guild.getMember(user);
+        if (member == null) return;
+
+        String ticketId    = String.format("%03d", SupabaseClient.getNextTicketNumber());
+        String channelName = "order-" + ticketId;
+
+        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
+        if (cat == null) { log.error("Ticket category not found"); return; }
+
+        guild.createTextChannel(channelName, cat)
+            // User can see but NOT send — locked until payment
+            .addPermissionOverride(member,
+                EnumSet.of(Permission.VIEW_CHANNEL),
+                EnumSet.of(Permission.MESSAGE_SEND))
+            .addPermissionOverride(guild.getPublicRole(),
+                null, EnumSet.of(Permission.VIEW_CHANNEL))
+            .queue(channel -> {
+                SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(),
+                    "ORDER", pName, "HIGH", null);
+
+                String infoLine =
+                    "**Case ID:** `" + ticketId + "` · **Project:** `" + pName + "` · **Client:** `" + cName + "`\n" +
+                    "**Contact:** `" + contact + "` · **Delivery:** `" + eta + "`";
+
+                // ── Welcome message (locked notice) ──────────────────────────
+                Container welcome = EmbedUtil.containerBranded(
+                    "ORDER PIPELINE", "Active Ticket",
+                    "Welcome " + user.getAsMention() + " \uD83D\uDC4B\n\n" +
+                    infoLine + "\n\n" +
+                    "\u26A0\uFE0F **Your ticket is locked** — it will be unlocked once payment is confirmed.\n" +
+                    "A staff member will review your order and reach out shortly.\n\n" +
+                    "> \uD83D\uDCCC Please do **not** ping staff. We'll get back to you as soon as possible.",
+                    EmbedUtil.BANNER_ORDER_TICKET,
+                    Emoji.fromUnicode("\uD83D\uDCE6"),
+                    ActionRow.of(getTicketButtons("open")));
+
+                channel.sendMessageComponents(welcome).useComponentsV2(true).queue();
+
+                // ── Invoice + Payment options ─────────────────────────────────
+                byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
+
+                Container invoiceContainer = EmbedUtil.containerBranded(
+                    "INVOICE", "Payment Required",
+                    "\uD83E\uDDFE **Review your invoice below and choose a payment method.**\n\n" +
+                    "**Available Methods:**\n" +
+                    "> \uD83D\uDCB3 **PayPal** — `billing@highcore.agency`\n" +
+                    "> \uD83C\uDF10 **Stripe** — Contact staff for link\n" +
+                    "> \uD83C\uDFE6 **Bank Transfer (Al-Rajhi)** — `SA29 8000 0000 1234 5678 1234`\n" +
+                    "> \uD83D\uDCB5 **USDT (TRC20)** — `THighCoreAgencyWallet9xR3mZ`\n" +
+                    "> \uD83D\uDCB0 **STC Pay** — `+966 5X XXX XXXX`\n\n" +
+                    "After payment, send proof to this channel. Staff will verify and unlock.",
+                    EmbedUtil.BANNER_INVOICE,
+                    Emoji.fromUnicode("\uD83E\uDDFE"),
+                    ActionRow.of(getPaymentButtons(ticketId)));
+
+                channel.sendMessageComponents(invoiceContainer).useComponentsV2(true).queue();
+
+                if (invoiceData != null) {
+                    channel.sendFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png")).queue();
+                }
+            });
+    }
+
     public static void createOrderTicket(Guild guild, User user, String type, int total, String wizId, JsonObject orderData) {
         Member member = guild.getMember(user);
         if (member == null) return;
         
-        String ticketId = String.format("%04d", new Random().nextInt(10000));
+        String ticketId = String.format("%03d", SupabaseClient.getNextTicketNumber());
         String channelName = "order-" + ticketId;
 
         Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
@@ -97,9 +165,16 @@ public class TicketService {
 
     private static List<Button> getPaymentButtons(String ticketId) {
         return List.of(
-            Button.secondary("pay_paypal_" + ticketId, "PayPal Payment"),
-            Button.secondary("pay_stripe_" + ticketId, "Stripe Payment"),
-            Button.secondary("pay_local_" + ticketId, "Manual Entry")
+            Button.primary("pay_paypal_"   + ticketId, "PayPal")
+                .withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+            Button.primary("pay_stripe_"   + ticketId, "Stripe")
+                .withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+            Button.primary("pay_bank_"     + ticketId, "Bank Transfer")
+                .withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
+            Button.primary("pay_usdt_"     + ticketId, "USDT")
+                .withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
+            Button.primary("pay_stcpay_"   + ticketId, "STC Pay")
+                .withEmoji(Emoji.fromUnicode("\uD83D\uDCF1"))
         );
     }
 
