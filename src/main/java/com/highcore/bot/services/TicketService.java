@@ -242,11 +242,11 @@ public class TicketService {
         JsonObject ticket  = SupabaseClient.getTicketByChannel(channel.getId());
         String closedBy    = closer.getEffectiveName();
         String ticketId    = channel.getName();
-        String type        = "—";
+        // Derive type from channel name prefix (support-xxxxx, complaint-xxxxx, order-xxxxx)
+        String type        = channel.getName().split("-")[0].toUpperCase();
         String openedAt    = "—";
         if (ticket != null) {
             if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
-            if (ticket.has("type"))       type     = ticket.get("type").getAsString();
             if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
         }
 
@@ -256,7 +256,7 @@ public class TicketService {
         final TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
 
         // Fetch last 200 messages directly from Discord
-        channel.getHistory().retrievePast(200).queue(raw -> {
+        channel.getHistory().retrievePast(100).queue(raw -> {
             List<Message> ordered = new ArrayList<>(raw);
             Collections.reverse(ordered); // oldest first
 

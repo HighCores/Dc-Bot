@@ -85,7 +85,7 @@ public class SupabaseClient {
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
         body.addProperty("channel_id", channelId);
-        body.addProperty("type", type);
+        // "type" column does not exist in dc_tickets — stored in subject prefix instead
         body.addProperty("subject", subject);
         body.addProperty("priority", priority);
         if (metadata != null) body.add("metadata", metadata);
