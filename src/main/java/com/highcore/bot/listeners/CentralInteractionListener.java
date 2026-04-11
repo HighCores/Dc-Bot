@@ -1,17 +1,21 @@
 package com.highcore.bot.listeners;
 
+import com.highcore.bot.services.InvoiceService;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.BroadcastService;
 import com.highcore.bot.services.TicketService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+
 import java.util.List;
 
 public class CentralInteractionListener extends ListenerAdapter {
@@ -30,28 +34,23 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (member == null) return;
 
         // Modal triggers — must NOT be deferred (they open a modal directly)
-        boolean isModalTrigger = id.equals("ticket_init_support")   ||
-                                 id.equals("ticket_init_complaint")  ||
-                                 id.startsWith("order_meta_");
+        boolean isModalTrigger = id.equals("ticket_init_support")  ||
+                                 id.equals("ticket_init_complaint") ||
+                                 id.equals("order_open_ticket");
 
         // Staff-only channel actions
         boolean isStaffAction  = id.equals("ticket_claim")   || id.equals("ticket_close")  ||
                                  id.equals("ticket_delete")   || id.equals("ticket_reopen") ||
                                  id.startsWith("order_status_update_");
 
-        // Category view — edit existing ephemeral in-place
-        boolean isCategorySwitch = id.startsWith("order_cat_");
-
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
-                // no defer
+                // no defer — modal will be opened in processButton
             } else if (isStaffAction) {
                 if (!isStaff(member)) {
                     event.reply("\u26D4 This action is restricted to staff members.").setEphemeral(true).queue();
                     return;
                 }
-                event.deferEdit().queue();
-            } else if (isCategorySwitch) {
                 event.deferEdit().queue();
             } else {
                 event.deferReply(true).queue();
@@ -88,17 +87,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                 return;
             }
 
-            // Order — category view (edit in-place, no new ephemeral)
-            if (id.startsWith("order_cat_")) {
-                String cat = id.replace("order_cat_", "");
-                PanelService.handleCategoryView(event, cat);
-                return;
-            }
-
-            // Order — open ticket modal for selected category
-            if (id.startsWith("order_meta_")) {
-                String cat = id.replace("order_meta_", "");
-                PanelService.handleOrderMetaModal(event, cat);
+            // Order — Step 4: open final details modal
+            if (id.equals("order_open_ticket")) {
+                PanelService.handleOrderFinalModal(event);
                 return;
             }
 
@@ -146,10 +137,17 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         if (!event.isAcknowledged()) {
             String id = event.getComponentId();
+            // These three order selects edit the existing ephemeral in-place
+            boolean isOrderSelect = id.equals("order_service_select") ||
+                                    id.equals("order_main_select")    ||
+                                    id.equals("order_addon_select");
+
             boolean ephemeral = id.equals("view_services_cat") || id.equals("view_prices_cat")
                              || id.equals("ticket_type_select");
-            if (ephemeral) event.deferReply(true).queue(hook -> processSelect(event));
-            else           event.deferEdit().queue(hook -> processSelect(event));
+
+            if (isOrderSelect)    event.deferEdit().queue(v -> processSelect(event));
+            else if (ephemeral)   event.deferReply(true).queue(hook -> processSelect(event));
+            else                  event.deferEdit().queue(hook -> processSelect(event));
         } else {
             processSelect(event);
         }
@@ -157,11 +155,32 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     private void processSelect(StringSelectInteractionEvent event) {
         try {
-            String id  = event.getComponentId();
-            String val = event.getValues().get(0);
+            String id     = event.getComponentId();
+            String userId = event.getUser().getId();
+
+            // ── Order Flow ────────────────────────────────────────────
+            if (id.equals("order_service_select")) {
+                String category = event.getValues().get(0);
+                PanelService.handleCategorySelected(event, userId, category);
+                return;
+            }
+
+            if (id.equals("order_main_select")) {
+                PanelService.handleMainSelected(event, userId, event.getValues());
+                return;
+            }
+
+            if (id.equals("order_addon_select")) {
+                PanelService.handleAddonsSelected(event, userId, event.getValues());
+                return;
+            }
+
+            // ── Legacy ticket type select ─────────────────────────────
             if (id.equals("ticket_type_select")) {
+                String val = event.getValues().get(0);
                 TicketService.createTicket(event, "General Request", "MEDIUM", val);
             }
+
         } catch (Exception e) {
             try { event.getHook().sendMessage("An error occurred: `" + e.getMessage() + "`").setEphemeral(true).queue(); }
             catch (Exception ignored) {}
@@ -198,33 +217,35 @@ public class CentralInteractionListener extends ListenerAdapter {
             String details = "**Regarding:** " + compPerson + "\n**Details:** " + compDesc;
             TicketService.createTicket(event, subject, "HIGH", "COMPLAINT", details);
 
-        } else if (id.startsWith("modal_order_")) {
+        } else if (id.equals("modal_order_final")) {
+            // ── Order Flow — Step 5: create locked ticket + invoice ───
             event.deferReply(true).queue();
-            String cat      = id.replace("modal_order_", "");
-            String name     = event.getValue("o_name").getAsString();
-            String services = event.getValue("o_services").getAsString();
-            String addons   = event.getValue("o_addons").getAsString();
-            String contact  = event.getValue("o_contact").getAsString();
-            String eta      = event.getValue("o_eta").getAsString();
 
-            String catDisplay = switch (cat) {
-                case "designer"  -> "Designer";
-                case "developer" -> "Developer";
-                case "editor"    -> "Editor & Animation";
-                case "minecraft" -> "Minecraft Developer";
-                default          -> "Order";
-            };
-            String subject = catDisplay + " \u2014 " +
-                (services.length() > 55 ? services.substring(0, 52) + "..." : services);
-            String details =
-                "**\uD83C\uDFA8 Category:** " + catDisplay + "\n" +
-                "**\uD83D\uDCCB Services:** " + services + "\n" +
-                (addons.isBlank() ? "" : "**\u2795 Add-ons:** " + addons + "\n") +
-                "**\uD83D\uDCDE Contact:** " + contact + "\n" +
-                "**\u23F1\uFE0F Timeline:** " + eta;
-            TicketService.createTicket(event, subject, "MEDIUM", "ORDER", details);
-            event.getHook().sendMessage(
-                "\u2705 Order submitted — check your new ticket channel.")
+            String userId  = event.getUser().getId();
+            String pName   = event.getValue("o_project").getAsString();
+            String cName   = event.getValue("o_name").getAsString();
+            String contact = event.getValue("o_contact").getAsString();
+            String eta     = event.getValue("o_eta").getAsString();
+
+            PanelService.OrderSession session = PanelService.SESSIONS.remove(userId);
+
+            List<InvoiceService.OrderItem> items;
+            if (session != null) {
+                List<String> allIds = new java.util.ArrayList<>(session.mainIds);
+                allIds.addAll(session.addonIds);
+                items = PanelService.resolveItems(allIds);
+            } else {
+                items = new java.util.ArrayList<>();
+            }
+
+            Guild guild = event.getGuild();
+            User  user  = event.getUser();
+            if (guild != null) {
+                TicketService.createHighEndOrderTicket(guild, user, pName, cName, contact, eta, items);
+            }
+
+            event.getHook()
+                .sendMessage("\u2705 Order submitted — your ticket channel has been created.")
                 .setEphemeral(true).queue();
         }
     }

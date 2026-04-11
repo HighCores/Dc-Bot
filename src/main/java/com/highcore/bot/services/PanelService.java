@@ -13,14 +13,106 @@ import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
 import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.separator.Separator.Spacing;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+
 import java.util.*;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.stream.Collectors;
 
 public class PanelService {
+
+    // ── Order session state ───────────────────────────────────────────────────
+    public static class OrderSession {
+        public String category;
+        public List<String> mainIds  = new ArrayList<>();
+        public List<String> addonIds = new ArrayList<>();
+    }
+    public static final Map<String, OrderSession> SESSIONS = new ConcurrentHashMap<>();
+
+    // ── Service item lookup (id → [displayName, price]) ──────────────────────
+    // Used to build InvoiceService.OrderItem list after the user finalises
+    public static final Map<String, Object[]> ALL_ITEMS = new HashMap<>();
+    static {
+        // ── Designer — main
+        ALL_ITEMS.put("ds_logo",     new Object[]{"Logo Design",                       30.0});
+        ALL_ITEMS.put("ds_identity", new Object[]{"Full Visual Identity",              60.0});
+        ALL_ITEMS.put("ds_posters",  new Object[]{"Posters & Ads",                     90.0});
+        ALL_ITEMS.put("ds_social",   new Object[]{"Social Media Design",               20.0});
+        ALL_ITEMS.put("ds_discord",  new Object[]{"Discord Welcome Pack",              20.0});
+        ALL_ITEMS.put("ds_banners",  new Object[]{"Covers & Banners",                  30.0});
+        ALL_ITEMS.put("ds_print",    new Object[]{"Prints & Brochures",                25.0});
+        ALL_ITEMS.put("ds_motion",   new Object[]{"Motion Graphic",                    90.0});
+        ALL_ITEMS.put("ds_uiux",     new Object[]{"UI/UX Design",                     120.0});
+        ALL_ITEMS.put("ds_info",     new Object[]{"Infographic",                       40.0});
+        ALL_ITEMS.put("ds_emoji",    new Object[]{"Emoji / Stickers",                  30.0});
+        // ── Designer — add-ons
+        ALL_ITEMS.put("da_revisions",new Object[]{"Additional Revisions (Quote)",       0.0});
+        ALL_ITEMS.put("da_rush",     new Object[]{"Rush Delivery",                     45.0});
+        ALL_ITEMS.put("da_source",   new Object[]{"Source Files (AI/PSD)",            250.0});
+        ALL_ITEMS.put("da_colors",   new Object[]{"Color Variants",                    35.0});
+        ALL_ITEMS.put("da_anim",     new Object[]{"Add Animation",                    200.0});
+        ALL_ITEMS.put("da_2rev",     new Object[]{"2 Revisions After Delivery",        35.0});
+        ALL_ITEMS.put("da_logosize", new Object[]{"Additional Logo Size",              10.0});
+        ALL_ITEMS.put("da_copy",     new Object[]{"Copywriting",                       25.0});
+        // ── Developer — main
+        ALL_ITEMS.put("dv_web",      new Object[]{"Web Developer",                     50.0});
+        ALL_ITEMS.put("dv_bots",     new Object[]{"Bots Developer",                    50.0});
+        ALL_ITEMS.put("dv_full",     new Object[]{"Full-Stack Developer",             100.0});
+        ALL_ITEMS.put("dv_front",    new Object[]{"Front-End",                         30.0});
+        ALL_ITEMS.put("dv_back",     new Object[]{"Back-End",                          40.0});
+        ALL_ITEMS.put("dv_ai",       new Object[]{"AI & Automation",                  100.0});
+        ALL_ITEMS.put("dv_db",       new Object[]{"Database Administrator",            30.0});
+        // ── Developer — add-ons
+        ALL_ITEMS.put("dva_revisions",new Object[]{"Additional Revisions (Quote)",      0.0});
+        ALL_ITEMS.put("dva_rush",    new Object[]{"Rush Delivery",                     70.0});
+        ALL_ITEMS.put("dva_source",  new Object[]{"Source Files",                     150.0});
+        ALL_ITEMS.put("dva_2rev",    new Object[]{"2 Revisions After Delivery",       180.0});
+        // ── Editor — main
+        ALL_ITEMS.put("ed_reels",    new Object[]{"Reels / Shorts Editor",             60.0});
+        ALL_ITEMS.put("ed_long",     new Object[]{"Long-form Video Editor",           120.0});
+        ALL_ITEMS.put("ed_anim",     new Object[]{"Animation Editor",                 150.0});
+        ALL_ITEMS.put("ed_gaming",   new Object[]{"Gaming Editor",                    150.0});
+        // ── Editor — add-ons
+        ALL_ITEMS.put("eda_revisions",new Object[]{"Additional Revisions (Quote)",      0.0});
+        ALL_ITEMS.put("eda_rush",    new Object[]{"Rush Delivery",                     45.0});
+        ALL_ITEMS.put("eda_source",  new Object[]{"Source Files (AI/PSD)",            250.0});
+        ALL_ITEMS.put("eda_colors",  new Object[]{"Color Variants",                    35.0});
+        ALL_ITEMS.put("eda_anim",    new Object[]{"Add Animation",                    200.0});
+        ALL_ITEMS.put("eda_2rev",    new Object[]{"2 Revisions After Delivery",        35.0});
+        ALL_ITEMS.put("eda_size",    new Object[]{"Additional Size",                   10.0});
+        ALL_ITEMS.put("eda_copy",    new Object[]{"Copywriting",                       25.0});
+        // ── Minecraft — main
+        ALL_ITEMS.put("mc_plugin",   new Object[]{"Plugin Developer",                  50.0});
+        ALL_ITEMS.put("mc_config",   new Object[]{"Configuration Specialist",          80.0});
+        ALL_ITEMS.put("mc_map",      new Object[]{"Map Maker / Builder",               30.0});
+        ALL_ITEMS.put("mc_pixel",    new Object[]{"Pixel Artist / Texture Creator",   130.0});
+        ALL_ITEMS.put("mc_3d",       new Object[]{"3D Modeler (Blockbench)",           65.0});
+        ALL_ITEMS.put("mc_admin",    new Object[]{"Technical Admin / SysAdmin",        55.0});
+        // ── Minecraft — add-ons
+        ALL_ITEMS.put("mca_revisions",new Object[]{"Additional Revisions (Quote)",      0.0});
+        ALL_ITEMS.put("mca_rush",    new Object[]{"Rush Delivery",                     45.0});
+        ALL_ITEMS.put("mca_source",  new Object[]{"Source Files (AI/PSD)",            250.0});
+        ALL_ITEMS.put("mca_colors",  new Object[]{"Color Variants",                    35.0});
+        ALL_ITEMS.put("mca_anim",    new Object[]{"Add Animation",                    200.0});
+        ALL_ITEMS.put("mca_2rev",    new Object[]{"2 Revisions After Delivery",        35.0});
+        ALL_ITEMS.put("mca_mod",     new Object[]{"Additional Modification",           10.0});
+        ALL_ITEMS.put("mca_copy",    new Object[]{"Copywriting",                       25.0});
+    }
+
+    // Resolve a list of item IDs to InvoiceService.OrderItem (price=0 items kept for display)
+    public static List<InvoiceService.OrderItem> resolveItems(List<String> ids) {
+        List<InvoiceService.OrderItem> out = new ArrayList<>();
+        for (String id : ids) {
+            Object[] meta = ALL_ITEMS.get(id);
+            if (meta != null) out.add(new InvoiceService.OrderItem((String) meta[0], (double) meta[1]));
+        }
+        return out;
+    }
 
     // ── Core reply helpers ────────────────────────────────────────────────────
     public static void reply(Object target, Object content) { handleReply(target, content, false); }
@@ -122,144 +214,232 @@ public class PanelService {
         }
     }
 
-    // ── Order flow — Step 1: category buttons ─────────────────────────────────
+    // ═══════════════════════════════════════════════════════════════════
+    // ORDER FLOW — Step 1: Category select
+    // ═══════════════════════════════════════════════════════════════════
     public static void handleOrderFlow(IReplyCallback event) {
         List<ContainerChildComponent> children = new ArrayList<>();
         children.add(TextDisplay.of(
-            "## \uD83D\uDED2 New Order\n" +
-            "Select your service category to view available services and pricing."));
+            "## \uD83D\uDED2 New Order — Select Category\n" +
+            "Choose the service category that matches your project."));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-            Button.secondary("order_cat_designer",  "\uD83C\uDFA8 Designer"),
-            Button.secondary("order_cat_developer", "\uD83D\uDCBB Developer"),
-            Button.secondary("order_cat_editor",    "\uD83C\uDFAC Editor & Animation"),
-            Button.secondary("order_cat_minecraft", "\u26CF\uFE0F Minecraft Dev")
+            StringSelectMenu.create("order_service_select")
+                .setPlaceholder("Choose a service category...")
+                .setMinValues(1).setMaxValues(1)
+                .addOption("Designer",           "designer",  "Logos, Branding, UI/UX, Motion",     Emoji.fromUnicode("\uD83C\uDFA8"))
+                .addOption("Developer",          "developer", "Web, Bots, Full-Stack, AI",           Emoji.fromUnicode("\uD83D\uDCBB"))
+                .addOption("Editor & Animation", "editor",    "Reels, Long-form, Gaming, Animation", Emoji.fromUnicode("\uD83C\uDFAC"))
+                .addOption("Minecraft Developer","minecraft", "Plugins, Maps, Models, SysAdmin",     Emoji.fromUnicode("\u26CF\uFE0F"))
+                .build()
         ));
         replyEphemeral(event, Container.of(children));
     }
 
-    // ── Order flow — Step 2: show service list for category ───────────────────
-    public static void handleCategoryView(IReplyCallback event, String cat) {
-        String title = switch (cat) {
-            case "designer"  -> "\uD83C\uDFA8 Designer — Services & Pricing";
-            case "developer" -> "\uD83D\uDCBB Developer — Services & Pricing";
-            case "editor"    -> "\uD83C\uDFAC Editor & Animation — Services & Pricing";
-            case "minecraft" -> "\u26CF\uFE0F Minecraft Developer — Services & Pricing";
-            default          -> "Services & Pricing";
-        };
-        String list = switch (cat) {
-            case "designer"  -> DESIGNER_LIST;
-            case "developer" -> DEVELOPER_LIST;
-            case "editor"    -> EDITOR_LIST;
-            case "minecraft" -> MINECRAFT_LIST;
-            default          -> "";
+    // ═══════════════════════════════════════════════════════════════════
+    // ORDER FLOW — Step 2: Main services multi-select
+    // Called after order_service_select fires
+    // ═══════════════════════════════════════════════════════════════════
+    public static void handleCategorySelected(IReplyCallback event, String userId, String category) {
+        OrderSession session = new OrderSession();
+        session.category = category;
+        SESSIONS.put(userId, session);
+
+        String catLabel = switch (category) {
+            case "designer"  -> "\uD83C\uDFA8 Designer";
+            case "developer" -> "\uD83D\uDCBB Developer";
+            case "editor"    -> "\uD83C\uDFAC Editor & Animation";
+            case "minecraft" -> "\u26CF\uFE0F Minecraft Developer";
+            default          -> category;
         };
 
+        StringSelectMenu mainMenu = buildMainMenu(category);
+
         List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of("## " + title + "\n\n" + list));
+        children.add(TextDisplay.of(
+            "## " + catLabel + " — Select Services\n" +
+            "Select one or more services. Prices are shown below each option."));
         children.add(Separator.createDivider(Spacing.SMALL));
-        // Category switcher + open ticket
+        children.add(ActionRow.of(mainMenu));
+        reply(event, Container.of(children));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ORDER FLOW — Step 3: Add-ons multi-select
+    // Called after order_main_select fires
+    // ═══════════════════════════════════════════════════════════════════
+    public static void handleMainSelected(IReplyCallback event, String userId, List<String> selected) {
+        OrderSession session = SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
+        session.mainIds = new ArrayList<>(selected);
+
+        // Build summary line
+        String summary = selected.stream()
+            .map(id -> {
+                Object[] meta = ALL_ITEMS.get(id);
+                return meta != null ? (String) meta[0] : id;
+            })
+            .collect(Collectors.joining(", "));
+
+        StringSelectMenu addonMenu = buildAddonMenu(session.category);
+
+        List<ContainerChildComponent> children = new ArrayList<>();
+        children.add(TextDisplay.of(
+            "## Add-ons (Optional)\n" +
+            "**Selected services:** " + summary + "\n\n" +
+            "Now choose any add-ons, or click **Confirm Order** to skip."));
+        children.add(Separator.createDivider(Spacing.SMALL));
+        children.add(ActionRow.of(addonMenu));
+        children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-            Button.secondary("order_cat_designer",  "\uD83C\uDFA8"),
-            Button.secondary("order_cat_developer", "\uD83D\uDCBB"),
-            Button.secondary("order_cat_editor",    "\uD83C\uDFAC"),
-            Button.secondary("order_cat_minecraft", "\u26CF\uFE0F"),
-            Button.success("order_meta_" + cat, "Open Order Ticket \u2192")
+            Button.success("order_open_ticket", "Confirm Order \u2192")
+                .withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))
         ));
         reply(event, Container.of(children));
     }
 
-    // ── Order flow — Step 3: modal with order details ─────────────────────────
-    public static void handleOrderMetaModal(IReplyCallback event, String cat) {
+    // ═══════════════════════════════════════════════════════════════════
+    // ORDER FLOW — Step 3b: Add-ons selected, update view
+    // Called after order_addon_select fires
+    // ═══════════════════════════════════════════════════════════════════
+    public static void handleAddonsSelected(IReplyCallback event, String userId, List<String> selected) {
+        OrderSession session = SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
+        session.addonIds = new ArrayList<>(selected);
+
+        String mainSummary = session.mainIds.stream()
+            .map(id -> { Object[] m = ALL_ITEMS.get(id); return m != null ? (String) m[0] : id; })
+            .collect(Collectors.joining(", "));
+        String addonSummary = selected.stream()
+            .map(id -> { Object[] m = ALL_ITEMS.get(id); return m != null ? (String) m[0] : id; })
+            .collect(Collectors.joining(", "));
+
+        List<ContainerChildComponent> children = new ArrayList<>();
+        children.add(TextDisplay.of(
+            "## Order Summary\n" +
+            "**Services:** " + mainSummary + "\n" +
+            "**Add-ons:** " + addonSummary + "\n\n" +
+            "Click **Confirm Order** to fill in your project details and open your ticket."));
+        children.add(Separator.createDivider(Spacing.SMALL));
+        children.add(ActionRow.of(
+            Button.success("order_open_ticket", "Confirm Order \u2192")
+                .withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))
+        ));
+        reply(event, Container.of(children));
+    }
+
+    // ═══════════════════════════════════════════════════════════════════
+    // ORDER FLOW — Step 4: Final details modal
+    // Triggered by order_open_ticket button
+    // ═══════════════════════════════════════════════════════════════════
+    public static void handleOrderFinalModal(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            String catLabel = switch (cat) {
-                case "designer"  -> "Designer \uD83C\uDFA8";
-                case "developer" -> "Developer \uD83D\uDCBB";
-                case "editor"    -> "Editor & Animation \uD83C\uDFAC";
-                case "minecraft" -> "Minecraft Dev \u26CF\uFE0F";
-                default          -> "New Order";
-            };
+            TextInput projectInput  = TextInput.create("o_project",  TextInputStyle.SHORT).build();
             TextInput nameInput     = TextInput.create("o_name",     TextInputStyle.SHORT).build();
-            TextInput servicesInput = TextInput.create("o_services", TextInputStyle.PARAGRAPH).build();
-            TextInput addonsInput   = TextInput.create("o_addons",   TextInputStyle.SHORT).build();
             TextInput contactInput  = TextInput.create("o_contact",  TextInputStyle.SHORT).build();
             TextInput etaInput      = TextInput.create("o_eta",      TextInputStyle.SHORT).build();
-            modal.replyModal(Modal.create("modal_order_" + cat, "New Order — " + catLabel)
-                .addComponents(Label.of("\u0627\u0633\u0645\u0643 \u0627\u0644\u0643\u0627\u0645\u0644 / Full Name",          nameInput))
-                .addComponents(Label.of("\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0645\u0646 \u0627\u0644\u0642\u0627\u0626\u0645\u0629", servicesInput))
-                .addComponents(Label.of("\u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)", addonsInput))
-                .addComponents(Label.of("\u0627\u0644\u062a\u0648\u0627\u0635\u0644 (\u062c\u0648\u0627\u0644/\u0625\u064a\u0645\u064a\u0644)",                 contactInput))
-                .addComponents(Label.of("\u0627\u0644\u0645\u062f\u0629 \u0627\u0644\u0645\u062a\u0648\u0642\u0639\u0629 \u0644\u0644\u062a\u0633\u0644\u064a\u0645",              etaInput))
+            modal.replyModal(Modal.create("modal_order_final", "Order Details")
+                .addComponents(Label.of("Project Name",             projectInput))
+                .addComponents(Label.of("Your Full Name",           nameInput))
+                .addComponents(Label.of("Contact (Phone / Email)",  contactInput))
+                .addComponents(Label.of("Expected Delivery Time",   etaInput))
                 .build()).queue();
         }
     }
 
-    // ── Service & pricing lists ───────────────────────────────────────────────
-    private static final String DESIGNER_LIST =
-        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
-        "`$30 `  \u0634\u0639\u0627\u0631\u0627\u062a \u00b7 Logo Design\n" +
-        "`$60 `  \u0647\u0648\u064a\u0629 \u0628\u0635\u0631\u064a\u0629 \u0643\u0627\u0645\u0644\u0629 \u00b7 Full Visual Identity\n" +
-        "`$90 `  \u0628\u0648\u0633\u062a\u0631\u0627\u062a \u0648\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u00b7 Posters & Ads\n" +
-        "`$20 `  \u062a\u0635\u0645\u064a\u0645 \u0633\u0648\u0634\u064a\u0627\u0644 \u0645\u064a\u062f\u064a\u0627 \u00b7 Social Media Design\n" +
-        "`$20 `  \u0628\u0627\u0642\u0627\u062a \u062a\u0631\u062d\u064a\u0628 \u002f \u062f\u064a\u0633\u0643\u0648\u0631\u062f \u00b7 Discord Welcome Pack\n" +
-        "`$30 `  \u0623\u063a\u0644\u0641\u0629 \u0648\u0628\u0627\u0646\u0631\u0627\u062a \u00b7 Covers & Banners\n" +
-        "`$25 `  \u0645\u0637\u0628\u0648\u0639\u0627\u062a (\u0643\u0631\u0648\u062a / \u0628\u0631\u0648\u0634\u0648\u0631) \u00b7 Print\n" +
-        "`$90 `  \u0645\u0648\u0634\u0646 \u062c\u0631\u0627\u0641\u064a\u0643 \u00b7 Motion Graphic\n" +
-        "`$120`  \u062a\u0635\u0645\u064a\u0645 UI/UX\n" +
-        "`$40 `  \u0625\u0646\u0641\u0648\u062c\u0631\u0627\u0641\u064a\u0643 \u00b7 Infographic\n" +
-        "`$30 `  \u0625\u064a\u0645\u0648\u062c\u064a / \u0627\u0633\u062a\u064a\u0643\u0631\u0632 \u00b7 Emoji & Stickers\n\n" +
-        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
-        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
-        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
-        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
-        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
-        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
-        "`+$10 `  \u062d\u062c\u0645 \u0634\u0639\u0627\u0631 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Logo Size\n" +
-        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
+    // ── Select menu builders ──────────────────────────────────────────────────
+    private static StringSelectMenu buildMainMenu(String cat) {
+        StringSelectMenu.Builder b = StringSelectMenu.create("order_main_select")
+            .setPlaceholder("Select services (multiple allowed)...");
 
-    private static final String DEVELOPER_LIST =
-        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
-        "`$50 `  \u0645\u0637\u0648\u0631 \u0645\u0648\u0627\u0642\u0639 \u00b7 Web Developer\n" +
-        "`$50 `  \u0645\u0637\u0648\u0631 \u0628\u0648\u062a\u0627\u062a \u00b7 Bots Developer\n" +
-        "`$100`  \u0645\u0637\u0648\u0631 \u0634\u0627\u0645\u0644 \u00b7 Full-Stack Developer\n" +
-        "`$30 `  \u0648\u0627\u062c\u0647\u0627\u062a \u0623\u0645\u0627\u0645\u064a\u0629 \u00b7 Front-End\n" +
-        "`$40 `  \u0623\u0646\u0638\u0645\u0629 \u062e\u0644\u0641\u064a\u0629 \u00b7 Back-End\n" +
-        "`$100`  \u0630\u0643\u0627\u0621 \u0627\u0635\u0637\u0646\u0627\u0639\u064a \u0648\u0623\u062a\u0645\u062a\u0629 \u00b7 AI & Automation\n" +
-        "`$30 `  \u0642\u0648\u0627\u0639\u062f \u0628\u064a\u0627\u0646\u0627\u062a \u00b7 Database Administrator\n\n" +
-        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
-        "`+$70 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
-        "`+$150`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 \u00b7 Source Files\n" +
-        "`+$180`  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery";
+        List<String[]> items = switch (cat) {
+            case "designer" -> List.of(
+                new String[]{"ds_logo",     "Logo Design",                   "$30"},
+                new String[]{"ds_identity", "Full Visual Identity",           "$60"},
+                new String[]{"ds_posters",  "Posters & Ads",                  "$90"},
+                new String[]{"ds_social",   "Social Media Design",            "$20"},
+                new String[]{"ds_discord",  "Discord Welcome Pack",           "$20"},
+                new String[]{"ds_banners",  "Covers & Banners",               "$30"},
+                new String[]{"ds_print",    "Prints & Brochures",             "$25"},
+                new String[]{"ds_motion",   "Motion Graphic",                 "$90"},
+                new String[]{"ds_uiux",     "UI/UX Design",                   "$120"},
+                new String[]{"ds_info",     "Infographic",                    "$40"},
+                new String[]{"ds_emoji",    "Emoji / Stickers",               "$30"}
+            );
+            case "developer" -> List.of(
+                new String[]{"dv_web",   "Web Developer",             "$50"},
+                new String[]{"dv_bots",  "Bots Developer",            "$50"},
+                new String[]{"dv_full",  "Full-Stack Developer",      "$100"},
+                new String[]{"dv_front", "Front-End",                 "$30"},
+                new String[]{"dv_back",  "Back-End",                  "$40"},
+                new String[]{"dv_ai",    "AI & Automation",           "$100"},
+                new String[]{"dv_db",    "Database Administrator",    "$30"}
+            );
+            case "editor" -> List.of(
+                new String[]{"ed_reels",  "Reels / Shorts Editor",    "$60"},
+                new String[]{"ed_long",   "Long-form Video Editor",   "$120"},
+                new String[]{"ed_anim",   "Animation Editor",         "$150"},
+                new String[]{"ed_gaming", "Gaming Editor",            "$150"}
+            );
+            case "minecraft" -> List.of(
+                new String[]{"mc_plugin", "Plugin Developer",               "$50"},
+                new String[]{"mc_config", "Configuration Specialist",       "$80"},
+                new String[]{"mc_map",    "Map Maker / Builder",            "$30"},
+                new String[]{"mc_pixel",  "Pixel Artist / Texture Creator", "$130"},
+                new String[]{"mc_3d",     "3D Modeler (Blockbench)",        "$65"},
+                new String[]{"mc_admin",  "Technical Admin / SysAdmin",     "$55"}
+            );
+            default -> List.of();
+        };
 
-    private static final String EDITOR_LIST =
-        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
-        "`$60 `  Reels / Shorts Editor\n" +
-        "`$120`  Long-form Video Editor\n" +
-        "`$150`  Animation Editor\n" +
-        "`$150`  Gaming Editor\n\n" +
-        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
-        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
-        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
-        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
-        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
-        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
-        "`+$10 `  \u062d\u062c\u0645 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Size\n" +
-        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
+        for (String[] item : items) b.addOption(item[1], item[0], item[2]);
+        b.setMinValues(1).setMaxValues(items.size());
+        return b.build();
+    }
 
-    private static final String MINECRAFT_LIST =
-        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
-        "`$50 `  Plugin Developer\n" +
-        "`$80 `  Configuration Specialist\n" +
-        "`$30 `  Map Maker / Builder\n" +
-        "`$130`  Pixel Artist / Texture Creator\n" +
-        "`$65 `  3D Modeler (Blockbench)\n" +
-        "`$55 `  Technical Admin / SysAdmin\n\n" +
-        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
-        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
-        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
-        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
-        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
-        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
-        "`+$10 `  \u062a\u0639\u062f\u064a\u0644 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Modification\n" +
-        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
+    private static StringSelectMenu buildAddonMenu(String cat) {
+        StringSelectMenu.Builder b = StringSelectMenu.create("order_addon_select")
+            .setPlaceholder("Select add-ons (optional, multiple allowed)...");
+
+        List<String[]> items = switch (cat) {
+            case "developer" -> List.of(
+                new String[]{"dva_revisions", "Additional Revisions",        "Quote"},
+                new String[]{"dva_rush",      "Rush Delivery",               "$70"},
+                new String[]{"dva_source",    "Source Files",                "$150"},
+                new String[]{"dva_2rev",      "2 Revisions After Delivery",  "$180"}
+            );
+            default -> {
+                String prefix = switch (cat) {
+                    case "designer"  -> "da";
+                    case "editor"    -> "eda";
+                    case "minecraft" -> "mca";
+                    default          -> "da";
+                };
+                String lastLabel = switch (cat) {
+                    case "designer"  -> "Additional Logo Size — $10";
+                    case "editor"    -> "Additional Size — $10";
+                    case "minecraft" -> "Additional Modification — $10";
+                    default          -> "Additional Size — $10";
+                };
+                String lastId = switch (cat) {
+                    case "designer"  -> prefix + "_logosize";
+                    case "editor"    -> prefix + "_size";
+                    case "minecraft" -> prefix + "_mod";
+                    default          -> prefix + "_size";
+                };
+                yield List.of(
+                    new String[]{prefix + "_revisions", "Additional Revisions",        "Quote"},
+                    new String[]{prefix + "_rush",      "Rush Delivery",               cat.equals("editor") ? "$45" : "$45"},
+                    new String[]{prefix + "_source",    "Source Files (AI/PSD)",       "$250"},
+                    new String[]{prefix + "_colors",    "Color Variants",              "$35"},
+                    new String[]{prefix + "_anim",      "Add Animation",               "$200"},
+                    new String[]{prefix + "_2rev",      "2 Revisions After Delivery",  "$35"},
+                    new String[]{lastId,                 lastLabel.split(" — ")[0],     lastLabel.split(" — ")[1]},
+                    new String[]{prefix + "_copy",      "Copywriting",                 "$25"}
+                );
+            }
+        };
+
+        for (String[] item : items) b.addOption(item[1], item[0], item[2]);
+        b.setMinValues(0).setMaxValues(items.size());
+        return b.build();
+    }
 }

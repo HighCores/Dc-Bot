@@ -25,7 +25,7 @@ public class EmbedUtil {
     public static final String BANNER_MAIN        = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
     public static final String BANNER_SUPPORT     = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
     public static final String BANNER_GIVEAWAY    = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
-    public static final String BANNER_INVOICE     = "https://i.ibb.co/5Xm8M89V/Untitled-1.png";
+    public static final String BANNER_INVOICE     = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png?ex=69dafc7f&is=69d9aaff&hm=b344d8ceae8572e0ab8a972b9ec4ca7b60be6ad87314bac903c8a2a9a643629a&";
     public static final String BANNER_TICKET_PANEL = BANNER_MAIN;
     public static final String BANNER_ORDER_TIK   = BANNER_INVOICE;
 
