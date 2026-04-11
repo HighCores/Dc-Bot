@@ -2,9 +2,9 @@ package com.highcore.bot.services;
 
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
+import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
@@ -19,95 +19,14 @@ import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
 
 public class PanelService {
-
-    // ── Order session state ───────────────────────────────────────────────────
-    public static class OrderSession {
-        public String sector;
-        public List<String> mainServices = new ArrayList<>();
-        public List<String> addons       = new ArrayList<>();
-    }
-    public static final Map<String, OrderSession> ORDER_SESSIONS = new ConcurrentHashMap<>();
-
-    // ── Service catalog ───────────────────────────────────────────────────────
-    public static InvoiceService.OrderItem getOrderItem(String value) {
-        return switch (value) {
-            // Designer — main
-            case "des_logo"       -> new InvoiceService.OrderItem("Logo Design", 30);
-            case "des_identity"   -> new InvoiceService.OrderItem("Full Visual Identity", 60);
-            case "des_posters"    -> new InvoiceService.OrderItem("Posters & Ads", 90);
-            case "des_social"     -> new InvoiceService.OrderItem("Social Media Design", 20);
-            case "des_discord"    -> new InvoiceService.OrderItem("Discord Welcome Pack", 20);
-            case "des_covers"     -> new InvoiceService.OrderItem("Covers & Banners", 30);
-            case "des_print"      -> new InvoiceService.OrderItem("Print (Cards / Brochure)", 25);
-            case "des_motion"     -> new InvoiceService.OrderItem("Motion Graphic", 90);
-            case "des_uiux"       -> new InvoiceService.OrderItem("UI/UX Design", 120);
-            case "des_info"       -> new InvoiceService.OrderItem("Infographic", 40);
-            case "des_emoji"      -> new InvoiceService.OrderItem("Emoji / Stickers Design", 30);
-            // Designer — add-ons
-            case "des_revisions"  -> new InvoiceService.OrderItem("Additional Revisions", 0);
-            case "des_rush"       -> new InvoiceService.OrderItem("Rush Delivery", 45);
-            case "des_source"     -> new InvoiceService.OrderItem("Source Files (AI/PSD)", 250);
-            case "des_colors"     -> new InvoiceService.OrderItem("Multiple Color Variants", 35);
-            case "des_anim"       -> new InvoiceService.OrderItem("Add Animation", 200);
-            case "des_2rev"       -> new InvoiceService.OrderItem("2 Revisions After Delivery", 35);
-            case "des_logosize"   -> new InvoiceService.OrderItem("Additional Logo Size", 10);
-            case "des_copy"       -> new InvoiceService.OrderItem("Copywriting", 25);
-            // Developer — main
-            case "dev_web"        -> new InvoiceService.OrderItem("Web Developer", 50);
-            case "dev_bot"        -> new InvoiceService.OrderItem("Bots Developer", 50);
-            case "dev_fullstack"  -> new InvoiceService.OrderItem("Full-Stack", 100);
-            case "dev_frontend"   -> new InvoiceService.OrderItem("Front-End", 30);
-            case "dev_backend"    -> new InvoiceService.OrderItem("Back-End", 40);
-            case "dev_ai"         -> new InvoiceService.OrderItem("AI & Automation", 100);
-            case "dev_db"         -> new InvoiceService.OrderItem("Database Administrator", 30);
-            // Developer — add-ons
-            case "dev_revisions"  -> new InvoiceService.OrderItem("Additional Revisions", 0);
-            case "dev_rush"       -> new InvoiceService.OrderItem("Rush Delivery", 70);
-            case "dev_source"     -> new InvoiceService.OrderItem("Source Files", 150);
-            case "dev_2rev"       -> new InvoiceService.OrderItem("2 Revisions After Delivery", 180);
-            // Editor — main
-            case "edit_reels"     -> new InvoiceService.OrderItem("Reels / Shorts Editor", 60);
-            case "edit_longform"  -> new InvoiceService.OrderItem("Long-form Video Editor", 120);
-            case "edit_animation" -> new InvoiceService.OrderItem("Animation Editor", 150);
-            case "edit_gaming"    -> new InvoiceService.OrderItem("Gaming Editor", 150);
-            // Editor — add-ons
-            case "edit_revisions" -> new InvoiceService.OrderItem("Additional Edits", 0);
-            case "edit_rush"      -> new InvoiceService.OrderItem("Rush Delivery", 45);
-            case "edit_source"    -> new InvoiceService.OrderItem("Source Files (AI/PSD)", 250);
-            case "edit_colors"    -> new InvoiceService.OrderItem("Multiple Color Variants", 35);
-            case "edit_anim"      -> new InvoiceService.OrderItem("Add Animation", 200);
-            case "edit_2rev"      -> new InvoiceService.OrderItem("2 Revisions After Delivery", 35);
-            case "edit_logosize"  -> new InvoiceService.OrderItem("Additional Logo Size", 10);
-            case "edit_copy"      -> new InvoiceService.OrderItem("Copywriting", 25);
-            // Minecraft — main
-            case "mc_plugin"      -> new InvoiceService.OrderItem("Plugin Developer", 50);
-            case "mc_config"      -> new InvoiceService.OrderItem("Configuration Specialist", 80);
-            case "mc_map"         -> new InvoiceService.OrderItem("Map Maker / Builder", 30);
-            case "mc_pixel"       -> new InvoiceService.OrderItem("Pixel Artist / Texture Creator", 130);
-            case "mc_3d"          -> new InvoiceService.OrderItem("3D Modeler (Blockbench)", 65);
-            case "mc_admin"       -> new InvoiceService.OrderItem("Technical Admin / SysAdmin", 55);
-            // Minecraft — add-ons
-            case "mc_revisions"   -> new InvoiceService.OrderItem("Additional Modifications", 0);
-            case "mc_rush"        -> new InvoiceService.OrderItem("Rush Delivery", 45);
-            case "mc_source"      -> new InvoiceService.OrderItem("Source Files (AI/PSD)", 250);
-            case "mc_colors"      -> new InvoiceService.OrderItem("Multiple Color Variants", 35);
-            case "mc_anim"        -> new InvoiceService.OrderItem("Add Animation", 200);
-            case "mc_2rev"        -> new InvoiceService.OrderItem("2 Revisions After Delivery", 35);
-            case "mc_logosize"    -> new InvoiceService.OrderItem("Additional Logo Size", 10);
-            case "mc_copy"        -> new InvoiceService.OrderItem("Copywriting", 25);
-            default -> null;
-        };
-    }
 
     // ── Core reply helpers ────────────────────────────────────────────────────
     public static void reply(Object target, Object content) { handleReply(target, content, false); }
     public static void replyEphemeral(Object target, Object content) { handleReply(target, content, true); }
 
     private static void handleReply(Object target, Object content, boolean ephemeral) {
-        // Collect top-level components (Container, ActionRow, etc.)
         List<MessageTopLevelComponent> components = new ArrayList<>();
         if (content instanceof MessageTopLevelComponent mtc) {
             components.add(mtc);
@@ -115,11 +34,9 @@ public class PanelService {
             for (Object obj : list)
                 if (obj instanceof MessageTopLevelComponent mtc) components.add(mtc);
         }
-
         if (components.isEmpty()) {
             components.add(EmbedUtil.info("High Core Agency", "No content provided."));
         }
-
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
                 event.getHook().editOriginalComponents(components).useComponentsV2(true).queue();
@@ -131,7 +48,7 @@ public class PanelService {
         }
     }
 
-    // ── Hub panels (unchanged) ────────────────────────────────────────────────
+    // ── Hub panels ────────────────────────────────────────────────────────────
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(Button.secondary("hub_highcore", "Map"), Button.secondary("hub_about", "About"));
         reply(event, EmbedUtil.eliteContainer("High Core Agency", "Global operations hub.", null, row));
@@ -143,51 +60,45 @@ public class PanelService {
     }
 
     public static void sendAboutUs(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.eliteContainer("About Us", "Elite creative identity.", null, ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"))));
+        replyEphemeral(event, EmbedUtil.eliteContainer("About Us", "Elite creative identity.", null,
+                ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"))));
     }
 
     public static void sendPartnersPanel(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Partners", "Strategic collaborations.", null)); }
-    public static void sendPingsPanel(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Pings", "Select notification layers.", null)); }
-    public static void sendStatsPanel(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Telemetry", "Systems Operational.", null)); }
-    public static void sendPricesCategory(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Pricing", "Service modules processing.", null)); }
-    public static void sendServicesCategory(IReplyCallback event) { replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null)); }
+    public static void sendPingsPanel(IReplyCallback event)    { replyEphemeral(event, EmbedUtil.eliteContainer("Pings", "Select notification layers.", null)); }
+    public static void sendStatsPanel(IReplyCallback event)    { replyEphemeral(event, EmbedUtil.eliteContainer("Telemetry", "Systems Operational.", null)); }
+    public static void sendPricesCategory(IReplyCallback event){ replyEphemeral(event, EmbedUtil.eliteContainer("Pricing", "Service modules processing.", null)); }
+    public static void sendServicesCategory(IReplyCallback event){ replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null)); }
 
     // ── /tickets command ──────────────────────────────────────────────────────
     public static void sendTicketPanel(IReplyCallback event) {
-        String imageUrl = "https://media.discordapp.net/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69da98a1&is=69d94721&hm=c51f95d1c03e2a090c01a0f571951522b6912351eba6604af0bf933e9921b5dc&=&format=webp&quality=lossless&width=1845&height=807";
-
+        String imageUrl = "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png" +
+                          "?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";
         String rules =
             "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
             "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +
-            "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem, inquiry, or to follow up on an existing ticket.\n\n" +
-            "**Clarity** — Please fully describe your issue or request before a staff member responds, to speed up the process.\n\n" +
+            "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n" +
+            "**Clarity** — Please fully describe your issue or request before a staff member responds.\n\n" +
             "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
-            "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden under any circumstances.";
+            "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden.";
 
         List<ContainerChildComponent> children = new ArrayList<>();
-        // 1. Banner image
         children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        // 2. Title
         children.add(TextDisplay.of("## TICKET SUPPORT | High Core Agency"));
-        // 3. Separator line
         children.add(Separator.createDivider(Spacing.SMALL));
-        // 4. Rules text
         children.add(TextDisplay.of(rules));
-        // 5. Separator line
         children.add(Separator.createDivider(Spacing.SMALL));
-        // 6. Buttons
         children.add(ActionRow.of(
-            Button.primary("ticket_init_support",  "Technical Support").withEmoji(Emoji.fromUnicode("\uD83D\uDCA1")),
-            Button.success("ticket_init_order",    "New Order")        .withEmoji(Emoji.fromUnicode("\uD83D\uDED2")),
-            Button.danger("ticket_init_complaint", "File Complaint")   .withEmoji(Emoji.fromUnicode("\u26A0\uFE0F"))
+            Button.primary("ticket_init_support",  "\uD83D\uDCA1 Technical Support"),
+            Button.success("ticket_init_order",    "\uD83D\uDED2 New Order"),
+            Button.danger("ticket_init_complaint", "\u26A0\uFE0F File Complaint")
         ));
-
         reply(event, Container.of(children));
     }
 
-    // ── Support flow — modal with 2 fields ───────────────────────────────────
+    // ── Support flow ──────────────────────────────────────────────────────────
     public static void handleSupportFlow(IReplyCallback event) {
-        if (event instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modal) {
+        if (event instanceof IModalCallback modal) {
             TextInput issueInput   = TextInput.create("issue_desc",   TextInputStyle.PARAGRAPH).build();
             TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).build();
             modal.replyModal(Modal.create("modal_support_init", "Technical Support")
@@ -197,233 +108,158 @@ public class PanelService {
         }
     }
 
-    // ── Complaint flow — modal with 3 fields ─────────────────────────────────
+    // ── Complaint flow ────────────────────────────────────────────────────────
     public static void handleComplaintFlow(IReplyCallback event) {
-        if (event instanceof net.dv8tion.jda.api.interactions.callbacks.IModalCallback modal) {
+        if (event instanceof IModalCallback modal) {
             TextInput issueTypeInput = TextInput.create("comp_type",   TextInputStyle.SHORT).build();
             TextInput personInput    = TextInput.create("comp_person", TextInputStyle.SHORT).build();
             TextInput descInput      = TextInput.create("comp_desc",   TextInputStyle.PARAGRAPH).build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
-                .addComponents(Label.of("Is this about a delivery issue or a specific staff member?", issueTypeInput))
-                .addComponents(Label.of("Who is the staff member / person involved? (Write 'N/A' if none)", personInput))
-                .addComponents(Label.of("Please describe the issue in full detail", descInput))
+                .addComponents(Label.of("Delivery issue or staff member?", issueTypeInput))
+                .addComponents(Label.of("Staff / person involved (or N/A)", personInput))
+                .addComponents(Label.of("Describe the issue in full detail", descInput))
                 .build()).queue();
         }
     }
 
-    // ── Order flow — Step 1: choose sector ───────────────────────────────────
+    // ── Order flow — Step 1: category buttons ─────────────────────────────────
     public static void handleOrderFlow(IReplyCallback event) {
-        StringSelectMenu menu = StringSelectMenu.create("order_sector_select")
-            .setPlaceholder("— Select your service category —")
-            .addOption("Designer",            "sect_designer",  "Logo, Identity, UI/UX, Motion, Emoji...")
-            .addOption("Developer",           "sect_developer", "Web, Bot, Full-Stack, AI, Database...")
-            .addOption("Editor & Animation",  "sect_editor",    "Reels, Long-form, Animation, Gaming...")
-            .addOption("Minecraft Developer", "sect_minecraft", "Plugins, Maps, Texture, Blockbench...")
-            .build();
-        replyEphemeral(event, EmbedUtil.eliteContainer("New Order",
-            "Select your required service category to begin.", null, ActionRow.of(menu)));
+        List<ContainerChildComponent> children = new ArrayList<>();
+        children.add(TextDisplay.of(
+            "## \uD83D\uDED2 New Order\n" +
+            "Select your service category to view available services and pricing."));
+        children.add(Separator.createDivider(Spacing.SMALL));
+        children.add(ActionRow.of(
+            Button.secondary("order_cat_designer",  "\uD83C\uDFA8 Designer"),
+            Button.secondary("order_cat_developer", "\uD83D\uDCBB Developer"),
+            Button.secondary("order_cat_editor",    "\uD83C\uDFAC Editor & Animation"),
+            Button.secondary("order_cat_minecraft", "\u26CF\uFE0F Minecraft Dev")
+        ));
+        replyEphemeral(event, Container.of(children));
     }
 
-    // ── Order flow — Step 2: choose main services ─────────────────────────────
-    public static void handleSectorSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, String val) {
-        String userId = event.getUser().getId();
-        OrderSession session = ORDER_SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
-        session.sector = val.replace("sect_", "");
-        session.mainServices.clear();
-        session.addons.clear();
-
-        StringSelectMenu.Builder builder = StringSelectMenu
-            .create("order_service_select_" + session.sector)
-            .setPlaceholder("— Select services (multiple allowed) —")
-            .setMinValues(1);
-
-        switch (session.sector) {
-            case "designer" -> builder.setMaxValues(11)
-                .addOption("Logo Design",              "des_logo",      "$30")
-                .addOption("Full Visual Identity",     "des_identity",  "$60")
-                .addOption("Posters & Ads",            "des_posters",   "$90")
-                .addOption("Social Media Design",      "des_social",    "$20")
-                .addOption("Discord Welcome Pack",     "des_discord",   "$20")
-                .addOption("Covers & Banners",         "des_covers",    "$30")
-                .addOption("Print (Cards / Brochure)", "des_print",     "$25")
-                .addOption("Motion Graphic",           "des_motion",    "$90")
-                .addOption("UI/UX Design",             "des_uiux",      "$120")
-                .addOption("Infographic",              "des_info",      "$40")
-                .addOption("Emoji / Stickers Design",  "des_emoji",     "$30");
-            case "developer" -> builder.setMaxValues(7)
-                .addOption("Web Developer",            "dev_web",       "$50")
-                .addOption("Bots Developer",           "dev_bot",       "$50")
-                .addOption("Full-Stack",               "dev_fullstack", "$100")
-                .addOption("Front-End",                "dev_frontend",  "$30")
-                .addOption("Back-End",                 "dev_backend",   "$40")
-                .addOption("AI & Automation",          "dev_ai",        "$100")
-                .addOption("Database Administrator",   "dev_db",        "$30");
-            case "editor" -> builder.setMaxValues(4)
-                .addOption("Reels / Shorts Editor",    "edit_reels",    "$60")
-                .addOption("Long-form Video Editor",   "edit_longform", "$120")
-                .addOption("Animation Editor",         "edit_animation","$150")
-                .addOption("Gaming Editor",            "edit_gaming",   "$150");
-            case "minecraft" -> builder.setMaxValues(6)
-                .addOption("Plugin Developer",                  "mc_plugin",  "$50")
-                .addOption("Configuration Specialist",          "mc_config",  "$80")
-                .addOption("Map Maker / Builder",               "mc_map",     "$30")
-                .addOption("Pixel Artist / Texture Creator",    "mc_pixel",   "$130")
-                .addOption("3D Modeler (Blockbench)",           "mc_3d",      "$65")
-                .addOption("Technical Admin / SysAdmin",        "mc_admin",   "$55");
-        }
-
-        String label = switch (session.sector) {
-            case "designer"  -> "Designer";
-            case "developer" -> "Developer";
-            case "editor"    -> "Editor & Animation";
-            case "minecraft" -> "Minecraft Developer";
-            default          -> "Services";
+    // ── Order flow — Step 2: show service list for category ───────────────────
+    public static void handleCategoryView(IReplyCallback event, String cat) {
+        String title = switch (cat) {
+            case "designer"  -> "\uD83C\uDFA8 Designer — Services & Pricing";
+            case "developer" -> "\uD83D\uDCBB Developer — Services & Pricing";
+            case "editor"    -> "\uD83C\uDFAC Editor & Animation — Services & Pricing";
+            case "minecraft" -> "\u26CF\uFE0F Minecraft Developer — Services & Pricing";
+            default          -> "Services & Pricing";
         };
-        reply(event, EmbedUtil.eliteContainer(label + " — Main Services",
-            "Select one or more services. Prices are shown under each option.", null,
-            ActionRow.of(builder.build())));
-    }
-
-    // ── Order flow — Step 3: choose add-ons ──────────────────────────────────
-    public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
-        String userId = event.getUser().getId();
-        OrderSession session = ORDER_SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
-        session.mainServices = new ArrayList<>(vals);
-        String sector = event.getComponentId().replace("order_service_select_", "");
-
-        StringSelectMenu addonMenu = switch (sector) {
-            case "designer"  -> buildDesignerAddonMenu();
-            case "developer" -> buildDeveloperAddonMenu();
-            case "editor"    -> buildEditorAddonMenu();
-            case "minecraft" -> buildMinecraftAddonMenu();
-            default          -> buildDesignerAddonMenu();
+        String list = switch (cat) {
+            case "designer"  -> DESIGNER_LIST;
+            case "developer" -> DEVELOPER_LIST;
+            case "editor"    -> EDITOR_LIST;
+            case "minecraft" -> MINECRAFT_LIST;
+            default          -> "";
         };
 
-        reply(event, EmbedUtil.eliteContainer("Add-Ons & Extras",
-            "Select any optional add-ons, or skip directly to project details.",
-            null,
-            ActionRow.of(addonMenu),
-            ActionRow.of(Button.success("order_final_meta", "Skip & Proceed to Details \u2192")
-                .withEmoji(Emoji.fromUnicode("\u2705")))));
+        List<ContainerChildComponent> children = new ArrayList<>();
+        children.add(TextDisplay.of("## " + title + "\n\n" + list));
+        children.add(Separator.createDivider(Spacing.SMALL));
+        // Category switcher + open ticket
+        children.add(ActionRow.of(
+            Button.secondary("order_cat_designer",  "\uD83C\uDFA8"),
+            Button.secondary("order_cat_developer", "\uD83D\uDCBB"),
+            Button.secondary("order_cat_editor",    "\uD83C\uDFAC"),
+            Button.secondary("order_cat_minecraft", "\u26CF\uFE0F"),
+            Button.success("order_meta_" + cat, "Open Order Ticket \u2192")
+        ));
+        reply(event, Container.of(children));
     }
 
-    // ── Order flow — Step 4: confirm add-ons, show summary ────────────────────
-    public static void handleAddonSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
-        String userId = event.getUser().getId();
-        OrderSession session = ORDER_SESSIONS.computeIfAbsent(userId, k -> new OrderSession());
-        session.addons = new ArrayList<>(vals);
-
-        double total = 0;
-        StringBuilder mainLines = new StringBuilder();
-        StringBuilder addonLines = new StringBuilder();
-
-        for (String s : session.mainServices) {
-            InvoiceService.OrderItem item = getOrderItem(s);
-            if (item == null) continue;
-            if (item.price > 0) {
-                mainLines.append("`$").append(String.format("%-6.0f", item.price)).append("` ").append(item.name).append("\n");
-                total += item.price;
-            } else {
-                mainLines.append("`TBD  ` ").append(item.name).append("\n");
-            }
+    // ── Order flow — Step 3: modal with order details ─────────────────────────
+    public static void handleOrderMetaModal(IReplyCallback event, String cat) {
+        if (event instanceof IModalCallback modal) {
+            String catLabel = switch (cat) {
+                case "designer"  -> "Designer \uD83C\uDFA8";
+                case "developer" -> "Developer \uD83D\uDCBB";
+                case "editor"    -> "Editor & Animation \uD83C\uDFAC";
+                case "minecraft" -> "Minecraft Dev \u26CF\uFE0F";
+                default          -> "New Order";
+            };
+            TextInput nameInput     = TextInput.create("o_name",     TextInputStyle.SHORT).build();
+            TextInput servicesInput = TextInput.create("o_services", TextInputStyle.PARAGRAPH).build();
+            TextInput addonsInput   = TextInput.create("o_addons",   TextInputStyle.SHORT).build();
+            TextInput contactInput  = TextInput.create("o_contact",  TextInputStyle.SHORT).build();
+            TextInput etaInput      = TextInput.create("o_eta",      TextInputStyle.SHORT).build();
+            modal.replyModal(Modal.create("modal_order_" + cat, "New Order — " + catLabel)
+                .addComponents(Label.of("\u0627\u0633\u0645\u0643 \u0627\u0644\u0643\u0627\u0645\u0644 / Full Name",          nameInput))
+                .addComponents(Label.of("\u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 \u0645\u0646 \u0627\u0644\u0642\u0627\u0626\u0645\u0629", servicesInput))
+                .addComponents(Label.of("\u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a \u0627\u0644\u0645\u0637\u0644\u0648\u0628\u0629 (\u0627\u062e\u062a\u064a\u0627\u0631\u064a)", addonsInput))
+                .addComponents(Label.of("\u0627\u0644\u062a\u0648\u0627\u0635\u0644 (\u062c\u0648\u0627\u0644/\u0625\u064a\u0645\u064a\u0644)",                 contactInput))
+                .addComponents(Label.of("\u0627\u0644\u0645\u062f\u0629 \u0627\u0644\u0645\u062a\u0648\u0642\u0639\u0629 \u0644\u0644\u062a\u0633\u0644\u064a\u0645",              etaInput))
+                .build()).queue();
         }
-        for (String a : session.addons) {
-            InvoiceService.OrderItem item = getOrderItem(a);
-            if (item == null) continue;
-            if (item.price > 0) {
-                addonLines.append("`$").append(String.format("%-6.0f", item.price)).append("` ").append(item.name).append("\n");
-                total += item.price;
-            } else {
-                addonLines.append("`TBD  ` ").append(item.name).append("\n");
-            }
-        }
-
-        StringBuilder summary = new StringBuilder();
-        summary.append("Here's a review of everything you selected.\n\n");
-        if (mainLines.length() > 0) {
-            summary.append("**\uD83D\uDCCC Main Services**\n").append(mainLines);
-        }
-        if (addonLines.length() > 0) {
-            summary.append("\n**\u2795 Add-Ons**\n").append(addonLines);
-        }
-        if (total > 0) {
-            summary.append("\n**\uD83D\uDCB0 Estimated Total: `$").append(String.format("%.0f", total)).append("+`**\n");
-        }
-        summary.append("\nWhen you're ready, click **Proceed** to enter your project details and open the ticket.");
-
-        reply(event, EmbedUtil.eliteContainer("Order Summary", summary.toString(), null,
-            ActionRow.of(Button.success("order_final_meta", "Proceed \u2192")
-                .withEmoji(Emoji.fromUnicode("\u2705")))));
     }
 
-    // ── Order flow — Step 5: project details modal ────────────────────────────
-    public static void handleOrderMetaModal(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        TextInput pName   = TextInput.create("p_name",    TextInputStyle.SHORT).build();
-        TextInput cName   = TextInput.create("p_client",  TextInputStyle.SHORT).build();
-        TextInput contact = TextInput.create("p_contact", TextInputStyle.SHORT).build();
-        TextInput eta     = TextInput.create("p_eta",     TextInputStyle.SHORT).build();
-        event.replyModal(Modal.create("modal_order_finalize", "Project Details")
-            .addComponents(Label.of("Project Name",                              pName))
-            .addComponents(Label.of("Your Full Name",                            cName))
-            .addComponents(Label.of("Contact (Phone / Email)",                   contact))
-            .addComponents(Label.of("Expected Delivery Period (e.g. 7-14 days)", eta))
-            .build()).queue();
-    }
+    // ── Service & pricing lists ───────────────────────────────────────────────
+    private static final String DESIGNER_LIST =
+        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
+        "`$30 `  \u0634\u0639\u0627\u0631\u0627\u062a \u00b7 Logo Design\n" +
+        "`$60 `  \u0647\u0648\u064a\u0629 \u0628\u0635\u0631\u064a\u0629 \u0643\u0627\u0645\u0644\u0629 \u00b7 Full Visual Identity\n" +
+        "`$90 `  \u0628\u0648\u0633\u062a\u0631\u0627\u062a \u0648\u0625\u0639\u0644\u0627\u0646\u0627\u062a \u00b7 Posters & Ads\n" +
+        "`$20 `  \u062a\u0635\u0645\u064a\u0645 \u0633\u0648\u0634\u064a\u0627\u0644 \u0645\u064a\u062f\u064a\u0627 \u00b7 Social Media Design\n" +
+        "`$20 `  \u0628\u0627\u0642\u0627\u062a \u062a\u0631\u062d\u064a\u0628 \u002f \u062f\u064a\u0633\u0643\u0648\u0631\u062f \u00b7 Discord Welcome Pack\n" +
+        "`$30 `  \u0623\u063a\u0644\u0641\u0629 \u0648\u0628\u0627\u0646\u0631\u0627\u062a \u00b7 Covers & Banners\n" +
+        "`$25 `  \u0645\u0637\u0628\u0648\u0639\u0627\u062a (\u0643\u0631\u0648\u062a / \u0628\u0631\u0648\u0634\u0648\u0631) \u00b7 Print\n" +
+        "`$90 `  \u0645\u0648\u0634\u0646 \u062c\u0631\u0627\u0641\u064a\u0643 \u00b7 Motion Graphic\n" +
+        "`$120`  \u062a\u0635\u0645\u064a\u0645 UI/UX\n" +
+        "`$40 `  \u0625\u0646\u0641\u0648\u062c\u0631\u0627\u0641\u064a\u0643 \u00b7 Infographic\n" +
+        "`$30 `  \u0625\u064a\u0645\u0648\u062c\u064a / \u0627\u0633\u062a\u064a\u0643\u0631\u0632 \u00b7 Emoji & Stickers\n\n" +
+        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
+        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
+        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
+        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
+        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
+        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
+        "`+$10 `  \u062d\u062c\u0645 \u0634\u0639\u0627\u0631 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Logo Size\n" +
+        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
 
-    // ── Add-on menu builders ──────────────────────────────────────────────────
-    private static StringSelectMenu buildDesignerAddonMenu() {
-        return StringSelectMenu.create("order_addon_select_designer")
-            .setPlaceholder("— Select add-ons (optional) —")
-            .setMinValues(0).setMaxValues(8)
-            .addOption("Additional Revisions",       "des_revisions", "Price: Varies")
-            .addOption("Rush Delivery",              "des_rush",      "$45")
-            .addOption("Source Files (AI/PSD)",      "des_source",    "$250")
-            .addOption("Multiple Color Variants",    "des_colors",    "$35")
-            .addOption("Add Animation",              "des_anim",      "$200")
-            .addOption("2 Revisions After Delivery", "des_2rev",      "$35")
-            .addOption("Additional Logo Size",       "des_logosize",  "$10")
-            .addOption("Copywriting",                "des_copy",      "$25")
-            .build();
-    }
+    private static final String DEVELOPER_LIST =
+        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
+        "`$50 `  \u0645\u0637\u0648\u0631 \u0645\u0648\u0627\u0642\u0639 \u00b7 Web Developer\n" +
+        "`$50 `  \u0645\u0637\u0648\u0631 \u0628\u0648\u062a\u0627\u062a \u00b7 Bots Developer\n" +
+        "`$100`  \u0645\u0637\u0648\u0631 \u0634\u0627\u0645\u0644 \u00b7 Full-Stack Developer\n" +
+        "`$30 `  \u0648\u0627\u062c\u0647\u0627\u062a \u0623\u0645\u0627\u0645\u064a\u0629 \u00b7 Front-End\n" +
+        "`$40 `  \u0623\u0646\u0638\u0645\u0629 \u062e\u0644\u0641\u064a\u0629 \u00b7 Back-End\n" +
+        "`$100`  \u0630\u0643\u0627\u0621 \u0627\u0635\u0637\u0646\u0627\u0639\u064a \u0648\u0623\u062a\u0645\u062a\u0629 \u00b7 AI & Automation\n" +
+        "`$30 `  \u0642\u0648\u0627\u0639\u062f \u0628\u064a\u0627\u0646\u0627\u062a \u00b7 Database Administrator\n\n" +
+        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
+        "`+$70 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
+        "`+$150`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 \u00b7 Source Files\n" +
+        "`+$180`  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery";
 
-    private static StringSelectMenu buildDeveloperAddonMenu() {
-        return StringSelectMenu.create("order_addon_select_developer")
-            .setPlaceholder("— Select add-ons (optional) —")
-            .setMinValues(0).setMaxValues(4)
-            .addOption("Additional Revisions",       "dev_revisions", "Price: Varies")
-            .addOption("Rush Delivery",              "dev_rush",      "$70")
-            .addOption("Source Files",               "dev_source",    "$150")
-            .addOption("2 Revisions After Delivery", "dev_2rev",      "$180")
-            .build();
-    }
+    private static final String EDITOR_LIST =
+        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
+        "`$60 `  Reels / Shorts Editor\n" +
+        "`$120`  Long-form Video Editor\n" +
+        "`$150`  Animation Editor\n" +
+        "`$150`  Gaming Editor\n\n" +
+        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
+        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
+        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
+        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
+        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
+        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
+        "`+$10 `  \u062d\u062c\u0645 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Size\n" +
+        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
 
-    private static StringSelectMenu buildEditorAddonMenu() {
-        return StringSelectMenu.create("order_addon_select_editor")
-            .setPlaceholder("— Select add-ons (optional) —")
-            .setMinValues(0).setMaxValues(8)
-            .addOption("Additional Edits",           "edit_revisions", "Price: Varies")
-            .addOption("Rush Delivery",              "edit_rush",      "$45")
-            .addOption("Source Files (AI/PSD)",      "edit_source",    "$250")
-            .addOption("Multiple Color Variants",    "edit_colors",    "$35")
-            .addOption("Add Animation",              "edit_anim",      "$200")
-            .addOption("2 Revisions After Delivery", "edit_2rev",      "$35")
-            .addOption("Additional Logo Size",       "edit_logosize",  "$10")
-            .addOption("Copywriting",                "edit_copy",      "$25")
-            .build();
-    }
-
-    private static StringSelectMenu buildMinecraftAddonMenu() {
-        return StringSelectMenu.create("order_addon_select_minecraft")
-            .setPlaceholder("— Select add-ons (optional) —")
-            .setMinValues(0).setMaxValues(8)
-            .addOption("Additional Modifications",   "mc_revisions", "Price: Varies")
-            .addOption("Rush Delivery",              "mc_rush",      "$45")
-            .addOption("Source Files (AI/PSD)",      "mc_source",    "$250")
-            .addOption("Multiple Color Variants",    "mc_colors",    "$35")
-            .addOption("Add Animation",              "mc_anim",      "$200")
-            .addOption("2 Revisions After Delivery", "mc_2rev",      "$35")
-            .addOption("Additional Logo Size",       "mc_logosize",  "$10")
-            .addOption("Copywriting",                "mc_copy",      "$25")
-            .build();
-    }
+    private static final String MINECRAFT_LIST =
+        "**\u2726 \u0627\u0644\u062e\u062f\u0645\u0627\u062a \u0627\u0644\u0631\u0626\u064a\u0633\u064a\u0629**\n" +
+        "`$50 `  Plugin Developer\n" +
+        "`$80 `  Configuration Specialist\n" +
+        "`$30 `  Map Maker / Builder\n" +
+        "`$130`  Pixel Artist / Texture Creator\n" +
+        "`$65 `  3D Modeler (Blockbench)\n" +
+        "`$55 `  Technical Admin / SysAdmin\n\n" +
+        "**\u2726 \u0627\u0644\u0625\u0636\u0627\u0641\u0627\u062a**\n" +
+        "`+$45 `  \u062a\u0633\u0644\u064a\u0645 \u0633\u0631\u064a\u0639 \u00b7 Rush Delivery\n" +
+        "`+$250`  \u0645\u0644\u0641\u0627\u062a \u0627\u0644\u0645\u0635\u062f\u0631 (AI/PSD) \u00b7 Source Files\n" +
+        "`+$35 `  \u0646\u0633\u062e \u0645\u062a\u0639\u062f\u062f\u0629 \u0627\u0644\u0623\u0644\u0648\u0627\u0646 \u00b7 Color Variants\n" +
+        "`+$200`  \u0625\u0636\u0627\u0641\u0629 \u0623\u0646\u064a\u0645\u064a\u0634\u0646 \u00b7 Add Animation\n" +
+        "`+$35 `  \u062a\u0639\u062f\u064a\u0644\u0627\u0646 \u0628\u0639\u062f \u0627\u0644\u062a\u0633\u0644\u064a\u0645 \u00b7 2 Revisions After Delivery\n" +
+        "`+$10 `  \u062a\u0639\u062f\u064a\u0644 \u0625\u0636\u0627\u0641\u064a \u00b7 Additional Modification\n" +
+        "`+$25 `  \u0635\u064a\u0627\u063a\u0629 \u0646\u0635\u0648\u0635 \u00b7 Copywriting";
 }
