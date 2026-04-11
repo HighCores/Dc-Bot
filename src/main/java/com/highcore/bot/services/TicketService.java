@@ -238,35 +238,47 @@ public class TicketService {
 
         if (!status.equals("TRANSCRIPT")) return;
 
-        // Resolve ticket metadata (fallback to channel name if Supabase unavailable)
+        // Resolve ticket metadata
         JsonObject ticket  = SupabaseClient.getTicketByChannel(channel.getId());
         String closedBy    = closer.getEffectiveName();
         String ticketId    = channel.getName();
-        // Derive type from channel name prefix (support-xxxxx, complaint-xxxxx, order-xxxxx)
         String type        = channel.getName().split("-")[0].toUpperCase();
         String openedAt    = "—";
+        String openerId    = null;
         if (ticket != null) {
             if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
             if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
+            if (ticket.has("user_id") && !ticket.get("user_id").isJsonNull())
+                openerId = ticket.get("user_id").getAsString();
         }
 
-        final String fTicketId = ticketId;
-        final String fType     = type;
-        final String fOpenedAt = openedAt;
-        final TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+        // Resolve opener display name
+        String openerName = "—";
+        if (openerId != null) {
+            try {
+                Member openerMember = channel.getGuild().getMemberById(openerId);
+                if (openerMember != null) openerName = openerMember.getEffectiveName();
+                else openerName = "<@" + openerId + ">";
+            } catch (Exception ignored) {}
+        }
 
-        // Fetch last 200 messages directly from Discord
+        final String fTicketId   = ticketId;
+        final String fType       = type;
+        final String fOpenedAt   = openedAt;
+        final String fOpenerName = openerName;
+        final TextChannel logCh  = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+
         channel.getHistory().retrievePast(100).queue(raw -> {
             List<Message> ordered = new ArrayList<>(raw);
             Collections.reverse(ordered); // oldest first
 
             byte[] html = TranscriptService.generateFromMessages(
-                fTicketId, channel.getName(), fType, "closed", fOpenedAt, closedBy, ordered);
+                fTicketId, channel.getName(), fType, "closed", fOpenedAt, fOpenerName, closedBy, ordered);
 
             if (logCh != null) {
                 PanelService.reply(logCh, Container.of(TextDisplay.of(
                     "\uD83D\uDCCE **Transcript Saved** · `#" + fTicketId + "` · `" + channel.getName() + "`\n" +
-                    "Closed by: **" + closedBy + "** · **" + ordered.size() + "** messages")));
+                    "Opened by: **" + fOpenerName + "** · Closed by: **" + closedBy + "** · **" + ordered.size() + "** messages")));
                 if (html != null) {
                     logCh.sendFiles(FileUpload.fromData(html, "transcript-" + fTicketId + ".html")).queue();
                 }

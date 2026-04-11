@@ -4,11 +4,15 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import net.dv8tion.jda.api.entities.Message;
+import net.dv8tion.jda.api.components.MessageTopLevelComponent;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.ArrayList;
 
 public class TranscriptService {
 
@@ -22,7 +26,7 @@ public class TranscriptService {
 
     // Generate from Discord Message objects (fetched directly from channel history)
     public static byte[] generateFromMessages(String ticketId, String channelName, String type, String status,
-                                              String openedAt, String closedBy, List<Message> messages) {
+                                              String openedAt, String openerName, String closedBy, List<Message> messages) {
         JsonArray arr = new JsonArray();
         for (Message m : messages) {
             JsonObject obj = new JsonObject();
@@ -32,19 +36,51 @@ public class TranscriptService {
                     ? m.getMember().getEffectiveName()
                     : m.getAuthor().getName();
             obj.addProperty("user_name", authorName);
+
+            // Try plain text content first
             String content = m.getContentDisplay();
-            if (content.isBlank() && !m.getAttachments().isEmpty()) {
+
+            // For bot Component V2 messages, extract text from containers
+            if ((content == null || content.isBlank()) && m.getAuthor().isBot()) {
+                content = extractComponentText(m);
+            }
+
+            // Attachments
+            if ((content == null || content.isBlank()) && !m.getAttachments().isEmpty()) {
                 content = "\uD83D\uDCCE " + m.getAttachments().size() + " attachment(s)";
             }
+
+            // Skip completely empty messages (e.g. pure file uploads already counted above)
+            if (content == null || content.isBlank()) continue;
+
             obj.addProperty("content", content);
             obj.addProperty("created_at", m.getTimeCreated().toInstant().toString());
             arr.add(obj);
         }
-        return buildHtml(ticketId, channelName, type, status, openedAt, closedBy, arr);
+        return buildHtml(ticketId, channelName, type, status, openedAt, openerName, closedBy, arr);
+    }
+
+    /** Walks Component V2 containers and concatenates TextDisplay text */
+    private static String extractComponentText(Message m) {
+        List<String> parts = new ArrayList<>();
+        for (MessageTopLevelComponent top : m.getComponents()) {
+            extractFromComponent(top, parts);
+        }
+        return String.join("\n", parts);
+    }
+
+    private static void extractFromComponent(Object component, List<String> out) {
+        if (component instanceof TextDisplay td) {
+            String t = td.getContent();
+            if (t != null && !t.isBlank()) out.add(t);
+        } else if (component instanceof Container c) {
+            for (var child : c.getComponents()) extractFromComponent(child, out);
+        }
+        // ActionRow, MediaGallery, Separator — skip
     }
 
     private static byte[] buildHtml(String ticketId, String channelName, String type, String status,
-                                    String openedAt, String closedBy, JsonArray messages) {
+                                    String openedAt, String openerName, String closedBy, JsonArray messages) {
 
         StringBuilder msgs = new StringBuilder();
         int count = 0;
@@ -414,7 +450,11 @@ public class TranscriptService {
         "        <div class=\"stat-value\"><span class=\"badge " + statusBadgeClass(status) + "\">" + htmlEscape(status.toUpperCase()) + "</span></div>\n" +
         "      </div>\n" +
         "      <div class=\"stat-card\">\n" +
-        "        <div class=\"stat-label\">Opened</div>\n" +
+        "        <div class=\"stat-label\">Opened By</div>\n" +
+        "        <div class=\"stat-value\">" + htmlEscape(openerName) + "</div>\n" +
+        "      </div>\n" +
+        "      <div class=\"stat-card\">\n" +
+        "        <div class=\"stat-label\">Opened At</div>\n" +
         "        <div class=\"stat-value\">" + htmlEscape(openedFmt) + "</div>\n" +
         "      </div>\n" +
         "      <div class=\"stat-card\">\n" +
