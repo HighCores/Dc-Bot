@@ -30,6 +30,10 @@ import java.util.stream.Collectors;
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
+    // Sequential ticket counter — zero-padded 4 digits (0001, 0002 …)
+    private static final java.util.concurrent.atomic.AtomicInteger TICKET_SEQ =
+            new java.util.concurrent.atomic.AtomicInteger(1);
+
     private static final String TICKET_CAT_ID         = "1488795130881249404";
     private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526147";
     private static final String ADMIN_ROLE_ID          = "1488795130008961040";
@@ -60,8 +64,7 @@ public class TicketService {
 
     private static void proceedWithTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event,
                                           Category cat, String subject, String priority, String type, String details) {
-        long timestamp = System.currentTimeMillis();
-        String ticketId    = String.format("%05d", (timestamp / 1000) % 100000);
+        String ticketId    = String.format("%04d", TICKET_SEQ.getAndIncrement());
         String channelName = type.toLowerCase() + "-" + ticketId;
 
         Role adminRole = cat.getGuild().getRoleById(ADMIN_ROLE_ID);
@@ -110,8 +113,7 @@ public class TicketService {
                                                 String contact, String eta,
                                                 List<InvoiceService.OrderItem> items) {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
-        long timestamp = System.currentTimeMillis();
-        String ticketId    = String.format("%05d", (timestamp / 1000) % 100000);
+        String ticketId    = String.format("%04d", TICKET_SEQ.getAndIncrement());
         String channelName = "order-" + ticketId;
 
         guild.createTextChannel(channelName, cat)
@@ -225,6 +227,13 @@ public class TicketService {
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
+        // Capture opener from channel overrides BEFORE deleting them
+        String overrideOpenerName = channel.getPermissionOverrides().stream()
+            .filter(po -> po.isMemberOverride() && po.getMember() != null
+                       && !po.getMember().getUser().isBot())
+            .map(po -> po.getMember().getEffectiveName())
+            .findFirst().orElse(null);
+
         // Lock channel immediately
         channel.getPermissionOverrides().stream()
             .filter(po -> po.isMemberOverride())
@@ -252,16 +261,14 @@ public class TicketService {
                 openerId = ticket.get("user_id").getAsString();
         }
 
-        // Resolve opener display name — retrieveMemberById fetches from API if not cached
-        String openerName = "Unknown";
+        // Resolve opener display name:
+        // Priority: Supabase user_id → channel permission override → "Unknown"
+        String openerName = overrideOpenerName != null ? overrideOpenerName : "Unknown";
         if (openerId != null) {
             try {
-                net.dv8tion.jda.api.entities.Member openerMember =
-                    channel.getGuild().retrieveMemberById(openerId).complete();
-                openerName = openerMember != null ? openerMember.getEffectiveName() : openerId;
-            } catch (Exception ignored) {
-                openerName = openerId; // fallback to raw ID
-            }
+                Member openerMember = channel.getGuild().retrieveMemberById(openerId).complete();
+                if (openerMember != null) openerName = openerMember.getEffectiveName();
+            } catch (Exception ignored) { /* keep overrideOpenerName or "Unknown" */ }
         }
 
         final String fTicketId   = ticketId;
