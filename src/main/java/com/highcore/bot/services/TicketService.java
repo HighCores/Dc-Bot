@@ -126,30 +126,41 @@ public class TicketService {
                     "**Case ID:** `" + ticketId + "` · **Project:** `" + pName + "` · **Client:** `" + cName + "`\n" +
                     "**Contact:** `" + contact + "` · **Delivery:** `" + eta + "`";
 
+                // ── Welcome message ───────────────────────────────────────────
                 List<ContainerChildComponent> children = new ArrayList<>();
-                children.add(MediaGallery.of(MediaGalleryItem.fromUrl(TICKET_IMAGE)));
+                children.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER_TICKET)));
                 children.add(TextDisplay.of("## Order Pipeline | Active Ticket\n<@&" + ADMIN_ROLE_ID + ">"));
                 children.add(Separator.createDivider(Spacing.SMALL));
                 children.add(TextDisplay.of(
                     "Welcome " + user.getAsMention() + " \uD83D\uDC4B\n\n" +
                     infoLine + "\n\n" +
-                    "\u26A0\uFE0F **Channel locked** — your ticket will be unlocked once payment is confirmed."));
+                    "\u26A0\uFE0F **Your ticket is locked** — it will be unlocked once payment is confirmed.\n" +
+                    "A staff member will review your order and reach out shortly.\n\n" +
+                    "> \uD83D\uDCCC Please do **not** ping staff. We'll get back to you as soon as possible."));
                 children.add(Separator.createDivider(Spacing.SMALL));
-                children.add(TextDisplay.of("Please review your invoice below and choose a payment method."));
                 children.add(ActionRow.of(getTicketButtons("open")));
 
                 PanelService.reply(channel, Container.of(children));
 
-                // Invoice section
+                // ── Invoice + payment methods ─────────────────────────────────
                 List<ContainerChildComponent> invChildren = new ArrayList<>();
-                invChildren.add(TextDisplay.of("## \uD83E\uDDFE Invoice — Payment Required"));
+                invChildren.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_INVOICE)));
+                invChildren.add(TextDisplay.of(
+                    "## \uD83E\uDDFE Invoice — Payment Required\n\n" +
+                    "**Available Payment Methods:**\n" +
+                    "> \uD83D\uDCB3 **PayPal** — `billing@highcore.agency`\n" +
+                    "> \uD83C\uDF10 **Stripe** — Contact staff for link\n" +
+                    "> \uD83C\uDFE6 **Bank Transfer (Al-Rajhi)** — `SA29 8000 0000 1234 5678 1234`\n" +
+                    "> \uD83D\uDCB0 **USDT (TRC20)** — `THighCoreAgencyWallet9xR3mZ`\n" +
+                    "> \uD83D\uDCF1 **STC Pay** — `+966 55 123 4567`\n\n" +
+                    "After payment, send proof to this channel. Staff will verify and unlock."));
                 invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
                 PanelService.reply(channel, Container.of(invChildren));
 
                 byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
                 if (invoiceData != null) {
-                    channel.sendFiles(FileUpload.fromData(invoiceData, "invoice.png")).queue();
+                    channel.sendFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png")).queue();
                 }
             });
     }
@@ -177,10 +188,16 @@ public class TicketService {
 
     public static List<Button> getPaymentButtons(String id) {
         return List.of(
-            Button.secondary("pay_paypal_" + id, "PayPal")
+            Button.primary("pay_paypal_"  + id, "PayPal")
                     .withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
-            Button.secondary("pay_stripe_" + id, "Stripe")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDDA5\uFE0F"))
+            Button.primary("pay_stripe_"  + id, "Stripe")
+                    .withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+            Button.primary("pay_bank_"    + id, "Bank Transfer")
+                    .withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
+            Button.primary("pay_usdt_"    + id, "USDT")
+                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
+            Button.primary("pay_stcpay_"  + id, "STC Pay")
+                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCF1"))
         );
     }
 

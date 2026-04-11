@@ -121,6 +121,39 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("order_status_update_")) {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
+
+            } else if (id.startsWith("pay_")) {
+                String method = id.split("_", 3).length > 1 ? id.split("_", 3)[1].toUpperCase() : "UNKNOWN";
+                String info = switch (method) {
+                    case "PAYPAL"  ->
+                        "### \uD83D\uDCB3 PayPal\n" +
+                        "**Email:** `billing@highcore.agency`\n" +
+                        "Send as **Friends & Family** and include your ticket ID in the note.";
+                    case "STRIPE"  ->
+                        "### \uD83C\uDF10 Stripe\n" +
+                        "Contact a staff member to receive a secure Stripe payment link.\n" +
+                        "<@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
+                    case "BANK"    ->
+                        "### \uD83C\uDFE6 Bank Transfer — Al-Rajhi Bank\n" +
+                        "**Account Name:** `High Core Agency`\n" +
+                        "**IBAN:** `SA29 8000 0000 1234 5678 1234`\n" +
+                        "**Swift:** `RJHISARI`\n" +
+                        "Send the receipt screenshot here after transfer.";
+                    case "USDT"    ->
+                        "### \uD83D\uDCB0 USDT — TRC20 Network\n" +
+                        "**Wallet:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n" +
+                        "\u26A0\uFE0F TRC20 only. Send transaction hash after payment.";
+                    case "STCPAY"  ->
+                        "### \uD83D\uDCF1 STC Pay\n" +
+                        "**Number:** `+966 55 123 4567`\n" +
+                        "**Name:** `High Core Agency`\n" +
+                        "Send confirmation screenshot here.";
+                    default ->
+                        "Contact staff for payment assistance. <@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
+                };
+                event.getHook().sendMessageComponents(
+                    EmbedUtil.info("PAYMENT — " + method, info))
+                    .useComponentsV2(true).setEphemeral(true).queue();
             }
 
         } catch (Exception e) {
