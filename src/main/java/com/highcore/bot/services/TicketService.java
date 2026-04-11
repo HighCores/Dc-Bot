@@ -243,23 +243,25 @@ public class TicketService {
         String closedBy    = closer.getEffectiveName();
         String ticketId    = channel.getName();
         String type        = channel.getName().split("-")[0].toUpperCase();
-        String openedAt    = "—";
+        // Use channel creation time — always available, no Supabase dependency
+        String openedAt    = channel.getTimeCreated().toInstant().toString();
         String openerId    = null;
         if (ticket != null) {
-            if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
-            if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
+            if (ticket.has("ticket_id")) ticketId = ticket.get("ticket_id").getAsString();
             if (ticket.has("user_id") && !ticket.get("user_id").isJsonNull())
                 openerId = ticket.get("user_id").getAsString();
         }
 
-        // Resolve opener display name
-        String openerName = "—";
+        // Resolve opener display name — retrieveMemberById fetches from API if not cached
+        String openerName = "Unknown";
         if (openerId != null) {
             try {
-                Member openerMember = channel.getGuild().getMemberById(openerId);
-                if (openerMember != null) openerName = openerMember.getEffectiveName();
-                else openerName = "<@" + openerId + ">";
-            } catch (Exception ignored) {}
+                net.dv8tion.jda.api.entities.Member openerMember =
+                    channel.getGuild().retrieveMemberById(openerId).complete();
+                openerName = openerMember != null ? openerMember.getEffectiveName() : openerId;
+            } catch (Exception ignored) {
+                openerName = openerId; // fallback to raw ID
+            }
         }
 
         final String fTicketId   = ticketId;
