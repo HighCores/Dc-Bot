@@ -30,9 +30,9 @@ import java.util.stream.Collectors;
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
-    // Sequential ticket counter — zero-padded 4 digits (0001, 0002 …)
+    // Sequential ticket counter — initialized from database, zero-padded 4 digits (0001, 0002 …)
     private static final java.util.concurrent.atomic.AtomicInteger TICKET_SEQ =
-            new java.util.concurrent.atomic.AtomicInteger(1);
+            new java.util.concurrent.atomic.AtomicInteger(SupabaseClient.getNextTicketNumber());
 
     private static final String TICKET_CAT_ID         = "1488795130881249404";
     private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526147";
@@ -145,23 +145,14 @@ public class TicketService {
                 // ── Invoice + payment methods ─────────────────────────────────
                 List<ContainerChildComponent> invChildren = new ArrayList<>();
                 invChildren.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_INVOICE)));
+                invChildren.add(TextDisplay.of("## \uD83E\uDDFE Invoice — Payment Required"));
+                invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(TextDisplay.of(
-                    "## \uD83E\uDDFE Invoice — Payment Required\n\n" +
-                    "**Available Payment Methods:**\n" +
-                    "> \uD83D\uDCB3 **PayPal** — `billing@highcore.agency`\n" +
-                    "> \uD83C\uDF10 **Stripe** — Contact staff for link\n" +
-                    "> \uD83C\uDFE6 **Bank Transfer (Al-Rajhi)** — `SA29 8000 0000 1234 5678 1234`\n" +
-                    "> \uD83D\uDCB0 **USDT (TRC20)** — `THighCoreAgencyWallet9xR3mZ`\n" +
-                    "> \uD83D\uDCF1 **STC Pay** — `+966 55 123 4567`\n\n" +
-                    "After payment, send proof to this channel. Staff will verify and unlock."));
+                    "That's Is Your Receipt ! Please Check Out Your Order By Click The Buttons Below\n\n\n" +
+                    "After payment, That Channel Will Be Opend , After This You Can Get Our Service And Make Our Staff Detailed"));
                 invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
                 PanelService.reply(channel, Container.of(invChildren));
-
-                byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
-                if (invoiceData != null) {
-                    channel.sendFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png")).queue();
-                }
             });
     }
 
