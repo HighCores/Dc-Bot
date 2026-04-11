@@ -23,7 +23,9 @@ import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import net.dv8tion.jda.api.entities.Message;
 import java.util.*;
+import java.util.stream.Collectors;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
@@ -59,7 +61,7 @@ public class TicketService {
     private static void proceedWithTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event,
                                           Category cat, String subject, String priority, String type, String details) {
         long timestamp = System.currentTimeMillis();
-        String ticketId   = String.format("%d", timestamp).substring(9);
+        String ticketId    = String.format("%05d", (timestamp / 1000) % 100000);
         String channelName = type.toLowerCase() + "-" + ticketId;
 
         Role adminRole = cat.getGuild().getRoleById(ADMIN_ROLE_ID);
@@ -109,7 +111,7 @@ public class TicketService {
                                                 List<InvoiceService.OrderItem> items) {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         long timestamp = System.currentTimeMillis();
-        String ticketId   = String.format("%d", timestamp).substring(9);
+        String ticketId    = String.format("%05d", (timestamp / 1000) % 100000);
         String channelName = "order-" + ticketId;
 
         guild.createTextChannel(channelName, cat)
@@ -223,49 +225,57 @@ public class TicketService {
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
-        if (status.equals("TRANSCRIPT")) {
-            TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
-            JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-            String closedBy = closer.getEffectiveName();
+        // Lock channel immediately
+        channel.getPermissionOverrides().stream()
+            .filter(po -> po.isMemberOverride())
+            .forEach(po -> po.delete().queue());
 
-            // Use channel name as fallback if Supabase returns nothing
-            String ticketId = channel.getName();
-            String type     = "—";
-            String openedAt = "—";
-            if (ticket != null) {
-                if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
-                if (ticket.has("type"))       type     = ticket.get("type").getAsString();
-                if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
-            }
+        List<ContainerChildComponent> closed = new ArrayList<>();
+        closed.add(TextDisplay.of("\uD83D\uDD12 **Ticket Closed** · `Channel is now locked.`"));
+        closed.add(Separator.createDivider(Spacing.SMALL));
+        closed.add(ActionRow.of(getTicketButtons("closed")));
+        PanelService.reply(channel, Container.of(closed));
+
+        if (!status.equals("TRANSCRIPT")) return;
+
+        // Resolve ticket metadata (fallback to channel name if Supabase unavailable)
+        JsonObject ticket  = SupabaseClient.getTicketByChannel(channel.getId());
+        String closedBy    = closer.getEffectiveName();
+        String ticketId    = channel.getName();
+        String type        = "—";
+        String openedAt    = "—";
+        if (ticket != null) {
+            if (ticket.has("ticket_id"))  ticketId = ticket.get("ticket_id").getAsString();
+            if (ticket.has("type"))       type     = ticket.get("type").getAsString();
+            if (ticket.has("created_at")) openedAt = ticket.get("created_at").getAsString();
+        }
+
+        final String fTicketId = ticketId;
+        final String fType     = type;
+        final String fOpenedAt = openedAt;
+        final TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+
+        // Fetch last 200 messages directly from Discord
+        channel.getHistory().retrievePast(200).queue(raw -> {
+            List<Message> ordered = new ArrayList<>(raw);
+            Collections.reverse(ordered); // oldest first
+
+            byte[] html = TranscriptService.generateFromMessages(
+                fTicketId, channel.getName(), fType, "closed", fOpenedAt, closedBy, ordered);
 
             if (logCh != null) {
-                byte[] html = TranscriptService.generate(ticketId, channel.getName(), type, "closed", openedAt, closedBy);
                 PanelService.reply(logCh, Container.of(TextDisplay.of(
-                    "\uD83D\uDCCE **Transcript Saved** · `#" + ticketId + "` (`" + channel.getName() + "`)\n" +
-                    "Closed by: **" + closedBy + "**")));
+                    "\uD83D\uDCCE **Transcript Saved** · `#" + fTicketId + "` · `" + channel.getName() + "`\n" +
+                    "Closed by: **" + closedBy + "** · **" + ordered.size() + "** messages")));
                 if (html != null) {
-                    logCh.sendFiles(FileUpload.fromData(html, "transcript-" + ticketId + ".html")).queue();
+                    logCh.sendFiles(FileUpload.fromData(html, "transcript-" + fTicketId + ".html")).queue();
                 }
             } else {
                 log.warn("Transcript log channel {} not found", TRANSCRIPT_CHANNEL_ID);
             }
 
-            if (ticket != null) {
-                SupabaseClient.updateTicketStatus(ticketId, "closed", closedBy);
-            }
-        }
+            if (ticket != null) SupabaseClient.updateTicketStatus(fTicketId, "closed", closedBy);
 
-        // Lock channel: remove all member-specific overrides so only role access remains
-        // (admin role keeps access, ticket opener loses it)
-        channel.getPermissionOverrides().stream()
-            .filter(po -> po.isMemberOverride())
-            .forEach(po -> po.delete().queue());
-
-        List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of("\uD83D\uDD12 **Ticket Closed** · `Channel is now locked.`"));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(getTicketButtons("closed")));
-
-        PanelService.reply(channel, Container.of(children));
+        }, err -> log.error("Failed to fetch history for transcript in {}", channel.getName(), err));
     }
 }

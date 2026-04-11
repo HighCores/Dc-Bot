@@ -3,10 +3,12 @@ package com.highcore.bot.services;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
+import net.dv8tion.jda.api.entities.Message;
 import java.nio.charset.StandardCharsets;
 import java.time.Instant;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
+import java.util.List;
 
 public class TranscriptService {
 
@@ -14,21 +16,26 @@ public class TranscriptService {
             .ofPattern("MMM dd, yyyy 'at' hh:mm a")
             .withZone(ZoneId.of("Asia/Riyadh"));
 
-    // Returns HTML bytes or null if ticket not found
-    public static byte[] generate(String channelName) {
-        return generateFromChannel(channelName, null, null, null, null, null);
-    }
-
-    public static byte[] generate(String ticketId, String channelName, String type, String status,
-                                   String openedAt, String closedBy) {
-        JsonArray messages = SupabaseClient.getTicketMessages(ticketId);
-        return buildHtml(ticketId, channelName, type, status, openedAt, closedBy, messages);
-    }
-
-    private static byte[] generateFromChannel(String channelName, String type, String status,
-                                               String openedAt, String closedBy, JsonArray messages) {
-        return buildHtml("—", channelName, type != null ? type : "—", status != null ? status : "—",
-                openedAt != null ? openedAt : "—", closedBy != null ? closedBy : "—", messages);
+    // Generate from Discord Message objects (fetched directly from channel history)
+    public static byte[] generateFromMessages(String ticketId, String channelName, String type, String status,
+                                              String openedAt, String closedBy, List<Message> messages) {
+        JsonArray arr = new JsonArray();
+        for (Message m : messages) {
+            JsonObject obj = new JsonObject();
+            obj.addProperty("user_id", m.getAuthor().getId());
+            String authorName = m.getMember() != null
+                    ? m.getMember().getEffectiveName()
+                    : m.getAuthor().getName();
+            obj.addProperty("user_name", authorName);
+            String content = m.getContentDisplay();
+            if (content.isBlank() && !m.getAttachments().isEmpty()) {
+                content = "[" + m.getAttachments().size() + " attachment(s)]";
+            }
+            obj.addProperty("content", content);
+            obj.addProperty("created_at", m.getTimeCreated().toInstant().toString());
+            arr.add(obj);
+        }
+        return buildHtml(ticketId, channelName, type, status, openedAt, closedBy, arr);
     }
 
     private static byte[] buildHtml(String ticketId, String channelName, String type, String status,
