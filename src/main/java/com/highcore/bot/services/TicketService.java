@@ -93,7 +93,7 @@ public class TicketService {
             ticketCache.put(channel.getId(), ticket);
             
             channel.getManager().setTopic(subject + "|" + priority + "|" + type + "|" + user.getId()).queue();
-            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), channel.getName(), type, subject, priority);
+            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), type, subject, priority);
 
             List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
             PanelService.reply(channel, Container.of(children));
@@ -150,7 +150,7 @@ public class TicketService {
                 ticketCache.put(channel.getId(), ticket);
 
                 channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString()).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), channel.getName(), "ORDER", pName, "HIGH");
+                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH");
 
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 PanelService.reply(channel, Container.of(children));
