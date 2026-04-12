@@ -57,8 +57,8 @@ public class TranscriptService {
     }
 
     // ─────────────────────────────────────────────────────────────────────────
-    private static byte[] buildHtml(String ticketId, String channelName, String type, String status,
-                                    String openedAt, String openerName, String closedBy, JsonArray messages) {
+    public static byte[] buildHtml(String ticketId, String channelName, String type, String status,
+                                    String openedAt, String openerName, String claimedBy, String closedBy, JsonArray messages) {
 
         // ── Format timestamps ────────────────────────────────────────────────
         String openedFmt = openedAt;
@@ -166,6 +166,7 @@ public class TranscriptService {
          .append(e(status.toUpperCase())).append("</span></div></div>\n");
         statCard(h, "Opened By",   e(openerName));
         statCard(h, "Opened At",   e(openedFmt));
+        statCard(h, "Handled By",  e(claimedBy));
         statCard(h, "Closed By",   e(closedBy));
         statCard(h, "Messages",    String.valueOf(count));
         h.append("  </div>\n</div>\n\n");

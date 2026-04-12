@@ -56,7 +56,8 @@ public class MessageListener extends ListenerAdapter {
 
     private void saveTicketMessage(MessageReceivedEvent event) {
         if (!(event.getChannel() instanceof TextChannel channel)) return;
-        if (!channel.getName().contains("ticket")) return;
+        String name = channel.getName().toLowerCase();
+        if (!name.contains("ticket") && !name.contains("order")) return;
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         if (ticket == null) return;
         SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), event.getMessage().getContentRaw(), event.getMessageId());

@@ -53,6 +53,9 @@ public class RestApiServer {
         app.post("/api/tickets/{id}/close", RestApiServer::closeTicket);
         app.post("/api/tickets/{id}/reopen", RestApiServer::reopenTicket);
         app.get("/api/tickets/{id}/transcript", RestApiServer::getTranscript);
+        
+        // ===== TRANSCRIPT WEB VIEW =====
+        app.get("/view/transcript/{id}", RestApiServer::viewTranscript);
 
         // ===== AUTO-REPLIES API =====
         app.get("/api/auto-replies", RestApiServer::getAutoReplies);
@@ -138,6 +141,28 @@ public class RestApiServer {
 
         SupabaseClient.updateTicketStatus(id, "reopened", null);
         ctx.json(Map.of("success", true, "message", "Ticket reopened"));
+    }
+
+    private static void viewTranscript(Context ctx) {
+        String id = ctx.pathParam("id");
+        JsonObject ticket = SupabaseClient.getTicketById(id);
+        if (ticket == null) {
+            ctx.status(404).html("<h1 style='color:white;background:#0d0e10;height:100vh;display:flex;align-items:center;justify-content:center;margin:0;font-family:sans-serif'>404 - Transcript Not Found</h1>");
+            return;
+        }
+
+        JsonArray messages = SupabaseClient.getTicketMessages(id);
+        
+        String channelName = ticket.has("channel_name") ? ticket.get("channel_name").getAsString() : "unknown-channel";
+        String type = ticket.has("type") ? ticket.get("type").getAsString() : "SUPPORT";
+        String status = ticket.has("status") ? ticket.get("status").getAsString() : "closed";
+        String openedAt = ticket.has("created_at") ? ticket.get("created_at").getAsString() : Instant.now().toString();
+        String openerName = ticket.has("user_name") ? ticket.get("user_name").getAsString() : "Unknown User";
+        String claimedBy = ticket.has("claimed_by") ? ticket.get("claimed_by").getAsString() : "Not Handled";
+        String closedBy = ticket.has("closed_by") ? ticket.get("closed_by").getAsString() : "Auto-System";
+
+        byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy, closedBy, messages);
+        ctx.contentType("text/html; charset=utf-8").result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
     }
 
     private static void getTranscript(Context ctx) {

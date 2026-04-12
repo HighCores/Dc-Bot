@@ -37,7 +37,7 @@ public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
     private static final String TICKET_CAT_ID = "1488795130881249404";
-    private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526148";
+    private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526147";
     private static final String ADMIN_ROLE_ID = "1488795130008961040";
 
     private static final AtomicInteger TICKET_SEQ = new AtomicInteger(1);
@@ -383,11 +383,19 @@ public class TicketService {
         PanelService.reply(channel, Container.of(closed));
 
         if (status.equals("TRANSCRIPT")) {
-            channel.getHistory().retrievePast(100).queue(messages -> {
-                byte[] html = TranscriptService.generateFromMessages("T-" + channel.getName(), channel.getName(), "SUPPORT", "closed", "", "", closer.getEffectiveName(), messages);
-                TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
-                if (logCh != null && html != null) logCh.sendFiles(FileUpload.fromData(html, "transcript.html")).queue();
-            });
+            JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
+            String ticketId = ticket != null ? ticket.get("ticket_id").getAsString() : "0000";
+            String openerId = ticket != null ? ticket.get("user_id").getAsString() : "0";
+            String openerName = ticket != null ? ticket.get("user_name").getAsString() : "Unknown";
+            
+            TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+            if (logCh != null) {
+                String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + ticketId;
+                logCh.sendMessageEmbeds(EmbedUtil.containerBranded("TRANSCRIPT", "Archive — Case #" + ticketId, 
+                    "**Opener:** <@" + openerId + "> (" + openerName + ")\n" +
+                    "**Closed By:** " + closer.getAsMention() + "\n\n" +
+                    "**[ \uD83D\uDCDC View Full Web Transcript ](" + url + ")**", EmbedUtil.BANNER_SUPPORT).build()).queue();
+            }
         }
     }
 
