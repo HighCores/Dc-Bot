@@ -59,7 +59,11 @@ public class MessageListener extends ListenerAdapter {
     private void saveTicketMessage(MessageReceivedEvent event) {
         if (!(event.getChannel() instanceof TextChannel channel)) return;
         String name = channel.getName().toLowerCase();
-        if (!name.contains("ticket") && !name.contains("order") && !name.contains("case")) return;
+        // Support all prefixes: ticket, order, case, complaint, support, or any channel ending in decimals
+        boolean isTicket = name.contains("ticket") || name.contains("order") || name.contains("case") || 
+                           name.contains("complaint") || name.contains("support") || name.matches(".*\\d{3,}");
+        
+        if (!isTicket) return;
         
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         String ticketId = null;
