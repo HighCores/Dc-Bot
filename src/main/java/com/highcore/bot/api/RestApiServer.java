@@ -147,26 +147,43 @@ public class RestApiServer {
 
     private static void viewTranscript(Context ctx) {
         String id = ctx.pathParam("id");
-        JsonObject ticket = SupabaseClient.getTicketById(id);
-        if (ticket == null) {
-            ctx.status(404).html("<h1 style='color:white;background:#0d0e10;height:100vh;display:flex;align-items:center;justify-content:center;margin:0;font-family:sans-serif'>404 - Transcript Not Found</h1>");
-            return;
-        }
-
         try {
+            JsonObject ticket = SupabaseClient.getTicketById(id);
             JsonArray messages = SupabaseClient.getTicketMessages(id);
             
-            String channelName = ticket.has("channel_name") && !ticket.get("channel_name").isJsonNull() ? ticket.get("channel_name").getAsString() : "case-" + id;
-            String type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "SUPPORT";
-            String status = ticket.has("status") && !ticket.get("status").isJsonNull() ? ticket.get("status").getAsString() : "closed";
-            String openedAt = ticket.has("created_at") && !ticket.get("created_at").isJsonNull() ? ticket.get("created_at").getAsString() : Instant.now().toString();
-            String openerId = ticket.has("user_id") && !ticket.get("user_id").isJsonNull() ? ticket.get("user_id").getAsString() : "0";
-            String openerName = ticket.has("user_name") && !ticket.get("user_name").isJsonNull() ? ticket.get("user_name").getAsString() : "Unknown User";
-            String openerFull = openerName + " (" + openerId + ")";
-            String claimedBy = ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull() ? ticket.get("claimed_by").getAsString() : "Not Handled";
-            String closedBy = ticket.has("closed_by") && !ticket.get("closed_by").isJsonNull() ? ticket.get("closed_by").getAsString() : "Auto-System";
+            if (ticket == null && (messages == null || messages.size() == 0)) {
+                ctx.status(404).html("<div style='background:#0d0e10;color:white;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif'><h1>404 - Transcript Not Found (" + id + ")</h1></div>");
+                return;
+            }
 
-            byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerFull, claimedBy, closedBy, messages);
+            String channelName = "case-" + id;
+            String type = "SUPPORT";
+            String status = "closed";
+            String openedAt = Instant.now().toString();
+            String openerName = "Unknown User";
+            String claimedBy = "Not Handled";
+            String closedBy = "Auto-System";
+
+            if (ticket != null) {
+                channelName = ticket.has("channel_name") && !ticket.get("channel_name").isJsonNull() ? ticket.get("channel_name").getAsString() : "case-" + id;
+                type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "SUPPORT";
+                status = ticket.has("status") && !ticket.get("status").isJsonNull() ? ticket.get("status").getAsString() : "closed";
+                openedAt = ticket.has("created_at") && !ticket.get("created_at").isJsonNull() ? ticket.get("created_at").getAsString() : Instant.now().toString();
+                String oId = ticket.has("user_id") && !ticket.get("user_id").isJsonNull() ? ticket.get("user_id").getAsString() : "";
+                openerName = ticket.has("user_name") && !ticket.get("user_name").isJsonNull() ? ticket.get("user_name").getAsString() : "Unknown User";
+                if (!oId.isEmpty()) openerName += " (" + oId + ")";
+                claimedBy = ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull() ? ticket.get("claimed_by").getAsString() : "Not Handled";
+                closedBy = ticket.has("closed_by") && !ticket.get("closed_by").isJsonNull() ? ticket.get("closed_by").getAsString() : "Auto-System";
+            } else if (messages != null && messages.size() > 0) {
+                // Infer from first message
+                JsonObject first = messages.get(0).getAsJsonObject();
+                openedAt = first.has("created_at") ? first.get("created_at").getAsString() : openedAt;
+                openerName = first.has("user_name") ? first.get("user_name").getAsString() : openerName;
+                String oid = first.has("user_id") ? first.get("user_id").getAsString() : "";
+                if (!oid.isEmpty()) openerName += " (" + oid + ")";
+            }
+
+            byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy, closedBy, messages);
             ctx.contentType("text/html; charset=utf-8").result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Error generating transcript for {}: {}", id, e.getMessage());

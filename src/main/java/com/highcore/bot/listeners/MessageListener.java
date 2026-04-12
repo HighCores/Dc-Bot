@@ -62,7 +62,17 @@ public class MessageListener extends ListenerAdapter {
         if (!name.contains("ticket") && !name.contains("order")) return;
         
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-        if (ticket == null) return;
+        String ticketId = null;
+        
+        if (ticket != null) {
+            ticketId = ticket.get("ticket_id").getAsString();
+        } else {
+            // Fallback: extract from name (support-0078 -> 0078)
+            String[] parts = name.split("-");
+            if (parts.length >= 2) ticketId = parts[1];
+        }
+        
+        if (ticketId == null) return;
         
         StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
         for (net.dv8tion.jda.api.entities.Message.Attachment att : event.getMessage().getAttachments()) {
@@ -70,6 +80,6 @@ public class MessageListener extends ListenerAdapter {
         }
         
         String role = event.getAuthor().isBot() ? "BOT" : "USER";
-        SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role);
+        SupabaseClient.saveTicketMessage(ticketId, event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role);
     }
 }

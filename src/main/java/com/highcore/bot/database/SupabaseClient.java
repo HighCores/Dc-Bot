@@ -77,6 +77,13 @@ public class SupabaseClient {
 
     public static JsonObject getTicketById(String id) {
         JsonArray arr = get("dc_tickets", "ticket_id=eq." + id + "&limit=1");
+        if (arr == null || arr.size() == 0) {
+            // Try numeric fallback if id is all digits
+            if (id.matches("\\d+")) {
+                int nid = Integer.parseInt(id);
+                arr = get("dc_tickets", "id=eq." + nid + "&limit=1");
+            }
+        }
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
@@ -121,7 +128,12 @@ public class SupabaseClient {
     }
 
     public static JsonArray getTicketMessages(String ticketId) {
-        return get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
+        JsonArray arr = get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
+        if ((arr == null || arr.size() == 0) && ticketId.matches("\\d+")) {
+            int nid = Integer.parseInt(ticketId);
+            arr = get("dc_ticket_messages", "ticket_id=eq." + nid + "&order=created_at.asc");
+        }
+        return arr;
     }
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String type) {
