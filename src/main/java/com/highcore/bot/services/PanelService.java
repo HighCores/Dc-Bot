@@ -284,8 +284,7 @@ public class PanelService {
     }
 
     public static void sendTicketPanel(IReplyCallback event) {
-        String imageUrl = "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png"
-                + "?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";
+        String imageUrl = "https://media.discordapp.net/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69dc92e1&is=69db4161&hm=feb7a94f059ab34febeb9e1d8a48b1bde4a78c4f5936c6f70be8a48783ed482f&=&format=webp&quality=lossless&width=1845&height=807";
         
         String rules = "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
                 "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +

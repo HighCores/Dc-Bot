@@ -36,7 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
-    private static final String TICKET_CAT_ID = "1488795130470072322";
+    private static final String TICKET_CAT_ID = "1488795130881249404";
     private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526148";
     private static final String ADMIN_ROLE_ID = "1488795130008961040";
 

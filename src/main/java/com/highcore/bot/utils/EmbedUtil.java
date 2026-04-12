@@ -25,12 +25,12 @@ public class EmbedUtil {
     public static final Color PRIMARY     = Color.decode("#10b981");
 
     public static final String BANNER_MAIN           = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_SUPPORT        = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
-    public static final String BANNER_COMPLAINT      = "https://cdn.discordapp.com/attachments/1488900668042510568/1492313318193627156/468b060c-ce67-46c1-b0db-db1f476bebed.png";
+    public static final String BANNER_SUPPORT        = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
+    public static final String BANNER_COMPLAINT      = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_GIVEAWAY       = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
     public static final String BANNER_INVOICE        = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69dc188a&is=69dac70a&hm=ce79513d28baf3f7572a0c473107c30930365356dbc52fbe84534ab3bce9ce25&format=png";
     public static final String BANNER_INVOICE_PAID   = "https://media.discordapp.net/attachments/1491360207568113787/1492627055974678610/invoice_site_.png?ex=69dc04c5&is=69dab345&hm=a5f31dd32ae1ecc06f3c87fdde8008018c32ad89da7e28642b62c38f278f4a5d&format=png";
-    public static final String BANNER_ORDER_TICKET   = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69db04ab&is=69d9b32b&hm=4f001336ef9b5ae1c96a2e5083e53e726197782920ce8b7af5f0c22d2ac8ddbf&";
+    public static final String BANNER_ORDER_TICKET   = "https://media.discordapp.net/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69dc562b&is=69db04ab&hm=d50957bf79f630507bf19486529e4d539fa2f0453945f36c44d00fce6be3e1be&=&format=webp&width=1845&height=807";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
