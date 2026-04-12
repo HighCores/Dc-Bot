@@ -79,10 +79,23 @@ public class MessageListener extends ListenerAdapter {
         if (ticketId == null) return;
         
         StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
+        
+        // Extract text from Embeds (Bot Messages are usually Embeds, which don't have RAW content)
+        if (!event.getMessage().getEmbeds().isEmpty()) {
+            for (net.dv8tion.jda.api.entities.MessageEmbed embed : event.getMessage().getEmbeds()) {
+                if (embed.getTitle() != null) contentBuilder.append("\n**").append(embed.getTitle()).append("**");
+                if (embed.getDescription() != null) contentBuilder.append("\n").append(embed.getDescription());
+            }
+        }
+
         for (net.dv8tion.jda.api.entities.Message.Attachment att : event.getMessage().getAttachments()) {
             contentBuilder.append("\n[ATTACHMENT: ").append(att.getUrl()).append("]");
         }
         
+        // If message is entirely empty (some edge cases), ignore or label
+        if (contentBuilder.toString().trim().isEmpty()) {
+            contentBuilder.append("[Unsupported Message Format]");
+        }        
         String role = event.getAuthor().isBot() ? "BOT" : "USER";
         org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
         logger.info("[DEBUG] ATTEMPTING TO SAVE MESSAGE - Ticket: {}, User: {}, Content: {}", ticketId, event.getAuthor().getName(), contentBuilder.toString());

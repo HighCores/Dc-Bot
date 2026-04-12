@@ -81,8 +81,8 @@ public class TranscriptService {
             String content = safe(m, "content");
             String time = formatTime(safe(m, "created_at"));
             
-            // Simplified logic: If name contains "bot" or role is bot
-            boolean isBot = uName.toLowerCase().contains("bot") || uName.equals("Highcore");
+            // Simplified logic: Catch standard bots and specifically 'HighCore Agency'
+            boolean isBot = uName.toLowerCase().contains("bot") || uName.toLowerCase().contains("agency") || uName.equals("Highcore");
 
             if (!uId.equals(lastUser)) {
                 if (!lastUser.isEmpty()) sb.append("</div></div>");
