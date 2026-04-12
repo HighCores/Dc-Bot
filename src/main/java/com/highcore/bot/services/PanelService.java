@@ -152,23 +152,23 @@ public class PanelService {
         String body = """
                 ### \uD83D\uDDFA\uFE0F Server Navigation Guide
                 
-                \uD83C\uDFAF\u3000**highcore** \u2192 <#1488795130470072321>
-                \uD83D\uDC4B\u3000**welcome** \u2192 <#1488795130034000038>
-                \uD83D\uDCDC\u3000**service\uF032terms** \u2192 <#1489158831916454070>
-                \uD83D\uDCEF\u3000**updates** \u2192 <#1488797040732278814>
-                \uD83D\uDCDD\u3000**feedbacks** \u2192 <#1491423672202952806>
-                \uD83E\uDDE1\u3000**partners** \u2192 <#1490334592375324772>
-                \uD83C\uDF81\u3000**giveaway** \u2192 <#1490334823565365308>
-                \uD83C\uDFF7\uFE0F\u3000**dev\uF032prices** \u2192 <#1488800669375795272>
-                \uD83C\uDFF7\uFE0F\u3000**design\uF032prices** \u2192 <#1488800570629427251>
-                \uD83C\uDFF7\uFE0F\u3000**minecraft\uF032prices** \u2192 <#1488795131019526151>
-                \uD83C\uDFAB\u3000**ticket** \u2192 <#1488798547947159612>
-                \u26D4\uFE0F\u3000**Support Waiting** \u2192 <#1488795130881249406>
+                Start Up \u2192 <#1488795130470072321>
+                Regrading \u2192 <#1488795130034000038>
+                Our Terms \u2192 <#1489158831916454070>
+                Server Updates \u2192 <#1488797040732278814>
+                --------------------------------------------------
+                Our Client Comments \u2192 <#1491423672202952806>
+                Our Brothers \u2192 <#1490334592375324772>
+                Giveaways & Challenges \u2192 <#1490334823565365308>
+                Developer Pricing \u2192 <#1488800669375795272>
+                Designer Pricing  \u2192 <#1488800570629427251>
+                MC Developers Price \u2192 <#1488795131019526151>
+                Support \u2192 <#1488798547947159612>
+                Support Room \u2192 <#1488795130881249406>
                 """;
         ActionRow row = ActionRow.of(
             Button.secondary("btn_pings", "Pings"),
-            Button.secondary("btn_rules", "Server Rules"),
-            Button.secondary("btn_startup", "Back")
+            Button.secondary("btn_rules", "Server Rules")
         );
         replyEphemeral(event, EmbedUtil.containerBranded("MAP", "Sector Directory", body, EmbedUtil.BANNER_MAIN, row));
     }
@@ -183,8 +183,7 @@ public class PanelService {
             Button.secondary("ping_1488916879186596081", "Offers & Promotions"),
             Button.secondary("ping_1489764018989301840", "Start Hiring")
         );
-        ActionRow nav = ActionRow.of(Button.secondary("btn_highcore", "Back"));
-        replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row1, row2, nav));
+        replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row1, row2));
     }
 
     public static void sendAboutUsHub(IReplyCallback event) {
@@ -199,8 +198,7 @@ public class PanelService {
                 .build()
         );
         ActionRow btn = ActionRow.of(
-            Button.secondary("btn_socials", "Social Media"),
-            Button.secondary("btn_startup", "Back")
+            Button.secondary("btn_socials", "Social Media")
         );
         replyEphemeral(event, EmbedUtil.containerBranded("IDENTITY", "Specialist Modules", body, EmbedUtil.BANNER_MAIN, select, btn));
     }
@@ -214,8 +212,7 @@ public class PanelService {
             Button.link("https://www.instagram.com/high_core_agency/", "Instagram"),
             Button.link("https://www.threads.com/@high_core_agency", "Threads")
         );
-        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back"));
-        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row1, row2, nav));
+        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row1, row2));
     }
 
     public static void sendServicePriceInfo(IReplyCallback event, String category) {
@@ -236,13 +233,11 @@ public class PanelService {
             }
         });
 
-        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back"));
-        replyEphemeral(event, EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN, nav));
+        replyEphemeral(event, EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {
-        ActionRow nav = ActionRow.of(Button.secondary("btn_startup", "Back"));
-        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "Stay tuned for future collaborations. New partnerships coming soon.", EmbedUtil.BANNER_MAIN, nav));
+        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "Stay tuned for future collaborations. New partnerships coming soon.", EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {
