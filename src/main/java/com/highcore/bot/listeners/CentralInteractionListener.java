@@ -122,6 +122,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             // Ticket channel actions (staff only — already checked in onButtonInteraction)
             if (id.equals("ticket_claim")) {
                 TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("ticket_unclaim")) {
+                TicketService.unclaimTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_close")) {
                 TicketService.closeTicket(event.getChannel().asTextChannel(), member);
             } else if (id.equals("ticket_delete")) {
@@ -131,7 +133,11 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("order_status_update_")) {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
+            } else if (id.startsWith("ticket_mark_paid_")) {
+                String tid = id.replace("ticket_mark_paid_", "");
+                TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
             }
+
 
         if (id.startsWith("pay_")) {
             // id format: pay_<method>_<ticketId>
