@@ -80,22 +80,30 @@ public class MessageListener extends ListenerAdapter {
         
         StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
         
-        // Extract text from Embeds (Bot Messages are usually Embeds, which don't have RAW content)
+        // Comprehensive Embed Extraction (Make it look like chat)
         if (!event.getMessage().getEmbeds().isEmpty()) {
             for (net.dv8tion.jda.api.entities.MessageEmbed embed : event.getMessage().getEmbeds()) {
-                if (embed.getTitle() != null) contentBuilder.append("\n**").append(embed.getTitle()).append("**");
-                if (embed.getDescription() != null) contentBuilder.append("\n").append(embed.getDescription());
+                if (embed.getAuthor() != null && embed.getAuthor().getName() != null) contentBuilder.append("**").append(embed.getAuthor().getName()).append("**\n");
+                if (embed.getTitle() != null) contentBuilder.append("**").append(embed.getTitle()).append("**\n");
+                if (embed.getDescription() != null) contentBuilder.append(embed.getDescription()).append("\n");
+                
+                for (net.dv8tion.jda.api.entities.MessageEmbed.Field field : embed.getFields()) {
+                    contentBuilder.append("\n**").append(field.getName()).append("**\n").append(field.getValue());
+                }
+                
+                if (embed.getImage() != null && embed.getImage().getUrl() != null) {
+                    contentBuilder.append("\n[ATTACHMENT: ").append(embed.getImage().getUrl()).append("]");
+                }
+                if (embed.getFooter() != null && embed.getFooter().getText() != null) {
+                    contentBuilder.append("\n\n_").append(embed.getFooter().getText()).append("_");
+                }
             }
         }
 
         for (net.dv8tion.jda.api.entities.Message.Attachment att : event.getMessage().getAttachments()) {
             contentBuilder.append("\n[ATTACHMENT: ").append(att.getUrl()).append("]");
         }
-        
-        // If message is entirely empty (some edge cases), ignore or label
-        if (contentBuilder.toString().trim().isEmpty()) {
-            contentBuilder.append("[Unsupported Message Format]");
-        }        
+    
         String role = event.getAuthor().isBot() ? "BOT" : "USER";
         org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
         logger.info("[DEBUG] ATTEMPTING TO SAVE MESSAGE - Ticket: {}, User: {}, Content: {}", ticketId, event.getAuthor().getName(), contentBuilder.toString());
