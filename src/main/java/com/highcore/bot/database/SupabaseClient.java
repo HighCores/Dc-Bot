@@ -107,7 +107,6 @@ public class SupabaseClient {
     public static void claimTicket(String id, String staffId, String staffName) {
         JsonObject body = new JsonObject();
         body.addProperty("status", "claimed");
-        body.addProperty("claimer_id", staffId);
         body.addProperty("claimed_by_name", staffName);
         body.addProperty("claimed_at", Instant.now().toString());
         patch("dc_tickets", "ticket_id=eq." + id, body);
@@ -117,7 +116,6 @@ public class SupabaseClient {
         JsonObject body = new JsonObject();
         body.addProperty("status", "open");
         body.addProperty("claimed_by_name", (String)null);
-        body.addProperty("claimer_id", (String)null);
         body.addProperty("claimed_at", (String)null);
         patch("dc_tickets", "ticket_id=eq." + id, body);
     }
@@ -594,7 +592,10 @@ public class SupabaseClient {
     public static void patch(String table, String filter, JsonObject body) {
         Request request = auth(new Request.Builder()).url(url(table) + "?" + filter).patch(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
-            if (!response.isSuccessful()) log.error("PATCH {} failed: {}", table, response.code());
+            if (!response.isSuccessful()) {
+                String b = response.body() != null ? response.body().string() : "No body";
+                log.error("PATCH {} failed: {} - {}", table, response.code(), b);
+            }
         } catch (IOException e) { log.error("PATCH {} error: {}", table, e.getMessage()); }
     }
 
