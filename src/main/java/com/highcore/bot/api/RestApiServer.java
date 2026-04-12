@@ -160,17 +160,28 @@ public class RestApiServer {
             
             if (ticket == null || msgCount == 0) {
                 StringBuilder debug = new StringBuilder();
-                debug.append("<div style='background:#1a1b1e;border:1px solid #2a2c30;border-radius:8px;padding:16px;color:#72767d;font-family:monospace;font-size:11px;max-width:400px;margin:20px auto;text-align:left'>");
-                debug.append("<div style='font-weight:bold;color:#C5A059;margin-bottom:8px'>DIAGNOSTIC DATA:</div>");
-                debug.append("- Query ID: ").append(id).append("<br>");
-                debug.append("- Meta Query (Raw): ").append(SupabaseClient.getTicketById(id) == null ? "MISSING" : "OK").append("<br>");
-                debug.append("- Meta Query (HC-): ").append(SupabaseClient.getTicketById("HC-" + id) == null ? "MISSING" : "OK").append("<br>");
-                debug.append("- Msg Query: ").append(msgCount == 0 ? "EMPTY (0 records)" : "OK (" + msgCount + " records)").append("<br>");
-                debug.append("- DB Connectivity: ONLINE<br>");
-                debug.append("- Msg Table: dc_ticket_messages");
+                debug.append("<body style='background:#0d0e10;color:#e3e5e8;font-family:\"Inter\",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0'>");
+                // Header (Branded)
+                debug.append("<div style='text-align:center;margin-bottom:30px'>");
+                debug.append("<div style='width:50px;height:50px;background:linear-gradient(135deg,#C5A059,#FFD700);border-radius:12px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;box-shadow:0 4px 20px rgba(197,160,89,0.3)'>HC</div>");
+                debug.append("<div style='font-size:24px;font-weight:800;background:linear-gradient(90deg,#C5A059,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>EMPTY TRANSCRIPT</div>");
+                debug.append("<div style='color:#72767d;font-size:13px;margin-top:8px'>Ticket ID: #").append(id).append(" · No messages found in database yet.</div>");
                 debug.append("</div>");
                 
-                ctx.status(200).html("<body style='background:#0d0e10;color:#f57476;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif'><h1>Empty Transcript</h1>" + debug.toString() + "</body>");
+                // Diagnostic Data (Premium Look)
+                debug.append("<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
+                debug.append("<div style='font-size:10px;font-weight:800;color:#C5A059;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;border-bottom:1px solid #2a2c30;padding-bottom:8px'>System Diagnosis</div>");
+                debug.append("<div style='font-family:monospace;font-size:12px;line-height:1.8;color:#abb2bf'>");
+                debug.append("<span style='color:#56b6c2'>- Meta Data:</span> ").append(SupabaseClient.getTicketById(id) == null ? "<span style='color:#e06c75'>MISSING</span>" : "<span style='color:#98c379'>ONLINE</span>").append("<br>");
+                debug.append("<span style='color:#56b6c2'>- Msg Stream:</span> <span style='color:#e06c75'>EMPTY (0 records)</span><br>");
+                debug.append("<span style='color:#56b6c2'>- DB Link:</span> <span style='color:#98c379'>CONNECTED</span><br>");
+                debug.append("<span style='color:#56b6c2'>- Provider:</span> Supabase (dc_ticket_messages)");
+                debug.append("</div></div>");
+                
+                debug.append("<div style='margin-top:30px;color:#4f545c;font-size:11px'>Waiting for conversation to be logged...</div>");
+                debug.append("</body>");
+                
+                ctx.status(200).html(debug.toString());
                 return;
             }
 
