@@ -80,7 +80,7 @@ public class MessageListener extends ListenerAdapter {
         
         StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
         
-        // Comprehensive Embed Extraction (Make it look like chat)
+        // Comprehensive Embed Extraction (Legacy Embeds)
         if (!event.getMessage().getEmbeds().isEmpty()) {
             for (net.dv8tion.jda.api.entities.MessageEmbed embed : event.getMessage().getEmbeds()) {
                 if (embed.getAuthor() != null && embed.getAuthor().getName() != null) contentBuilder.append("**").append(embed.getAuthor().getName()).append("**\n");
@@ -96,6 +96,23 @@ public class MessageListener extends ListenerAdapter {
                 }
                 if (embed.getFooter() != null && embed.getFooter().getText() != null) {
                     contentBuilder.append("\n\n_").append(embed.getFooter().getText()).append("_");
+                }
+            }
+        }
+
+        // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
+        for (net.dv8tion.jda.api.components.LayoutComponent layout : event.getMessage().getComponents()) {
+            if (layout instanceof net.dv8tion.jda.api.components.container.Container container) {
+                for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
+                    if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
+                        contentBuilder.append("\n").append(textDisplay.getContent());
+                    } else if (child instanceof net.dv8tion.jda.api.components.mediagallery.MediaGallery gallery) {
+                        for (net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem item : gallery.getItems()) {
+                            if (item.getUrl() != null) {
+                                contentBuilder.append("\n[ATTACHMENT: ").append(item.getUrl()).append("]");
+                            }
+                        }
+                    }
                 }
             }
         }
