@@ -182,10 +182,21 @@ public class TicketService {
     }
 
     public static void markAsPaid(TextChannel channel, String ticketId, Member staff) {
-        JsonObject ticket = SupabaseClient.getTicketById(ticketId);
-        if (ticket == null || !ticket.has("metadata")) return;
+        JsonObject ticket = ticketCache.get(channel.getId());
+        if (ticket == null) ticket = SupabaseClient.getTicketByChannel(channel.getId());
+        
+        JsonObject meta = null;
+        if (ticket != null && ticket.has("metadata")) {
+            meta = ticket.getAsJsonObject("metadata");
+        } else if (channel.getTopic() != null && channel.getTopic().contains("||META:")) {
+            try {
+                String metaStr = channel.getTopic().substring(channel.getTopic().indexOf("||META:") + 7).trim();
+                meta = com.google.gson.JsonParser.parseString(metaStr).getAsJsonObject();
+            } catch (Exception ignored) {}
+        }
+        
+        if (ticket == null || meta == null) return;
 
-        JsonObject meta = ticket.getAsJsonObject("metadata");
         String cName = meta.get("client_name").getAsString();
         String pName = meta.get("project_name").getAsString();
         String msgId = meta.has("invoice_msg_id") ? meta.get("invoice_msg_id").getAsString() : null;

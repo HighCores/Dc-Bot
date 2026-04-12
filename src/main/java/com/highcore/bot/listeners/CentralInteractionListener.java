@@ -34,21 +34,21 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        String id     = event.getComponentId();
+        String id = event.getComponentId();
         Member member = event.getMember();
-        if (member == null) return;
+        if (member == null)
+            return;
 
         // Modal triggers — must NOT be deferred (they open a modal directly)
-        boolean isModalTrigger = id.equals("ticket_init_support")  ||
-                                 id.equals("ticket_init_complaint") ||
-                                 id.equals("order_open_ticket");
+        boolean isModalTrigger = id.equals("ticket_init_support") ||
+                id.equals("ticket_init_complaint") ||
+                id.equals("order_open_ticket");
 
         // Staff-only channel actions
-        boolean isStaffAction  = id.equals("ticket_claim")   || id.equals("ticket_close")  ||
-                                 id.equals("ticket_unclaim") ||
-                                 id.equals("ticket_delete")   || id.equals("ticket_reopen") ||
-                                 id.startsWith("order_status_update_") ||
-                                 id.startsWith("ticket_mark_paid_");
+        boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") ||
+                id.equals("ticket_unclaim") ||
+                id.equals("ticket_delete") || id.equals("ticket_reopen") ||
+                id.startsWith("order_status_update_");
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
@@ -89,7 +89,31 @@ public class CentralInteractionListener extends ListenerAdapter {
 
             // Ticket panel & flows
             if (id.equals("ticket_init_support"))   { PanelService.handleSupportFlow(event);   return; }
-            if (id.equals("ticket_init_order"))     { PanelService.handleOrderFlow(event);     return; }
+            if (id.equals("ticket_init_order"))     { PanelService.handleOrder:map: Server Navigation Guide
+------------------------------------------------------------------------حتى هنا اي لاين
+Start Up → ⁠:dart:〡highcore
+فراغ
+Regrading → ⁠:wave:〡welcome
+فراغ
+Our Terms → ⁠:page_with_curl:〡service︲terms
+فراغ
+Server Updates → ⁠:postal_horn:〡updates
+-------------------------------------------------- حط ان لاين هنا
+Our Client Comments → ⁠feedbacks
+فراغ
+Our Brothers → ⁠partners
+فراغ
+Giveaways & Challenges → ⁠giveaway
+فراغ
+Developer Pricing → ⁠:label:〡dev︲prices
+فراغ
+Designer Pricing  → ⁠:label:〡design︲prices
+فراغ
+MC Developers Price → ⁠:label:〡minecraft︲prices
+فراغ
+Support → ⁠:tickets:〡ticket
+فراغ
+Support Room → ⁠:no_entry:・ Support WaitingFlow(event);     return; }
             if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); return; }
 
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) {
@@ -183,25 +207,25 @@ public class CentralInteractionListener extends ListenerAdapter {
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         String id = event.getComponentId();
-        
+
         if (id.equals("ticket_type_select")) {
             String choice = event.getValues().get(0);
             switch (choice) {
                 case "purchase" -> com.highcore.bot.services.OrderService.startWizard(event);
                 case "tech_support" -> {
                     TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
-                        .setPlaceholder("Describe the technical issue...").setRequired(true).build();
+                            .setPlaceholder("Describe the technical issue...").setRequired(true).build();
                     Modal m = Modal.create("modal_ticket_open", "Support Request")
-                        .addComponents(Label.of("Problem Brief", subjectInput))
-                        .build();
+                            .addComponents(Label.of("Problem Brief", subjectInput))
+                            .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
                     TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH)
-                        .setPlaceholder("What are you reporting?").setRequired(true).build();
+                            .setPlaceholder("What are you reporting?").setRequired(true).build();
                     Modal m = Modal.create("modal_report_open", "Submit a Report")
-                        .addComponents(Label.of("Report Context", reasonInput))
-                        .build();
+                            .addComponents(Label.of("Report Context", reasonInput))
+                            .build();
                     event.replyModal(m).queue();
                 }
             }
@@ -210,15 +234,18 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         if (!event.isAcknowledged()) {
             boolean isOrderSelect = id.equals("order_service_select") ||
-                                    id.equals("order_main_select")    ||
-                                    id.equals("order_addon_select");
-                                    
-            boolean ephemeral = id.equals("view_services_cat") || id.equals("view_prices_cat")
-                             || id.equals("ticket_type_select");
+                    id.equals("order_main_select") ||
+                    id.equals("order_addon_select");
 
-            if (isOrderSelect)    event.deferEdit().queue(v -> processSelect(event));
-            else if (ephemeral)   event.deferReply(true).queue(hook -> processSelect(event));
-            else                  event.deferEdit().queue(hook -> processSelect(event));
+            boolean ephemeral = id.equals("view_services_cat") || id.equals("view_prices_cat")
+                    || id.equals("ticket_type_select");
+
+            if (isOrderSelect)
+                event.deferEdit().queue(v -> processSelect(event));
+            else if (ephemeral)
+                event.deferReply(true).queue(hook -> processSelect(event));
+            else
+                event.deferEdit().queue(hook -> processSelect(event));
         } else {
             processSelect(event);
         }
@@ -226,7 +253,7 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     private void processSelect(StringSelectInteractionEvent event) {
         try {
-            String id     = event.getComponentId();
+            String id = event.getComponentId();
             String userId = event.getUser().getId();
 
             // ── Order Flow ────────────────────────────────────────────
@@ -256,8 +283,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             // ── Legacy ticket type select ─────────────────────────────
 
         } catch (Exception e) {
-            try { event.getHook().sendMessage("An error occurred: `" + e.getMessage() + "`").setEphemeral(true).queue(); }
-            catch (Exception ignored) {}
+            try {
+                event.getHook().sendMessage("An error occurred: `" + e.getMessage() + "`").setEphemeral(true).queue();
+            } catch (Exception ignored) {
+            }
         }
     }
 
@@ -331,7 +360,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             String eta = event.getValue("o_eta").getAsString();
 
             String userId = event.getUser().getId();
-            com.highcore.bot.services.OrderService.OrderSession session = com.highcore.bot.services.OrderService.sessions.remove(userId);
+            com.highcore.bot.services.OrderService.OrderSession session = com.highcore.bot.services.OrderService.sessions
+                    .remove(userId);
 
             List<InvoiceService.OrderItem> items = new java.util.ArrayList<>();
             if (session != null) {
