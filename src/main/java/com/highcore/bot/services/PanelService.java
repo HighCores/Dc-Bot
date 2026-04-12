@@ -258,6 +258,14 @@ public class PanelService {
         replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null));
     }
 
+    public static void sendServerMap(IReplyCallback event) {
+        sendHighcoreHub(event);
+    }
+
+    public static void sendAboutUs(IReplyCallback event) {
+        sendAboutUsHub(event);
+    }
+
     public static void sendTicketPanel(IReplyCallback event) {
         String imageUrl = "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png"
                 + "?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";

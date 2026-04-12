@@ -136,6 +136,10 @@ public class EmbedUtil {
         return containerBranded("PROTOCOL", "Terminal Rules", body, BANNER_MAIN);
     }
 
+    public static Container rulePanel() {
+        return rulesArabicPanel();
+    }
+
     public static Container success(String title, String description) {
         return containerBranded("SUCCESS", title, "✅ " + description, BANNER_MAIN);
     }

@@ -66,13 +66,13 @@ public class GiveawayService {
 
         if (winners.isEmpty()) {
             Container c = EmbedUtil.containerBranded("GIVEAWAY TERMINATED", "No Deployment Result", 
-                    "Sequence Finished\n> **Item:** " + prizeDetails + "\n\n\u274C Insufficient data points detected. No winner assigned.", EmbedUtil.BANNER_GIVEAWAY, null);
+                    "Sequence Finished\n> **Item:** " + prizeDetails + "\n\n\u274C Insufficient data points detected. No winner assigned.", EmbedUtil.BANNER_GIVEAWAY);
             ch.sendMessageComponents(c).useComponentsV2(true).queue();
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
             Container c = EmbedUtil.containerBranded("GIVEAWAY CONCLUDED", "Successful Allocation", 
-                    "Neural Selection Complete\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! Synchronization complete. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY, null);
+                    "Neural Selection Complete\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! Synchronization complete. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
             ch.sendMessageComponents(c).useComponentsV2(true).queue();
         }
 
@@ -83,7 +83,7 @@ public class GiveawayService {
                     (winners.isEmpty() ? "\u274C No valid winners" : "\uD83C\uDFC6 Winner(s): " + String.join(", ", winners.stream().map(w -> "<@" + w + ">").toList())) +
                     "\n> Entries: **" + userIds.size() + "** subjects recorded.";
             
-            Container editC = EmbedUtil.containerBranded("GIVEAWAY ARCHIVE", "Sequence Finalized", statusBody, EmbedUtil.BANNER_GIVEAWAY, null);
+            Container editC = EmbedUtil.containerBranded("GIVEAWAY ARCHIVE", "Sequence Finalized", statusBody, EmbedUtil.BANNER_GIVEAWAY);
             ch.editMessageComponentsById(messageId, editC).setComponents(ActionRow.of(Button.secondary("giveaway_ended", "ARCHIVED").asDisabled())).useComponentsV2(true).queue(null, e -> {});
         }
     }
@@ -108,7 +108,7 @@ public class GiveawayService {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
             Container c = EmbedUtil.containerBranded("GIVEAWAY RE-CALIBRATED", "New Allocation", 
-                    "New Selection Complete\n\n**Winner(s):** " + wb + "\n\nCongratulations! Structural integrity restored. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY, null);
+                    "New Selection Complete\n\n**Winner(s):** " + wb + "\n\nCongratulations! Structural integrity restored. \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
             ch.sendMessageComponents(c).useComponentsV2(true).queue();
             
             SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));

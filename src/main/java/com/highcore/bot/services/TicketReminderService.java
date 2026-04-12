@@ -87,7 +87,7 @@ public class TicketReminderService {
                             "Ticket **#" + tId + "** has been open for over **24 hours** without being claimed!\n\n" +
                             "<@&" + Config.ROLE_STAFF + "> Please respond to the client node immediately.";
 
-                    Container c = EmbedUtil.containerBranded("TICKET REMINDER", "Inactivity Alert", body, EmbedUtil.BANNER_SUPPORT, null);
+                    Container c = EmbedUtil.containerBranded("TICKET REMINDER", "Inactivity Alert", body, EmbedUtil.BANNER_SUPPORT);
                     ch.sendMessageComponents(c).useComponentsV2(true).queue();
                 }
             } catch (Exception e) { /* skip */ }
