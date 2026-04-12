@@ -80,12 +80,13 @@ public class SupabaseClient {
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
-    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
+    public static void createTicket(String ticketId, String userId, String userName, String channelId, String channelName, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("channel_id", channelId);
+        body.addProperty("channel_name", channelName);
         body.addProperty("subject", subject);
         body.addProperty("priority", priority);
         body.addProperty("status", "open");

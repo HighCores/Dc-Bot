@@ -78,7 +78,7 @@ public class TranscriptService {
                 String uName   = safe(m, "user_name");
                 boolean isBot  = m.has("is_bot") && m.get("is_bot").getAsBoolean();
                 String raw     = safe(m, "content");
-                String content = e(raw).replace("\n", "<br>");
+                String content = formatContent(raw);
                 String ts      = "";
                 try { ts = TIME_ONLY.format(Instant.parse(safe(m, "created_at"))); } catch (Exception ignored) {}
 
@@ -197,6 +197,25 @@ public class TranscriptService {
     private static String safe(JsonObject m, String key) {
         return m.has(key) && !m.get(key).isJsonNull() ? m.get(key).getAsString() : "";
     }
+    private static String formatContent(String raw) {
+        String html = e(raw).replace("\n", "<br>");
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[ATTACHMENT: (https?://[^\\]]+)\\]").matcher(html);
+        StringBuilder sb = new StringBuilder();
+        int last = 0;
+        while (m.find()) {
+            sb.append(html, last, m.start());
+            String url = m.group(1);
+            if (url.toLowerCase().matches(".*\\.(png|jpg|jpeg|gif|webp|bmp)(\\?.*)?$")) {
+                sb.append("<div class='m-img'><img src='").append(url).append("' loading='lazy'></div>");
+            } else {
+                sb.append("<a href='").append(url).append("' target='_blank' class='m-link'>\uD83D\uDCCE Attachment</a>");
+            }
+            last = m.end();
+        }
+        sb.append(html.substring(last));
+        return sb.toString();
+    }
+
     private static String e(String s) {
         if (s == null) return "";
         return s.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;");
@@ -280,6 +299,11 @@ public class TranscriptService {
     .bubble-cont .bubble { border-radius:12px; flex:1; }
     .ts-hover { opacity:0; transition:opacity .15s; min-width:52px; text-align:right; padding-top:11px; font-size:11px; color:var(--subtle); }
     .bubble-cont:hover .ts-hover { opacity:1; }
+
+    .m-img { margin-top:8px; border-radius:8px; overflow:hidden; border:1px solid var(--border); max-width:400px; }
+    .m-img img { width:100%; display:block; }
+    .m-link { color:var(--gold); text-decoration:none; font-weight:600; font-size:12px; background:rgba(197,160,89,0.1); padding:4px 8px; border-radius:4px; display:inline-block; margin-top:4px; }
+    .m-link:hover { background:rgba(197,160,89,0.2); }
 
     .empty-state { text-align:center; padding:80px 0; color:var(--muted); }
     .empty-icon { font-size:40px; margin-bottom:12px; }

@@ -16,8 +16,12 @@ import net.dv8tion.jda.api.Permission;
 public class MessageListener extends ListenerAdapter {
     @Override
     public void onMessageReceived(MessageReceivedEvent event) {
-        if (event.getAuthor().isBot()) return;
         if (!event.isFromGuild()) return;
+        
+        saveTicketMessage(event);
+        
+        if (event.getAuthor().isBot()) return;
+        
         String content = event.getMessage().getContentRaw();
         String channelId = event.getChannel().getId();
         String userId = event.getAuthor().getId();
@@ -30,7 +34,7 @@ public class MessageListener extends ListenerAdapter {
                 String logId = Config.get("LOG_WARNING");
                 TextChannel logChannel = (logId != null && !logId.isEmpty()) ? event.getGuild().getTextChannelById(logId) : null;
                 if (logChannel != null) {
-                    String logBody = "### \u26A0\uFE0F Security Alert: Restricted Content\n" +
+                    String logBody = "### ⚠️ Security Alert: Restricted Content\n" +
                             "**User:** **" + event.getAuthor().getName() + "** (`" + event.getAuthor().getId() + "`)\n" +
                             "**Channel:** #" + event.getChannel().getName() + "\n" +
                             "**Detected Text:**\n> " + content;
@@ -41,8 +45,6 @@ public class MessageListener extends ListenerAdapter {
                 return;
             }
         }
-
-        saveTicketMessage(event);
 
         if (AIService.isAIEnabled(channelId)) {
             event.getChannel().sendTyping().queue();
@@ -58,8 +60,16 @@ public class MessageListener extends ListenerAdapter {
         if (!(event.getChannel() instanceof TextChannel channel)) return;
         String name = channel.getName().toLowerCase();
         if (!name.contains("ticket") && !name.contains("order")) return;
+        
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         if (ticket == null) return;
-        SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), event.getMessage().getContentRaw(), event.getMessageId());
+        
+        StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
+        for (net.dv8tion.jda.api.entities.Message.Attachment att : event.getMessage().getAttachments()) {
+            contentBuilder.append("\n[ATTACHMENT: ").append(att.getUrl()).append("]");
+        }
+        
+        String role = event.getAuthor().isBot() ? "BOT" : "USER";
+        SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role);
     }
 }

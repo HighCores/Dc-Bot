@@ -93,7 +93,7 @@ public class TicketService {
             ticketCache.put(channel.getId(), ticket);
             
             channel.getManager().setTopic(subject + "|" + priority + "|" + type + "|" + user.getId()).queue();
-            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), type, subject, priority);
+            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), channel.getName(), type, subject, priority);
 
             List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
             PanelService.reply(channel, Container.of(children));
@@ -149,9 +149,8 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                String topic = pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString();
-                channel.getManager().setTopic(topic).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH");
+                channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString()).queue();
+                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), channel.getName(), "ORDER", pName, "HIGH");
 
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 PanelService.reply(channel, Container.of(children));
@@ -393,8 +392,9 @@ public class TicketService {
                 String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + ticketId;
                 logCh.sendMessageComponents(EmbedUtil.containerBranded("TRANSCRIPT", "Archive — Case #" + ticketId, 
                     "**Opener:** <@" + openerId + "> (" + openerName + ")\n" +
-                    "**Closed By:** " + closer.getAsMention() + "\n\n" +
-                    "**[\uD83D\uDCDC View Full Web Transcript](" + url + ")**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
+                    "**Closed By:** " + closer.getAsMention(), 
+                    EmbedUtil.BANNER_SUPPORT,
+                    ActionRow.of(Button.link(url, "View Web Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))))).useComponentsV2(true).queue();
             }
         }
     }
