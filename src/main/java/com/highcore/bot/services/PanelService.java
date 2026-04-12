@@ -140,22 +140,102 @@ public class PanelService {
 
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-            Button.secondary("hub_highcore", "Highcore"),
-            Button.secondary("hub_about", "About Us"),
-            Button.secondary("hub_partners", "Partners"),
-            Button.secondary("hub_support", "Support")
+            Button.primary("btn_highcore", "HighCore").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+            Button.secondary("btn_about", "About Us").withEmoji(Emoji.fromUnicode("\uD83D\uDCD6"))
         );
         reply(event, EmbedUtil.startupPanel(row));
     }
 
-    public static void sendServerMap(IReplyCallback event) {
-        ActionRow row = ActionRow.of(Button.success("hub_pings", "Alerts"), Button.secondary("hub_rules", "Rules"));
-        replyEphemeral(event, EmbedUtil.eliteContainer("Map", "Internal navigation active.", null, row));
+    public static void sendHighcoreHub(IReplyCallback event) {
+        String body = """
+                ### \uD83D\uDDFA\uFE0F Server Navigation Guide
+                
+                \uD83C\uDFAF\u3000**highcore** \u2192 <#1488795130470072321>
+                \uD83D\uDC4B\u3000**welcome** \u2192 <#1488795130034000038>
+                \uD83D\uDCDC\u3000**service\uF032terms** \u2192 <#1489158831916454070>
+                \uD83D\uDCEF\u3000**updates** \u2192 <#1488797040732278814>
+                \uD83D\uDCDD\u3000**feedbacks** \u2192 <#1491423672202952806>
+                \uD83E\uDDE1\u3000**partners** \u2192 <#1490334592375324772>
+                \uD83C\uDF81\u3000**giveaway** \u2192 <#1490334823565365308>
+                \uD83C\uDFF7\uFE0F\u3000**dev\uF032prices** \u2192 <#1488800669375795272>
+                \uD83C\uDFF7\uFE0F\u3000**design\uF032prices** \u2192 <#1488800570629427251>
+                \uD83C\uDFF7\uFE0F\u3000**minecraft\uF032prices** \u2192 <#1488795131019526151>
+                \uD83C\uDFAB\u3000**ticket** \u2192 <#1488798547947159612>
+                \u26D4\uFE0F\u3000**Support Waiting** \u2192 <#1488795130881249406>
+                """;
+        ActionRow row = ActionRow.of(
+            Button.success("btn_pings", "Pings").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
+            Button.secondary("btn_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
+            Button.secondary("btn_startup", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+        );
+        replyEphemeral(event, EmbedUtil.containerBranded("MAP", "Sector Directory", body, EmbedUtil.BANNER_MAIN, row));
     }
 
-    public static void sendAboutUs(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.eliteContainer("About Us", "Elite creative identity.", null,
-                ActionRow.of(Button.link("https://x.com/CoreHigh70331", "X"))));
+    public static void sendPingsHub(IReplyCallback event) {
+        String body = "### \uD83D\uDCE2 Notification Registry\nSelect deployment layers to stay synchronized with agency updates.";
+        ActionRow row1 = ActionRow.of(
+            Button.secondary("ping_1488916736639238357", "Server Updates"),
+            Button.secondary("ping_1488916921687736421", "Giveaway Notify")
+        );
+        ActionRow row2 = ActionRow.of(
+            Button.secondary("ping_1488916879186596081", "Offers & Promotions"),
+            Button.secondary("ping_1489764018989301840", "Start Hiring")
+        );
+        ActionRow nav = ActionRow.of(Button.secondary("btn_highcore", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row1, row2, nav));
+    }
+
+    public static void sendAboutUsHub(IReplyCallback event) {
+        String body = "### \uD83D\uDCD6 Agency Profile\nSelect a specialist module below to examine our creative service protocols and price scales.";
+        ActionRow select = ActionRow.of(
+            StringSelectMenu.create("about_category_select")
+                .setPlaceholder("Choose service category...")
+                .addOption("Designer", "about_designer", "Logos, Branding, UI/UX")
+                .addOption("Developer", "about_developer", "Web, Bots, Full-Stack")
+                .addOption("Editor", "about_editor", "Reels, Animation, Gaming")
+                .addOption("Minecraft", "about_minecraft", "Plugins, Maps, Models")
+                .build()
+        );
+        ActionRow btn = ActionRow.of(
+            Button.primary("btn_socials", "Social Media").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+            Button.secondary("btn_startup", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+        );
+        replyEphemeral(event, EmbedUtil.containerBranded("IDENTITY", "Specialist Modules", body, EmbedUtil.BANNER_MAIN, select, btn));
+    }
+
+    public static void sendSocialsHub(IReplyCallback event) {
+        ActionRow row1 = ActionRow.of(
+            Button.link("https://x.com/CoreHigh70331", "X / Twitter"),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok")
+        );
+        ActionRow row2 = ActionRow.of(
+            Button.link("https://www.instagram.com/high_core_agency/", "Instagram"),
+            Button.link("https://www.threads.com/@high_core_agency", "Threads")
+        );
+        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row1, row2, nav));
+    }
+
+    public static void sendServicePriceInfo(IReplyCallback event, String category) {
+        StringBuilder sb = new StringBuilder();
+        sb.append("### \u039B ").append(category.toUpperCase()).append(" Protocols\n\n");
+        
+        String prefix = switch(category.toLowerCase()) {
+            case "designer" -> "ds_";
+            case "developer" -> "dv_";
+            case "editor" -> "ed_";
+            case "minecraft" -> "mc_";
+            default -> "ds_";
+        };
+
+        ALL_ITEMS.forEach((id, meta) -> {
+            if (id.startsWith(prefix)) {
+                sb.append("\u2022 **").append(meta[0]).append("** \u2014 `$").append(meta[1]).append("`\n");
+            }
+        });
+
+        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        replyEphemeral(event, EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN, nav));
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {

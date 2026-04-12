@@ -63,8 +63,33 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
         }
         
-        if (id.equals("view_rules")) {
-            PanelService.replyEphemeral(event, EmbedUtil.rulePanel());
+        if (id.equals("btn_rules")) {
+            PanelService.replyEphemeral(event, EmbedUtil.rulesArabicPanel());
+            return;
+        }
+
+        if (id.equals("btn_startup")) {
+            PanelService.sendStartupHub(event);
+            return;
+        }
+
+        if (id.equals("btn_highcore")) {
+            PanelService.sendHighcoreHub(event);
+            return;
+        }
+
+        if (id.equals("btn_pings")) {
+            PanelService.sendPingsHub(event);
+            return;
+        }
+
+        if (id.equals("btn_about")) {
+            PanelService.sendAboutUsHub(event);
+            return;
+        }
+
+        if (id.equals("btn_socials")) {
+            PanelService.sendSocialsHub(event);
             return;
         }
         
@@ -275,10 +300,13 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
 
             // ── Legacy ticket type select ─────────────────────────────
-            if (id.equals("ticket_type_select")) {
-                String val = event.getValues().get(0);
-                TicketService.createTicket(event, "General Request", "MEDIUM", val);
+            if (id.equals("about_category_select")) {
+                String category = event.getValues().get(0).replace("about_", "");
+                PanelService.sendServicePriceInfo(event, category);
+                return;
             }
+
+            // ── Legacy ticket type select ─────────────────────────────
 
         } catch (Exception e) {
             try { event.getHook().sendMessage("An error occurred: `" + e.getMessage() + "`").setEphemeral(true).queue(); }

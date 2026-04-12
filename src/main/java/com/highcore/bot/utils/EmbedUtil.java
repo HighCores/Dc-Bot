@@ -24,7 +24,7 @@ public class EmbedUtil {
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
     public static final Color PRIMARY     = Color.decode("#10b981");
 
-    public static final String BANNER_MAIN           = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
+    public static final String BANNER_MAIN           = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
     public static final String BANNER_SUPPORT        = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
     public static final String BANNER_COMPLAINT      = "https://cdn.discordapp.com/attachments/1488900668042510568/1492313318193627156/468b060c-ce67-46c1-b0db-db1f476bebed.png";
     public static final String BANNER_GIVEAWAY       = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
@@ -101,31 +101,39 @@ public class EmbedUtil {
         return Container.of(layout);
     }
 
-    public static Container rulePanel() {
+    public static Container rulesArabicPanel() {
         String body = """
-                ### :shield: I. GENERAL PROTOCOLS
-                
-                1. **Mutual Respect** — Harassment, bullying, or offensive language is strictly prohibited. We are a professional community built on support.
-                2. **Professional Identity** — Operatives should use clear, respectful names and appropriate avatars. 
-                3. **Privacy** — Any form of Doxxing or sharing personal information of members or clients is grounds for immediate termination.
-                
-                ### :briefcase: II. BUSINESS CONDUCT
-                
-                1. **Order Integrity** — Service corridors for professional work only. Pranks or fake requests result in restricted access.
-                2. **Intellectual Property** — All code, designs, and assets remain the property of "Highcore Agency" unless specified otherwise.
-                3. **Official Communication** — All agreements must be localized within "Tickets" to ensure transparency.
-                
-                ### :no_entry_sign: III. PROHIBITIONS
-                
-                1. **No Advertisements** — Posting external server links without prior authorization is prohibited.
-                2. **No Spam** — Avoid message repetition or random pings to the Command staff.
-                3. **Sensitive Content** — Political, religious extremism, or NSFW content is strictly forbidden.
-                
-                ### :warning: IV. ADMINISTRATIVE AUTHORITY
-                
-                1. **Final Decision** — Administration reserves the right to take appropriate action (Warning/Kick/Ban) to protect the agency's integrity.
+                ## 📋 قوانين وكالة هايكور | Haikore Agency
+
+                ### 🛡 أولاً : القواعد العامة (General Rules)
+
+                1- الاحترام المتبادل : يمنع الإساءة، التنمر، أو استخدام الألفاظ النابية نحن مجتمع مبني على الدعم والرقي
+
+                2- الهوية المهنية : يفضل استخدام أسماء واضحة (أو مستعارة محترمة) وتجنب الصور الشخصية غير اللائقة
+
+                3- الخصوصية: يمنع منعاً باتاً نشر معلومات شخصية (Doxxing) لأي عضو أو عميل داخل السيرفر
+
+                ### 💼 ثانياً : قوانين التعاملات والعمل (Business Rules)
+
+                1- الجدية في الطلبات : رومات الطلبات مخصصة للعمل فقط أي استهزاء أو طلبات وهمية قد تؤدي لتقييد وصولك
+
+                2- حقوق الملكية : جميع الحقوق البرمجية والتصميمية او اي خدمه تعود لوكالة "هايكور" ما لم يتم الاتفاق على خلاف ذلك مع العميل
+
+                3- التواصل الرسمي : أي اتفاق مالي أو تقني يجب أن يتم عبر "التكتات" (Tickets) لضمان حق الطرفين وتوثيق العمل
+
+                ### 🚫 ثالثاً : المحظورات (Prohibitions)
+
+                1- ممنوع الإعلانات (No Ads) : يمنع نشر روابط سيرفرات أخرى أو الترويج لخدمات خارجية دون إذن الإدارة
+
+                2- السبام (No Spam) : تجنب تكرار الرسائل أو المنشن العشوائي للإدارة ؛ الجميع هنا لخدمتك وفق جدول زمني
+
+                3- المحتوى الحساس : يمنع نشر أي محتوى سياسي، ديني متطرف، أو خادش للحياء
+
+                ### ⚠️ رابعاً : الإجراءات الإدارية
+
+                1- قرار الإدارة قطعي : الإدارة لها الحق في اتخاذ الإجراء المناسب (تحذير/طرد/باند) في حال مخالفة الروح العامة للوكالة، حتى لو لم ينص القانون على المخالفة نصاً
                 """;
-        return containerBranded("clipboard", "Highcore Agency | Official Rules", body, BANNER_MAIN);
+        return containerBranded("PROTOCOL", "Terminal Rules", body, BANNER_MAIN);
     }
 
     public static Container success(String title, String description) {
