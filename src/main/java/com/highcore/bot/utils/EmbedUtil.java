@@ -107,17 +107,23 @@ public class EmbedUtil {
 
                 ### \uD83D\uDEE1\uFE0F I. General Rules
                 1- **Mutual Respect:** Harassment, bullying, or offensive language is strictly prohibited. We are a professional community built on support and respect.
+                
                 2- **Professional Identity:** Please use clear, respectful names and appropriate avatars.
+                
                 3- **Privacy:** Any form of Doxxing or sharing personal information of members or clients is strictly prohibited and grounds for immediate termination.
 
                 ### \uD83D\uDCBC II. Business Rules
                 1- **Order Integrity:** Order channels are for professional work only. Pranks or fake requests will result in restricted access.
+                
                 2- **Intellectual Property:** All code, designs, and assets remain the property of "Highcore Agency" unless agreed otherwise with the client.
+                
                 3- **Official Communication:** All financial or technical agreements must be localized within Tickets to ensure transparency and proper documentation.
 
                 ### \uD83D\uDEAB III. Prohibitions
                 1- **No Advertisements:** Posting external server links or promoting external services without administration approval is prohibited.
+                
                 2- **No Spam:** Avoid repetitive messages or random pings to the administration. We are here to serve you efficiently.
+                
                 3- **Sensitive Content:** Posting political, extreme religious, or NSFW content is strictly forbidden.
 
                 ### \u26A0\uFE0F IV. Administrative Actions

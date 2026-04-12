@@ -198,15 +198,13 @@ public class PanelService {
 
     public static void sendPingsHub(IReplyCallback event) {
         String body = "### \uD83D\uDCE2 Notification Registry\nSelect deployment layers to stay synchronized with agency updates.";
-        ActionRow row1 = ActionRow.of(
-            Button.secondary("ping_1488916736639238357", "Server Updates"),
-            Button.secondary("ping_1488916921687736421", "Giveaway Notify")
+        ActionRow row = ActionRow.of(
+            Button.secondary("ping_1488916736639238357", "Updates"),
+            Button.secondary("ping_1488916921687736421", "Giveaway"),
+            Button.secondary("ping_1488916879186596081", "Offers"),
+            Button.secondary("ping_1489764018989301840", "Hiring")
         );
-        ActionRow row2 = ActionRow.of(
-            Button.secondary("ping_1488916879186596081", "Offers & Promotions"),
-            Button.secondary("ping_1489764018989301840", "Start Hiring")
-        );
-        replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row1, row2));
+        replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row));
     }
 
     public static void sendAboutUsHub(IReplyCallback event) {
@@ -227,15 +225,13 @@ public class PanelService {
     }
 
     public static void sendSocialsHub(IReplyCallback event) {
-        ActionRow row1 = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X / Twitter"),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok")
-        );
-        ActionRow row2 = ActionRow.of(
-            Button.link("https://www.instagram.com/high_core_agency/", "Instagram"),
+        ActionRow row = ActionRow.of(
+            Button.link("https://x.com/CoreHigh70331", "X"),
+            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"),
+            Button.link("https://www.instagram.com/high_core_agency/", "Insta"),
             Button.link("https://www.threads.com/@high_core_agency", "Threads")
         );
-        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row1, row2));
+        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row));
     }
 
     public static void sendServicePriceInfo(IReplyCallback event, String category) {
@@ -260,7 +256,7 @@ public class PanelService {
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "Stay tuned for future collaborations. New partnerships coming soon.", EmbedUtil.BANNER_MAIN));
+        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "HighCore Agency is thinking...", EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {
