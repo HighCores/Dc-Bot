@@ -1,8 +1,10 @@
 package com.highcore.bot.services;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
-import com.highcore.bot.services.InvoiceService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Guild;
@@ -21,290 +23,343 @@ import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.entities.Message;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.dv8tion.jda.api.entities.Message;
+
 import java.util.*;
-import java.util.stream.Collectors;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.atomic.AtomicInteger;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
 
-    private static final String TICKET_CAT_ID         = "1488795130881249404";
-    private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526147";
-    private static final String ADMIN_ROLE_ID          = "1488795130008961040";
-    private static final String TICKET_IMAGE           =
-        "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png" +
-        "?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";
+    private static final String TICKET_CAT_ID = "1488795130470072322";
+    private static final String TRANSCRIPT_CHANNEL_ID = "1488795131019526148";
+    private static final String ADMIN_ROLE_ID = "1488795130008961040";
 
-    public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event,
-                                    String subject, String priority, String type) {
+    private static final AtomicInteger TICKET_SEQ = new AtomicInteger(1);
+    private static final Map<String, JsonObject> ticketCache = new ConcurrentHashMap<>();
+
+    static {
+        try {
+            int current = SupabaseClient.getNextTicketNumber() - 1;
+            TICKET_SEQ.set(current + 1);
+        } catch (Exception e) {
+            log.error("Failed to sync TICKET_SEQ: {}", e.getMessage());
+        }
+    }
+
+    public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, String subject, String priority, String type) {
         createTicket(event, subject, priority, type, null);
     }
 
-    public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event,
-                                    String subject, String priority, String type, String details) {
+    public static void createTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, String subject, String priority, String type, String details) {
         Guild guild = event.getGuild();
         if (guild == null) return;
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) {
-            log.warn("Ticket category {} not found — creating fallback.", TICKET_CAT_ID);
-            guild.createCategory("Agency Tickets").queue(c ->
-                    proceedWithTicket(event, c, subject, priority, type, details));
+            log.warn("Ticket category {} not found.", TICKET_CAT_ID);
+            guild.createCategory("Agency Tickets").queue(c -> proceedWithTicket(event.getMember(), event.getUser(), c, subject, priority, type, details, event));
             return;
         }
-        proceedWithTicket(event, cat, subject, priority, type, details);
+        proceedWithTicket(event.getMember(), event.getUser(), cat, subject, priority, type, details, event);
     }
 
-    private static void proceedWithTicket(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event,
-                                          Category cat, String subject, String priority, String type, String details) {
-        String ticketId    = String.format("%04d", SupabaseClient.getNextTicketNumber());
-        String channelName = type.toLowerCase() + "-" + ticketId;
+    private static void proceedWithTicket(Member member, User user, Category cat, String subject, String priority, String type, String details, net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event) {
+        String ticketId = String.format("%04d", TICKET_SEQ.getAndIncrement());
+        String name = type.toLowerCase() + "-" + ticketId;
 
         Role adminRole = cat.getGuild().getRoleById(ADMIN_ROLE_ID);
-        var builder = cat.createTextChannel(channelName)
-            .addPermissionOverride(event.getMember(),
-                    EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
-            .addPermissionOverride(cat.getGuild().getPublicRole(),
-                    null, EnumSet.of(Permission.VIEW_CHANNEL));
+        var builder = cat.createTextChannel(name)
+            .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES), null)
+            .addPermissionOverride(cat.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL));
+
         if (adminRole != null) {
-            builder = builder.addPermissionOverride(adminRole,
-                    EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND,
-                               Permission.MESSAGE_HISTORY, Permission.MESSAGE_ATTACH_FILES), null);
+            builder = builder.addPermissionOverride(adminRole, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND, Permission.MESSAGE_HISTORY, Permission.MESSAGE_ATTACH_FILES), null);
         }
+
         builder.queue(channel -> {
-                SupabaseClient.createTicket(ticketId, event.getUser().getId(),
-                        channel.getId(), type, subject, priority, null);
+            JsonObject ticket = new JsonObject();
+            ticket.addProperty("ticket_id", ticketId);
+            ticket.addProperty("user_id", user.getId());
+            ticket.addProperty("channel_id", channel.getId());
+            ticket.addProperty("subject", subject);
+            ticket.addProperty("priority", priority);
+            ticket.addProperty("type", type);
+            if (details != null) ticket.addProperty("details", details);
+            ticketCache.put(channel.getId(), ticket);
+            
+            channel.getManager().setTopic(subject + "|" + priority + "|" + type + "|" + user.getId()).queue();
+            SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, subject, priority, null);
 
-                String header = switch (type.toUpperCase()) {
-                    case "SUPPORT"   -> "Support Center";
-                    case "COMPLAINT" -> "Complaint Board";
-                    default          -> "Ticket";
-                };
+            List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
+            PanelService.reply(channel, Container.of(children));
 
-                String infoLine = "**Type:** `" + type + "` · **Priority:** `" + priority + "` · **Subject:** `" + subject + "`"
-                    + (details != null && !details.isBlank() ? "\n" + details : "");
-
-                List<ContainerChildComponent> children = new ArrayList<>();
-                children.add(MediaGallery.of(MediaGalleryItem.fromUrl(TICKET_IMAGE)));
-                children.add(TextDisplay.of("## " + header + " | Active Ticket\n<@&" + ADMIN_ROLE_ID + ">"));
-                children.add(Separator.createDivider(Spacing.SMALL));
-                children.add(TextDisplay.of("Welcome " + event.getUser().getAsMention() + " \uD83D\uDC4B\n\n" + infoLine));
-                children.add(Separator.createDivider(Spacing.SMALL));
-                children.add(TextDisplay.of("A staff member will be with you shortly — please describe your issue in full detail."));
-                children.add(ActionRow.of(getTicketButtons("open")));
-
-                PanelService.reply(channel, Container.of(children));
-
-                event.getHook().sendMessage(
-                    "Your ticket has been opened: " + channel.getAsMention())
-                    .setEphemeral(true).queue();
-            });
+            if (event != null) {
+                if (event.isAcknowledged()) event.getHook().sendMessage("Your ticket has been opened: " + channel.getAsMention()).setEphemeral(true).queue();
+                else event.reply("Your ticket has been opened: " + channel.getAsMention()).setEphemeral(true).queue();
+            }
+        });
     }
 
-    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName,
-                                                String contact, String eta,
-                                                List<InvoiceService.OrderItem> items) {
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String eta, List<InvoiceService.OrderItem> items) {
+        String category = "Agency Projects";
+        Category cat = guild.getCategoryById(TICKET_CAT_ID);
+        if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
+        if (cat == null) return;
+
+        String ticketId = String.format("%04d", TICKET_SEQ.getAndIncrement());
+        String name = "order-" + ticketId;
+
         Member member = guild.getMember(user);
         if (member == null) return;
 
-        String ticketId    = String.format("%03d", SupabaseClient.getNextTicketNumber());
-        String channelName = "order-" + ticketId;
-
-        Category cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
-        if (cat == null) cat = guild.getCategoryById(TICKET_CAT_ID);
-        if (cat == null) { log.error("Ticket category not found"); return; }
-
-        guild.createTextChannel(channelName, cat)
-            .addPermissionOverride(member,
-                EnumSet.of(Permission.VIEW_CHANNEL),
-                EnumSet.of(Permission.MESSAGE_SEND))
-            .addPermissionOverride(guild.getPublicRole(),
-                null, EnumSet.of(Permission.VIEW_CHANNEL))
+        guild.createTextChannel(name, cat)
+            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+            .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
             .queue(channel -> {
-                SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(),
-                    "ORDER", pName, "HIGH", null);
+                JsonArray itemsArr = new JsonArray();
+                for (var i : items) {
+                    JsonObject iObj = new JsonObject();
+                    iObj.addProperty("name", i.name);
+                    iObj.addProperty("price", i.price);
+                    itemsArr.add(iObj);
+                }
 
-                String infoLine =
-                    "**Case ID:** `" + ticketId + "` · **Project:** `" + pName + "` · **Client:** `" + cName + "`\n" +
-                    "**Contact:** `" + contact + "` · **Delivery:** `" + eta + "`";
+                JsonObject meta = new JsonObject();
+                meta.addProperty("client_name", cName);
+                meta.addProperty("project_name", pName);
+                meta.addProperty("contact", contact);
+                meta.addProperty("eta", eta);
+                meta.addProperty("category", category);
+                meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
+                meta.addProperty("display_name", user.getEffectiveName());
+                meta.add("items", itemsArr);
 
-                Container welcome = EmbedUtil.containerBranded(
-                    "ORDER PIPELINE", "Active Ticket",
-                    "Welcome " + user.getAsMention() + " \uD83D\uDC4B\n\n" +
-                    infoLine + "\n\n" +
-                    "\u26A0\uFE0F **Your ticket is locked** — it will be unlocked once payment is confirmed.\n" +
-                    "A staff member will review your order and reach out shortly.\n\n" +
-                    "> \uD83D\uDCCC Please do **not** ping staff. We'll get back to you as soon as possible.",
-                    EmbedUtil.BANNER_ORDER_TICKET,
-                    Emoji.fromUnicode("\uD83D\uDCE6"),
-                    ActionRow.of(getTicketButtons("open")));
+                JsonObject ticket = new JsonObject();
+                ticket.addProperty("ticket_id", ticketId);
+                ticket.addProperty("user_id", user.getId());
+                ticket.addProperty("channel_id", channel.getId());
+                ticket.addProperty("subject", pName);
+                ticket.addProperty("priority", "HIGH");
+                ticket.addProperty("type", "ORDER");
+                ticket.add("metadata", meta);
+                ticketCache.put(channel.getId(), ticket);
 
-                channel.sendMessageComponents(welcome).useComponentsV2(true).queue();
+                channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId()).queue();
+                SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), "ORDER", pName, "HIGH", meta);
 
-                byte[] invoiceData = InvoiceService.generateInvoice(cName, pName, items);
+                List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
+                PanelService.reply(channel, Container.of(children));
 
-                Container invoiceContainer = EmbedUtil.containerBranded(
-                    "INVOICE", "Payment Required",
-                    "\uD83E\uDDFE **Review your invoice below and choose a payment method.**\n\n" +
-                    "**Available Methods:**\n" +
-                    "> \uD83D\uDCB3 **PayPal** — `billing@highcore.agency`\n" +
-                    "> \uD83C\uDF10 **Stripe** — Contact staff for link\n" +
-                    "> \uD83C\uDFE6 **Bank Transfer (Al-Rajhi)** — `SA29 8000 0000 1234 5678 1234`\n" +
-                    "> \uD83D\uDCB5 **USDT (TRC20)** — `THighCoreAgencyWallet9xR3mZ`\n" +
-                    "> \uD83D\uDCB0 **STC Pay** — `+966 5X XXX XXXX`\n\n" +
-                    "After payment, send proof to this channel. Staff will verify and unlock.",
-                    EmbedUtil.BANNER_INVOICE,
-                    Emoji.fromUnicode("\uD83E\uDDFE"),
-                    ActionRow.of(getPaymentButtons(ticketId)));
-
-                channel.sendMessageComponents(invoiceContainer).useComponentsV2(true).queue();
+                byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact);
+                
+                List<ContainerChildComponent> invChildren = new ArrayList<>();
+                invChildren.add(MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-" + ticketId + ".png")));
+                invChildren.add(TextDisplay.of("## 🧾 Invoice — Payment Required\nReview your order and choose a payment method."));
+                invChildren.add(Separator.createDivider(Spacing.SMALL));
+                invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
 
                 if (invoiceData != null) {
-                    channel.sendFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png")).queue();
+                    channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true)
+                        .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
+                        .queue(msg -> {
+                            meta.addProperty("invoice_msg_id", msg.getId());
+                            SupabaseClient.patch("dc_tickets", "ticket_id=eq." + ticketId, msgBody(meta));
+                        });
                 }
             });
     }
 
-    public static List<Button> getTicketButtons(String status) {
-        if (status.equals("open")) return List.of(
-            Button.primary("ticket_claim", "Claim Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
-            Button.danger("ticket_close", "Close Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
-        );
-        if (status.equals("claimed")) return List.of(
-            Button.danger("ticket_close", "Close Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
-        );
-        return List.of(
-            Button.success("ticket_reopen", "Reopen Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDD04")),
-            Button.danger("ticket_delete", "Delete Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F"))
-        );
+    private static JsonObject msgBody(JsonObject meta) {
+        JsonObject b = new JsonObject();
+        b.add("metadata", meta);
+        return b;
     }
 
-    public static List<Button> getPaymentButtons(String id) {
-        return List.of(
-            Button.primary("pay_paypal_"  + id, "PayPal")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
-            Button.primary("pay_stripe_"  + id, "Stripe")
-                    .withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
-            Button.primary("pay_bank_"    + id, "Bank Transfer")
-                    .withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
-            Button.primary("pay_usdt_"    + id, "USDT")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
-            Button.primary("pay_stcpay_"  + id, "STC Pay")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCF1"))
-        );
+    public static void markAsPaid(TextChannel channel, String ticketId, Member staff) {
+        JsonObject ticket = SupabaseClient.getTicketById(ticketId);
+        if (ticket == null || !ticket.has("metadata")) return;
+
+        JsonObject meta = ticket.getAsJsonObject("metadata");
+        String cName = meta.get("client_name").getAsString();
+        String pName = meta.get("project_name").getAsString();
+        String msgId = meta.has("invoice_msg_id") ? meta.get("invoice_msg_id").getAsString() : null;
+
+        List<InvoiceService.OrderItem> items = new ArrayList<>();
+        if (meta.has("items")) {
+            for (JsonElement e : meta.getAsJsonArray("items")) {
+                JsonObject i = e.getAsJsonObject();
+                items.add(new InvoiceService.OrderItem(i.get("name").getAsString(), i.get("price").getAsDouble()));
+            }
+        }
+
+        byte[] paidData = InvoiceService.generateInvoice(ticketId, cName, pName, items, true, 
+                meta.get("avatar_url").getAsString(), meta.get("display_name").getAsString(), 
+                meta.get("category").getAsString(), meta.get("contact").getAsString());
+
+        if (paidData != null && msgId != null) {
+            channel.retrieveMessageById(msgId).queue(msg -> {
+                List<ContainerChildComponent> paidChildren = new ArrayList<>();
+                paidChildren.add(MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-paid.png")));
+                paidChildren.add(TextDisplay.of("## ✅ Payment Verified — Case #" + ticketId));
+                paidChildren.add(Separator.createDivider(Spacing.SMALL));
+                paidChildren.add(TextDisplay.of("Your payment has been successfully verified. The ticket is now unlocked.\nStaff: " + staff.getAsMention()));
+                
+                msg.editMessageComponents(Container.of(paidChildren)).useComponentsV2(true)
+                    .setFiles(FileUpload.fromData(paidData, "invoice-paid.png"))
+                    .queue();
+            });
+        }
+
+        String ownerId = ticket.get("user_id").getAsString();
+        Member owner = channel.getGuild().getMemberById(ownerId);
+        if (owner != null) {
+            channel.getPermissionOverride(owner).getManager().grant(Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES).queue();
+        }
+        PanelService.reply(channel, Container.of(TextDisplay.of("✅ **Payment Verified** · Ticket Unlocked")));
     }
 
-    public static void claimTicket(TextChannel channel, Member claimer) {
-        List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-            "\uD83D\uDCE1 **Ticket Claimed** · " + claimer.getAsMention()));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(
-            Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
-        ));
+    public static void claimTicket(TextChannel channel, Member claimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        JsonObject update = new JsonObject();
+        update.addProperty("status", "claimed");
+        update.addProperty("claimer_id", claimer.getId());
+        SupabaseClient.patch("dc_tickets", "channel_id=eq." + channel.getId(), update);
 
-        PanelService.reply(channel, Container.of(children));
+        JsonObject ticket = ticketCache.get(channel.getId());
+        if (ticket != null) {
+            ticket.addProperty("status", "claimed");
+            ticket.addProperty("claimer_id", claimer.getId());
+        }
+
+        channel.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, true, channel, claimer.getAsMention()))).useComponentsV2(true).queue();
+    }
+
+    public static void unclaimTicket(TextChannel channel, Member unclaimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        JsonObject ticket = ticketCache.get(channel.getId());
+        if (ticket != null && ticket.has("claimer_id") && !ticket.get("claimer_id").getAsString().equals(unclaimer.getId())) {
+             event.getHook().sendMessage("⚠️ Only the staff who claimed this can unclaim.").setEphemeral(true).queue();
+             return;
+        }
+
+        JsonObject update = new JsonObject();
+        update.addProperty("status", "open");
+        update.addProperty("claimer_id", (String)null);
+        SupabaseClient.patch("dc_tickets", "channel_id=eq." + channel.getId(), update);
+
+        if (ticket != null) {
+            ticket.addProperty("status", "open");
+            ticket.remove("claimer_id");
+        }
+
+        channel.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, false, channel, null))).useComponentsV2(true).queue();
+    }
+
+    public static List<ContainerChildComponent> rebuildWelcomeComponents(JsonObject ticket, boolean claimed, TextChannel channel, String claimerMention) {
+        List<ContainerChildComponent> comps = new ArrayList<>();
+        String ticketId = "0000", userId = "0", subject = "Active Session", priority = "MEDIUM";
+
+        if (ticket != null) {
+            ticketId = ticket.has("ticket_id") ? ticket.get("ticket_id").getAsString() : ticketId;
+            userId = ticket.has("user_id") ? ticket.get("user_id").getAsString() : userId;
+            subject = ticket.has("subject") ? ticket.get("subject").getAsString() : subject;
+            priority = ticket.has("priority") ? ticket.get("priority").getAsString() : priority;
+        }
+        
+        String status = claimed ? "claimed" : "open";
+        boolean isOrder = channel.getName().startsWith("order");
+
+        String bannerUrl = isOrder ? EmbedUtil.BANNER_ORDER_TICKET : (subject.toLowerCase().contains("complaint") ? EmbedUtil.BANNER_COMPLAINT : EmbedUtil.BANNER_SUPPORT);
+        String header = isOrder ? "Order Pipeline" : (subject.toLowerCase().contains("complaint") ? "Complaint Board" : "Support Center");
+
+        comps.add(MediaGallery.of(MediaGalleryItem.fromUrl(bannerUrl)));
+        comps.add(TextDisplay.of("## " + header + " | Active Ticket\n<@&" + ADMIN_ROLE_ID + ">"));
+        comps.add(Separator.createDivider(Spacing.SMALL));
+
+        String infoLine = "**Type:** `Ticket` · **Priority:** `" + priority + "` · **Subject:** `" + subject + "`";
+        comps.add(TextDisplay.of("Welcome <@" + userId + "> 👋\n\n" + infoLine));
+        
+        if (claimed && claimerMention != null) {
+            comps.add(TextDisplay.of("📡 **Operative Assigned:** " + claimerMention));
+        }
+        comps.add(Separator.createDivider(Spacing.SMALL));
+
+        if (isOrder && !claimed) {
+            comps.add(TextDisplay.of("⚠️ **Your ticket is locked** — it will be unlocked once payment is confirmed."));
+        } else {
+            comps.add(TextDisplay.of("A staff member will be with you shortly — please describe your issue in full detail."));
+        }
+
+        List<Button> btns = new ArrayList<>(getTicketButtons(status));
+        if (isOrder && !claimed) {
+            btns.add(0, Button.success("ticket_mark_paid_" + ticketId, "Verify Payment").withEmoji(Emoji.fromUnicode("✅")));
+        }
+        comps.add(ActionRow.of(btns));
+
+        return comps;
     }
 
     public static void reopenTicket(TextChannel channel, Member reopener) {
         List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-            "\uD83D\uDD04 **Ticket Reopened** · " + reopener.getAsMention() +
-            "\n`Back in queue — ready to assist.`"));
+        children.add(TextDisplay.of("🔄 **Ticket Reopened** · " + reopener.getAsMention() + "\n`Back in queue — ready to assist.`"));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(getTicketButtons("open")));
-
         PanelService.reply(channel, Container.of(children));
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
         List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-            "\u26A0\uFE0F **Close Ticket** — requested by " + closer.getAsMention() +
-            "\n\nChoose an action below:"));
-        children.add(Separator.createDivider(Spacing.SMALL));
+        children.add(TextDisplay.of("⚠️ **Close Ticket** — requested by " + closer.getAsMention() + "\n\nChoose an action below:"));
         children.add(ActionRow.of(
-            Button.success("order_status_update_TRANSCRIPT", "Save Transcript")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("ticket_reopen", "Reopen Ticket")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDD04")),
-            Button.danger("ticket_delete", "Delete Immediately")
-                    .withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\uFE0F"))
+            Button.success("order_status_update_TRANSCRIPT", "Save Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
+            Button.secondary("ticket_reopen", "Reopen Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD04")),
+            Button.danger("ticket_delete", "Delete Immediately").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\ufe0f"))
         ));
-
         PanelService.reply(channel, Container.of(children));
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
-        String overrideOpenerName = channel.getPermissionOverrides().stream()
-            .filter(po -> po.isMemberOverride() && po.getMember() != null
-                       && !po.getMember().getUser().isBot())
-            .map(po -> po.getMember().getEffectiveName())
-            .findFirst().orElse(null);
-
-        channel.getPermissionOverrides().stream()
-            .filter(po -> po.isMemberOverride())
-            .forEach(po -> po.delete().queue());
-
+        channel.getPermissionOverrides().stream().filter(po -> !Config.isStaff(po.getMember())).forEach(po -> po.delete().queue());
         List<ContainerChildComponent> closed = new ArrayList<>();
-        closed.add(TextDisplay.of("\uD83D\uDD12 **Ticket Closed** · `Channel is now locked.`"));
+        closed.add(TextDisplay.of("🔒 **Ticket Closed** · `Channel is now locked.`"));
         closed.add(Separator.createDivider(Spacing.SMALL));
         closed.add(ActionRow.of(getTicketButtons("closed")));
         PanelService.reply(channel, Container.of(closed));
 
-        if (!status.equals("TRANSCRIPT")) return;
-
-        JsonObject ticket  = SupabaseClient.getTicketByChannel(channel.getId());
-        String closedBy    = closer.getEffectiveName();
-        String ticketId    = channel.getName();
-        String type        = channel.getName().split("-")[0].toUpperCase();
-        String openedAt    = channel.getTimeCreated().toInstant().toString();
-        String openerId    = null;
-        if (ticket != null) {
-            if (ticket.has("ticket_id")) ticketId = ticket.get("ticket_id").getAsString();
-            if (ticket.has("user_id") && !ticket.get("user_id").isJsonNull())
-                openerId = ticket.get("user_id").getAsString();
+        if (status.equals("TRANSCRIPT")) {
+            channel.getHistory().retrievePast(100).queue(messages -> {
+                byte[] html = TranscriptService.generateFromMessages("T-" + channel.getName(), channel.getName(), "SUPPORT", "closed", "", "", closer.getEffectiveName(), messages);
+                TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
+                if (logCh != null && html != null) logCh.sendFiles(FileUpload.fromData(html, "transcript.html")).queue();
+            });
         }
+    }
 
-        String openerName = overrideOpenerName != null ? overrideOpenerName : "Unknown";
-        if (openerId != null) {
-            try {
-                Member openerMember = channel.getGuild().retrieveMemberById(openerId).complete();
-                if (openerMember != null) openerName = openerMember.getEffectiveName();
-            } catch (Exception ignored) { }
-        }
+    public static List<Button> getTicketButtons(String status) {
+        if (status.equals("open")) return List.of(
+            Button.primary("ticket_claim", "Claim Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+            Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+        );
+        if (status.equals("claimed")) return List.of(
+            Button.secondary("ticket_unclaim", "Unclaim Ticket").withEmoji(Emoji.fromUnicode("↩️")),
+            Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+        );
+        return List.of(
+            Button.success("ticket_reopen", "Reopen Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD04")),
+            Button.danger("ticket_delete", "Delete Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\ufe0f"))
+        );
+    }
 
-        final String fTicketId   = ticketId;
-        final String fType       = type;
-        final String fOpenedAt   = openedAt;
-        final String fOpenerName = openerName;
-        final TextChannel logCh  = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
-
-        channel.getHistory().retrievePast(100).queue(raw -> {
-            List<Message> ordered = new ArrayList<>(raw);
-            Collections.reverse(ordered);
-
-            byte[] html = TranscriptService.generateFromMessages(
-                fTicketId, channel.getName(), fType, "closed", fOpenedAt, fOpenerName, closedBy, ordered);
-
-            if (logCh != null) {
-                PanelService.reply(logCh, Container.of(TextDisplay.of(
-                    "\uD83D\uDCCE **Transcript Saved** · `#" + fTicketId + "` · `" + channel.getName() + "`\n" +
-                    "Opened by: **" + fOpenerName + "** · Closed by: **" + closedBy + "** · **" + ordered.size() + "** messages")));
-                if (html != null) {
-                    logCh.sendFiles(FileUpload.fromData(html, "transcript-" + fTicketId + ".html")).queue();
-                }
-            }
-
-            if (ticket != null) SupabaseClient.updateTicketStatus(fTicketId, "closed", closedBy);
-
-        }, err -> log.error("Failed to fetch history for transcript in {}", channel.getName(), err));
+    public static List<Button> getPaymentButtons(String id) {
+        return List.of(
+            Button.secondary("pay_paypal_" + id, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+            Button.secondary("pay_stripe_" + id, "Stripe").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+            Button.secondary("pay_bank_" + id, "Bank Transfer").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
+            Button.secondary("pay_usdt_" + id, "USDT").withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
+            Button.secondary("pay_stcpay_" + id, "STC Pay").withEmoji(Emoji.fromUnicode("\uD83D\uDCF1"))
+        );
     }
 }

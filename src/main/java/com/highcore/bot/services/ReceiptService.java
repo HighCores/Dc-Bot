@@ -6,12 +6,10 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.List;
 import javax.imageio.ImageIO;
 
 public class ReceiptService {
 
-    private static final Color BG_DARK = new Color(15, 15, 17);
     private static final Color ACCENT_BLUE = new Color(91, 110, 245);
     private static final Color TEXT_WHITE = new Color(240, 240, 245);
     private static final Color TEXT_GRAY = new Color(160, 160, 175);
@@ -42,11 +40,11 @@ public class ReceiptService {
         g.fillRoundRect(width/2 - 50, 0, 100, 8, 4, 4);
 
         // HEADER SECTION
-        g.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        g.setFont(new Font("Dialog", Font.BOLD, 32));
         g.setColor(TEXT_WHITE);
         g.drawString("INVOICE", 45, 75);
-        
-        g.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+
+        g.setFont(new Font("Dialog", Font.PLAIN, 15));
         g.setColor(TEXT_GRAY);
         g.drawString("AGENCY REGISTRY: " + ticketId, 45, 105);
         g.drawString("ISSUED: " + java.time.LocalDate.now().toString(), 45, 125);
@@ -60,7 +58,7 @@ public class ReceiptService {
         g.drawLine(45, 155, width - 45, 155);
 
         // TABLE HEADERS
-        g.setFont(new Font("Segoe UI", Font.BOLD, 13));
+        g.setFont(new Font("Dialog", Font.BOLD, 13));
         g.setColor(ACCENT_BLUE);
         g.drawString("SERVICE DESCRIPTION", 45, 185);
         g.drawString("PRICE", width - 120, 185);
@@ -69,14 +67,13 @@ public class ReceiptService {
         int y = 220;
         JsonArray srvs = data.getAsJsonArray("services");
         JsonArray adds = data.getAsJsonArray("addons");
-        String cat = data.get("category").getAsString();
 
-        g.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+        g.setFont(new Font("Dialog", Font.PLAIN, 15));
         g.setColor(TEXT_WHITE);
 
         if (srvs != null) {
             for (var e : srvs) {
-                renderItem(g, cat, e.getAsString(), y, width, true);
+                renderItem(g, e.getAsString(), y, width, true);
                 y += 35;
             }
         }
@@ -85,7 +82,7 @@ public class ReceiptService {
             g.drawLine(45, y - 10, width - 45, y - 10);
             y += 20;
             for (var e : adds) {
-                renderItem(g, cat, e.getAsString(), y, width, false);
+                renderItem(g, e.getAsString(), y, width, false);
                 y += 35;
             }
         }
@@ -97,22 +94,22 @@ public class ReceiptService {
         g.setColor(new Color(91, 110, 245, 40));
         g.drawRoundRect(45, blockY, width - 90, 90, 20, 20);
 
-        g.setFont(new Font("Segoe UI", Font.BOLD, 15));
+        g.setFont(new Font("Dialog", Font.BOLD, 15));
         g.setColor(TEXT_GRAY);
         g.drawString("TOTAL PRICE", 65, blockY + 35);
 
-        g.setFont(new Font("Segoe UI", Font.BOLD, 38));
+        g.setFont(new Font("Dialog", Font.BOLD, 38));
         g.setColor(ACCENT_BLUE);
         String totalStr = "$" + data.get("total").getAsInt();
         int totalWidth = g.getFontMetrics().stringWidth(totalStr);
         g.drawString(totalStr, width - 75 - totalWidth, blockY + 60);
 
         // VERIFIED BADGE
-        g.setFont(new Font("Segoe UI", Font.BOLD, 12));
+        g.setFont(new Font("Dialog", Font.BOLD, 12));
         g.setColor(new Color(0, 208, 148));
         g.drawString("\u2705 SECURE_INFRASTRUCTURE_VERIFIED", 45, height - 40);
 
-        g.setFont(new Font("Segoe UI", Font.ITALIC, 11));
+        g.setFont(new Font("Dialog", Font.ITALIC, 11));
         g.setColor(TEXT_GRAY);
         g.drawString("Data synchronized with Highcore Financial Control Hub", 45, height - 23);
 
@@ -122,19 +119,19 @@ public class ReceiptService {
         return baos.toByteArray();
     }
 
-    private static void renderItem(Graphics2D g, String cat, String id, int y, int width, boolean isMain) {
+    private static void renderItem(Graphics2D g, String id, int y, int width, boolean isMain) {
         String name  = OrderService.ITEM_NAMES.get(id);
         double[] priceArr = OrderService.ITEM_PRICES.get(id);
 
-        if (name != null && priceArr != null) {
+        if (name != null) {
             g.setColor(isMain ? TEXT_WHITE : TEXT_GRAY);
             g.drawString((isMain ? "\u25B8 " : "\u25AB ") + name, 45, y);
 
-            g.setFont(new Font("Consolas", Font.BOLD, 15));
-            String p = priceArr[0] == 0 ? "Quote" : "$" + (int) priceArr[0];
+            g.setFont(new Font("Monospaced", Font.BOLD, 15));
+            String p = (priceArr == null || priceArr[0] == 0) ? "Quote" : "$" + (int) priceArr[0];
             int pW = g.getFontMetrics().stringWidth(p);
             g.drawString(p, width - 65 - pW, y);
-            g.setFont(new Font("Segoe UI", Font.PLAIN, 15));
+            g.setFont(new Font("Dialog", Font.PLAIN, 15));
         }
     }
 }

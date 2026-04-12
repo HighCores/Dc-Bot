@@ -93,7 +93,8 @@ public class CentralInteractionListener extends ListenerAdapter {
                 PanelService.reply(event, EmbedUtil.accessDenied());
                 return;
             }
-            if (id.equals("ticket_claim")) { TicketService.claimTicket(event.getChannel().asTextChannel(), member); event.deferEdit().queue(); return; }
+            if (id.equals("ticket_claim")) { TicketService.claimTicket(event.getChannel().asTextChannel(), member, event); return; }
+            if (id.equals("ticket_unclaim")) { TicketService.unclaimTicket(event.getChannel().asTextChannel(), member, event); return; }
             if (id.equals("ticket_close")) { TicketService.closeTicket(event.getChannel().asTextChannel(), member); event.deferEdit().queue(); return; }
             if (id.equals("ticket_reopen")) { TicketService.reopenTicket(event.getChannel().asTextChannel(), member); event.deferEdit().queue(); return; }
             if (id.equals("ticket_delete")) {
@@ -170,20 +171,18 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onModalInteraction(ModalInteractionEvent event) {
         String id = event.getModalId();
         
-        if (id.equals("order_modal")) {
+        if (id.equals("modal_order_final")) {
             String pName   = event.getValue("o_project").getAsString();
             String cName   = event.getValue("o_name").getAsString();
             String contact = event.getValue("o_contact").getAsString();
             String eta     = event.getValue("o_eta").getAsString();
 
             String userId = event.getUser().getId();
-            OrderService.OrderSession session = OrderService.sessions.remove(userId);
+            PanelService.OrderSession session = PanelService.SESSIONS.remove(userId);
 
             List<InvoiceService.OrderItem> items = new java.util.ArrayList<>();
             if (session != null) {
-                List<String> allIds = new java.util.ArrayList<>(session.selectedServices);
-                allIds.addAll(session.selectedAddons);
-                items = OrderService.resolveItems(allIds);
+                items = PanelService.resolveItems(session.allIds());
             }
 
             net.dv8tion.jda.api.entities.Guild guild = event.getGuild();

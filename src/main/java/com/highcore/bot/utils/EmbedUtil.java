@@ -15,56 +15,55 @@ import java.util.List;
 
 public class EmbedUtil {
     public static final Color ACCENT      = Color.decode("#C5A059");
-    public static final Color SUCCESS     = Color.decode("#2ECC71");
-    public static final Color DANGER      = Color.decode("#E74C3C");
-    public static final Color INFO        = Color.decode("#3498DB");
-    public static final Color WARNING     = Color.decode("#F1C40F");
-    public static final Color GOLD        = Color.decode("#D4AF37");
+    public static final Color SUCCESS     = Color.decode("#10b981");
+    public static final Color DANGER      = Color.decode("#f43f5e");
+    public static final Color INFO        = Color.decode("#3b82f6");
+    public static final Color WARNING     = Color.decode("#f59e0b");
+    public static final Color GOLD        = Color.decode("#fbbf24");
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
-
-    public static final String BANNER_MAIN = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
-    public static final String BANNER_SUPPORT = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop";
-    public static final String BANNER_GIVEAWAY = "https://images.unsplash.com/photo-1513151233558-d860c5398176?q=80&w=2070&auto=format&fit=crop";
-    public static final String BANNER_INVOICE    = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png?ex=69dafc7f&is=69d9aaff&hm=b344d8ceae8572e0ab8a972b9ec4ca7b60be6ad87314bac903c8a2a9a643629a&";
-    public static final String BANNER_ORDER_TICKET = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69db04ab&is=69d9b32b&hm=4f001336ef9b5ae1c96a2e5083e53e726197782920ce8b7af5f0c22d2ac8ddbf&";
-
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
+    public static final Color PRIMARY     = Color.decode("#10b981");
 
-    // ── Core builder: image + text + separator + buttons ─────────────────────
+    public static final String BANNER_MAIN           = "https://i.ibb.co/3ykpY60W/Untitled-1.png";
+    public static final String BANNER_SUPPORT        = "https://i.ibb.co/v4mK9Wf1/Untitled-1.png";
+    public static final String BANNER_COMPLAINT      = "https://cdn.discordapp.com/attachments/1488900668042510568/1492313318193627156/468b060c-ce67-46c1-b0db-db1f476bebed.png";
+    public static final String BANNER_GIVEAWAY       = "https://i.ibb.co/6RTPXvS2/Untitled-1.png";
+    public static final String BANNER_INVOICE        = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69dc188a&is=69dac70a&hm=ce79513d28baf3f7572a0c473107c30930365356dbc52fbe84534ab3bce9ce25&format=png";
+    public static final String BANNER_INVOICE_PAID   = "https://media.discordapp.net/attachments/1491360207568113787/1492627055974678610/invoice_site_.png?ex=69dc04c5&is=69dab345&hm=a5f31dd32ae1ecc06f3c87fdde8008018c32ad89da7e28642b62c38f278f4a5d&format=png";
+    public static final String BANNER_ORDER_TICKET   = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69db04ab&is=69d9b32b&hm=4f001336ef9b5ae1c96a2e5083e53e726197782920ce8b7af5f0c22d2ac8ddbf&";
+
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
-        List<ContainerChildComponent> children = new ArrayList<>();
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        }
-        children.add(TextDisplay.of("## " + title + "\n" + (description != null ? description : "")));
-        if (rows != null && rows.length > 0) {
-            children.add(Separator.createDivider(Spacing.SMALL));
-            for (ActionRow row : rows) children.add(row);
-        }
-        return Container.of(children);
+        return containerBranded("", title, description, imageUrl, rows);
     }
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl) {
-        return containerBranded(sector, title, body, imageUrl, null);
+    public static Container containerBranded(String sector, String title, String body, String imageUrl, ActionRow... rows) {
+        return containerBranded(sector, title, body, imageUrl, null, rows);
     }
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji,
-            ActionRow... rows) {
+    public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
             layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
         }
 
-        layout.add(TextDisplay.of("### \u25C8 " + sector.toUpperCase() + " SECTOR \u30FB " + title.toUpperCase()));
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-
-        String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
-        layout.add(TextDisplay.of(content));
+        StringBuilder text = new StringBuilder();
+        if (sector != null && !sector.isEmpty()) {
+            text.append("### ► ").append(sector.toUpperCase()).append(" ・ ").append(title).append("\n");
+        } else {
+            text.append("## ").append(title).append("\n");
+        }
+        
+        if (body != null && !body.isEmpty()) {
+            text.append(body);
+        }
+        layout.add(TextDisplay.of(text.toString()));
 
         if (rows != null && rows.length > 0) {
-            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-            for (ActionRow row : rows) if (row != null) layout.add(row);
+            layout.add(Separator.createDivider(Spacing.SMALL));
+            for (ActionRow row : rows) {
+                layout.add(row);
+            }
         }
 
         return Container.of(layout);
@@ -74,26 +73,89 @@ public class EmbedUtil {
         String body = """
                 Welcome Operative. Access restricted agency sectors via control modules.
 
-                \u25CF **Tickets** \u2014 Secure Support Channels
-                \u25CF **Services** \u2014 Agency Projects
-                \u25CF **Merit Hub** \u2014 Identity Audit
+                ● **Tickets** — Secure Support Channels
+                ● **Services** — Agency Projects
+                ● **Merit Hub** — Identity Audit
                 """;
-        return containerBranded("CENTER", "Main Control Node", body, BANNER_MAIN, Emoji.fromUnicode("\uD83D\uDCE1"),
-                rows);
+        return containerBranded("CENTER", "Main Control Node", body, BANNER_MAIN, Emoji.fromUnicode("📡"), rows);
+    }
+
+    public static Container startupPanel(ActionRow... rows) {
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_MAIN)));
+        layout.add(Separator.createDivider(Spacing.SMALL));
+        layout.add(TextDisplay.of("**Highcore Agency**"));
+        layout.add(Separator.createDivider(Spacing.SMALL));
+        layout.add(TextDisplay.of("**PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS**"));
+
+        String manifesto = """
+                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. Highcore provides high-fidelity solutions across system development, visual architecture, and strategic media management.
+                
+                Our internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.
+                
+                By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.
+                
+                **SYSTEM NAVIGATION PROTOCOLS**
+                Examine our operational modules and establish a secure connection using the authorized protocols below.
+                """;
+        layout.add(TextDisplay.of(manifesto));
+        layout.add(Separator.createDivider(Spacing.SMALL));
+
+        if (rows != null && rows.length > 0) {
+            for (ActionRow row : rows) layout.add(row);
+        }
+        return Container.of(layout);
+    }
+
+    public static Container rulePanel() {
+        String body = """
+                ### :shield: I. GENERAL PROTOCOLS
+                
+                1. **Mutual Respect** — Harassment, bullying, or offensive language is strictly prohibited. We are a professional community built on support.
+                2. **Professional Identity** — Operatives should use clear, respectful names and appropriate avatars. 
+                3. **Privacy** — Any form of Doxxing or sharing personal information of members or clients is grounds for immediate termination.
+                
+                ### :briefcase: II. BUSINESS CONDUCT
+                
+                1. **Order Integrity** — Service corridors for professional work only. Pranks or fake requests result in restricted access.
+                2. **Intellectual Property** — All code, designs, and assets remain the property of "Highcore Agency" unless specified otherwise.
+                3. **Official Communication** — All agreements must be localized within "Tickets" to ensure transparency.
+                
+                ### :no_entry_sign: III. PROHIBITIONS
+                
+                1. **No Advertisements** — Posting external server links without prior authorization is prohibited.
+                2. **No Spam** — Avoid message repetition or random pings to the Command staff.
+                3. **Sensitive Content** — Political, religious extremism, or NSFW content is strictly forbidden.
+                
+                ### :warning: IV. ADMINISTRATIVE AUTHORITY
+                
+                1. **Final Decision** — Administration reserves the right to take appropriate action (Warning/Kick/Ban) to protect the agency's integrity.
+                """;
+        return containerBranded("clipboard", "Highcore Agency | Official Rules", body, BANNER_MAIN);
+    }
+
+    public static Container success(String title, String description) {
+        return containerBranded("SUCCESS", title, "✅ " + description, BANNER_MAIN);
+    }
+
+    public static Container error(String title, String description) {
+        return containerBranded("ERROR", title, "❌ " + description, BANNER_SUPPORT);
+    }
+
+    public static Container info(String title, String description) {
+        return containerBranded("INFO", title, "ℹ️ " + description, BANNER_MAIN);
+    }
+
+    public static Container ticketHeader(String tid, String u, String ty, String b) {
+        return containerBranded("SESSION", "Case #" + tid, "**Client:** " + u + "\n" + b, BANNER_SUPPORT);
+    }
+
+    public static Container staffAssigned(String n) {
+        return containerBranded("NOTICE", "Agent Assigned", "Operative **" + n + "** claimed.", BANNER_SUPPORT);
     }
 
     public static Container accessDenied() {
         return error("ACCESS RESTRICTED", "Credentials insufficient for this terminal node.");
-    }
-
-    public static Container giveawayPanel() {
-        return containerBranded("OPS", "Active Sweepstakes", "Initialize participation in agency giveaways below.",
-                BANNER_GIVEAWAY, Emoji.fromUnicode("\uD83C\uDF81"));
-    }
-
-    public static Container help() {
-        return containerBranded("SYSTEM", "Terminal Intel", "Comprehensive command listing and protocol documentation.",
-                BANNER_MAIN, Emoji.fromUnicode("\u2705"));
     }
 
     public static Container activityLog(String type, String details, Color color) {
@@ -105,19 +167,7 @@ public class EmbedUtil {
     }
 
     public static Container ratingThanks(int r) {
-        return containerBranded("LOG", "Review Saved", "Rating: " + r + "/5 \u2605. Thank you.", BANNER_MAIN);
-    }
-
-    public static Container paymentGateway(String m, String a) {
-        return containerBranded("PAYS", "Invoice Init", "Method: " + m + " | Amount: $" + a, BANNER_MAIN);
-    }
-
-    public static Container serverMap() {
-        return containerBranded("INFO", "Node Map", "Agency Geographic Nodes & Connectivity.", BANNER_MAIN);
-    }
-
-    public static Container socialMedia() {
-        return containerBranded("INFO", "Agency Feeds", "Follow Highcore on digital channels.", BANNER_MAIN);
+        return containerBranded("LOG", "Review Saved", "Rating: " + r + "/5 ★. Thank you.", BANNER_MAIN);
     }
 
     public static Container warning(String t, String d) {
@@ -131,79 +181,35 @@ public class EmbedUtil {
     public static Container ticketPanel(ActionRow... rows) {
         return containerBranded("LOGISTICS", "Terminal Access",
                 "Initialize project session via selection modules below.", BANNER_SUPPORT,
-                Emoji.fromUnicode("\uD83D\uDCC4"), rows);
+                Emoji.fromUnicode("📄"), rows);
     }
 
-    public static Container startupPanel(ActionRow... rows) {
-        return containerBranded("INIT", "Onboarding Sequence",
-                "Highcore Agency delivers high-fidelity digital solutions.\nDeploy modules to begin.", BANNER_MAIN,
-                Emoji.fromUnicode("\uD83D\uDE80"), rows);
+    public static Container rulesPanel() {
+        return rulePanel();
     }
 
-    public static Container error(String title, String description) {
-        return containerBranded("ERROR", title, "[\u274C] " + description, BANNER_SUPPORT)
-                .withAccentColor(DANGER.getRGB() & 0xFFFFFF);
+    public static Container rulesPanel(ActionRow... rows) {
+        return rulePanel();
     }
 
-    public static Container success(String title, String description) {
-        return containerBranded("SUCCESS", title, "[\u2705] " + description, BANNER_MAIN)
-                .withAccentColor(SUCCESS.getRGB() & 0xFFFFFF);
+    public static Container termsPanel(ActionRow... rows) {
+        return containerBranded("PROTOCOL", "Terms", "Engagement protocols.", BANNER_MAIN);
     }
 
-    public static Container info(String title, String description) {
-        return containerBranded("INFO", title, "[\u2139\uFE0F] " + description, BANNER_MAIN);
-    }
-
-    public static Container services() {
-        return containerBranded("OPS", "Capability Directory", "Explore Design & Development.", BANNER_MAIN);
-    }
-
-    public static Container rulePanel() {
-        return containerBranded("PROTOCOL", "Compliance", "Professionalism mandatory.", BANNER_MAIN);
-    }
-
-    public static Container pointsPanel() {
-        return containerBranded("SYSTEM", "Merit Registry", "Examine standing.", BANNER_MAIN);
-    }
-
-    public static Container stats(int t, int o, int c, int cl, String s) {
-        return containerBranded("STATS", "Network", "Active Nodes: " + o, BANNER_MAIN);
-    }
-
-    public static Container meritAudit(int points) {
-        return containerBranded("AUDIT", "Identity Summary", "Merit: **" + points + "**", BANNER_MAIN);
-    }
-
-    public static Container ticketHeader(String tid, String u, String ty, String b) {
-        return containerBranded("SESSION", "Case #" + tid, "**Client:** " + u + "\n" + b, BANNER_SUPPORT);
-    }
-
-    public static Container staffAssigned(String n) {
-        return containerBranded("NOTICE", "Agent Assigned", "Operative **" + n + "** claimed.", BANNER_SUPPORT);
-    }
-
-    public static TextDisplay v2Header(String category, String title) {
-        return TextDisplay.of("### \u25BA " + category.toUpperCase() + " \u30FB " + title);
-    }
-
-    public static TextDisplay v2Footer() {
-        return TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.2 \u2022 `");
-    }
-
-    public static final Color PRIMARY = Color.decode("#10b981");
-
-    public static Color parseColor(String colorStr) {
-        if (colorStr == null)
-            return ACCENT_TEAL;
-        try {
-            return Color.decode(colorStr.startsWith("#") ? colorStr : "#" + colorStr);
-        } catch (Exception e) {
-            return ACCENT_TEAL;
-        }
+    public static Container help() {
+        return containerBranded("SYSTEM", "Command Directory", "Access all operative commands via standard slash interface (`/`).", BANNER_MAIN);
     }
 
     public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl, ActionRow... rows) {
-        return containerBranded(title, subtitle, body, imageUrl, (Emoji) null, rows);
+        return containerBranded(title, subtitle, body, imageUrl, rows);
+    }
+
+    public static Container giveaway(String prize, int winners, int duration) {
+        String body = "### 🎁 Active Giveaway\n" +
+                "**Prize:** `" + prize + "`\n" +
+                "**Winners:** `" + winners + "`\n" +
+                "**Duration:** `" + duration + "m`";
+        return containerBranded("SWEEPSTAKES", "Active", body, BANNER_GIVEAWAY);
     }
 
     public static Container custom(String category, String title, String body, String imageUrl, String thumbnail,
@@ -211,5 +217,14 @@ public class EmbedUtil {
             Boolean field1Inline, String field2Title, String field2Value, Boolean field2Inline, String field3Title,
             String field3Value, Boolean field3Inline) {
         return containerBranded(category, title, body, imageUrl);
+    }
+
+    public static Color parseColor(String colorStr) {
+        if (colorStr == null) return ACCENT_TEAL;
+        try {
+            return Color.decode(colorStr.startsWith("#") ? colorStr : "#" + colorStr);
+        } catch (Exception e) {
+            return ACCENT_TEAL;
+        }
     }
 }

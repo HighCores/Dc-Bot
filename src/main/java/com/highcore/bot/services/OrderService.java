@@ -39,8 +39,8 @@ public class OrderService {
     public static final Map<String, OrderSession> sessions = new ConcurrentHashMap<>();
 
     // ── All items lookup (id → [name, price]) ─────────────────────────────────
-    public static final Map<String, double[]> ITEM_PRICES = new HashMap<>();
-    public static final Map<String, String>   ITEM_NAMES  = new HashMap<>();
+    public static final Map<String, String>   ITEM_NAMES  = new ConcurrentHashMap<>();
+    public static final Map<String, double[]> ITEM_PRICES = new ConcurrentHashMap<>();
     static {
         // Designer main
         put("ds_logo",     "Logo Design",                       30.0);
@@ -55,7 +55,7 @@ public class OrderService {
         put("ds_info",     "Infographic",                       40.0);
         put("ds_emoji",    "Emoji / Stickers",                  30.0);
         // Designer add-ons
-        put("da_revisions","Additional Revisions (Quote)",       0.0);
+        put("da_rev",      "Additional Revisions (Quote)",       0.0);
         put("da_rush",     "Rush Delivery",                     45.0);
         put("da_source",   "Source Files (AI/PSD)",            250.0);
         put("da_colors",   "Color Variants",                    35.0);
