@@ -129,54 +129,21 @@ public class SupabaseClient {
     }
 
     public static JsonArray getTicketMessages(String ticketId) {
-        // High-Intelligence: Resolve the True Internal ID first
-        JsonObject ticket = getTicketById(ticketId);
-        int internalId = -1;
-        if (ticket != null && ticket.has("id")) {
-            internalId = ticket.get("id").getAsInt();
-        }
-
-        // Search using the True Internal ID
-        if (internalId != -1) {
-            JsonArray arr = get("dc_ticket_messages", "ticket_id=eq." + internalId + "&order=created_at.asc");
-            if (arr != null && arr.size() > 0) return arr;
-        }
-
-        // Fallback: search by raw string
-        JsonArray arr = get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
-        
-        // Fallback: search by parsed integer
-        if ((arr == null || arr.size() == 0) && ticketId.matches("\\d+")) {
-            try {
-                int nid = Integer.parseInt(ticketId);
-                JsonArray arr2 = get("dc_ticket_messages", "ticket_id=eq." + nid + "&order=created_at.asc");
-                if (arr2 != null && arr2.size() > 0) return arr2;
-            } catch (Exception ignored) {}
-        }
-        
-        return arr;
+        // Simplest, most direct query possible. No complex fallbacks.
+        return get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
     }
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
-        // Run asynchronously to allow waiting for the ticket to reach the DB without freezing Discord
+        // Run asynchronously to not block the bot
         new Thread(() -> {
             try {
-                JsonObject ticket = null;
-                // Wait up to 2.5 seconds for the ticket to be created in DB (Fixes Race Condition 100%)
-                for (int i = 0; i < 5; i++) {
-                    ticket = getTicketById(ticketId);
-                    if (ticket != null && ticket.has("id")) break;
-                    Thread.sleep(500);
-                }
+                // The ONLY reason it was failing before was speed. The message arrived before the ticket.
+                // Simple fix: just wait 1.5 seconds.
+                Thread.sleep(1500);
 
                 JsonObject body = new JsonObject();
-                // Map the foreign key to the True Internal ID (Integer), avoiding 409 Constraint Errors
-                if (ticket != null && ticket.has("id")) {
-                    body.addProperty("ticket_id", ticket.get("id").getAsInt());
-                } else {
-                    body.addProperty("ticket_id", ticketId);
-                }
-
+                // Directly use the exact string (e.g. "0096")
+                body.addProperty("ticket_id", ticketId); 
                 body.addProperty("user_id", userId);
                 body.addProperty("user_name", userName);
                 body.addProperty("content", content);
@@ -184,7 +151,7 @@ public class SupabaseClient {
                 
                 post("dc_ticket_messages", body);
             } catch (Exception e) {
-                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("Detailed message save err: ", e);
+                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("Save error: ", e);
             }
         }).start();
     }
