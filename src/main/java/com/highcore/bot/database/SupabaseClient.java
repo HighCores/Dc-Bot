@@ -137,19 +137,28 @@ public class SupabaseClient {
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role) {
         JsonObject body = new JsonObject();
+        // Ticket ID variations
         body.addProperty("ticket_id", ticketId);
-        body.addProperty("ticketId", ticketId); // Dual-key support
-        
-        // Numeric support
-        if (ticketId.matches("\\d+")) {
-            int nid = Integer.parseInt(ticketId);
-            body.addProperty("ticket_id_int", nid);
-        }
+        body.addProperty("ticketId", ticketId);
+        body.addProperty("id_ticket", ticketId);
+        if (ticketId.matches("\\d+")) body.addProperty("ticket_id_int", Integer.parseInt(ticketId));
 
+        // User variations
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
+        body.addProperty("author_name", userName);
+
+        // Content variations
         body.addProperty("content", content);
+        body.addProperty("body", content);
+        body.addProperty("text", content);
+        body.addProperty("message_content", content);
+
+        // Role variations
         body.addProperty("is_bot", role.equalsIgnoreCase("BOT"));
+        body.addProperty("role", role);
+        body.addProperty("type", role);
+
         post("dc_ticket_messages", body);
     }
 
