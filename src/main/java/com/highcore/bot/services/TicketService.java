@@ -169,16 +169,12 @@ public class TicketService {
                         .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
                         .queue(msg -> {
                             meta.addProperty("invoice_msg_id", msg.getId());
-                            SupabaseClient.patch("dc_tickets", "ticket_id=eq." + ticketId, msgBody(meta));
+                            // Update topic instead of patching non-existent DB column
+                            String newTopic = pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString();
+                            channel.getManager().setTopic(newTopic).queue();
                         });
                 }
             });
-    }
-
-    private static JsonObject msgBody(JsonObject meta) {
-        JsonObject b = new JsonObject();
-        b.add("metadata", meta);
-        return b;
     }
 
     public static void markAsPaid(TextChannel channel, String ticketId, Member staff) {
