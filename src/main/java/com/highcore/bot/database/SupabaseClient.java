@@ -89,20 +89,16 @@ public class SupabaseClient {
 
     public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
-        // Send EVERY possible variation of ID to satisfy different schemas/constraints
+        // Minimal set to ensure success
         body.addProperty("ticket_id", ticketId);
-        body.addProperty("id_ticket", ticketId);
-        body.addProperty("id", ticketId);
-        
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
-        body.addProperty("channel_id", channelId);
-        body.addProperty("type", type);
-        body.addProperty("subject", subject);
-        body.addProperty("priority", priority);
         body.addProperty("status", "open");
-        body.addProperty("created_at", Instant.now().toString());
-
+        
+        // Add headers as extras
+        body.addProperty("channel_id", channelId);
+        body.addProperty("subject", subject);
+        
         post("dc_tickets", body);
     }
 
