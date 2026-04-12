@@ -147,36 +147,29 @@ public class RestApiServer {
 
     private static void viewTranscript(Context ctx) {
         String id = ctx.pathParam("id");
+        JsonObject ticket = null;
+        JsonArray messages = null;
         try {
-            JsonObject ticket = SupabaseClient.getTicketById(id);
-            JsonArray messages = SupabaseClient.getTicketMessages(id);
+            ticket = SupabaseClient.getTicketById(id);
+            messages = SupabaseClient.getTicketMessages(id);
             int msgCount = (messages != null) ? messages.size() : 0;
             
-            // Show diagnostics if ticket is missing OR if messages are missing
             if (ticket == null || msgCount == 0) {
                 JsonArray health = SupabaseClient.get("dc_settings", "limit=1");
                 boolean dbHealthy = health != null;
-
                 StringBuilder debug = new StringBuilder();
                 debug.append("<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:20px;text-align:center'>");
                 debug.append("<h1 style='margin:0'>").append(msgCount == 0 && ticket != null ? "Empty Transcript" : "404 - Not Found").append("</h1>");
-                debug.append("<p style='color:#subtle;margin-top:10px'>Ticket ID: <b>").append(id).append("</b></p>");
                 debug.append("<div style='margin-top:20px;background:#1a1c1e;padding:15px;border-radius:8px;text-align:left;font-family:monospace;font-size:12px;color:#abb2bf;width:100%;max-width:600px;border:1px solid #3e4451'>");
                 debug.append("<b>DIAGNOSTIC DATA:</b><br>");
-                debug.append("- Meta Query: ").append(ticket == null ? "<span style='color:#ed4245'>MISSING</span>" : "<span style='color:#4caf50'>OK</span>").append("<br>");
-                debug.append("- Msg Query: ").append(msgCount == 0 ? "<span style='color:#ed4245'>EMPTY (0 records)</span>" : msgCount + " messages retrieved").append("<br>");
-                debug.append("- DB Connectivity: ").append(dbHealthy ? "<span style='color:#4caf50'>ONLINE</span>" : "<span style='color:#ed4245'>OFFLINE/AUTH ERROR</span>").append("<br>");
+                debug.append("- Meta Query: ").append(ticket == null ? "MISSING" : "OK").append("<br>");
+                debug.append("- Msg Query: ").append(msgCount == 0 ? "EMPTY (0 records)" : msgCount + " messages retrieved").append("<br>");
+                debug.append("- DB Connectivity: ").append(dbHealthy ? "ONLINE" : "OFFLINE").append("<br>");
                 debug.append("- Msg Table: dc_ticket_messages").append("<br>");
-                debug.append("- Trace ID: ").append(id).append("<br><br>");
-                debug.append("<span style='color:#gold'>Tip: If Meta is OK but Msg is EMPTY, messages were not saved.</span>");
                 debug.append("</div></div>");
-                
                 ctx.status(msgCount == 0 && ticket != null ? 200 : 404).html(debug.toString());
                 return;
             }
-        } catch (Exception e) {
-            ctx.status(500).html("Server Error: " + e.getMessage());
-        }
 
             String channelName = "case-" + id;
             String type = "SUPPORT";
