@@ -80,12 +80,12 @@ public class SupabaseClient {
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
-    public static void createTicket(String ticketId, String userId, String channelId, String type, String subject, String priority, JsonObject metadata) {
+    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority, JsonObject metadata) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
+        body.addProperty("user_name", userName);
         body.addProperty("channel_id", channelId);
-        // "type" column does not exist in dc_tickets — stored in subject prefix instead
         body.addProperty("subject", subject);
         body.addProperty("priority", priority);
         if (metadata != null) body.add("metadata", metadata);
@@ -104,11 +104,21 @@ public class SupabaseClient {
         patch("dc_tickets", "ticket_id=eq." + id, body);
     }
 
-    public static void claimTicket(String id, String staffName) {
+    public static void claimTicket(String id, String staffId, String staffName) {
         JsonObject body = new JsonObject();
         body.addProperty("status", "claimed");
+        body.addProperty("claimer_id", staffId);
         body.addProperty("claimed_by_name", staffName);
         body.addProperty("claimed_at", Instant.now().toString());
+        patch("dc_tickets", "ticket_id=eq." + id, body);
+    }
+
+    public static void unclaimTicket(String id) {
+        JsonObject body = new JsonObject();
+        body.addProperty("status", "open");
+        body.addProperty("claimed_by_name", (String)null);
+        body.addProperty("claimer_id", (String)null);
+        body.addProperty("claimed_at", (String)null);
         patch("dc_tickets", "ticket_id=eq." + id, body);
     }
 

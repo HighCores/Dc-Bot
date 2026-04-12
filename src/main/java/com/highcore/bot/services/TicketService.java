@@ -93,7 +93,7 @@ public class TicketService {
             ticketCache.put(channel.getId(), ticket);
             
             channel.getManager().setTopic(subject + "|" + priority + "|" + type + "|" + user.getId()).queue();
-            SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), type, subject, priority, null);
+            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), type, subject, priority, null);
 
             List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
             PanelService.reply(channel, Container.of(children));
@@ -150,7 +150,7 @@ public class TicketService {
                 ticketCache.put(channel.getId(), ticket);
 
                 channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId()).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), channel.getId(), "ORDER", pName, "HIGH", meta);
+                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH", meta);
 
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 PanelService.reply(channel, Container.of(children));
@@ -224,11 +224,6 @@ public class TicketService {
     }
 
     public static void claimTicket(TextChannel channel, Member claimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        JsonObject update = new JsonObject();
-        update.addProperty("status", "claimed");
-        update.addProperty("claimer_id", claimer.getId());
-        SupabaseClient.patch("dc_tickets", "channel_id=eq." + channel.getId(), update);
-
         JsonObject ticket = ticketCache.get(channel.getId());
         if (ticket == null) {
             ticket = SupabaseClient.getTicketByChannel(channel.getId());
@@ -236,6 +231,8 @@ public class TicketService {
         }
         
         if (ticket != null) {
+            String tid = ticket.get("ticket_id").getAsString();
+            SupabaseClient.claimTicket(tid, claimer.getId(), claimer.getEffectiveName());
             ticket.addProperty("status", "claimed");
             ticket.addProperty("claimer_id", claimer.getId());
         }
@@ -253,12 +250,9 @@ public class TicketService {
              return;
         }
 
-        JsonObject update = new JsonObject();
-        update.addProperty("status", "open");
-        update.addProperty("claimer_id", (String)null);
-        SupabaseClient.patch("dc_tickets", "channel_id=eq." + channel.getId(), update);
-
         if (ticket != null) {
+            String tid = ticket.get("ticket_id").getAsString();
+            SupabaseClient.unclaimTicket(tid);
             ticket.addProperty("status", "open");
             ticket.remove("claimer_id");
         }
