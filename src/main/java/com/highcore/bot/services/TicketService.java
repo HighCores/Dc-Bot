@@ -333,13 +333,15 @@ public class TicketService {
         
         if (claimed && claimerMention != null) {
             comps.add(Separator.createDivider(Spacing.SMALL));
-            comps.add(TextDisplay.of("\uD83D\uDCE1 **Staff Assigned:** " + claimerMention));
+            comps.add(TextDisplay.of("\uD83D\uDCE1 **Ticket Handled By:** " + claimerMention));
         }
         
         comps.add(Separator.createDivider(Spacing.SMALL));
 
         if (isOrder && !claimed) {
             comps.add(TextDisplay.of("\u26A0\ufe0f **Your ticket is locked** — it will be unlocked once payment is confirmed."));
+        } else if (claimed) {
+            comps.add(TextDisplay.of("Our staff is now reviewing your request. Please wait a moment while we assist you."));
         } else {
             comps.add(TextDisplay.of("A staff member will be with you shortly — please describe your issue in full detail."));
         }
