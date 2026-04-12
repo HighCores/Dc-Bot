@@ -394,7 +394,7 @@ public class TicketService {
                 logCh.sendMessageComponents(EmbedUtil.containerBranded("TRANSCRIPT", "Archive — Case #" + ticketId, 
                     "**Opener:** <@" + openerId + "> (" + openerName + ")\n" +
                     "**Closed By:** " + closer.getAsMention() + "\n\n" +
-                    "**[ \uD83D\uDCDC View Full Web Transcript ](" + url + ")**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
+                    "**[\uD83D\uDCDC View Full Web Transcript](" + url + ")**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
             }
         }
     }

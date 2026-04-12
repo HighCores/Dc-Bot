@@ -153,18 +153,23 @@ public class RestApiServer {
             return;
         }
 
-        JsonArray messages = SupabaseClient.getTicketMessages(id);
-        
-        String channelName = ticket.has("channel_name") ? ticket.get("channel_name").getAsString() : "unknown-channel";
-        String type = ticket.has("type") ? ticket.get("type").getAsString() : "SUPPORT";
-        String status = ticket.has("status") ? ticket.get("status").getAsString() : "closed";
-        String openedAt = ticket.has("created_at") ? ticket.get("created_at").getAsString() : Instant.now().toString();
-        String openerName = ticket.has("user_name") ? ticket.get("user_name").getAsString() : "Unknown User";
-        String claimedBy = ticket.has("claimed_by") ? ticket.get("claimed_by").getAsString() : "Not Handled";
-        String closedBy = ticket.has("closed_by") ? ticket.get("closed_by").getAsString() : "Auto-System";
+        try {
+            JsonArray messages = SupabaseClient.getTicketMessages(id);
+            
+            String channelName = ticket.has("channel_name") && !ticket.get("channel_name").isJsonNull() ? ticket.get("channel_name").getAsString() : "unknown-channel";
+            String type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "SUPPORT";
+            String status = ticket.has("status") && !ticket.get("status").isJsonNull() ? ticket.get("status").getAsString() : "closed";
+            String openedAt = ticket.has("created_at") && !ticket.get("created_at").isJsonNull() ? ticket.get("created_at").getAsString() : Instant.now().toString();
+            String openerName = ticket.has("user_name") && !ticket.get("user_name").isJsonNull() ? ticket.get("user_name").getAsString() : "Unknown User";
+            String claimedBy = ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull() ? ticket.get("claimed_by").getAsString() : "Not Handled";
+            String closedBy = ticket.has("closed_by") && !ticket.get("closed_by").isJsonNull() ? ticket.get("closed_by").getAsString() : "Auto-System";
 
-        byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy, closedBy, messages);
-        ctx.contentType("text/html; charset=utf-8").result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
+            byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy, closedBy, messages);
+            ctx.contentType("text/html; charset=utf-8").result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
+        } catch (Exception e) {
+            log.error("Error generating transcript for {}: {}", id, e.getMessage());
+            ctx.status(500).html("<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif'><h1>500 - Generation Error</h1><p>" + e.getMessage() + "</p></div>");
+        }
     }
 
     private static void getTranscript(Context ctx) {
