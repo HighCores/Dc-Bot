@@ -594,6 +594,8 @@ public class SupabaseClient {
     }
 
     public static JsonObject post(String table, JsonObject body) {
+        // LOUD LOGGING for diagnosis
+        org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).info(">>> POSTing to {}: {}", table, body.toString());
         Request request = auth(new Request.Builder()).url(url(table)).post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "{}";
