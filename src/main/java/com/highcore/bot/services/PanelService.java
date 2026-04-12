@@ -286,23 +286,26 @@ public class PanelService {
     public static void sendTicketPanel(IReplyCallback event) {
         String imageUrl = "https://cdn.discordapp.com/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png"
                 + "?ex=69dad99d&is=69d9881d&hm=9df0283d5f26dc60385980e7f3d713966c15e2505d78aa2b9da35f9359901046&";
+        
         String rules = "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
-                "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n"
-                + "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n"
-                + "**Clarity** — Please fully describe your issue or request before a staff member responds.\n\n" +
+                "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +
+                "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n" +
+                "**Clarity** — Please fully describe your issue or request before a staff member responds.\n\n" +
                 "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
                 "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden.";
 
         List<ContainerChildComponent> children = new ArrayList<>();
         children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        children.add(TextDisplay.of("## TICKET SUPPORT | High Core Agency"));
+        children.add(TextDisplay.of("### TICKET SUPPORT | High Core Agency"));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(TextDisplay.of(rules));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-                Button.primary("ticket_init_support", "\uD83D\uDCA1 Technical Support"),
-                Button.success("ticket_init_order", "\uD83D\uDED2 New Order"),
-                Button.danger("ticket_init_complaint", "\u26A0\uFE0F File Complaint")));
+                Button.secondary("ticket_init_support", "Technical Support"),
+                Button.secondary("ticket_init_order", "New Order"),
+                Button.secondary("ticket_init_complaint", "File Complaint")
+        ));
+        
         reply(event, Container.of(children));
     }
 
