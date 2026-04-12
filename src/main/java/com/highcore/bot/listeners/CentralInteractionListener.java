@@ -89,31 +89,7 @@ public class CentralInteractionListener extends ListenerAdapter {
 
             // Ticket panel & flows
             if (id.equals("ticket_init_support"))   { PanelService.handleSupportFlow(event);   return; }
-            if (id.equals("ticket_init_order"))     { PanelService.handleOrder:map: Server Navigation Guide
-------------------------------------------------------------------------حتى هنا اي لاين
-Start Up → ⁠:dart:〡highcore
-فراغ
-Regrading → ⁠:wave:〡welcome
-فراغ
-Our Terms → ⁠:page_with_curl:〡service︲terms
-فراغ
-Server Updates → ⁠:postal_horn:〡updates
--------------------------------------------------- حط ان لاين هنا
-Our Client Comments → ⁠feedbacks
-فراغ
-Our Brothers → ⁠partners
-فراغ
-Giveaways & Challenges → ⁠giveaway
-فراغ
-Developer Pricing → ⁠:label:〡dev︲prices
-فراغ
-Designer Pricing  → ⁠:label:〡design︲prices
-فراغ
-MC Developers Price → ⁠:label:〡minecraft︲prices
-فراغ
-Support → ⁠:tickets:〡ticket
-فراغ
-Support Room → ⁠:no_entry:・ Support WaitingFlow(event);     return; }
+            if (id.equals("ticket_init_order"))     { PanelService.handleOrderFlow(event);     return; }
             if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); return; }
 
             if (id.equals("order_initiate") || id.equals("order_start") || id.equals("hub_tickets")) {
