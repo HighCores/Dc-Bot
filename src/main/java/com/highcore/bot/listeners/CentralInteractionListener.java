@@ -45,8 +45,10 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         // Staff-only channel actions
         boolean isStaffAction  = id.equals("ticket_claim")   || id.equals("ticket_close")  ||
+                                 id.equals("ticket_unclaim") ||
                                  id.equals("ticket_delete")   || id.equals("ticket_reopen") ||
-                                 id.startsWith("order_status_update_");
+                                 id.startsWith("order_status_update_") ||
+                                 id.startsWith("ticket_mark_paid_");
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {

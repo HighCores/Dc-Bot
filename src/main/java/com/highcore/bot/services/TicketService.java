@@ -230,12 +230,20 @@ public class TicketService {
         SupabaseClient.patch("dc_tickets", "channel_id=eq." + channel.getId(), update);
 
         JsonObject ticket = ticketCache.get(channel.getId());
+        if (ticket == null) {
+            ticket = SupabaseClient.getTicketByChannel(channel.getId());
+            if (ticket != null) ticketCache.put(channel.getId(), ticket);
+        }
+        
         if (ticket != null) {
             ticket.addProperty("status", "claimed");
             ticket.addProperty("claimer_id", claimer.getId());
         }
 
         channel.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, true, channel, claimer.getAsMention()))).useComponentsV2(true).queue();
+        
+        // Notification
+        PanelService.reply(channel, EmbedUtil.containerBranded("NOTICE", "Claimed", "📡 **Ticket Handled By:** " + claimer.getAsMention(), null));
     }
 
     public static void unclaimTicket(TextChannel channel, Member unclaimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
@@ -256,17 +264,21 @@ public class TicketService {
         }
 
         channel.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, false, channel, null))).useComponentsV2(true).queue();
+        
+        // Notification
+        PanelService.reply(channel, EmbedUtil.containerBranded("NOTICE", "Unclaimed", "↩️ **Ticket Unclaimed By:** " + unclaimer.getAsMention(), null));
     }
 
     public static List<ContainerChildComponent> rebuildWelcomeComponents(JsonObject ticket, boolean claimed, TextChannel channel, String claimerMention) {
         List<ContainerChildComponent> comps = new ArrayList<>();
-        String ticketId = "0000", userId = "0", subject = "Active Session", priority = "MEDIUM";
+        String ticketId = "0000", userId = "0", subject = "Active Session", priority = "MEDIUM", details = null;
 
         if (ticket != null) {
             ticketId = ticket.has("ticket_id") ? ticket.get("ticket_id").getAsString() : ticketId;
             userId = ticket.has("user_id") ? ticket.get("user_id").getAsString() : userId;
             subject = ticket.has("subject") ? ticket.get("subject").getAsString() : subject;
             priority = ticket.has("priority") ? ticket.get("priority").getAsString() : priority;
+            details = ticket.has("details") ? ticket.get("details").getAsString() : null;
         }
         
         String status = claimed ? "claimed" : "open";
@@ -276,26 +288,54 @@ public class TicketService {
         String header = isOrder ? "Order Pipeline" : (subject.toLowerCase().contains("complaint") ? "Complaint Board" : "Support Center");
 
         comps.add(MediaGallery.of(MediaGalleryItem.fromUrl(bannerUrl)));
-        comps.add(TextDisplay.of("## " + header + " | Active Ticket\n<@&" + ADMIN_ROLE_ID + ">"));
+        comps.add(TextDisplay.of("## " + header + " | Case #" + ticketId + "\n<@&" + ADMIN_ROLE_ID + ">"));
         comps.add(Separator.createDivider(Spacing.SMALL));
 
-        String infoLine = "**Type:** `Ticket` · **Priority:** `" + priority + "` · **Subject:** `" + subject + "`";
-        comps.add(TextDisplay.of("Welcome <@" + userId + "> 👋\n\n" + infoLine));
+        StringBuilder body = new StringBuilder();
+        body.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
+        body.append("**Priority:** `").append(priority).append("`\n");
+        body.append("**Subject:** `").append(subject).append("`\n");
+
+        if (details != null && !details.isBlank()) {
+            body.append("**Details:** ").append(details).append("\n");
+        }
+
+        if (ticket != null && ticket.has("metadata")) {
+            JsonObject meta = ticket.getAsJsonObject("metadata");
+            body.append("\n### 📋 Questionnaire Data\n");
+            if (meta.has("project_name")) body.append("**Project:** `").append(meta.get("project_name").getAsString()).append("`\n");
+            if (meta.has("client_name")) body.append("**Client:** `").append(meta.get("client_name").getAsString()).append("`\n");
+            if (meta.has("contact")) body.append("**Contact:** `").append(meta.get("contact").getAsString()).append("`\n");
+            if (meta.has("eta")) body.append("**ETA:** `").append(meta.get("eta").getAsString()).append("`\n");
+            
+            if (meta.has("items")) {
+                body.append("**Services Requested:** ");
+                List<String> itemList = new ArrayList<>();
+                for (var e : meta.getAsJsonArray("items")) {
+                    itemList.add(e.getAsJsonObject().get("name").getAsString());
+                }
+                body.append(String.join(", ", itemList)).append("\n");
+            }
+        }
+
+        comps.add(TextDisplay.of(body.toString()));
         
         if (claimed && claimerMention != null) {
-            comps.add(TextDisplay.of("📡 **Operative Assigned:** " + claimerMention));
+            comps.add(Separator.createDivider(Spacing.SMALL));
+            comps.add(TextDisplay.of("\uD83D\uDCE1 **Staff Assigned:** " + claimerMention));
         }
+        
         comps.add(Separator.createDivider(Spacing.SMALL));
 
         if (isOrder && !claimed) {
-            comps.add(TextDisplay.of("⚠️ **Your ticket is locked** — it will be unlocked once payment is confirmed."));
+            comps.add(TextDisplay.of("\u26A0\ufe0f **Your ticket is locked** — it will be unlocked once payment is confirmed."));
         } else {
             comps.add(TextDisplay.of("A staff member will be with you shortly — please describe your issue in full detail."));
         }
 
         List<Button> btns = new ArrayList<>(getTicketButtons(status));
         if (isOrder && !claimed) {
-            btns.add(0, Button.success("ticket_mark_paid_" + ticketId, "Verify Payment").withEmoji(Emoji.fromUnicode("✅")));
+            btns.add(0, Button.success("ticket_mark_paid_" + ticketId, "Verify Payment").withEmoji(Emoji.fromUnicode("\u2705")));
         }
         comps.add(ActionRow.of(btns));
 
