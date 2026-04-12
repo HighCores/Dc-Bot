@@ -6,9 +6,10 @@ import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.JDA;
+import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.time.Instant;
@@ -86,9 +87,7 @@ public class TicketReminderService {
                             "Ticket **#" + tId + "** has been open for over **24 hours** without being claimed!\n\n" +
                             "<@&" + Config.ROLE_STAFF + "> Please respond to the client node immediately.";
 
-                    Container c = EmbedUtil.containerBranded("TICKET REMINDER", "Inactivity Alert", body, EmbedUtil.BANNER_SUPPORT);
-                    c.withAccentColor(EmbedUtil.WARNING.getRGB() & 0xFFFFFF);
-
+                    Container c = EmbedUtil.containerBranded("TICKET REMINDER", "Inactivity Alert", body, EmbedUtil.BANNER_SUPPORT, null);
                     ch.sendMessageComponents(c).useComponentsV2(true).queue();
                 }
             } catch (Exception e) { /* skip */ }

@@ -27,12 +27,16 @@ public class InvoiceService {
 
     public static byte[] generateInvoice(String clientName, String projectName, List<OrderItem> items) {
         try {
-            // ── Load template ─────────────────────────────────────────────────
             BufferedImage invoice;
-            java.net.URLConnection conn = new URL("https://media.discordapp.net/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png").openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            try (InputStream is = conn.getInputStream()) {
-                invoice = ImageIO.read(is);
+            try {
+                java.net.URLConnection conn = new java.net.URL("https://media.discordapp.net/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png").openConnection();
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                try (InputStream is = conn.getInputStream()) {
+                    invoice = ImageIO.read(is);
+                }
+            } catch (Exception e) {
+                log.error("Failed to load invoice template, using fallback: {}", e.getMessage());
+                invoice = new BufferedImage(1080, 1400, BufferedImage.TYPE_INT_RGB);
             }
 
             int W = invoice.getWidth();

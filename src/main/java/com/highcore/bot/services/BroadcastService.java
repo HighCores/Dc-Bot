@@ -4,6 +4,7 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -60,8 +61,7 @@ public class BroadcastService {
 
         m.getUser().openPrivateChannel().queue(pc -> {
             try {
-                Container c = EmbedUtil.containerBranded("MESSAGE", "Highcore Broadcast", personalized, media != null ? media : EmbedUtil.BANNER_MAIN);
-
+                Container c = EmbedUtil.containerBranded("Broadcast", "Urgent Update", personalized, media != null ? media : EmbedUtil.BANNER_MAIN, null);
                 pc.sendMessageComponents(c).useComponentsV2(true).queue(
                     s -> log.debug("Broadcast delivered to {}", m.getUser().getName()),
                     e -> log.warn("Broadcast failed for {}: {}", m.getUser().getName(), e.getMessage())

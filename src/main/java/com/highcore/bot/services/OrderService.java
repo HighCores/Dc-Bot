@@ -136,10 +136,10 @@ public class OrderService {
             .addOption("Minecraft Developer","wiz_minecraft", "Plugins, Maps, Models, SysAdmin",     Emoji.fromUnicode("\u26CF\uFE0F"))
             .build();
 
-        PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
+        PanelService.replyEphemeral(event, List.of(EmbedUtil.containerBranded(
             "NEW ORDER", "Select Department",
             "Choose the service category that matches your project.",
-            EmbedUtil.BANNER_MAIN), ActionRow.of(menu));
+            EmbedUtil.BANNER_MAIN), ActionRow.of(menu)));
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -207,10 +207,10 @@ public class OrderService {
         for (String[] item : items) b.addOption(item[1], item[0], item[2]);
         b.setMaxValues(items.size());
 
-        PanelService.reply(event, EmbedUtil.containerBranded(
+        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
             "SELECT SERVICES", catLabel,
             "Choose one or more services. Prices are shown as descriptions.",
-            EmbedUtil.BANNER_MAIN), ActionRow.of(b.build()));
+            EmbedUtil.BANNER_MAIN), ActionRow.of(b.build())));
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -272,13 +272,13 @@ public class OrderService {
             .map(sid -> ITEM_NAMES.getOrDefault(sid, sid))
             .collect(Collectors.joining(", "));
 
-        PanelService.reply(event, EmbedUtil.containerBranded(
+        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
             "ADD-ONS", "Optional Enhancements",
             "**Selected:** " + mainSummary + "\n\n" +
             "Choose any add-ons, or click **Confirm Order** to skip.",
             EmbedUtil.BANNER_MAIN),
             ActionRow.of(b.build()),
-            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
+            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     private static void sendConfirmView(Object event, OrderSession session) {
@@ -289,13 +289,13 @@ public class OrderService {
             .map(sid -> ITEM_NAMES.getOrDefault(sid, sid))
             .collect(Collectors.joining(", "));
 
-        PanelService.reply(event, EmbedUtil.containerBranded(
+        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
             "ORDER SUMMARY", "Review & Submit",
             "**Services:** " + mainSummary + "\n" +
             "**Add-ons:** " + (addonSummary.isEmpty() ? "None" : addonSummary) + "\n\n" +
             "Click **Confirm Order** to fill in your project details.",
             EmbedUtil.BANNER_MAIN),
-            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
+            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     // ═══════════════════════════════════════════════════════════

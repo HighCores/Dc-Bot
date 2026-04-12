@@ -2,6 +2,7 @@ package com.highcore.bot.services;
 
 import com.highcore.bot.config.Config;
 import net.dv8tion.jda.api.Permission;
+import com.highcore.bot.services.PanelService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -149,5 +150,12 @@ public class LogManager {
             if (dashChan != null) return dashChan;
         }
         return get(guild, channelName);
+    }
+
+    public static void log(Guild guild, String title, String description, java.awt.Color color) {
+        TextChannel ch = getDashboardLogChannel(guild, Config.LOG_MODS_CMD);
+        if (ch != null) {
+            PanelService.reply(ch, com.highcore.bot.utils.EmbedUtil.activityLog(title, description, color));
+        }
     }
 }

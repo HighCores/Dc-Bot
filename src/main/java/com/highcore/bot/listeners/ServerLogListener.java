@@ -2,6 +2,7 @@ package com.highcore.bot.listeners;
 
 import com.highcore.bot.config.Config;
 import com.highcore.bot.services.LogManager;
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
@@ -38,7 +39,7 @@ public class ServerLogListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(ServerLogListener.class);
     private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
             .withZone(ZoneId.of("Asia/Riyadh"));
-    
+
     private String now() { return TF.format(Instant.now()); }
 
     @Override
@@ -52,15 +53,13 @@ public class ServerLogListener extends ListenerAdapter {
 
         StringBuilder sb = new StringBuilder();
         sb.append("### \uD83D\uDFE2 ").append(m.getUser().getName()).append(" joined the server\n");
-        sb.append("**Member:** ").append(m.getAsMention()).append("\n");
+        sb.append("**User:** **").append(m.getUser().getName()).append("**\n");
         sb.append("**ID:** `").append(m.getId()).append("`\n");
         sb.append("**Created:** ").append(created).append(" (").append(age).append("d ago)\n");
         sb.append("**Count:** **").append(event.getGuild().getMemberCount()).append("**\n");
         if (age < 7) sb.append("\u26A0\uFE0F **New account (< 7 days)**\n");
         sb.append("**Time:** ").append(now());
-
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Joined", sb.toString(), EmbedUtil.SUCCESS))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Member Joined", sb.toString(), EmbedUtil.SUCCESS));
     }
 
     @Override
@@ -71,15 +70,13 @@ public class ServerLogListener extends ListenerAdapter {
         Member m = event.getMember();
         StringBuilder sb = new StringBuilder();
         sb.append("### \uD83D\uDD34 ").append(u.getName()).append(" left the server\n");
-        sb.append("**Member:** `").append(u.getName()).append("`\n");
+        sb.append("**User:** **").append(u.getName()).append("**\n");
         sb.append("**ID:** `").append(u.getId()).append("`\n");
         sb.append("**Count:** **").append(event.getGuild().getMemberCount()).append("**\n");
         if (m != null && !m.getRoles().isEmpty())
-            sb.append("**Roles:** ").append(m.getRoles().stream().map(Role::getAsMention).collect(Collectors.joining(", "))).append("\n");
+            sb.append("**Roles:** ").append(m.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "))).append("\n");
         sb.append("**Time:** ").append(now());
-
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Left", sb.toString(), EmbedUtil.DANGER))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Member Left", sb.toString(), EmbedUtil.DANGER));
     }
 
     @Override
@@ -87,27 +84,24 @@ public class ServerLogListener extends ListenerAdapter {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_JOIN_LEFT);
         if (ch == null) return;
         User u = event.getUser();
-        
+
         event.getGuild().retrieveAuditLogs().type(ActionType.BAN).limit(1).queue(entries -> {
             StringBuilder sb = new StringBuilder();
             sb.append("### \uD83D\uDD28 ").append(u.getName()).append(" was banned\n");
-            sb.append("**Member:** `").append(u.getName()).append("`\n");
+            sb.append("**User:** **").append(u.getName()).append("**\n");
             sb.append("**ID:** `").append(u.getId()).append("`\n");
-            
             if (!entries.isEmpty() && entries.get(0).getTargetId().equals(u.getId())) {
                 AuditLogEntry e = entries.get(0);
-                if (e.getUser() != null) sb.append("**By:** ").append(e.getUser().getAsMention()).append("\n");
+                if (e.getUser() != null) sb.append("**By:** **").append(e.getUser().getName()).append("**\n");
                 if (e.getReason() != null) sb.append("**Reason:** ").append(e.getReason()).append("\n");
             }
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Banned", sb.toString(), java.awt.Color.BLACK))
-                    .useComponentsV2(true).queue();
-        }, err -> { 
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Banned", sb.toString(), java.awt.Color.BLACK));
+        }, err -> {
             String fallback = "### \uD83D\uDD28 " + u.getName() + " was banned\n" +
                     "**ID:** `" + u.getId() + "`\n" +
                     "**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Banned", fallback, java.awt.Color.BLACK))
-                    .useComponentsV2(true).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Banned", fallback, java.awt.Color.BLACK));
         });
     }
 
@@ -117,11 +111,10 @@ public class ServerLogListener extends ListenerAdapter {
         if (ch == null) return;
         User u = event.getUser();
         String body = "### \u2705 " + u.getName() + " was unbanned\n" +
-                "**Member:** `" + u.getName() + "`\n" +
+                "**User:** **" + u.getName() + "**\n" +
                 "**ID:** `" + u.getId() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Member Unbanned", body, EmbedUtil.SUCCESS))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Member Unbanned", body, EmbedUtil.SUCCESS));
     }
 
     @Override
@@ -132,15 +125,14 @@ public class ServerLogListener extends ListenerAdapter {
         String content = event.getMessage().getContentRaw();
         if (content.isEmpty()) return;
         if (content.length() > 800) content = content.substring(0, 800) + "...";
-        
+
         String body = "### \uD83D\uDCAC Message Sent\n" +
-                "**Author:** " + event.getAuthor().getAsMention() + "\n" +
-                "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
+                "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**ID:** `" + event.getAuthor().getId() + "`\n" +
                 "**Content:** ```" + content + "```\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Log", body, EmbedUtil.INFO))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Message Log", body, EmbedUtil.INFO));
     }
 
     @Override
@@ -152,12 +144,11 @@ public class ServerLogListener extends ListenerAdapter {
         if (content.length() > 800) content = content.substring(0, 800) + "...";
 
         String body = "### \u270F\uFE0F Message Edited\n" +
-                "**Author:** " + event.getAuthor().getAsMention() + "\n" +
-                "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
+                "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**New Content:** ```" + content + "```\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Edit", body, EmbedUtil.WARNING))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Message Edit", body, EmbedUtil.WARNING));
     }
 
     @Override
@@ -166,11 +157,10 @@ public class ServerLogListener extends ListenerAdapter {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_MESSAGE);
         if (ch == null) return;
         String body = "### \uD83D\uDDD1\uFE0F Message Deleted\n" +
-                "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "**Channel:** #" + event.getChannel().getName() + "\n" +
                 "**Msg ID:** `" + event.getMessageId() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Message Deletion", body, EmbedUtil.DANGER))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Message Deletion", body, EmbedUtil.DANGER));
     }
 
     @Override
@@ -181,40 +171,38 @@ public class ServerLogListener extends ListenerAdapter {
         AudioChannel joined = event.getChannelJoined();
         AudioChannel left = event.getChannelLeft();
         StringBuilder sb = new StringBuilder();
-        sb.append("**Member:** ").append(m.getAsMention()).append("\n");
+        sb.append("**User:** **").append(m.getUser().getName()).append("**\n");
         sb.append("**ID:** `").append(m.getId()).append("`\n");
 
         java.awt.Color color = EmbedUtil.INFO;
         if (left == null && joined != null) {
             color = EmbedUtil.SUCCESS;
-            sb.append("### \uD83D\uDD0A Joined Voice\n**Channel:** ").append(joined.getAsMention()).append("\n");
+            sb.append("### \uD83D\uDD0A Joined Voice\n**Channel:** ").append(joined.getName()).append("\n");
         } else if (left != null && joined == null) {
             color = EmbedUtil.DANGER;
-            sb.append("### \uD83D\uDD07 Left Voice\n**Channel:** ").append(left.getAsMention()).append("\n");
+            sb.append("### \uD83D\uDD07 Left Voice\n**Channel:** ").append(left.getName()).append("\n");
         } else if (left != null && joined != null) {
             color = EmbedUtil.WARNING;
-            sb.append("### \uD83D\uDD00 Switched Voice\n**From:** ").append(left.getAsMention()).append("\n**To:** ").append(joined.getAsMention()).append("\n");
+            sb.append("### \uD83D\uDD00 Switched Voice\n**From:** ").append(left.getName()).append("\n**To:** ").append(joined.getName()).append("\n");
         }
         sb.append("**Time:** ").append(now());
-        ch.sendMessageComponents(EmbedUtil.activityLog("Voice Activity", sb.toString(), color))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Voice Activity", sb.toString(), color));
     }
 
     @Override
     public void onChannelCreate(ChannelCreateEvent event) {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_CHANNELS);
         if (ch == null) return;
-        
+
         event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_CREATE).limit(1).queue(entries -> {
             StringBuilder sb = new StringBuilder();
             sb.append("### \u2795 Channel Created\n");
             sb.append("**Name:** `").append(event.getChannel().getName()).append("`\n");
             sb.append("**Type:** ").append(event.getChannel().getType().name()).append("\n");
             if (!entries.isEmpty() && entries.get(0).getUser() != null)
-                sb.append("**By:** ").append(entries.get(0).getUser().getAsMention()).append("\n");
+                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.SUCCESS))
-                    .useComponentsV2(true).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.SUCCESS));
         });
     }
 
@@ -222,16 +210,15 @@ public class ServerLogListener extends ListenerAdapter {
     public void onChannelDelete(ChannelDeleteEvent event) {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_CHANNELS);
         if (ch == null) return;
-        
+
         event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_DELETE).limit(1).queue(entries -> {
             StringBuilder sb = new StringBuilder();
             sb.append("### \u2796 Channel Deleted\n");
             sb.append("**Name:** `").append(event.getChannel().getName()).append("`\n");
             if (!entries.isEmpty() && entries.get(0).getUser() != null)
-                sb.append("**By:** ").append(entries.get(0).getUser().getAsMention()).append("\n");
+                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.DANGER))
-                    .useComponentsV2(true).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.DANGER));
         });
     }
 
@@ -243,30 +230,27 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Before:** `" + event.getOldValue() + "`\n" +
                 "**After:** `" + event.getNewValue() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Channel Activity", body, EmbedUtil.WARNING))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", body, EmbedUtil.WARNING));
     }
 
     @Override
     public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
         if (ch == null) return;
-        String roles = event.getRoles().stream().map(Role::getAsMention).collect(Collectors.joining(", "));
+        String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
 
         event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(entries -> {
             StringBuilder sb = new StringBuilder();
             sb.append("### \u2795 Role Added\n");
-            sb.append("**Member:** ").append(event.getMember().getAsMention()).append("\n");
+            sb.append("**Member:** **").append(event.getMember().getUser().getName()).append("**\n");
             sb.append("**Role:** ").append(roles).append("\n");
             if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
-                sb.append("**By:** ").append(entries.get(0).getUser().getAsMention()).append("\n");
+                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Add", sb.toString(), EmbedUtil.SUCCESS))
-                    .useComponentsV2(true).queue();
-        }, err -> { 
-            String fallback = "### \u2795 Role Added\n**Member:** " + event.getMember().getAsMention() + "\n**Role:** " + roles + "\n**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Add", fallback, EmbedUtil.SUCCESS))
-                    .useComponentsV2(true).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Add", sb.toString(), EmbedUtil.SUCCESS));
+        }, err -> {
+            String fallback = "### \u2795 Role Added\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Add", fallback, EmbedUtil.SUCCESS));
         });
     }
 
@@ -274,22 +258,20 @@ public class ServerLogListener extends ListenerAdapter {
     public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
         if (ch == null) return;
-        String roles = event.getRoles().stream().map(Role::getAsMention).collect(Collectors.joining(", "));
+        String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
 
         event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(entries -> {
             StringBuilder sb = new StringBuilder();
             sb.append("### \u2796 Role Removed\n");
-            sb.append("**Member:** ").append(event.getMember().getAsMention()).append("\n");
+            sb.append("**Member:** **").append(event.getMember().getUser().getName()).append("**\n");
             sb.append("**Role:** ").append(roles).append("\n");
             if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
-                sb.append("**By:** ").append(entries.get(0).getUser().getAsMention()).append("\n");
+                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
             sb.append("**Time:** ").append(now());
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Remove", sb.toString(), EmbedUtil.WARNING))
-                    .useComponentsV2(true).queue();
-        }, err -> { 
-            String fallback = "### \u2796 Role Removed\n**Member:** " + event.getMember().getAsMention() + "\n**Role:** " + roles + "\n**Time:** " + now();
-            ch.sendMessageComponents(EmbedUtil.activityLog("Member Role Remove", fallback, EmbedUtil.WARNING))
-                    .useComponentsV2(true).queue();
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Remove", sb.toString(), EmbedUtil.WARNING));
+        }, err -> {
+            String fallback = "### \u2796 Role Removed\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
+            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Remove", fallback, EmbedUtil.WARNING));
         });
     }
 
@@ -298,11 +280,9 @@ public class ServerLogListener extends ListenerAdapter {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
         if (ch == null) return;
         String body = "### \u2795 Role Created\n" +
-                "**Role:** " + event.getRole().getAsMention() + "\n" +
                 "**Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.SUCCESS))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.SUCCESS));
     }
 
     @Override
@@ -312,8 +292,7 @@ public class ServerLogListener extends ListenerAdapter {
         String body = "### \u2796 Role Deleted\n" +
                 "**Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.DANGER))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.DANGER));
     }
 
     @Override
@@ -324,8 +303,7 @@ public class ServerLogListener extends ListenerAdapter {
                 "**Before:** `" + event.getOldName() + "`\n" +
                 "**After:** `" + event.getNewName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING));
     }
 
     @Override
@@ -333,9 +311,8 @@ public class ServerLogListener extends ListenerAdapter {
         TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
         if (ch == null) return;
         String body = "### \uD83D\uDD12 Role Permissions Changed\n" +
-                "**Role:** " + event.getRole().getAsMention() + "\n" +
+                "**Role Name:** `" + event.getRole().getName() + "`\n" +
                 "**Time:** " + now();
-        ch.sendMessageComponents(EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING))
-                .useComponentsV2(true).queue();
+        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING));
     }
 }

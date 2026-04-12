@@ -4,17 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
+import net.dv8tion.jda.api.EmbedBuilder;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.components.container.ContainerChildComponent;
-import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
-import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
-import net.dv8tion.jda.api.components.separator.Separator;
-import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -23,6 +19,14 @@ import java.util.List;
 
 public class CommandService {
     private static final Logger log = LoggerFactory.getLogger(CommandService.class);
+
+    public static void handleSectorSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, String val) {
+        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Select requirements.", null));
+    }
+ 
+    public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
+        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Finalizing", "Click to proceed.", null, ActionRow.of(Button.success("order_final_meta", "Proceed"))));
+    }
 
     public static boolean execute(Member member, MessageChannel channel, String command) {
         String trigger = command.trim().toLowerCase();
@@ -37,10 +41,7 @@ public class CommandService {
         JsonObject cmd = SupabaseClient.getCommand(trigger);
         if (cmd != null) {
             String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
-            if (!hasPermission(member, perm)) {
-                channel.sendMessage("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").queue();
-                return true;
-            }
+            if (!hasPermission(member, perm)) return true;
             String response = cmd.get("response_text").getAsString();
             channel.sendMessage(response).queue();
             return true;
@@ -50,93 +51,35 @@ public class CommandService {
 
     public static void executeSlash(SlashCommandInteractionEvent event) {
         String trigger = event.getName().toLowerCase();
-        
-        JsonArray allCmds = SupabaseClient.getAllCommands();
-        if (allCmds != null) {
-            for (com.google.gson.JsonElement el : allCmds) {
-                JsonObject obj = el.getAsJsonObject();
-                String dbName = obj.get("name").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
-                if (dbName.equals(trigger)) {
-                    String perm = obj.has("permission") && !obj.get("permission").isJsonNull() ? obj.get("permission").getAsString() : "everyone";
-                    if (!hasPermission(event.getMember(), perm)) {
-                        event.reply("\u274C **Unauthorized:** This node requires `" + perm.toUpperCase() + "` authority.").setEphemeral(true).queue();
-                        return;
-                    }
-                    String response = obj.has("response_text") && !obj.get("response_text").isJsonNull() ? obj.get("response_text").getAsString() : "";
-                    String actionType = obj.has("action_type") && !obj.get("action_type").isJsonNull() ? obj.get("action_type").getAsString() : "text";
-                    String actionValue = obj.has("action_value") && !obj.get("action_value").isJsonNull() ? obj.get("action_value").getAsString() : "";
-
-                    switch (actionType.toLowerCase()) {
-                        case "panel" -> {
-                            if (!actionValue.isEmpty()) {
-                                JsonObject menuData = SupabaseClient.getMenu(actionValue);
-                                if (menuData != null) sendMenuSlash(event, menuData);
-                                else event.reply("\u26A0\uFE0F **Systems error:** Targeted panel `" + actionValue + "` not found.").setEphemeral(true).queue();
-                            } else event.reply("\u26A0\uFE0F **Systems error:** No panel ID linked to this node.").setEphemeral(true).queue();
-                        }
-                        case "ticket" -> {
-                            JsonObject ticketMenu = SupabaseClient.getMenu("ticket_panel");
-                            if (ticketMenu != null) sendMenuSlash(event, ticketMenu);
-                            else event.reply("\u26A0\uFE0F **Systems error:** Ticket panel not found.").setEphemeral(true).queue();
-                        }
-                        case "colors" -> com.highcore.bot.commands.GeneralCommands.displayColors(event);
-                        default -> {
-                            if (!response.isEmpty()) event.reply(response).queue();
-                            else event.reply("\u26A0\uFE0F **Systems error:** No payload found for this node.").setEphemeral(true).queue();
-                        }
-                    }
-                    return;
-                }
-            }
+        JsonObject menu = SupabaseClient.getMenuByTrigger(trigger);
+        if (menu != null) {
+            PanelService.reply(event, buildMenuContainer(menu));
+            return;
         }
 
-        JsonArray allMenus = SupabaseClient.getAllMenus();
-        if (allMenus != null) {
-            for (com.google.gson.JsonElement el : allMenus) {
-                JsonObject obj = el.getAsJsonObject();
-                if (obj.has("trigger_command") && !obj.get("trigger_command").isJsonNull()) {
-                    String dbTrigger = obj.get("trigger_command").getAsString().toLowerCase().replaceAll("[^a-z0-9_-]", "");
-                    if (dbTrigger.equals(trigger)) {
-                        sendMenuSlash(event, obj);
-                        return;
-                    }
-                }
-            }
+        JsonObject cmd = SupabaseClient.getCommand(trigger);
+        if (cmd != null) {
+            String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
+            if (!hasPermission(event.getMember(), perm)) { event.reply("Access denied.").setEphemeral(true).queue(); return; }
+            String response = cmd.get("response_text").getAsString();
+            event.reply(response).queue();
+            return;
         }
-        event.reply("\u26A0\uFE0F **Registry error:** Command not found in system manifest.").setEphemeral(true).queue();
     }
 
-    private static void sendMenuSlash(SlashCommandInteractionEvent event, JsonObject menu) {
-        Container container = buildMenuContainer(menu);
-        PanelService.reply(event, container);
+    public static void sendMenu(MessageChannel channel, JsonObject menu) {
+        PanelService.reply(channel, buildMenuContainer(menu));
     }
 
-    private static void sendMenu(MessageChannel channel, JsonObject menu) {
-        Container container = buildMenuContainer(menu);
-        PanelService.reply(channel, container);
-    }
-
-    private static Container buildMenuContainer(JsonObject menu) {
-        String title = menu.get("title").getAsString();
-        String desc = menu.get("description").getAsString().replace("\\n", "\n");
+    private static Object buildMenuContainer(JsonObject menu) {
+        String title = menu.has("title") && !menu.get("title").isJsonNull() ? menu.get("title").getAsString() : "Terminal Module";
+        String desc = menu.has("description") && !menu.get("description").isJsonNull() ? menu.get("description").getAsString().replace("\\n", "\n") : "System data unavailable.";
         String imageUrl = menu.has("image_url") && !menu.get("image_url").isJsonNull() ? menu.get("image_url").getAsString() : null;
-        String colorHex = menu.has("color_hex") && !menu.get("color_hex").isJsonNull() ? menu.get("color_hex").getAsString() : "BRAND";
-        String menuId = menu.get("menu_id").getAsString();
+        String menuId = menu.has("menu_id") && !menu.get("menu_id").isJsonNull() ? menu.get("menu_id").getAsString() : "unknown";
 
-        List<ContainerChildComponent> layout = new ArrayList<>();
-        
-        if (imageUrl != null && !imageUrl.isEmpty()) {
-            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
-        }
-
-        layout.add(EmbedUtil.v2Header("DATABASE", title));
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-
-        layout.add(TextDisplay.of(desc));
-
+        List<Button> buttons = new ArrayList<>();
         JsonArray buttonsArr = SupabaseClient.getButtons(menuId);
         if (buttonsArr != null && buttonsArr.size() > 0) {
-            List<Button> buttons = new ArrayList<>();
             for (var el : buttonsArr) {
                 JsonObject btnObj = el.getAsJsonObject();
                 String label = btnObj.get("label").getAsString();
@@ -151,27 +94,26 @@ public class CommandService {
                     case "LINK" -> Button.link(actionId, label);
                     default -> Button.primary(actionId, label);
                 };
-
                 if (emoji != null && !emoji.isEmpty()) {
-                    try { btn = btn.withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromFormatted(emoji)); } 
-                    catch (Exception ignored) {}
+                    try { btn = btn.withEmoji(Emoji.fromFormatted(emoji)); } catch (Exception ignored) {}
                 }
                 buttons.add(btn);
             }
-            layout.add(ActionRow.of(buttons));
         }
 
-        layout.add(EmbedUtil.v2Footer());
-
-        return Container.of(layout).withAccentColor(EmbedUtil.parseColor(colorHex).getRGB() & 0xFFFFFF);
+        if (buttons.isEmpty()) {
+            return EmbedUtil.containerBranded(title, null, desc, imageUrl);
+        } else {
+            return EmbedUtil.containerBrandedRows(title, null, desc, imageUrl, ActionRow.of(buttons));
+        }
     }
 
     private static boolean hasPermission(Member member, String perm) {
         if (perm.equalsIgnoreCase("everyone")) return true;
         List<String> staff = com.highcore.bot.config.Config.getStaffRoles();
         List<String> admins = com.highcore.bot.config.Config.getAdminRoles();
-        boolean isStaff = member.getRoles().stream().anyMatch(r -> staff.contains(r.getId()));
-        boolean isAdmin = member.getRoles().stream().anyMatch(r -> admins.contains(r.getId()));
+        boolean isStaff = member != null && member.getRoles().stream().anyMatch(r -> staff.contains(r.getId()));
+        boolean isAdmin = member != null && member.getRoles().stream().anyMatch(r -> admins.contains(r.getId()));
         if (perm.equalsIgnoreCase("admin")) return isAdmin;
         if (perm.equalsIgnoreCase("staff")) return isStaff;
         return true;

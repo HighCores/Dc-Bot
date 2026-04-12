@@ -4,8 +4,9 @@ import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.*;
 import com.highcore.bot.utils.EmbedUtil;
+import net.dv8tion.jda.api.Permission;
 import net.dv8tion.jda.api.entities.Member;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.Role;
 import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
@@ -14,6 +15,8 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -25,63 +28,45 @@ import java.util.Map;
 public class SlashCommands extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(SlashCommands.class);
 
-    public static class BcSession {
-        public String roleId;
-        public String attUrl;
-    }
-
-    public static class BoterSession {
-        public String channelId;
-        public List<String> fileUrls = new ArrayList<>();
-    }
-
+    public static class BcSession { public String roleId, attUrl; }
     public static final Map<String, BcSession> BC_SESSIONS = new HashMap<>();
+
+    public static class BoterSession { public String channelId; public List<String> fileUrls = new ArrayList<>(); }
     public static final Map<String, BoterSession> BOTER_SESSIONS = new HashMap<>();
 
     @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        TextChannel cmdLog = LogManager.get(event.getGuild(), Config.LOG_COMMANDS);
-        if (cmdLog != null) {
-            String body = "### \u2699\uFE0F Command Executed\n" +
-                    "**Command:** `/" + event.getFullCommandName() + "`\n" +
-                    "**User:** " + event.getUser().getAsMention() + "\n" +
-                    "**Channel:** " + event.getChannel().getAsMention() + "\n" +
-                    "**Time:** " + java.time.format.DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
-                            .withZone(java.time.ZoneId.of("Asia/Riyadh")).format(java.time.Instant.now());
+    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
+        String name = event.getName().toLowerCase();
+        
+        List<String> modCmds = java.util.Arrays.asList(
+            "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
+            "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
+            "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji"
+        );
+        if (modCmds.contains(name)) return;
 
-            cmdLog.sendMessageComponents(EmbedUtil.activityLog("COMMAND LOG", body, EmbedUtil.INFO))
-                    .useComponentsV2(true).queue();
-        }
-
-        if (isAdmin(event.getMember())) {
-            TextChannel modLog = LogManager.get(event.getGuild(), Config.LOG_MODS_CMD);
-            if (modLog != null) {
-                String body = "### \uD83D\uDC6E Administrative Activity\n" +
-                        "**Command:** `/" + event.getFullCommandName() + "`\n" +
-                        "**Admin:** " + event.getUser().getAsMention() + "\n" +
-                        "**Channel:** " + event.getChannel().getAsMention();
-
-                modLog.sendMessageComponents(EmbedUtil.activityLog("SECURITY ALERT", body, EmbedUtil.DANGER))
-                        .useComponentsV2(true).queue();
-            }
+        if (!event.isAcknowledged()) {
+            boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("services") && !name.equals("stats") && !name.equals("terms");
+            event.deferReply(ephemeral).queue();
         }
 
         try {
-            switch (event.getName()) {
-                case "startup" -> handleStartup(event);
-                case "menu" -> handleMenu(event);
-                case "services" -> PanelService.sendServicesPanel(event);
-                case "giveaway" -> PanelService.sendGiveawayPanel(event);
-                case "points" -> handlePointsCheck(event);
-                case "tickets", "ticket-panel" -> PanelService.sendTicketPanel(event);
+            switch (name) {
+                case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "tickets" -> PanelService.sendTicketPanel(event);
+                case "terms" -> PanelService.replyEphemeral(event, EmbedUtil.rulePanel());
+                case "services" -> PanelService.sendServicesCategory(event);
                 case "stats" -> PanelService.sendStatsPanel(event);
-                case "help" -> handleHelp(event);
+                case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "points" -> handlePointsCheck(event);
+                case "help" -> PanelService.reply(event, EmbedUtil.help());
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);
-                case "bc" -> handleBroadcast(event);
                 case "boter" -> handleBoter(event);
                 case "rename" -> handleRename(event);
                 case "setchannel" -> handleSetChannel(event);
+                default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {
             log.error("Error executing SlashCommands: ", e);
@@ -91,24 +76,7 @@ public class SlashCommands extends ListenerAdapter {
         }
     }
 
-    private void handleMenu(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) {
-            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
-            return;
-        }
-        PanelService.sendMainMenu(event);
-    }
-
-    private void handleStartup(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) {
-            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
-            return;
-        }
-        PanelService.sendStartupPanel(event);
-    }
-
     private void handlePointsCheck(SlashCommandInteractionEvent event) {
-        event.deferReply(true).queue();
         Member m = event.getOption("member", OptionMapping::getAsMember);
         if (m == null) m = event.getMember();
         int pts = SupabaseClient.getPoints(m.getId(), event.getGuild().getId());
@@ -118,13 +86,9 @@ public class SlashCommands extends ListenerAdapter {
                 EmbedUtil.BANNER_MAIN));
     }
 
-    private void handleHelp(SlashCommandInteractionEvent event) {
-        PanelService.reply(event, EmbedUtil.help());
-    }
-
     private void handleAutoReply(SlashCommandInteractionEvent event) {
         if (!isStaff(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
         String sub = event.getSubcommandName();
@@ -156,7 +120,7 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleEmbed(SlashCommandInteractionEvent event) {
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
         String title = event.getOption("title") != null ? event.getOption("title").getAsString() : null;
@@ -186,10 +150,10 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleRename(SlashCommandInteractionEvent event) {
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
-        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel) event.getChannel();
+        GuildChannel ch = event.getOption("channel") != null ? (GuildChannel) event.getOption("channel").getAsChannel() : (GuildChannel) event.getChannel();
         String n = event.getOption("name", OptionMapping::getAsString);
         if (ch == null || n == null) {
             PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Please specify the new name."));
@@ -201,11 +165,11 @@ public class SlashCommands extends ListenerAdapter {
 
     private void handleSetChannel(SlashCommandInteractionEvent event) {
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
         String p = event.getOption("purpose", OptionMapping::getAsString);
-        GuildChannel ch = event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel) event.getChannel();
+        GuildChannel ch = event.getOption("channel") != null ? (GuildChannel) event.getOption("channel").getAsChannel() : (GuildChannel) event.getChannel();
         if (p == null || ch == null) {
             PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "Specify settings type and target channel."));
             return;
@@ -216,32 +180,28 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleBroadcast(SlashCommandInteractionEvent event) {
-        if (event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals(BroadcastService.BROADCAST_ROLE_ID))) {
-            BcSession session = new BcSession();
-            OptionMapping roleOpt = event.getOption("role");
-            if (roleOpt != null) session.roleId = roleOpt.getAsRole().getId();
-            OptionMapping attOpt = event.getOption("attachment");
-            if (attOpt != null) session.attUrl = attOpt.getAsAttachment().getUrl();
+        BcSession session = new BcSession();
+        OptionMapping roleOpt = event.getOption("role");
+        if (roleOpt != null) session.roleId = roleOpt.getAsRole().getId();
+        OptionMapping attOpt = event.getOption("attachment");
+        if (attOpt != null) session.attUrl = attOpt.getAsAttachment().getUrl();
 
-            BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
+        BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
-            TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
-            event.replyModal(Modal.create("modal_bc", "BROADCAST")
-                    .addComponents(Label.of("Content", bcMsg))
-                    .build()).queue();
-        } else {
-            PanelService.reply(event, EmbedUtil.accessDenied());
-        }
+        TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        event.replyModal(Modal.create("modal_bc", "BROADCAST")
+                .addComponents(Label.of("Broadcast Content", bcMsg))
+                .build()).queue();
     }
 
     private void handleBoter(SlashCommandInteractionEvent event) {
         if (!isAdmin(event.getMember())) {
-            PanelService.reply(event, EmbedUtil.accessDenied());
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
 
         BoterSession session = new BoterSession();
-        session.channelId = (event.getOption("channel") != null ? event.getOption("channel", OptionMapping::getAsChannel) : (GuildChannel) event.getChannel()).getId();
+        session.channelId = (event.getOption("channel") != null ? event.getOption("channel").getAsChannel() : event.getChannel()).getId();
 
         for (int i = 1; i <= 3; i++) {
             OptionMapping att = event.getOption("file" + i);
@@ -252,7 +212,7 @@ public class SlashCommands extends ListenerAdapter {
 
         TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(Label.of("Content", boterMsg))
+                .addComponents(Label.of("Emulated Message", boterMsg))
                 .build()).queue();
     }
 

@@ -4,6 +4,7 @@ import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.AIService;
 import com.highcore.bot.services.AutoReplyService;
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.WordFilterService;
 import com.highcore.bot.config.Config;
 import com.highcore.bot.utils.EmbedUtil;
@@ -30,12 +31,12 @@ public class MessageListener extends ListenerAdapter {
                 TextChannel logChannel = (logId != null && !logId.isEmpty()) ? event.getGuild().getTextChannelById(logId) : null;
                 if (logChannel != null) {
                     String logBody = "### \u26A0\uFE0F Security Alert: Restricted Content\n" +
-                            "**User:** " + event.getAuthor().getAsMention() + " (`" + event.getAuthor().getId() + "`)\n" +
-                            "**Location:** " + event.getChannel().getAsMention() + "\n" +
+                            "**User:** **" + event.getAuthor().getName() + "** (`" + event.getAuthor().getId() + "`)\n" +
+                            "**Channel:** #" + event.getChannel().getName() + "\n" +
                             "**Detected Text:**\n> " + content;
                     
-                    logChannel.sendMessageComponents(EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER))
-                            .useComponentsV2(true).queue();
+                    PanelService.reply(logChannel, EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER));
+                    PanelService.reply(event.getChannel(), EmbedUtil.error("PROTECTION VIOLATION", "Restricted content detected. Security sequence initiated."));
                 }
                 return;
             }
@@ -55,7 +56,7 @@ public class MessageListener extends ListenerAdapter {
 
     private void saveTicketMessage(MessageReceivedEvent event) {
         if (!(event.getChannel() instanceof TextChannel channel)) return;
-        if (!channel.getName().startsWith("ticket-")) return;
+        if (!channel.getName().contains("ticket")) return;
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         if (ticket == null) return;
         SupabaseClient.saveTicketMessage(ticket.get("ticket_id").getAsString(), event.getAuthor().getId(), event.getAuthor().getName(), event.getMessage().getContentRaw(), event.getMessageId());

@@ -1,21 +1,26 @@
 package com.highcore.bot.utils;
 
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
+import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
 import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.separator.Separator;
-import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
-import net.dv8tion.jda.api.components.section.Section;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
-import com.google.gson.JsonObject;
 import java.awt.Color;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Arrays;
 
 public class EmbedUtil {
+    public static final Color ACCENT      = Color.decode("#C5A059");
+    public static final Color SUCCESS     = Color.decode("#2ECC71");
+    public static final Color DANGER      = Color.decode("#E74C3C");
+    public static final Color INFO        = Color.decode("#3498DB");
+    public static final Color WARNING     = Color.decode("#F1C40F");
+    public static final Color GOLD        = Color.decode("#D4AF37");
+    public static final Color ACCENT_GOLD = Color.decode("#FFD700");
 
     public static final String BANNER_MAIN = "https://images.unsplash.com/photo-1614850523296-d8c1af93d400?q=80&w=2070&auto=format&fit=crop";
     public static final String BANNER_SUPPORT = "https://images.unsplash.com/photo-1518770660439-4636190af475?q=80&w=2070&auto=format&fit=crop";
@@ -23,12 +28,21 @@ public class EmbedUtil {
     public static final String BANNER_INVOICE    = "https://cdn.discordapp.com/attachments/1488900668042510568/1491799713391837376/IMG_20260409_165917.png?ex=69dafc7f&is=69d9aaff&hm=b344d8ceae8572e0ab8a972b9ec4ca7b60be6ad87314bac903c8a2a9a643629a&";
     public static final String BANNER_ORDER_TICKET = "https://cdn.discordapp.com/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69db04ab&is=69d9b32b&hm=4f001336ef9b5ae1c96a2e5083e53e726197782920ce8b7af5f0c22d2ac8ddbf&";
 
-    public static final Color SUCCESS = Color.decode("#10b981");
-    public static final Color DANGER = Color.decode("#f43f5e");
-    public static final Color WARNING = Color.decode("#f59e0b");
-    public static final Color INFO = Color.decode("#3b82f6");
-    public static final Color GOLD = Color.decode("#fbbf24");
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
+
+    // ── Core builder: image + text + separator + buttons ─────────────────────
+    public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
+        List<ContainerChildComponent> children = new ArrayList<>();
+        if (imageUrl != null && !imageUrl.isEmpty()) {
+            children.add(MediaGallery.of(MediaGalleryItem.fromUrl(imageUrl)));
+        }
+        children.add(TextDisplay.of("## " + title + "\n" + (description != null ? description : "")));
+        if (rows != null && rows.length > 0) {
+            children.add(Separator.createDivider(Spacing.SMALL));
+            for (ActionRow row : rows) children.add(row);
+        }
+        return Container.of(children);
+    }
 
     public static Container containerBranded(String sector, String title, String body, String imageUrl) {
         return containerBranded(sector, title, body, imageUrl, null);
@@ -48,16 +62,12 @@ public class EmbedUtil {
         String content = (iconEmoji != null ? iconEmoji.getFormatted() + " " : "") + body;
         layout.add(TextDisplay.of(content));
 
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-
         if (rows != null && rows.length > 0) {
-            layout.addAll(Arrays.asList(rows));
+            layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+            for (ActionRow row : rows) if (row != null) layout.add(row);
         }
 
-        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
-        layout.add(TextDisplay.of("` \u2022 UNIFIED TERMINAL v2.2 \u2022 HIGHCORE AGENCY \u2022 `"));
-
-        return Container.of(layout).withAccentColor(ACCENT_TEAL.getRGB() & 0xFFFFFF);
+        return Container.of(layout);
     }
 
     public static Container mainMenu(ActionRow... rows) {
@@ -72,7 +82,6 @@ public class EmbedUtil {
                 rows);
     }
 
-    // MISSING SYMBOL RESTORATION WRAPPERS
     public static Container accessDenied() {
         return error("ACCESS RESTRICTED", "Credentials insufficient for this terminal node.");
     }
@@ -193,8 +202,8 @@ public class EmbedUtil {
         }
     }
 
-    public static Container orderLog(JsonObject logData) {
-        return containerBranded("ORDER", "Inbound Signal", "```json\n" + logData.toString() + "\n```", BANNER_MAIN);
+    public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl, ActionRow... rows) {
+        return containerBranded(title, subtitle, body, imageUrl, (Emoji) null, rows);
     }
 
     public static Container custom(String category, String title, String body, String imageUrl, String thumbnail,
