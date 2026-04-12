@@ -383,9 +383,30 @@ public class TicketService {
 
         if (status.equals("TRANSCRIPT")) {
             JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
-            String ticketId = ticket != null ? ticket.get("ticket_id").getAsString() : "0000";
-            String openerId = ticket != null ? ticket.get("user_id").getAsString() : "0";
-            String openerName = ticket != null ? ticket.get("user_name").getAsString() : "Unknown";
+            String ticketId = "0000";
+            String openerId = "0";
+            String openerName = "Unknown";
+            
+            if (ticket != null) {
+                ticketId = ticket.get("ticket_id").getAsString();
+                openerId = ticket.get("user_id").getAsString();
+                openerName = ticket.get("user_name").getAsString();
+            } else {
+                // Fallback to topic: subject|priority|type|userId
+                String topic = channel.getTopic();
+                if (topic != null && topic.contains("|")) {
+                    String[] parts = topic.split("\\|");
+                    if (parts.length >= 4) {
+                        openerId = parts[3];
+                        // Try to find member for name
+                        Member m = channel.getGuild().getMemberById(openerId);
+                        if (m != null) openerName = m.getEffectiveName();
+                        // For ticketId, we might not have it in topic, but we can try to guess from channel name
+                        String name = channel.getName();
+                        if (name.contains("-")) ticketId = name.split("-")[1];
+                    }
+                }
+            }
             
             TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
             if (logCh != null) {
