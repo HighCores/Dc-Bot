@@ -101,7 +101,7 @@ public class MessageListener extends ListenerAdapter {
         }
 
         // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
-        for (net.dv8tion.jda.api.components.LayoutComponent layout : event.getMessage().getComponents()) {
+        for (var layout : event.getMessage().getComponents()) {
             if (layout instanceof net.dv8tion.jda.api.components.container.Container container) {
                 for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
                     if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
