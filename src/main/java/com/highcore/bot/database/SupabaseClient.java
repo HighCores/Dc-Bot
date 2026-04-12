@@ -139,7 +139,6 @@ public class SupabaseClient {
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
         JsonObject body = new JsonObject();
-        // Send multiple ID formats to satisfy Foreign Key constraints
         body.addProperty("ticket_id", ticketId);
         body.addProperty("ticketId", ticketId);
         body.addProperty("id_ticket", ticketId);
@@ -149,7 +148,17 @@ public class SupabaseClient {
         body.addProperty("content", content);
         body.addProperty("message_id", messageId);
         
-        post("dc_ticket_messages", body);
+        // Attempt saving
+        JsonObject resp = post("dc_ticket_messages", body);
+        
+        // If it failed due to potentially slow Ticket creation (Race Condition), retry once
+        if (resp == null) {
+            try { 
+                Thread.sleep(800); 
+                post("dc_ticket_messages", body);
+                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).info("Message retry executed for ID: {}", ticketId);
+            } catch (Exception ignored) {} 
+        }
     }
 
     // ========== MENUS & COMMANDS (Dynamic) ==========
