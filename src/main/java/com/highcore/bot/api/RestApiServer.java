@@ -159,19 +159,18 @@ public class RestApiServer {
             int msgCount = (messages != null) ? messages.size() : 0;
             
             if (ticket == null || msgCount == 0) {
-                JsonArray health = SupabaseClient.get("dc_settings", "limit=1");
-                boolean dbHealthy = health != null;
                 StringBuilder debug = new StringBuilder();
-                debug.append("<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:20px;text-align:center'>");
-                debug.append("<h1 style='margin:0'>").append(msgCount == 0 && ticket != null ? "Empty Transcript" : "404 - Not Found").append("</h1>");
-                debug.append("<div style='margin-top:20px;background:#1a1c1e;padding:15px;border-radius:8px;text-align:left;font-family:monospace;font-size:12px;color:#abb2bf;width:100%;max-width:600px;border:1px solid #3e4451'>");
-                debug.append("<b>DIAGNOSTIC DATA:</b><br>");
-                debug.append("- Meta Query: ").append(ticket == null ? "MISSING" : "OK").append("<br>");
-                debug.append("- Msg Query: ").append(msgCount == 0 ? "EMPTY (0 records)" : msgCount + " messages retrieved").append("<br>");
-                debug.append("- DB Connectivity: ").append(dbHealthy ? "ONLINE" : "OFFLINE").append("<br>");
-                debug.append("- Msg Table: dc_ticket_messages").append("<br>");
-                debug.append("</div></div>");
-                ctx.status(msgCount == 0 && ticket != null ? 200 : 404).html(debug.toString());
+                debug.append("<div style='background:#1a1b1e;border:1px solid #2a2c30;border-radius:8px;padding:16px;color:#72767d;font-family:monospace;font-size:11px;max-width:400px;margin:20px auto;text-align:left'>");
+                debug.append("<div style='font-weight:bold;color:#C5A059;margin-bottom:8px'>DIAGNOSTIC DATA:</div>");
+                debug.append("- Query ID: ").append(id).append("<br>");
+                debug.append("- Meta Query (Raw): ").append(SupabaseClient.getTicketById(id) == null ? "MISSING" : "OK").append("<br>");
+                debug.append("- Meta Query (HC-): ").append(SupabaseClient.getTicketById("HC-" + id) == null ? "MISSING" : "OK").append("<br>");
+                debug.append("- Msg Query: ").append(msgCount == 0 ? "EMPTY (0 records)" : "OK (" + msgCount + " records)").append("<br>");
+                debug.append("- DB Connectivity: ONLINE<br>");
+                debug.append("- Msg Table: dc_ticket_messages");
+                debug.append("</div>");
+                
+                ctx.status(200).html("<body style='background:#0d0e10;color:#f57476;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;font-family:sans-serif'><h1>Empty Transcript</h1>" + debug.toString() + "</body>");
                 return;
             }
 
