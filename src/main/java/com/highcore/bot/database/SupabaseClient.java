@@ -89,10 +89,11 @@ public class SupabaseClient {
 
     public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
-        // Force HC- prefix to satisfy foreign key constraints in dc_ticket_messages
-        String formalId = ticketId.startsWith("HC-") ? ticketId : "HC-" + ticketId;
+        // Send EVERY possible variation of ID to satisfy different schemas/constraints
+        body.addProperty("ticket_id", ticketId);
+        body.addProperty("id_ticket", ticketId);
+        body.addProperty("id", ticketId);
         
-        body.addProperty("ticket_id", formalId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("channel_id", channelId);
@@ -142,10 +143,11 @@ public class SupabaseClient {
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
         JsonObject body = new JsonObject();
-        // The screenshot shows: ticket_id, user_id, user_name, content, message_id
-        String formalId = ticketId.startsWith("HC-") ? ticketId : "HC-" + ticketId;
+        // Send multiple ID formats to satisfy Foreign Key constraints
+        body.addProperty("ticket_id", ticketId);
+        body.addProperty("ticketId", ticketId);
+        body.addProperty("id_ticket", ticketId);
         
-        body.addProperty("ticket_id", formalId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("content", content);
