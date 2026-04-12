@@ -135,13 +135,13 @@ public class SupabaseClient {
         return arr;
     }
 
-    public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String type) {
+    public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("content", content);
-        body.addProperty("type", type);
+        body.addProperty("is_bot", role.equalsIgnoreCase("BOT"));
         post("dc_ticket_messages", body);
     }
 

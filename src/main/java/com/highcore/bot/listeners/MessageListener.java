@@ -80,6 +80,10 @@ public class MessageListener extends ListenerAdapter {
         }
         
         String role = event.getAuthor().isBot() ? "BOT" : "USER";
-        SupabaseClient.saveTicketMessage(ticketId, event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role);
+        try {
+            SupabaseClient.saveTicketMessage(ticketId, event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role);
+        } catch (Exception e) {
+            org.slf4j.LoggerFactory.getLogger(MessageListener.class).error("Failed to save message: {}", e.getMessage());
+        }
     }
 }
