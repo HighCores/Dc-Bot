@@ -93,7 +93,7 @@ public class TicketService {
             ticketCache.put(channel.getId(), ticket);
             
             channel.getManager().setTopic(subject + "|" + priority + "|" + type + "|" + user.getId()).queue();
-            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), type, subject, priority, null);
+            SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), type, subject, priority);
 
             List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
             PanelService.reply(channel, Container.of(children));
@@ -149,8 +149,9 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId()).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH", meta);
+                String topic = pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString();
+                channel.getManager().setTopic(topic).queue();
+                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH");
 
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 PanelService.reply(channel, Container.of(children));
@@ -232,7 +233,7 @@ public class TicketService {
         
         if (ticket != null) {
             String tid = ticket.get("ticket_id").getAsString();
-            SupabaseClient.claimTicket(tid, claimer.getId(), claimer.getEffectiveName());
+            SupabaseClient.claimTicket(tid, claimer.getEffectiveName());
             ticket.addProperty("status", "claimed");
             ticket.addProperty("claimer_id", claimer.getId());
         }
@@ -266,6 +267,7 @@ public class TicketService {
     public static List<ContainerChildComponent> rebuildWelcomeComponents(JsonObject ticket, boolean claimed, TextChannel channel, String claimerMention) {
         List<ContainerChildComponent> comps = new ArrayList<>();
         String ticketId = "0000", userId = "0", subject = "Active Session", priority = "MEDIUM", details = null;
+        JsonObject metadata = null;
 
         if (ticket != null) {
             ticketId = ticket.has("ticket_id") ? ticket.get("ticket_id").getAsString() : ticketId;
@@ -273,6 +275,15 @@ public class TicketService {
             subject = ticket.has("subject") ? ticket.get("subject").getAsString() : subject;
             priority = ticket.has("priority") ? ticket.get("priority").getAsString() : priority;
             details = ticket.has("details") ? ticket.get("details").getAsString() : null;
+            if (ticket.has("metadata")) metadata = ticket.getAsJsonObject("metadata");
+        }
+        
+        // Fallback to topic for metadata if missing (after restart)
+        if (metadata == null && channel.getTopic() != null && channel.getTopic().contains("||META:")) {
+            try {
+                String metaStr = channel.getTopic().substring(channel.getTopic().indexOf("||META:") + 7).trim();
+                metadata = com.google.gson.JsonParser.parseString(metaStr).getAsJsonObject();
+            } catch (Exception ignored) {}
         }
         
         String status = claimed ? "claimed" : "open";
@@ -294,18 +305,17 @@ public class TicketService {
             body.append("**Details:** ").append(details).append("\n");
         }
 
-        if (ticket != null && ticket.has("metadata")) {
-            JsonObject meta = ticket.getAsJsonObject("metadata");
+        if (metadata != null) {
             body.append("\n### 📋 Questionnaire Data\n");
-            if (meta.has("project_name")) body.append("**Project:** `").append(meta.get("project_name").getAsString()).append("`\n");
-            if (meta.has("client_name")) body.append("**Client:** `").append(meta.get("client_name").getAsString()).append("`\n");
-            if (meta.has("contact")) body.append("**Contact:** `").append(meta.get("contact").getAsString()).append("`\n");
-            if (meta.has("eta")) body.append("**ETA:** `").append(meta.get("eta").getAsString()).append("`\n");
+            if (metadata.has("project_name")) body.append("**Project:** `").append(metadata.get("project_name").getAsString()).append("`\n");
+            if (metadata.has("client_name")) body.append("**Client:** `").append(metadata.get("client_name").getAsString()).append("`\n");
+            if (metadata.has("contact")) body.append("**Contact:** `").append(metadata.get("contact").getAsString()).append("`\n");
+            if (metadata.has("eta")) body.append("**ETA:** `").append(metadata.get("eta").getAsString()).append("`\n");
             
-            if (meta.has("items")) {
+            if (metadata.has("items")) {
                 body.append("**Services Requested:** ");
                 List<String> itemList = new ArrayList<>();
-                for (var e : meta.getAsJsonArray("items")) {
+                for (var e : metadata.getAsJsonArray("items")) {
                     itemList.add(e.getAsJsonObject().get("name").getAsString());
                 }
                 body.append(String.join(", ", itemList)).append("\n");
