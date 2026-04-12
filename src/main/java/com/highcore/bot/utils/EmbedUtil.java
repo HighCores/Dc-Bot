@@ -83,22 +83,16 @@ public class EmbedUtil {
     public static Container startupPanel(ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_MAIN)));
-        layout.add(Separator.createDivider(Spacing.SMALL));
+        
         layout.add(TextDisplay.of("**Highcore Agency**"));
         layout.add(Separator.createDivider(Spacing.SMALL));
-        layout.add(TextDisplay.of("**PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS**"));
-
-        String manifesto = """
-                Establishing the definitive global standard for advanced digital infrastructure and elite creative operations. Highcore provides high-fidelity solutions across system development, visual architecture, and strategic media management.
-                
-                Our internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners.
-                
-                By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.
-                
-                **SYSTEM NAVIGATION PROTOCOLS**
-                Examine our operational modules and establish a secure connection using the authorized protocols below.
-                """;
-        layout.add(TextDisplay.of(manifesto));
+        
+        layout.add(TextDisplay.of("**PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS**\n\nEstablishing the definitive global standard for advanced digital infrastructure and elite creative operations. Highcore provides high-fidelity solutions across system development, visual architecture, and strategic media management.\n\nOur internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners."));
+        
+        layout.add(Separator.createDivider(Spacing.SMALL));
+        
+        layout.add(TextDisplay.of("By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.\n\n**SYSTEM NAVIGATION PROTOCOLS**\nExamine our operational modules and establish a secure connection using the authorized protocols below."));
+        
         layout.add(Separator.createDivider(Spacing.SMALL));
 
         if (rows != null && rows.length > 0) {

@@ -139,8 +139,13 @@ public class PanelService {
     }
 
     public static void sendStartupHub(IReplyCallback event) {
-        ActionRow row = ActionRow.of(Button.secondary("hub_highcore", "Map"), Button.secondary("hub_about", "About"));
-        reply(event, EmbedUtil.eliteContainer("High Core Agency", "Global operations hub.", null, row));
+        ActionRow row = ActionRow.of(
+            Button.secondary("hub_highcore", "Highcore"),
+            Button.secondary("hub_about", "About Us"),
+            Button.secondary("hub_partners", "Partners"),
+            Button.secondary("hub_support", "Support")
+        );
+        reply(event, EmbedUtil.startupPanel(row));
     }
 
     public static void sendServerMap(IReplyCallback event) {

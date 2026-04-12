@@ -14,15 +14,13 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.buttons.Button;<<<<<<<HEAD
+import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;=======
-
->>>>>>>b4d661643b52f1dad1e2d8d32abbcf024a9a5391
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import java.util.List;
 
 public class CentralInteractionListener extends ListenerAdapter {
@@ -62,7 +60,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else {
                 event.deferReply(true).queue();
             }
-<<<<<<< HEAD
             return;
         }
         
@@ -72,13 +69,13 @@ public class CentralInteractionListener extends ListenerAdapter {
         }
         
         if (id.equals("quick_query") || id.equals("ai_query")) {
-            AIService.enableAI(event.getChannel().getId());
+            com.highcore.bot.services.AIService.enableAI(event.getChannel().getId());
             event.replyComponents(EmbedUtil.assistantResponse("Assistant activated. Looking for information... Ready for your message."))
                     .useComponentsV2(true).setEphemeral(true).queue();
             return;
         }
         
-        if (id.equals("order_start")) { OrderService.startWizard(event); return; }
+        if (id.equals("order_start")) { com.highcore.bot.services.OrderService.startWizard(event); return; }
         if (id.equals("support_start")) {
             TextInput subject = TextInput.create("subject", TextInputStyle.SHORT)
                     .setPlaceholder("Describe the technical issue...").setRequired(true).build();
@@ -96,8 +93,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                     .build();
             event.replyModal(m).queue();
             return;
-=======
->>>>>>> b4d661643b52f1dad1e2d8d32abbcf024a9a5391
         }
 
         processButton(event);
@@ -154,9 +149,9 @@ public class CentralInteractionListener extends ListenerAdapter {
 
             // Ticket channel actions (staff only — already checked in onButtonInteraction)
             if (id.equals("ticket_claim")) {
-                TicketService.claimTicket(event.getChannel().asTextChannel(), member);
+                TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_close")) {
-                TicketService.closeTicket(event.getChannel().asTextChannel(), member);
+                TicketService.closeTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_delete")) {
                 event.getChannel().delete().queue();
             } else if (id.equals("ticket_reopen")) {
@@ -164,8 +159,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("order_status_update_")) {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
+            }
 
-<<<<<<< HEAD
         if (id.startsWith("pay_")) {
             // id format: pay_<method>_<ticketId>
             String[] parts = id.split("_", 3);
@@ -178,7 +173,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 case "STRIPE"  ->
                     "### \uD83C\uDF10 Stripe\n" +
                     "Contact a staff member to receive a secure Stripe payment link.\n" +
-                    "**Support:** <@&" + Config.ROLE_STAFF + ">";
+                    "**Support:** <@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
                 case "BANK"    ->
                     "### \uD83C\uDFE6 Bank Transfer — Al-Rajhi Bank\n" +
                     "**Account Name:** `High Core Agency`\n" +
@@ -196,49 +191,13 @@ public class CentralInteractionListener extends ListenerAdapter {
                     "**Name:** `High Core Agency`\n" +
                     "Screenshot the confirmation and send it here.";
                 default ->
-                    "Contact a staff member for payment assistance.\n<@&" + Config.ROLE_STAFF + ">";
+                    "Contact a staff member for payment assistance.\n<@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
             };
             PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
                 "PAYMENT", "Gateway — " + method,
                 info, EmbedUtil.BANNER_MAIN));
             return;
         }
-=======
-            } else if (id.startsWith("pay_")) {
-                String method = id.split("_", 3).length > 1 ? id.split("_", 3)[1].toUpperCase() : "UNKNOWN";
-                String info = switch (method) {
-                    case "PAYPAL"  ->
-                        "### \uD83D\uDCB3 PayPal\n" +
-                        "**Email:** `billing@highcore.agency`\n" +
-                        "Send as **Friends & Family** and include your ticket ID in the note.";
-                    case "STRIPE"  ->
-                        "### \uD83C\uDF10 Stripe\n" +
-                        "Contact a staff member to receive a secure Stripe payment link.\n" +
-                        "<@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
-                    case "BANK"    ->
-                        "### \uD83C\uDFE6 Bank Transfer — Al-Rajhi Bank\n" +
-                        "**Account Name:** `High Core Agency`\n" +
-                        "**IBAN:** `SA29 8000 0000 1234 5678 1234`\n" +
-                        "**Swift:** `RJHISARI`\n" +
-                        "Send the receipt screenshot here after transfer.";
-                    case "USDT"    ->
-                        "### \uD83D\uDCB0 USDT — TRC20 Network\n" +
-                        "**Wallet:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n" +
-                        "\u26A0\uFE0F TRC20 only. Send transaction hash after payment.";
-                    case "STCPAY"  ->
-                        "### \uD83D\uDCF1 STC Pay\n" +
-                        "**Number:** `+966 55 123 4567`\n" +
-                        "**Name:** `High Core Agency`\n" +
-                        "Send confirmation screenshot here.";
-                    default ->
-                        "Contact staff for payment assistance. <@&" + com.highcore.bot.config.Config.ROLE_STAFF + ">";
-                };
-                event.getHook().sendMessageComponents(
-                    EmbedUtil.info("PAYMENT — " + method, info))
-                    .useComponentsV2(true).setEphemeral(true).queue();
-            }
->>>>>>> b4d661643b52f1dad1e2d8d32abbcf024a9a5391
-
         } catch (Exception e) {
             try {
                 if (event.isAcknowledged())
@@ -251,18 +210,12 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        if (!event.isAcknowledged()) {
-            String id = event.getComponentId();
-            // These three order selects edit the existing ephemeral in-place
-            boolean isOrderSelect = id.equals("order_service_select") ||
-                                    id.equals("order_main_select")    ||
-                                    id.equals("order_addon_select");
-
-<<<<<<< HEAD
+        String id = event.getComponentId();
+        
         if (id.equals("ticket_type_select")) {
             String choice = event.getValues().get(0);
             switch (choice) {
-                case "purchase" -> OrderService.startWizard(event);
+                case "purchase" -> com.highcore.bot.services.OrderService.startWizard(event);
                 case "tech_support" -> {
                     TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
                         .setPlaceholder("Describe the technical issue...").setRequired(true).build();
@@ -279,7 +232,15 @@ public class CentralInteractionListener extends ListenerAdapter {
                         .build();
                     event.replyModal(m).queue();
                 }
-=======
+            }
+            return;
+        }
+
+        if (!event.isAcknowledged()) {
+            boolean isOrderSelect = id.equals("order_service_select") ||
+                                    id.equals("order_main_select")    ||
+                                    id.equals("order_addon_select");
+                                    
             boolean ephemeral = id.equals("view_services_cat") || id.equals("view_prices_cat")
                              || id.equals("ticket_type_select");
 
@@ -301,7 +262,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String category = event.getValues().get(0);
                 PanelService.handleCategorySelected(event, userId, category);
                 return;
->>>>>>> b4d661643b52f1dad1e2d8d32abbcf024a9a5391
             }
 
             if (id.equals("order_main_select")) {
@@ -396,13 +356,13 @@ public class CentralInteractionListener extends ListenerAdapter {
             String eta = event.getValue("o_eta").getAsString();
 
             String userId = event.getUser().getId();
-            OrderService.OrderSession session = OrderService.sessions.remove(userId);
+            com.highcore.bot.services.OrderService.OrderSession session = com.highcore.bot.services.OrderService.sessions.remove(userId);
 
             List<InvoiceService.OrderItem> items = new java.util.ArrayList<>();
             if (session != null) {
                 List<String> allIds = new java.util.ArrayList<>(session.selectedServices);
                 allIds.addAll(session.selectedAddons);
-                items = OrderService.resolveItems(allIds);
+                items = com.highcore.bot.services.OrderService.resolveItems(allIds);
             }
 
             net.dv8tion.jda.api.entities.Guild guild = event.getGuild();
