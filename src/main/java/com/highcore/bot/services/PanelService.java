@@ -149,28 +149,51 @@ public class PanelService {
     }
 
     public static void sendHighcoreHub(IReplyCallback event) {
-        String body = """
-                ### \uD83D\uDDFA\uFE0F Server Navigation Guide
-                
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
+        
+        layout.add(TextDisplay.of("### \uD83D\uDDFA\uFE0F Server Navigation Guide"));
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+
+        String group1 = """
                 Start Up \u2192 <#1488795130470072321>
+                
                 Regrading \u2192 <#1488795130034000038>
+                
                 Our Terms \u2192 <#1489158831916454070>
+                
                 Server Updates \u2192 <#1488797040732278814>
-                --------------------------------------------------
+                """;
+        layout.add(TextDisplay.of(group1));
+        
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+
+        String group2 = """
                 Our Client Comments \u2192 <#1491423672202952806>
+                
                 Our Brothers \u2192 <#1490334592375324772>
+                
                 Giveaways & Challenges \u2192 <#1490334823565365308>
+                
                 Developer Pricing \u2192 <#1488800669375795272>
+                
                 Designer Pricing  \u2192 <#1488800570629427251>
+                
                 MC Developers Price \u2192 <#1488795131019526151>
+                
                 Support \u2192 <#1488798547947159612>
+                
                 Support Room \u2192 <#1488795130881249406>
                 """;
-        ActionRow row = ActionRow.of(
+        layout.add(TextDisplay.of(group2));
+
+        layout.add(Separator.createDivider(Separator.Spacing.SMALL));
+        layout.add(ActionRow.of(
             Button.secondary("btn_pings", "Pings"),
             Button.secondary("btn_rules", "Server Rules")
-        );
-        replyEphemeral(event, EmbedUtil.containerBranded("MAP", "Sector Directory", body, EmbedUtil.BANNER_MAIN, row));
+        ));
+
+        event.getHook().editOriginalComponents(Container.of(layout)).useComponentsV2(true).queue();
     }
 
     public static void sendPingsHub(IReplyCallback event) {
