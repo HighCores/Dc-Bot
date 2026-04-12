@@ -50,73 +50,17 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
-                // no defer — modal will be opened in processButton
+                // no defer
+                processButton(event);
             } else if (isStaffAction) {
                 if (!isStaff(member)) {
                     event.reply("\u26D4 This action is restricted to staff members.").setEphemeral(true).queue();
                     return;
                 }
-                event.deferEdit().queue();
+                event.deferEdit().queue(v -> processButton(event));
             } else {
-                event.deferReply(true).queue();
+                event.deferReply(true).queue(v -> processButton(event));
             }
-            return;
-        }
-        
-        if (id.equals("btn_rules")) {
-            PanelService.replyEphemeral(event, EmbedUtil.rulesArabicPanel());
-            return;
-        }
-
-        if (id.equals("btn_startup")) {
-            PanelService.sendStartupHub(event);
-            return;
-        }
-
-        if (id.equals("btn_highcore")) {
-            PanelService.sendHighcoreHub(event);
-            return;
-        }
-
-        if (id.equals("btn_pings")) {
-            PanelService.sendPingsHub(event);
-            return;
-        }
-
-        if (id.equals("btn_about")) {
-            PanelService.sendAboutUsHub(event);
-            return;
-        }
-
-        if (id.equals("btn_socials")) {
-            PanelService.sendSocialsHub(event);
-            return;
-        }
-        
-        if (id.equals("quick_query") || id.equals("ai_query")) {
-            com.highcore.bot.services.AIService.enableAI(event.getChannel().getId());
-            event.replyComponents(EmbedUtil.assistantResponse("Assistant activated. Looking for information... Ready for your message."))
-                    .useComponentsV2(true).setEphemeral(true).queue();
-            return;
-        }
-        
-        if (id.equals("order_start")) { com.highcore.bot.services.OrderService.startWizard(event); return; }
-        if (id.equals("support_start")) {
-            TextInput subject = TextInput.create("subject", TextInputStyle.SHORT)
-                    .setPlaceholder("Describe the technical issue...").setRequired(true).build();
-            Modal m = Modal.create("modal_ticket_open", "Support Request")
-                    .addComponents(Label.of("Problem Brief", subject))
-                    .build();
-            event.replyModal(m).queue();
-            return;
-        }
-        if (id.equals("report_start")) {
-            TextInput reason = TextInput.create("reason", TextInputStyle.PARAGRAPH)
-                    .setPlaceholder("What are you reporting?").setRequired(true).build();
-            Modal m = Modal.create("modal_report_open", "Submit a Report")
-                    .addComponents(Label.of("Report Context", reason))
-                    .build();
-            event.replyModal(m).queue();
             return;
         }
 
@@ -130,15 +74,16 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (member == null) return;
 
             // Hub navigation
-            if (id.equals("menu_main"))                              { PanelService.sendStartupHub(event);       return; }
-            if (id.equals("hub_highcore") || id.equals("hub_map"))  { PanelService.sendServerMap(event);        return; }
-            if (id.equals("hub_about")   || id.equals("hub_social")){ PanelService.sendAboutUs(event);          return; }
-            if (id.equals("hub_partners"))                           { PanelService.sendPartnersPanel(event);    return; }
-            if (id.equals("hub_pings"))                              { PanelService.sendPingsPanel(event);       return; }
-            if (id.equals("hub_services"))                           { PanelService.sendServicesCategory(event); return; }
-            if (id.equals("view_prices_cat"))                        { PanelService.sendPricesCategory(event);   return; }
-            if (id.equals("hub_rules")) { PanelService.replyEphemeral(event, EmbedUtil.rulesPanel()); return; }
-            if (id.equals("hub_stats"))                              { PanelService.sendStatsPanel(event);       return; }
+            if (id.equals("btn_rules") || id.equals("hub_rules")) { PanelService.replyEphemeral(event, EmbedUtil.rulePanel()); return; }
+            if (id.equals("btn_startup") || id.equals("menu_main")) { PanelService.sendStartupHub(event); return; }
+            if (id.equals("btn_highcore") || id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendHighcoreHub(event); return; }
+            if (id.equals("btn_pings") || id.equals("hub_pings")) { PanelService.sendPingsHub(event); return; }
+            if (id.equals("btn_about") || id.equals("hub_about")) { PanelService.sendAboutUsHub(event); return; }
+            if (id.equals("btn_socials") || id.equals("hub_social")) { PanelService.sendSocialsHub(event); return; }
+            if (id.equals("hub_partners")) { PanelService.sendPartnersPanel(event); return; }
+            if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
+            if (id.equals("view_prices_cat")) { PanelService.sendPricesCategory(event); return; }
+            if (id.equals("hub_stats")) { PanelService.sendStatsPanel(event); return; }
 
             // Ticket panel & flows
             if (id.equals("ticket_init_support"))   { PanelService.handleSupportFlow(event);   return; }
