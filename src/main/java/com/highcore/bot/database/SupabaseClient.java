@@ -129,11 +129,18 @@ public class SupabaseClient {
     }
 
     public static JsonArray getTicketMessages(String ticketId) {
+        // Try searching by string ticket_id (e.g. "0093")
         JsonArray arr = get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
+        
+        // Fallback: If empty, try searching as a numeric ID if applicable
         if ((arr == null || arr.size() == 0) && ticketId.matches("\\d+")) {
-            int nid = Integer.parseInt(ticketId);
-            arr = get("dc_ticket_messages", "ticket_id=eq." + nid + "&order=created_at.asc");
+            try {
+                int nid = Integer.parseInt(ticketId);
+                JsonArray arr2 = get("dc_ticket_messages", "ticket_id=eq." + nid + "&order=created_at.asc");
+                if (arr2 != null && arr2.size() > 0) return arr2;
+            } catch (Exception ignored) {}
         }
+        
         return arr;
     }
 
