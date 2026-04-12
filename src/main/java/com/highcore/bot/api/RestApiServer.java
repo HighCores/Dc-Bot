@@ -150,8 +150,9 @@ public class RestApiServer {
         try {
             JsonObject ticket = SupabaseClient.getTicketById(id);
             JsonArray messages = SupabaseClient.getTicketMessages(id);
+            int msgCount = (messages != null) ? messages.size() : 0;
             
-            if (ticket == null && (messages == null || messages.size() == 0)) {
+            if (ticket == null && (messages == null || msgCount == 0)) {
                 // Quick health check
                 JsonArray health = SupabaseClient.get("dc_settings", "limit=1");
                 boolean dbHealthy = health != null;
@@ -163,10 +164,10 @@ public class RestApiServer {
                 debug.append("<div style='margin-top:20px;background:#1a1c1e;padding:15px;border-radius:8px;text-align:left;font-family:monospace;font-size:12px;color:#abb2bf;width:100%;max-width:600px;border:1px solid #3e4451'>");
                 debug.append("<b>DIAGNOSTIC DATA:</b><br>");
                 debug.append("- Meta Query: ").append(ticket == null ? "<span style='color:#ed4245'>MISSING</span>" : "FOUND").append("<br>");
-                debug.append("- Msg Query: ").append((messages == null || messages.size() == 0) ? "<span style='color:#ed4245'>EMPTY/FAILED</span>" : messages.size() + " messages retrieved").append("<br>");
+                debug.append("- Msg Query: ").append(msgCount == 0 ? "<span style='color:#ed4245'>EMPTY (0 records)</span>" : msgCount + " messages retrieved").append("<br>");
                 debug.append("- DB Connectivity: ").append(dbHealthy ? "<span style='color:#4caf50'>ONLINE</span>" : "<span style='color:#ed4245'>OFFLINE/AUTH ERROR</span>").append("<br>");
-                debug.append("- Search Path: ").append(id).append(", ").append(id.replaceAll("^0+", "")).append("<br><br>");
-                debug.append("<span style='color:#gold'>Tip: Ensure the bot is running and that messages were sent AFTER the last update.</span>");
+                debug.append("- Search Trace: ").append(id).append(", fallback:").append(id.replaceAll("^0+", "")).append("<br><br>");
+                debug.append("<span style='color:#gold'>Tip: Test with a NEW ticket after this update.</span>");
                 debug.append("</div></div>");
                 
                 ctx.status(404).html(debug.toString());

@@ -138,6 +138,14 @@ public class SupabaseClient {
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
+        body.addProperty("ticketId", ticketId); // Dual-key support
+        
+        // Numeric support
+        if (ticketId.matches("\\d+")) {
+            int nid = Integer.parseInt(ticketId);
+            body.addProperty("ticket_id_int", nid);
+        }
+
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("content", content);
