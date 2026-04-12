@@ -43,7 +43,7 @@ public class TranscriptService {
             obj.addProperty("created_at", m.getTimeCreated().toInstant().toString());
             arr.add(obj);
         }
-        return buildHtml(ticketId, channelName, type, status, openedAt, openerName, closedBy, arr);
+        return buildHtml(ticketId, channelName, type, status, openedAt, openerName, "None", closedBy, arr);
     }
 
     private static String extractComponentText(Message m) {

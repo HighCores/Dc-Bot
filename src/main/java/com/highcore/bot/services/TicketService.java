@@ -391,10 +391,10 @@ public class TicketService {
             TextChannel logCh = channel.getGuild().getTextChannelById(TRANSCRIPT_CHANNEL_ID);
             if (logCh != null) {
                 String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + ticketId;
-                logCh.sendMessageEmbeds(EmbedUtil.containerBranded("TRANSCRIPT", "Archive — Case #" + ticketId, 
+                logCh.sendMessageComponents(EmbedUtil.containerBranded("TRANSCRIPT", "Archive — Case #" + ticketId, 
                     "**Opener:** <@" + openerId + "> (" + openerName + ")\n" +
                     "**Closed By:** " + closer.getAsMention() + "\n\n" +
-                    "**[ \uD83D\uDCDC View Full Web Transcript ](" + url + ")**", EmbedUtil.BANNER_SUPPORT).build()).queue();
+                    "**[ \uD83D\uDCDC View Full Web Transcript ](" + url + ")**", EmbedUtil.BANNER_SUPPORT)).useComponentsV2(true).queue();
             }
         }
     }
