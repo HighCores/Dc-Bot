@@ -165,20 +165,18 @@ public class RestApiServer {
                 debug.append("<div style='text-align:center;margin-bottom:30px'>");
                 debug.append("<div style='width:50px;height:50px;background:linear-gradient(135deg,#C5A059,#FFD700);border-radius:12px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;box-shadow:0 4px 20px rgba(197,160,89,0.3)'>HC</div>");
                 debug.append("<div style='font-size:24px;font-weight:800;background:linear-gradient(90deg,#C5A059,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>EMPTY TRANSCRIPT</div>");
-                debug.append("<div style='color:#72767d;font-size:13px;margin-top:8px'>Ticket ID: #").append(id).append(" · No messages found in database yet.</div>");
+                debug.append("<div style='color:#72767d;font-size:13px;margin-top:8px'>Ticket ID: #").append(id).append(" · Diagnostic analysis active.</div>");
                 debug.append("</div>");
                 
                 // Diagnostic Data (Premium Look)
-                debug.append("<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:400px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
-                debug.append("<div style='font-size:10px;font-weight:800;color:#C5A059;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;border-bottom:1px solid #2a2c30;padding-bottom:8px'>System Diagnosis</div>");
-                debug.append("<div style='font-family:monospace;font-size:12px;line-height:1.8;color:#abb2bf'>");
-                debug.append("<span style='color:#56b6c2'>- Meta Data:</span> ").append(SupabaseClient.getTicketById(id) == null ? "<span style='color:#e06c75'>MISSING</span>" : "<span style='color:#98c379'>ONLINE</span>").append("<br>");
-                debug.append("<span style='color:#56b6c2'>- Msg Stream:</span> <span style='color:#e06c75'>EMPTY (0 records)</span><br>");
-                debug.append("<span style='color:#56b6c2'>- DB Link:</span> <span style='color:#98c379'>CONNECTED</span><br>");
-                debug.append("<span style='color:#56b6c2'>- Provider:</span> Supabase (dc_ticket_messages)");
+                debug.append("<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:500px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
+                debug.append("<div style='font-size:10px;font-weight:800;color:#C5A059;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;border-bottom:1px solid #2a2c30;padding-bottom:8px'>Advanced Database Feed</div>");
+                debug.append("<div style='font-family:monospace;font-size:11px;line-height:1.6;color:#abb2bf;white-space:pre-wrap;overflow-x:auto'>");
+                debug.append("<span style='color:#56b6c2'>- Ticket Record:</span> ").append(ticket == null ? "<span style='color:#e06c75'>NOT FOUND</span>" : ticket.toString()).append("<br><br>");
+                debug.append("<span style='color:#d19a66'>Note: If record is OK but list is empty, there is a linking mismatch.</span>");
                 debug.append("</div></div>");
                 
-                debug.append("<div style='margin-top:30px;color:#4f545c;font-size:11px'>Waiting for conversation to be logged...</div>");
+                debug.append("<div style='margin-top:30px;color:#4f545c;font-size:11px'>Please provide a screenshot of this box to your developer.</div>");
                 debug.append("</body>");
                 
                 ctx.status(200).html(debug.toString());
