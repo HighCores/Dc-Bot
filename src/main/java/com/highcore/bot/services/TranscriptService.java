@@ -129,9 +129,30 @@ public class TranscriptService {
 
     private static String processContent(String content) {
         String html = content.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>");
-        // Basic Attachment Handling
+        
+        // Advanced Attachment Handling (Images vs Files)
         if (html.contains("[ATTACHMENT: ")) {
-            html = html.replaceAll("\\[ATTACHMENT: (.*?)\\]", "<div class='att-wrap'><img class='att-img' src='$1' alt='attachment'></div>");
+            // Match any attachment
+            java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[ATTACHMENT: (.*?)\\]").matcher(html);
+            StringBuffer sb = new StringBuffer();
+            while (m.find()) {
+                String url = m.group(1);
+                String lowerUrl = url.toLowerCase();
+                // Check if it's an image
+                if (lowerUrl.matches(".*\\.(png|jpg|jpeg|gif|webp|bmp)(?:\\?.*)?$")) {
+                    m.appendReplacement(sb, "<div class='att-wrap'><a href='" + url + "' target='_blank'><img class='att-img' src='" + url + "' alt='Image Attachment'></a></div>");
+                } else {
+                    // Render as a clickable file button
+                    String fileName = "Download File/Video";
+                    try {
+                        String[] parts = url.split("\\?")[0].split("/");
+                        fileName = parts[parts.length - 1];
+                    } catch (Exception ignored) {}
+                    m.appendReplacement(sb, "<div style='margin-top:8px'><a href='" + url + "' target='_blank' style='display:inline-flex;align-items:center;gap:6px;background:var(--surface);border:1px solid var(--border);padding:8px 12px;border-radius:6px;color:var(--gold);text-decoration:none;font-size:12px;font-weight:600'>📎 " + fileName + "</a></div>");
+                }
+            }
+            m.appendTail(sb);
+            html = sb.toString();
         }
         return html;
     }
