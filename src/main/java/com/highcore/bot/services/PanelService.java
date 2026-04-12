@@ -140,8 +140,10 @@ public class PanelService {
 
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-            Button.primary("btn_highcore", "HighCore").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
-            Button.secondary("btn_about", "About Us").withEmoji(Emoji.fromUnicode("\uD83D\uDCD6"))
+            Button.secondary("btn_highcore", "HighCore"),
+            Button.secondary("btn_about", "About Us"),
+            Button.secondary("btn_partners", "Partners"),
+            Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support")
         );
         reply(event, EmbedUtil.startupPanel(row));
     }
@@ -164,9 +166,9 @@ public class PanelService {
                 \u26D4\uFE0F\u3000**Support Waiting** \u2192 <#1488795130881249406>
                 """;
         ActionRow row = ActionRow.of(
-            Button.success("btn_pings", "Pings").withEmoji(Emoji.fromUnicode("\uD83D\uDCE2")),
-            Button.secondary("btn_rules", "Server Rules").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC")),
-            Button.secondary("btn_startup", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+            Button.secondary("btn_pings", "Pings"),
+            Button.secondary("btn_rules", "Server Rules"),
+            Button.secondary("btn_startup", "Back")
         );
         replyEphemeral(event, EmbedUtil.containerBranded("MAP", "Sector Directory", body, EmbedUtil.BANNER_MAIN, row));
     }
@@ -181,7 +183,7 @@ public class PanelService {
             Button.secondary("ping_1488916879186596081", "Offers & Promotions"),
             Button.secondary("ping_1489764018989301840", "Start Hiring")
         );
-        ActionRow nav = ActionRow.of(Button.secondary("btn_highcore", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        ActionRow nav = ActionRow.of(Button.secondary("btn_highcore", "Back"));
         replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row1, row2, nav));
     }
 
@@ -197,8 +199,8 @@ public class PanelService {
                 .build()
         );
         ActionRow btn = ActionRow.of(
-            Button.primary("btn_socials", "Social Media").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
-            Button.secondary("btn_startup", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F"))
+            Button.secondary("btn_socials", "Social Media"),
+            Button.secondary("btn_startup", "Back")
         );
         replyEphemeral(event, EmbedUtil.containerBranded("IDENTITY", "Specialist Modules", body, EmbedUtil.BANNER_MAIN, select, btn));
     }
@@ -212,7 +214,7 @@ public class PanelService {
             Button.link("https://www.instagram.com/high_core_agency/", "Instagram"),
             Button.link("https://www.threads.com/@high_core_agency", "Threads")
         );
-        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back"));
         replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row1, row2, nav));
     }
 
@@ -234,12 +236,13 @@ public class PanelService {
             }
         });
 
-        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back").withEmoji(Emoji.fromUnicode("\u2B05\uFE0F")));
+        ActionRow nav = ActionRow.of(Button.secondary("btn_about", "Back"));
         replyEphemeral(event, EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN, nav));
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.eliteContainer("Partners", "Strategic collaborations.", null));
+        ActionRow nav = ActionRow.of(Button.secondary("btn_startup", "Back"));
+        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "Stay tuned for future collaborations. New partnerships coming soon.", EmbedUtil.BANNER_MAIN, nav));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {

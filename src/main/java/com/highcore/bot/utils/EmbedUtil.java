@@ -103,35 +103,25 @@ public class EmbedUtil {
 
     public static Container rulesArabicPanel() {
         String body = """
-                ## 📋 قوانين وكالة هايكور | Haikore Agency
+                ## \uD83D\uDCCB Highcore Agency | Official Rules
 
-                ### 🛡 أولاً : القواعد العامة (General Rules)
+                ### \uD83D\uDEE1\uFE0F I. General Rules
+                1- **Mutual Respect:** Harassment, bullying, or offensive language is strictly prohibited. We are a professional community built on support and respect.
+                2- **Professional Identity:** Please use clear, respectful names and appropriate avatars.
+                3- **Privacy:** Any form of Doxxing or sharing personal information of members or clients is strictly prohibited and grounds for immediate termination.
 
-                1- الاحترام المتبادل : يمنع الإساءة، التنمر، أو استخدام الألفاظ النابية نحن مجتمع مبني على الدعم والرقي
+                ### \uD83D\uDCBC II. Business Rules
+                1- **Order Integrity:** Order channels are for professional work only. Pranks or fake requests will result in restricted access.
+                2- **Intellectual Property:** All code, designs, and assets remain the property of "Highcore Agency" unless agreed otherwise with the client.
+                3- **Official Communication:** All financial or technical agreements must be localized within Tickets to ensure transparency and proper documentation.
 
-                2- الهوية المهنية : يفضل استخدام أسماء واضحة (أو مستعارة محترمة) وتجنب الصور الشخصية غير اللائقة
+                ### \uD83D\uDEAB III. Prohibitions
+                1- **No Advertisements:** Posting external server links or promoting external services without administration approval is prohibited.
+                2- **No Spam:** Avoid repetitive messages or random pings to the administration. We are here to serve you efficiently.
+                3- **Sensitive Content:** Posting political, extreme religious, or NSFW content is strictly forbidden.
 
-                3- الخصوصية: يمنع منعاً باتاً نشر معلومات شخصية (Doxxing) لأي عضو أو عميل داخل السيرفر
-
-                ### 💼 ثانياً : قوانين التعاملات والعمل (Business Rules)
-
-                1- الجدية في الطلبات : رومات الطلبات مخصصة للعمل فقط أي استهزاء أو طلبات وهمية قد تؤدي لتقييد وصولك
-
-                2- حقوق الملكية : جميع الحقوق البرمجية والتصميمية او اي خدمه تعود لوكالة "هايكور" ما لم يتم الاتفاق على خلاف ذلك مع العميل
-
-                3- التواصل الرسمي : أي اتفاق مالي أو تقني يجب أن يتم عبر "التكتات" (Tickets) لضمان حق الطرفين وتوثيق العمل
-
-                ### 🚫 ثالثاً : المحظورات (Prohibitions)
-
-                1- ممنوع الإعلانات (No Ads) : يمنع نشر روابط سيرفرات أخرى أو الترويج لخدمات خارجية دون إذن الإدارة
-
-                2- السبام (No Spam) : تجنب تكرار الرسائل أو المنشن العشوائي للإدارة ؛ الجميع هنا لخدمتك وفق جدول زمني
-
-                3- المحتوى الحساس : يمنع نشر أي محتوى سياسي، ديني متطرف، أو خادش للحياء
-
-                ### ⚠️ رابعاً : الإجراءات الإدارية
-
-                1- قرار الإدارة قطعي : الإدارة لها الحق في اتخاذ الإجراء المناسب (تحذير/طرد/باند) في حال مخالفة الروح العامة للوكالة، حتى لو لم ينص القانون على المخالفة نصاً
+                ### \u26A0\uFE0F IV. Administrative Actions
+                1- **Final Decision:** The administration reserves the right to take appropriate action (Warning/Kick/Ban) in case of any violation against the agency's general spirit, even if not explicitly stated here.
                 """;
         return containerBranded("PROTOCOL", "Terminal Rules", body, BANNER_MAIN);
     }
