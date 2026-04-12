@@ -135,30 +135,21 @@ public class SupabaseClient {
         return arr;
     }
 
-    public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role) {
+    public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
         JsonObject body = new JsonObject();
-        // Ticket ID variations
-        body.addProperty("ticket_id", ticketId);
-        body.addProperty("ticketId", ticketId);
-        body.addProperty("id_ticket", ticketId);
-        if (ticketId.matches("\\d+")) body.addProperty("ticket_id_int", Integer.parseInt(ticketId));
-
-        // User variations
+        // Matching historical format: HC-001, HC-002, etc.
+        String formalId = ticketId.startsWith("HC-") ? ticketId : "HC-" + ticketId;
+        
+        body.addProperty("ticket_id", formalId);
+        body.addProperty("ticketId", formalId); 
+        
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
-        body.addProperty("author_name", userName);
-
-        // Content variations
         body.addProperty("content", content);
-        body.addProperty("body", content);
-        body.addProperty("text", content);
-        body.addProperty("message_content", content);
-
-        // Role variations
+        body.addProperty("message_id", messageId);
         body.addProperty("is_bot", role.equalsIgnoreCase("BOT"));
         body.addProperty("role", role);
-        body.addProperty("type", role);
-
+        
         post("dc_ticket_messages", body);
     }
 

@@ -151,7 +151,11 @@ public class RestApiServer {
         JsonArray messages = null;
         try {
             ticket = SupabaseClient.getTicketById(id);
+            if (ticket == null && !id.startsWith("HC-")) ticket = SupabaseClient.getTicketById("HC-" + id);
+            
             messages = SupabaseClient.getTicketMessages(id);
+            if ((messages == null || messages.size() == 0) && !id.startsWith("HC-")) messages = SupabaseClient.getTicketMessages("HC-" + id);
+            
             int msgCount = (messages != null) ? messages.size() : 0;
             
             if (ticket == null || msgCount == 0) {
