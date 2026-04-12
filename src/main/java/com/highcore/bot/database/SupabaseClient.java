@@ -137,18 +137,14 @@ public class SupabaseClient {
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
         JsonObject body = new JsonObject();
-        // Matching historical format: HC-001, HC-002, etc.
+        // The screenshot shows: ticket_id, user_id, user_name, content, message_id
         String formalId = ticketId.startsWith("HC-") ? ticketId : "HC-" + ticketId;
         
         body.addProperty("ticket_id", formalId);
-        body.addProperty("ticketId", formalId); 
-        
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("content", content);
         body.addProperty("message_id", messageId);
-        body.addProperty("is_bot", role.equalsIgnoreCase("BOT"));
-        body.addProperty("role", role);
         
         post("dc_ticket_messages", body);
     }
