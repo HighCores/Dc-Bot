@@ -152,7 +152,24 @@ public class RestApiServer {
             JsonArray messages = SupabaseClient.getTicketMessages(id);
             
             if (ticket == null && (messages == null || messages.size() == 0)) {
-                ctx.status(404).html("<div style='background:#0d0e10;color:white;height:100vh;display:flex;align-items:center;justify-content:center;font-family:sans-serif'><h1>404 - Transcript Not Found (" + id + ")</h1></div>");
+                // Quick health check
+                JsonArray health = SupabaseClient.get("dc_settings", "limit=1");
+                boolean dbHealthy = health != null;
+
+                StringBuilder debug = new StringBuilder();
+                debug.append("<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif;padding:20px;text-align:center'>");
+                debug.append("<h1 style='margin:0'>404 - Transcript Not Found</h1>");
+                debug.append("<p style='color:#subtle;margin-top:10px'>Ticket ID: <b>").append(id).append("</b></p>");
+                debug.append("<div style='margin-top:20px;background:#1a1c1e;padding:15px;border-radius:8px;text-align:left;font-family:monospace;font-size:12px;color:#abb2bf;width:100%;max-width:600px;border:1px solid #3e4451'>");
+                debug.append("<b>DIAGNOSTIC DATA:</b><br>");
+                debug.append("- Meta Query: ").append(ticket == null ? "<span style='color:#ed4245'>MISSING</span>" : "FOUND").append("<br>");
+                debug.append("- Msg Query: ").append((messages == null || messages.size() == 0) ? "<span style='color:#ed4245'>EMPTY/FAILED</span>" : messages.size() + " messages retrieved").append("<br>");
+                debug.append("- DB Connectivity: ").append(dbHealthy ? "<span style='color:#4caf50'>ONLINE</span>" : "<span style='color:#ed4245'>OFFLINE/AUTH ERROR</span>").append("<br>");
+                debug.append("- Search Path: ").append(id).append(", ").append(id.replaceAll("^0+", "")).append("<br><br>");
+                debug.append("<span style='color:#gold'>Tip: Ensure the bot is running and that messages were sent AFTER the last update.</span>");
+                debug.append("</div></div>");
+                
+                ctx.status(404).html(debug.toString());
                 return;
             }
 
