@@ -20,7 +20,7 @@ public class WelcomeListener extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         log.info("Member joined: {} in {}", event.getMember().getUser().getName(), event.getGuild().getName());
-
+        
         try {
             byte[] welcomeImage = WelcomeCardService.generateWelcomeCard(event.getMember());
             sendWelcomeMessage(event.getMember(), event.getGuild(), welcomeImage);
@@ -30,16 +30,12 @@ public class WelcomeListener extends ListenerAdapter {
             sendWelcomeMessage(event.getMember(), event.getGuild(), null);
         }
 
-        logActivity(event.getGuild(), "Member Joined", "A new member has joined: **"
-                + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")",
-                com.highcore.bot.utils.EmbedUtil.SUCCESS);
+        logActivity(event.getGuild(), "Member Joined", "A new member has joined: **" + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")", com.highcore.bot.utils.EmbedUtil.SUCCESS);
     }
 
     @Override
     public void onGuildMemberRemove(net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent event) {
-        logActivity(event.getGuild(), "Member Left",
-                "A member has left the server: **" + event.getUser().getName() + "** (" + event.getUser().getId() + ")",
-                com.highcore.bot.utils.EmbedUtil.DANGER);
+        logActivity(event.getGuild(), "Member Left", "A member has left the server: **" + event.getUser().getName() + "** (" + event.getUser().getId() + ")", com.highcore.bot.utils.EmbedUtil.DANGER);
     }
 
     private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
@@ -51,18 +47,17 @@ public class WelcomeListener extends ListenerAdapter {
 
     private void sendWelcomeMessage(Member member, Guild guild, byte[] image) {
         TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
-        if (ch == null)
-            return;
+        if (ch == null) return;
 
         String body = String.format("""
-                Welcome : %s,
+                Welcome : %s, 
                 You are the %d'th member .
                 Dont forget to visit the line : <#1488795130470072321>
                 """, member.getAsMention(), guild.getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
-
+        
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
             message.addFiles(FileUpload.fromData(image, "welcome.png"));
