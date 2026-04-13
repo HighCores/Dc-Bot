@@ -82,9 +82,9 @@ public class GiveawayCommands extends ListenerAdapter {
                 // Regular giveaway shows type selection first
                 StringSelectMenu menu = StringSelectMenu.create("sel_gw_type")
                         .setPlaceholder("Select the type of giveaway...")
-                        .addOption("Voucher (\u0642\u0633\u064A\u0645\u0629 \u0634\u0631\u0627\u0621)", "Voucher", "Prize of a specific amount")
-                        .addOption("Discount (\u0642\u0633\u064A\u0645\u0629 \u062A\u062E\u0641\u0641\u064A\u0636)", "Discount", "Percentage-based discount")
-                        .addOption("Custom (\u062C\u0627\u0626\u0632\u0629 \u0645\u062E\u0635\u0635\u0629)", "Custom", "Anything else")
+                        .addOption("Voucher", "Voucher", "Prize of a specific amount")
+                        .addOption("Discount", "Discount", "Percentage-based discount")
+                        .addOption("Custom", "Custom", "Anything else")
                         .build();
 
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection", 
@@ -93,30 +93,44 @@ public class GiveawayCommands extends ListenerAdapter {
         } else if (id.equals("btn_gw_history")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             JsonArray active = SupabaseClient.getActiveGiveaways();
+            
             if (active == null || active.size() == 0) {
-                event.reply("No giveaways running right now.").setEphemeral(true).queue();
+                var emptyC = EmbedUtil.containerBranded("GIVEAWAY REGISTRY", "History Cache", "\u26A0\uFE0F **Registry Empty:** No active or recent deployments located in the local database.", EmbedUtil.BANNER_GIVEAWAY);
+                PanelService.replyEphemeral(event, emptyC);
                 return;
             }
 
             StringBuilder sb = new StringBuilder();
+            sb.append("### \uD83D\uDCC3 Operational Deployment Log\nListing all active and pending reward sequences:\n\n");
+            
             for (int i = 0; i < active.size(); i++) {
                 JsonObject g = active.get(i).getAsJsonObject();
+                long gwIdLong = g.get("id").getAsLong();
                 String prize = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown";
-                String host = g.has("host_name") ? g.get("host_name").getAsString() : "Admin";
+                String hostId = g.has("host_id") ? g.get("host_id").getAsString() : "0";
+                String chanId = g.has("channel_id") ? g.get("channel_id").getAsString() : "0";
                 String ends = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
                 
-                sb.append("• **").append(prize).append("** by ").append(host);
+                // Get entry count
+                JsonArray entries = SupabaseClient.getGiveawayEntries(gwIdLong);
+                int pCount = (entries != null) ? entries.size() : 0;
+
+                sb.append("\u25AB\uFE0F **Prize:** ").append(prize)
+                  .append("\n\u001F \u001F **Host:** <@").append(hostId).append(">")
+                  .append("\n\u001F \u001F **Node:** <#").append(chanId).append(">")
+                  .append("\n\u001F \u001F **Stats:** ").append(pCount).append(" members joined");
+                
                 if (!ends.isEmpty()) {
                     try {
-                        long ts = Instant.parse(ends).getEpochSecond();
-                        sb.append(" (Ends <t:").append(ts).append(":R>)");
+                        long ts = java.time.Instant.parse(ends).getEpochSecond();
+                        sb.append("\n\u001F \u001F **Limit:** <t:").append(ts).append(":R>");
                     } catch (Exception e) {}
                 }
-                sb.append("\n");
+                sb.append("\n\n");
             }
 
             var c = EmbedUtil.containerBranded("GIVEAWAY REGISTRY", "Active Deployments", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
-            event.replyComponents(c).setEphemeral(true).queue();
+            PanelService.replyEphemeral(event, c);
         } else if (id.startsWith("gw_end_early_")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             long gwId = Long.parseLong(id.replace("gw_end_early_", ""));
@@ -171,6 +185,29 @@ public class GiveawayCommands extends ListenerAdapter {
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1); // Capitalize
         
         String prizeStr = event.getValue("prize").getAsString();
+
+        // Symbol Validation
+        if (typeStr.equalsIgnoreCase("Voucher")) {
+            if (!prizeStr.contains("$")) {
+                event.reply("\u26A0\uFE0F **Format Error:** Voucher prizes must include the `$` symbol (e.g., $50).").setEphemeral(true).queue();
+                return;
+            }
+            if (prizeStr.contains("%")) {
+                event.reply("\u26A0\uFE0F **Format Error:** Vouchers cannot use the `%` symbol. Use `$` for amounts.").setEphemeral(true).queue();
+                return;
+            }
+        }
+        if (typeStr.equalsIgnoreCase("Discount")) {
+            if (!prizeStr.contains("%")) {
+                event.reply("\u26A0\uFE0F **Format Error:** Discount prizes must include the `%` symbol (e.g., 20%).").setEphemeral(true).queue();
+                return;
+            }
+            if (prizeStr.contains("$")) {
+                event.reply("\u26A0\uFE0F **Format Error:** Discounts cannot use the `$` symbol. Use `%` for percentages.").setEphemeral(true).queue();
+                return;
+            }
+        }
+
         int winCount = 1;
         int duration = 0;
         

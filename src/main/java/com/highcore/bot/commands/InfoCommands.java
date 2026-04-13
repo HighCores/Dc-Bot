@@ -41,7 +41,7 @@ public class InfoCommands extends ListenerAdapter {
     private void handleAvatar(SlashCommandInteractionEvent event, boolean server) {
         String url = server ? event.getGuild().getIconUrl() : 
             (event.getOption("user") != null ? event.getOption("user").getAsUser().getEffectiveAvatarUrl() : event.getUser().getEffectiveAvatarUrl());
-        PanelService.reply(event, EmbedUtil.containerBranded("\u0627\u0644\u0645\u0631\u0626\u064A\u0627\u062A", "\u0639\u0631\u0636 \u0635\u0648\u0631\u0629 \u0627\u0644\u062D\u0633\u0627\u0628", "### \uD83D\uDDBC \u0627\u0644\u0647\u0648\u064A\u0629 \u0627\u0644\u0631\u0642\u0645\u064A\u0629 \u0644\u0644\u0639\u0636\u0648", url));
+        PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "Avatar Display", "### \u001F \u001F Identity Visualized", url));
     }
 
     private void handleServer(SlashCommandInteractionEvent event) {
