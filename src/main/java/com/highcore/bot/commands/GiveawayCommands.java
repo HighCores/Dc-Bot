@@ -47,19 +47,19 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        String desc = "Welcome to the **Giveaway Management Panel**.\n\n" +
-                "You can manage, create, and deploy automated sweepstakes for the community.\n" +
-                "• **Create Giveaway:** Launches a setup wizard.\n" +
-                "• **Drop Giveaway:** Drops an instant winner sweepstake.\n" +
-                "• **History:** View active and past giveaways.";
+        String desc = "Welcome to the **Giveaway Management Hub**.\n\n" +
+                "Easily create rewards, launch instant drops, or review history.\n\n" +
+                "\uD83D\uDCDD **Create Giveaway** — Step-by-step setup.\n" +
+                "\uD83D\uDCA8 **Instant Drop** — Fast 'first-to-claim' prize.\n" +
+                "\uD83D\uDDD2 **View History** — Check active tasks.";
 
         ActionRow row = ActionRow.of(
                 Button.primary("btn_gw_create", "Create Giveaway").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF81")),
-                Button.secondary("btn_gw_drop", "Quick Drop").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCA8")),
-                Button.secondary("btn_gw_history", "History").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDD2"))
+                Button.secondary("btn_gw_drop", "Instant Drop").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCA8")),
+                Button.secondary("btn_gw_history", "View History").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDD2"))
         );
 
-        var c = EmbedUtil.containerBranded("GIVEAWAY CONTROL", "Reward System", desc, EmbedUtil.BANNER_GIVEAWAY, row);
+        var c = EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc, EmbedUtil.BANNER_GIVEAWAY, row);
 
         PanelService.reply(event, c);
     }
@@ -94,7 +94,7 @@ public class GiveawayCommands extends ListenerAdapter {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             JsonArray active = SupabaseClient.getActiveGiveaways();
             if (active == null || active.size() == 0) {
-                event.reply("There are no active giveaways at the moment.").setEphemeral(true).queue();
+                event.reply("No giveaways running right now.").setEphemeral(true).queue();
                 return;
             }
 
@@ -251,31 +251,35 @@ public class GiveawayCommands extends ListenerAdapter {
         
         String body;
         if (isDrop) {
-            body = "### \uD83D\uDCA8 QUICK DROP: " + type.toUpperCase() + "\n**Prize:** " + prize + "\n**Winners:** " + winCount + "\n\nFirst to claim wins!";
+            body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
         } else {
-            body = "### \uD83C\uDF81 ACTIVE GIVEAWAY\n**Type:** " + type.toUpperCase() + "\n**Prize:** " + prize + "\n**Winners:** **" + winCount + "**\n**Ends:** <t:" + endsAt.getEpochSecond() + ":R>";
+            body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:" + endsAt.getEpochSecond() + ":R>";
         }
 
-        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Drop" : "Enter Giveaway")
+        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
                 .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
         Button countBtn = Button.secondary("gw_count_" + giveawayId, "0 entries");
 
-        target.sendMessageComponents(EmbedUtil.containerBranded(isDrop ? "QUICK DROP" : "SWEEPSTAKES", "Rewards Distribution", body, EmbedUtil.BANNER_GIVEAWAY))
-                .setComponents(ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn))
-                .queue(msg -> {
-                    SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId());
-                });
+        ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
+        var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body, EmbedUtil.BANNER_GIVEAWAY, gwRow);
+
+        target.sendMessageComponents(gwC).useComponentsV2(true).queue(msg -> {
+            SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId());
+        });
 
         LogManager.log(event.getGuild(), isDrop ? "DROP LAUNCHED" : "GIVEAWAY STARTED",
-                "Prize: " + prize + "\nAdmin: " + event.getUser().getAsMention() + "\nChannel: " + target.getAsMention(), EmbedUtil.INFO);
+                "Prize: " + prize + "\nAdmin: **" + event.getUser().getAsTag() + "**\nChannel: " + target.getAsMention(), EmbedUtil.INFO);
 
         // Edit the interaction with a Live Dashboard
-        String dashDesc = "### Dashboard: " + prize + "\n**Status:** Active\n**Participants:** 0";
+        String dashDesc = "### " + prize + " | Live Status\n" +
+                "\u25AB\uFE0F **Status:** Currently Active\n" +
+                "\u25AB\uFE0F **Users Joined:** 0 members";
+        
         var dashRow = ActionRow.of(
                 Button.danger("gw_end_early_" + giveawayId, "End Early"),
                 Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")
         );
-        var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
+        var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
         
         event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(true).queue();
 

@@ -75,12 +75,15 @@ public class GiveawayListener extends ListenerAdapter {
             TextChannel dashCh = event.getGuild().getTextChannelById(dashChId);
             if (dashCh != null) {
                 String prizeDetail = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown Prize";
-                String dashDesc = "### Dashboard: " + prizeDetail + "\n**Status:** Active\n**Participants:** " + count;
+                String dashDesc = "### " + prizeDetail + " | Live Status\n" +
+                        "\u25AB\uFE0F **Status:** Currently Active\n" +
+                        "\u25AB\uFE0F **Users Joined:** " + count + " members";
+                
                 var dashRow = ActionRow.of(
                         Button.danger("gw_end_early_" + giveawayId, "End Early"),
                         Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")
                 );
-                var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
+                var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Status", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
                 
                 dashCh.editMessageComponentsById(dashMsgId, dashC).queue(null, ex -> {});
             }
