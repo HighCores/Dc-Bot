@@ -4,6 +4,7 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.GiveawayService;
+import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
 import com.highcore.bot.commands.GiveawayCommands;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -58,10 +59,23 @@ public class GiveawayListener extends ListenerAdapter {
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         int count = entries != null ? entries.size() : 1;
 
-        event.editComponents(ActionRow.of(
-                Button.primary("gw_enter_" + giveawayId, "\uD83C\uDF89 Join Sweepstakes"),
-                Button.secondary("gw_count_" + giveawayId, count + " entries")
-        )).queue();
+        // Correctly re-render the Giveaway Container to avoid visual repetition and update count
+        String prize = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown Prize";
+        int winCount = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
+        String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
+        long endsTs = !endsStr.isEmpty() ? java.time.Instant.parse(endsStr).getEpochSecond() : 0;
+
+        String body = isDrop ? 
+            "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!" :
+            "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:" + endsTs + ":R>";
+
+        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+                .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
+        Button countBtn = Button.secondary("gw_count_" + giveawayId, count + " entries");
+
+        var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body, EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn));
+
+        PanelService.reply(event, gwC);
 
         event.getHook().sendMessage("\u2705 You've entered the giveaway! Good luck! \uD83C\uDF40").setEphemeral(true).queue();
         
@@ -83,7 +97,7 @@ public class GiveawayListener extends ListenerAdapter {
                 );
                 var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Status", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
                 
-                dashCh.editMessageComponentsById(dashMsgId, dashC).queue(null, ex -> {});
+                dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
             }
         }
     }
