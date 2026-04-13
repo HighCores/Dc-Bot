@@ -54,9 +54,9 @@ public class GiveawayCommands extends ListenerAdapter {
                 "\uD83D\uDDD2 **View History** — Check active tasks.";
 
         ActionRow row = ActionRow.of(
-                Button.primary("btn_gw_create", "Create Giveaway").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF81")),
-                Button.secondary("btn_gw_drop", "Instant Drop").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCA8")),
-                Button.secondary("btn_gw_history", "View History").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDD2"))
+                Button.secondary("btn_gw_create", "Create Giveaway"),
+                Button.secondary("btn_gw_drop", "Instant Drop"),
+                Button.secondary("btn_gw_history", "View History")
         );
 
         var c = EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc, EmbedUtil.BANNER_GIVEAWAY, row);
@@ -117,7 +117,7 @@ public class GiveawayCommands extends ListenerAdapter {
 
                 sb.append("\u25AB\uFE0F **Prize:** ").append(prize)
                   .append("\n\u001F \u001F **Host:** <@").append(hostId).append(">")
-                  .append("\n\u001F \u001F **Node:** <#").append(chanId).append(">")
+                  .append("\n\u001F \u001F **Room:** <#").append(chanId).append(">")
                   .append("\n\u001F \u001F **Stats:** ").append(pCount).append(" members joined");
                 
                 if (!ends.isEmpty()) {
