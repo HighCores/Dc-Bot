@@ -58,14 +58,12 @@ public class GiveawayListener extends ListenerAdapter {
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         int count = entries != null ? entries.size() : 1;
 
-        try {
-            event.getMessage().editMessageComponents(ActionRow.of(
-                    Button.success("gw_enter_" + giveawayId, "\uD83C\uDF89 Enter Giveaway"),
-                    Button.secondary("gw_count_" + giveawayId, count + " entries")
-            )).queue();
-        } catch (Exception e) { /* ignore */ }
+        event.editComponents(ActionRow.of(
+                Button.success("gw_enter_" + giveawayId, "\uD83C\uDF89 Join Sweepstakes"),
+                Button.secondary("gw_count_" + giveawayId, count + " entries")
+        )).queue();
 
-        event.reply("\u2705 You've entered the giveaway! Good luck! \uD83C\uDF40").setEphemeral(true).queue();
+        event.getHook().sendMessage("\u2705 You've entered the giveaway! Good luck! \uD83C\uDF40").setEphemeral(true).queue();
         
         // Update the live dashboard!
         String dashMsgId = GiveawayCommands.dashboardMessages.get(giveawayId);

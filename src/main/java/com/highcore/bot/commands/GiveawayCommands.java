@@ -61,7 +61,7 @@ public class GiveawayCommands extends ListenerAdapter {
 
         var c = EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc, EmbedUtil.BANNER_GIVEAWAY, row);
 
-        PanelService.reply(event, c);
+        event.replyComponents(c).useComponentsV2(true).setEphemeral(false).queue();
     }
 
     @Override
