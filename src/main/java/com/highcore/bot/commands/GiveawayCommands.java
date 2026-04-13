@@ -51,15 +51,15 @@ public class GiveawayCommands extends ListenerAdapter {
                 "• **Drop Giveaway:** Drops an instant winner sweepstake.\n" +
                 "• **History:** View active and past giveaways.";
 
-        var c = EmbedUtil.containerBranded("GIVEAWAY CONTROL", "Reward System", desc, EmbedUtil.BANNER_GIVEAWAY);
-        
         ActionRow row = ActionRow.of(
                 Button.primary("btn_gw_create", "Create Giveaway").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF81")),
                 Button.secondary("btn_gw_drop", "Quick Drop").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDCA8")),
                 Button.secondary("btn_gw_history", "History").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83D\uDDD2"))
         );
 
-        event.replyComponents(c, row).queue();
+        var c = EmbedUtil.containerBranded("GIVEAWAY CONTROL", "Reward System", desc, EmbedUtil.BANNER_GIVEAWAY, row);
+
+        PanelService.reply(event, c);
     }
 
     @Override
@@ -99,8 +99,30 @@ public class GiveawayCommands extends ListenerAdapter {
         } else if (id.equals("btn_gw_history")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             JsonArray active = SupabaseClient.getActiveGiveaways();
-            int count = active != null ? active.size() : 0;
-            event.reply("Active Giveaways: **" + count + "**\nCheck logs for past ones.").setEphemeral(true).queue();
+            if (active == null || active.size() == 0) {
+                event.reply("There are no active giveaways at the moment.").setEphemeral(true).queue();
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            for (int i = 0; i < active.size(); i++) {
+                JsonObject g = active.get(i).getAsJsonObject();
+                String prize = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown";
+                String host = g.has("host_name") ? g.get("host_name").getAsString() : "Admin";
+                String ends = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
+                
+                sb.append("• **").append(prize).append("** by ").append(host);
+                if (!ends.isEmpty()) {
+                    try {
+                        long ts = Instant.parse(ends).getEpochSecond();
+                        sb.append(" (Ends <t:").append(ts).append(":R>)");
+                    } catch (Exception e) {}
+                }
+                sb.append("\n");
+            }
+
+            var c = EmbedUtil.containerBranded("GIVEAWAY REGISTRY", "Active Deployments", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
+            event.replyComponents(c).setEphemeral(true).queue();
         } else if (id.startsWith("gw_end_early_")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             long gwId = Long.parseLong(id.replace("gw_end_early_", ""));
@@ -222,18 +244,17 @@ public class GiveawayCommands extends ListenerAdapter {
 
         // Edit the interaction with a Live Dashboard
         String dashDesc = "### Dashboard: " + prize + "\n**Status:** Active\n**Participants:** 0";
-        var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY);
-        
-        ActionRow dashRow = ActionRow.of(
+        var dashRow = ActionRow.of(
                 Button.danger("gw_end_early_" + giveawayId, "End Early"),
                 Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")
         );
+        var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
+        
+        event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(true).queue();
 
-        event.replyComponents(dashC, dashRow).queue(interactionHook -> {
-            interactionHook.retrieveOriginal().queue(dashMsg -> {
-                dashboardMessages.put(giveawayId, dashMsg.getId());
-                dashboardChannels.put(giveawayId, dashMsg.getChannel().getId());
-            });
+        event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {
+            dashboardMessages.put(giveawayId, dashMsg.getId());
+            dashboardChannels.put(giveawayId, dashMsg.getChannel().getId());
         });
     }
 }

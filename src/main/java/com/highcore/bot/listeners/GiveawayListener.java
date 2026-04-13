@@ -59,7 +59,7 @@ public class GiveawayListener extends ListenerAdapter {
         int count = entries != null ? entries.size() : 1;
 
         try {
-            event.editComponents(ActionRow.of(
+            event.getMessage().editMessageComponents(ActionRow.of(
                     Button.success("gw_enter_" + giveawayId, "\uD83C\uDF89 Enter Giveaway"),
                     Button.secondary("gw_count_" + giveawayId, count + " entries")
             )).queue();
@@ -76,7 +76,11 @@ public class GiveawayListener extends ListenerAdapter {
             if (dashCh != null) {
                 String prizeDetail = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown Prize";
                 String dashDesc = "### Dashboard: " + prizeDetail + "\n**Status:** Active\n**Participants:** " + count;
-                var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY);
+                var dashRow = ActionRow.of(
+                        Button.danger("gw_end_early_" + giveawayId, "End Early"),
+                        Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")
+                );
+                var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
                 
                 dashCh.editMessageComponentsById(dashMsgId, dashC).queue(null, ex -> {});
             }
