@@ -8,6 +8,8 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.EntitySelectInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
@@ -73,29 +75,21 @@ public class GiveawayCommands extends ListenerAdapter {
 
             boolean isDrop = id.equals("btn_gw_drop");
 
-            TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
-                    .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : "e.g., VIP Role or 15% Discount")
-                    .setRequired(true).build();
-            
-            TextInput typeInput = TextInput.create("type", TextInputStyle.SHORT)
-                    .setPlaceholder("Voucher, Discount, Custom")
-                    .setRequired(true).setValue(isDrop ? "Drop" : "Voucher").build();
+            if (isDrop) {
+                // Drop skips type selection
+                showGiveawayModal(event, "Drop");
+            } else {
+                // Regular giveaway shows type selection first
+                StringSelectMenu menu = StringSelectMenu.create("sel_gw_type")
+                        .setPlaceholder("Select the type of giveaway...")
+                        .addOption("Voucher (\u0642\u0633\u064A\u0645\u0629 \u0634\u0631\u0627\u0621)", "Voucher", "Prize of a specific amount")
+                        .addOption("Discount (\u0642\u0633\u064A\u0645\u0629 \u062A\u062E\u0641\u0641\u064A\u0636)", "Discount", "Percentage-based discount")
+                        .addOption("Custom (\u062C\u0627\u0626\u0632\u0629 \u0645\u062E\u0635\u0635\u0629)", "Custom", "Anything else")
+                        .build();
 
-            TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
-                    .setRequired(true).setValue("1").build();
-            
-            TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
-                    .setPlaceholder("Duration in minutes (e.g. 60)")
-                    .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
-
-            Modal modal = Modal.create("modal_gw_" + (isDrop ? "drop" : "create"), isDrop ? "QUICK DROP SETUP" : "GIVEAWAY SETUP")
-                    .addComponents(Label.of("Prize Details", prizeInput))
-                    .addComponents(Label.of("Type (Voucher/Discount/Custom)", typeInput))
-                    .addComponents(Label.of("Winners Count", winnersInput))
-                    .addComponents(Label.of("Duration (Minutes)", timeInput))
-                    .build();
-
-            event.replyModal(modal).queue();
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection", 
+                        "Please select the **type of reward** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(menu)));
+            }
         } else if (id.equals("btn_gw_history")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             JsonArray active = SupabaseClient.getActiveGiveaways();
@@ -137,13 +131,46 @@ public class GiveawayCommands extends ListenerAdapter {
     }
 
     @Override
+    public void onStringSelectInteraction(StringSelectInteractionEvent event) {
+        if (event.getComponentId().equals("sel_gw_type")) {
+            String type = event.getValues().get(0);
+            showGiveawayModal(event, type);
+        }
+    }
+
+    private void showGiveawayModal(net.dv8tion.jda.api.interactions.callbacks.IModalCallback event, String type) {
+        boolean isDrop = type.equals("Drop");
+        String modalId = "modal_gw_" + type.toLowerCase();
+        
+        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
+                .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
+                .setRequired(true).build();
+        
+        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
+                .setRequired(true).setValue("1").build();
+        
+        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
+                .setPlaceholder("Duration in minutes (e.g. 60)")
+                .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
+
+        Modal.Builder mb = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
+                .addComponents(Label.of(type.equals("Voucher") ? "Voucher Amount/Detail" : type.equals("Discount") ? "Discount Percentage" : "Reward Details", prizeInput))
+                .addComponents(Label.of("Winners Count", winnersInput))
+                .addComponents(Label.of("Duration (Minutes)", timeInput));
+
+        event.replyModal(mb.build()).queue();
+    }
+
+
+    @Override
     public void onModalInteraction(ModalInteractionEvent event) {
         if (!event.getModalId().startsWith("modal_gw_")) return;
         
         boolean isDrop = event.getModalId().equals("modal_gw_drop");
+        String typeStr = event.getModalId().replace("modal_gw_", "");
+        typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1); // Capitalize
         
         String prizeStr = event.getValue("prize").getAsString();
-        String typeStr = event.getValue("type").getAsString();
         int winCount = 1;
         int duration = 0;
         
