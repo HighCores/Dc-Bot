@@ -281,7 +281,7 @@ public class GiveawayCommands extends ListenerAdapter {
         );
         var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
         
-        event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(true).queue();
+        event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(false).queue();
 
         event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {
             dashboardMessages.put(giveawayId, dashMsg.getId());
