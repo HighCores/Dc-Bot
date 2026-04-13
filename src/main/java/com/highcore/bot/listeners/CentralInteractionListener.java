@@ -50,6 +50,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                 id.equals("ticket_delete") || id.equals("ticket_reopen") ||
                 id.startsWith("order_status_update_");
 
+        // Exclude system/giveaway buttons from Central handling
+        if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_")) return;
+
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
                 // no defer

@@ -54,6 +54,7 @@ public class Main {
                         new ServerLogListener(),
                         new UserLogListener(),
                         new WelcomeListener(), 
+                        new GiveawayListener(),
                         new CentralInteractionListener()
                 )
                 .build().awaitReady();
