@@ -4,10 +4,13 @@ import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.GiveawayService;
+import com.highcore.bot.utils.EmbedUtil;
+import com.highcore.bot.commands.GiveawayCommands;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,14 +45,15 @@ public class GiveawayListener extends ListenerAdapter {
         }
 
         String prizeType = g.has("prize_type") ? g.get("prize_type").getAsString() : "";
-        if (prizeType.equals("drop")) {
-            SupabaseClient.addGiveawayEntry(giveawayId, event.getUser().getId());
+        boolean isDrop = prizeType.equalsIgnoreCase("drop");
+        
+        SupabaseClient.addGiveawayEntry(giveawayId, event.getUser().getId());
+
+        if (isDrop) {
             event.reply("\uD83D\uDCA8 You claimed it! You won!").setEphemeral(true).queue();
             GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
             return;
         }
-
-        SupabaseClient.addGiveawayEntry(giveawayId, event.getUser().getId());
 
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         int count = entries != null ? entries.size() : 1;
@@ -62,6 +66,21 @@ public class GiveawayListener extends ListenerAdapter {
         } catch (Exception e) { /* ignore */ }
 
         event.reply("\u2705 You've entered the giveaway! Good luck! \uD83C\uDF40").setEphemeral(true).queue();
+        
+        // Update the live dashboard!
+        String dashMsgId = GiveawayCommands.dashboardMessages.get(giveawayId);
+        String dashChId = GiveawayCommands.dashboardChannels.get(giveawayId);
+        
+        if (dashMsgId != null && dashChId != null) {
+            TextChannel dashCh = event.getGuild().getTextChannelById(dashChId);
+            if (dashCh != null) {
+                String prizeDetail = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown Prize";
+                String dashDesc = "### Dashboard: " + prizeDetail + "\n**Status:** Active\n**Participants:** " + count;
+                var dashC = EmbedUtil.containerBranded("GIVEAWAY MONITOR", "Real-time Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY);
+                
+                dashCh.editMessageComponentsById(dashMsgId, dashC).queue(null, ex -> {});
+            }
+        }
     }
 
     private void handleCount(ButtonInteractionEvent event) {

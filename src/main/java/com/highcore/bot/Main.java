@@ -122,11 +122,8 @@ public class Main {
                 Commands.slash("role-multiple", "Bulk role management").addOption(OptionType.ROLE, "role", "Target role", true).addOption(OptionType.STRING, "action", "Action (Add/Remove)", true),
 
                 // ===== Giveaways =====
-                Commands.slash("giveaway-start", "Start a new giveaway"),
-                Commands.slash("giveaway-end", "End an active giveaway"),
-                Commands.slash("giveaway-reroll", "Pick a new winner"),
-                Commands.slash("giveaway-list", "List active giveaways"),
-                Commands.slash("giveaway-drop", "Create a quick drop giveaway"),
+                Commands.slash("giveaway", "Open the Giveaway Management Control Panel"),
+
 
                 // ===== Information =====
                 Commands.slash("profile", "View member profile").addOption(OptionType.USER, "user", "Target member", false),
