@@ -23,8 +23,6 @@ public class GiveawayListener extends ListenerAdapter {
 
         if (id.startsWith("gw_enter_")) {
             handleEntry(event);
-        } else if (id.startsWith("gw_count_")) {
-            handleCount(event);
         }
     }
 
@@ -58,10 +56,8 @@ public class GiveawayListener extends ListenerAdapter {
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         int count = entries != null ? entries.size() : 1;
 
-        event.editComponents(ActionRow.of(
-                Button.success("gw_enter_" + giveawayId, "\uD83C\uDF89 Join Sweepstakes"),
-                Button.secondary("gw_count_" + giveawayId, count + " entries")
-        )).queue();
+        // Keep the message exactly as it is (no edits to components/text)
+        event.deferEdit().queue();
 
         event.getHook().sendMessage("\u2705 You've entered the giveaway! Good luck! \uD83C\uDF40").setEphemeral(true).queue();
         
@@ -88,13 +84,5 @@ public class GiveawayListener extends ListenerAdapter {
         }
     }
 
-    private void handleCount(ButtonInteractionEvent event) {
-        String idStr = event.getComponentId().replace("gw_count_", "");
-        long giveawayId;
-        try { giveawayId = Long.parseLong(idStr); } catch (Exception e) { return; }
 
-        JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
-        int count = entries != null ? entries.size() : 0;
-        event.reply("\uD83D\uDCCA This giveaway has **" + count + "** entries so far!").setEphemeral(true).queue();
-    }
 }
