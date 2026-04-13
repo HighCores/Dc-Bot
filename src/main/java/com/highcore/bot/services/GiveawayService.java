@@ -64,27 +64,47 @@ public class GiveawayService {
 
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
 
+        String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
+        Container resultC;
         if (userIds.isEmpty()) {
-            Container c = EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
+            resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
                     "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", EmbedUtil.BANNER_GIVEAWAY);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
-            Container c = EmbedUtil.containerBranded("GIVEAWAY ENDED", "Winners Picked", 
+            resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "Winners Picked", 
                     "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
         }
 
-        String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
         if (messageId != null) {
-            String statusBody = "Giveaway Status: **Finished**\n" +
-                    "> **Item:** " + prizeDetails + "\n" +
-                    (userIds.isEmpty() ? "\u274C No winners were picked." : "\uD83C\uDFC6 Winner(s): " + String.join(", ", winners.stream().map(w -> "<@" + w + ">").toList())) +
-                    "\n> Total Entries: **" + userIds.size() + "** members.";
-            
-            Container editC = EmbedUtil.containerBranded("GIVEAWAY EXPIRED", "Archived", statusBody, EmbedUtil.BANNER_GIVEAWAY);
-            ch.editMessageComponentsById(messageId, editC).setComponents(ActionRow.of(Button.secondary("giveaway_ended", "GIVEAWAY ENDED").asDisabled())).useComponentsV2(true).queue(null, e -> {});
+            ch.editMessageComponentsById(messageId, resultC)
+              .setComponents(ActionRow.of(Button.secondary("giveaway_ended", "GIVEAWAY ENDED").asDisabled()))
+              .useComponentsV2(true)
+              .queue(null, e -> {
+                  // Fallback if edit fails
+                  ch.sendMessageComponents(resultC).useComponentsV2(true).queue();
+              });
+        } else {
+            ch.sendMessageComponents(resultC).useComponentsV2(true).queue();
+        }
+
+        // 🔗 Sync Dashboard (if exists)
+        String dashMsgId = com.highcore.bot.commands.GiveawayCommands.dashboardMessages.get(giveawayId);
+        String dashChId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
+        
+        if (dashMsgId != null && dashChId != null) {
+            TextChannel dashCh = guild.getTextChannelById(dashChId);
+            if (dashCh != null) {
+                String dashDesc = "### " + prizeDetails + " | Final Report\n" +
+                        "\u25AB\uFE0F **Status:** Deployment Concluded\n" +
+                        "\u25AB\uFE0F **Outcome:** " + (userIds.isEmpty() ? "No participants" : winners.size() + " winners identified") + "\n" +
+                        "\u25AB\uFE0F **Total Joined:** " + userIds.size() + " members";
+                
+                var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Operation Complete", dashDesc, EmbedUtil.BANNER_GIVEAWAY, 
+                        ActionRow.of(Button.success("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
+                
+                dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
+            }
         }
     }
 
