@@ -55,12 +55,9 @@ public class SlashCommands extends ListenerAdapter {
             switch (name) {
                 case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "tickets" -> PanelService.sendTicketPanel(event);
-                case "terms" -> PanelService.replyEphemeral(event, EmbedUtil.rulePanel());
                 case "services" -> PanelService.sendServicesCategory(event);
                 case "stats" -> PanelService.sendStatsPanel(event);
                 case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
-                case "points" -> handlePointsCheck(event);
-                case "help" -> PanelService.reply(event, EmbedUtil.help());
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);
                 case "boter" -> handleBoter(event);
@@ -76,15 +73,6 @@ public class SlashCommands extends ListenerAdapter {
         }
     }
 
-    private void handlePointsCheck(SlashCommandInteractionEvent event) {
-        Member m = event.getOption("member", OptionMapping::getAsMember);
-        if (m == null) m = event.getMember();
-        int pts = SupabaseClient.getPoints(m.getId(), event.getGuild().getId());
-
-        PanelService.reply(event, EmbedUtil.containerBranded("POINTS", "Points Report",
-                "### \u2B50 Your Points\n> Member: " + m.getAsMention() + "\n> Total: **" + pts + "** points.",
-                EmbedUtil.BANNER_MAIN));
-    }
 
     private void handleAutoReply(SlashCommandInteractionEvent event) {
         if (!isStaff(event.getMember())) {

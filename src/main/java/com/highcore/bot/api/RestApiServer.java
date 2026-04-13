@@ -46,8 +46,7 @@ public class RestApiServer {
         app.get("/health", ctx -> ctx.json(Map.of(
                 "status", "ok",
                 "bot", jda.getStatus().toString(),
-                "uptime", getUptime()
-        )));
+                "uptime", getUptime())));
 
         // ===== TICKETS API =====
         app.get("/api/tickets", RestApiServer::getTickets);
@@ -55,7 +54,7 @@ public class RestApiServer {
         app.post("/api/tickets/{id}/close", RestApiServer::closeTicket);
         app.post("/api/tickets/{id}/reopen", RestApiServer::reopenTicket);
         app.get("/api/tickets/{id}/transcript", RestApiServer::getTranscript);
-        
+
         // ===== TRANSCRIPT WEB VIEW =====
         app.get("/view/transcript/{id}", RestApiServer::viewTranscript);
 
@@ -93,9 +92,10 @@ public class RestApiServer {
             ctx.json(SupabaseClient.getTicketsByStatus(status).toString());
         } else {
             var result = new com.google.gson.JsonArray();
-            for (String s : new String[]{"open", "claimed", "closed", "reopened"}) {
+            for (String s : new String[] { "open", "claimed", "closed", "reopened" }) {
                 var tickets = SupabaseClient.getTicketsByStatus(s);
-                if (tickets != null) tickets.forEach(result::add);
+                if (tickets != null)
+                    tickets.forEach(result::add);
             }
             ctx.json(result.toString());
         }
@@ -126,7 +126,8 @@ public class RestApiServer {
         if (guild != null) {
             TextChannel channel = guild.getTextChannelById(channelId);
             if (channel != null) {
-                PanelService.reply(channel, EmbedUtil.containerBranded("الأرشيف", "نهاية الجلسة", "الحالة: **مغلقة**\nأُغلق بواسطة: **" + "الإدارة" + "**", EmbedUtil.BANNER_SUPPORT));
+                PanelService.reply(channel, EmbedUtil.containerBranded("الأرشيف", "نهاية الجلسة",
+                        "الحالة: **مغلقة**\nأُغلق بواسطة: **" + "الإدارة" + "**", EmbedUtil.BANNER_SUPPORT));
             }
         }
 
@@ -151,34 +152,47 @@ public class RestApiServer {
         JsonArray messages = null;
         try {
             ticket = SupabaseClient.getTicketById(id);
-            if (ticket == null && !id.startsWith("HC-")) ticket = SupabaseClient.getTicketById("HC-" + id);
-            
+            if (ticket == null && !id.startsWith("HC-"))
+                ticket = SupabaseClient.getTicketById("HC-" + id);
+
             messages = SupabaseClient.getTicketMessages(id);
-            if ((messages == null || messages.size() == 0) && !id.startsWith("HC-")) messages = SupabaseClient.getTicketMessages("HC-" + id);
-            
+            if ((messages == null || messages.size() == 0) && !id.startsWith("HC-"))
+                messages = SupabaseClient.getTicketMessages("HC-" + id);
+
             int msgCount = (messages != null) ? messages.size() : 0;
-            
+
             if (ticket == null || msgCount == 0) {
                 StringBuilder debug = new StringBuilder();
-                debug.append("<body style='background:#0d0e10;color:#e3e5e8;font-family:\"Inter\",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0'>");
+                debug.append(
+                        "<body style='background:#0d0e10;color:#e3e5e8;font-family:\"Inter\",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0'>");
                 // Header (Branded)
                 debug.append("<div style='text-align:center;margin-bottom:30px'>");
-                debug.append("<div style='width:50px;height:50px;background:linear-gradient(135deg,#C5A059,#FFD700);border-radius:12px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;box-shadow:0 4px 20px rgba(197,160,89,0.3)'>HC</div>");
-                debug.append("<div style='font-size:24px;font-weight:800;background:linear-gradient(90deg,#C5A059,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>EMPTY TRANSCRIPT</div>");
-                debug.append("<div style='color:#72767d;font-size:13px;margin-top:8px'>Ticket ID: #").append(id).append(" · Diagnostic analysis active.</div>");
+                debug.append(
+                        "<div style='width:50px;height:50px;background:linear-gradient(135deg,#C5A059,#FFD700);border-radius:12px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;box-shadow:0 4px 20px rgba(197,160,89,0.3)'>HC</div>");
+                debug.append(
+                        "<div style='font-size:24px;font-weight:800;background:linear-gradient(90deg,#C5A059,#FFD700);-webkit-background-clip:text;-webkit-text-fill-color:transparent'>EMPTY TRANSCRIPT</div>");
+                debug.append("<div style='color:#72767d;font-size:13px;margin-top:8px'>Ticket ID: #").append(id)
+                        .append(" · Diagnostic analysis active.</div>");
                 debug.append("</div>");
-                
+
                 // Diagnostic Data (Premium Look)
-                debug.append("<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:500px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
-                debug.append("<div style='font-size:10px;font-weight:800;color:#C5A059;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;border-bottom:1px solid #2a2c30;padding-bottom:8px'>Advanced Database Feed</div>");
-                debug.append("<div style='font-family:monospace;font-size:11px;line-height:1.6;color:#abb2bf;white-space:pre-wrap;overflow-x:auto'>");
-                debug.append("<span style='color:#56b6c2'>- Ticket Record:</span> ").append(ticket == null ? "<span style='color:#e06c75'>NOT FOUND</span>" : ticket.toString()).append("<br><br>");
-                debug.append("<span style='color:#d19a66'>Note: If record is OK but list is empty, there is a linking mismatch.</span>");
+                debug.append(
+                        "<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:500px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
+                debug.append(
+                        "<div style='font-size:10px;font-weight:800;color:#C5A059;text-transform:uppercase;letter-spacing:1px;margin-bottom:12px;border-bottom:1px solid #2a2c30;padding-bottom:8px'>Advanced Database Feed</div>");
+                debug.append(
+                        "<div style='font-family:monospace;font-size:11px;line-height:1.6;color:#abb2bf;white-space:pre-wrap;overflow-x:auto'>");
+                debug.append("<span style='color:#56b6c2'>- Ticket Record:</span> ")
+                        .append(ticket == null ? "<span style='color:#e06c75'>NOT FOUND</span>" : ticket.toString())
+                        .append("<br><br>");
+                debug.append(
+                        "<span style='color:#d19a66'>Note: If record is OK but list is empty, there is a linking mismatch.</span>");
                 debug.append("</div></div>");
-                
-                debug.append("<div style='margin-top:30px;color:#4f545c;font-size:11px'>Please provide a screenshot of this box to your developer.</div>");
+
+                debug.append(
+                        "<div style='margin-top:30px;color:#4f545c;font-size:11px'>Please provide a screenshot of this box to your developer.</div>");
                 debug.append("</body>");
-                
+
                 ctx.status(200).html(debug.toString());
                 return;
             }
@@ -192,29 +206,49 @@ public class RestApiServer {
             String closedBy = "Auto-System";
 
             if (ticket != null) {
-                channelName = ticket.has("channel_name") && !ticket.get("channel_name").isJsonNull() ? ticket.get("channel_name").getAsString() : "case-" + id;
-                type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "SUPPORT";
-                status = ticket.has("status") && !ticket.get("status").isJsonNull() ? ticket.get("status").getAsString() : "closed";
-                openedAt = ticket.has("created_at") && !ticket.get("created_at").isJsonNull() ? ticket.get("created_at").getAsString() : Instant.now().toString();
-                String oId = ticket.has("user_id") && !ticket.get("user_id").isJsonNull() ? ticket.get("user_id").getAsString() : "";
-                openerName = ticket.has("user_name") && !ticket.get("user_name").isJsonNull() ? ticket.get("user_name").getAsString() : "Unknown User";
-                if (!oId.isEmpty()) openerName += " (" + oId + ")";
-                claimedBy = ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull() ? ticket.get("claimed_by").getAsString() : "Not Handled";
-                closedBy = ticket.has("closed_by") && !ticket.get("closed_by").isJsonNull() ? ticket.get("closed_by").getAsString() : "Auto-System";
+                channelName = ticket.has("channel_name") && !ticket.get("channel_name").isJsonNull()
+                        ? ticket.get("channel_name").getAsString()
+                        : "case-" + id;
+                type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString()
+                        : "SUPPORT";
+                status = ticket.has("status") && !ticket.get("status").isJsonNull() ? ticket.get("status").getAsString()
+                        : "closed";
+                openedAt = ticket.has("created_at") && !ticket.get("created_at").isJsonNull()
+                        ? ticket.get("created_at").getAsString()
+                        : Instant.now().toString();
+                String oId = ticket.has("user_id") && !ticket.get("user_id").isJsonNull()
+                        ? ticket.get("user_id").getAsString()
+                        : "";
+                openerName = ticket.has("user_name") && !ticket.get("user_name").isJsonNull()
+                        ? ticket.get("user_name").getAsString()
+                        : "Unknown User";
+                if (!oId.isEmpty())
+                    openerName += " (" + oId + ")";
+                claimedBy = ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull()
+                        ? ticket.get("claimed_by").getAsString()
+                        : "Not Handled";
+                closedBy = ticket.has("closed_by") && !ticket.get("closed_by").isJsonNull()
+                        ? ticket.get("closed_by").getAsString()
+                        : "Auto-System";
             } else if (messages != null && messages.size() > 0) {
                 // Infer from first message
                 JsonObject first = messages.get(0).getAsJsonObject();
                 openedAt = first.has("created_at") ? first.get("created_at").getAsString() : openedAt;
                 openerName = first.has("user_name") ? first.get("user_name").getAsString() : openerName;
                 String oid = first.has("user_id") ? first.get("user_id").getAsString() : "";
-                if (!oid.isEmpty()) openerName += " (" + oid + ")";
+                if (!oid.isEmpty())
+                    openerName += " (" + oid + ")";
             }
 
-            byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy, closedBy, messages);
-            ctx.contentType("text/html; charset=utf-8").result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
+            byte[] html = TranscriptService.buildHtml(id, channelName, type, status, openedAt, openerName, claimedBy,
+                    closedBy, messages);
+            ctx.contentType("text/html; charset=utf-8")
+                    .result(new String(html, java.nio.charset.StandardCharsets.UTF_8));
         } catch (Exception e) {
             log.error("Error generating transcript for {}: {}", id, e.getMessage());
-            ctx.status(500).html("<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif'><h1>500 - Generation Error</h1><p>" + e.getMessage() + "</p></div>");
+            ctx.status(500).html(
+                    "<div style='background:#0d0e10;color:#ed4245;height:100vh;display:flex;flex-direction:column;align-items:center;justify-content:center;font-family:sans-serif'><h1>500 - Generation Error</h1><p>"
+                            + e.getMessage() + "</p></div>");
         }
     }
 
@@ -296,19 +330,30 @@ public class RestApiServer {
         String message = com.highcore.bot.utils.EmojiUtil.parse(body.get("message").getAsString());
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
+        if (guild == null) {
+            ctx.status(500).json(Map.of("error", "Guild not found"));
+            return;
+        }
         TextChannel channel = guild.getTextChannelById(channelId);
-        if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
+        if (channel == null) {
+            ctx.status(404).json(Map.of("error", "Channel not found"));
+            return;
+        }
 
-        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().setContent(message);
+        net.dv8tion.jda.api.utils.messages.MessageCreateBuilder mb = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                .setContent(message);
         if (body.has("files") && body.get("files").isJsonArray()) {
             for (var el : body.get("files").getAsJsonArray()) {
                 try {
                     String url = el.getAsString();
                     String name = url.substring(url.lastIndexOf("/") + 1);
-                    if (name.contains("?")) name = name.substring(0, name.indexOf("?"));
-                    mb.addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(new java.net.URL(url).openStream(), name));
-                } catch (Exception e) { log.warn("API File attachment failed: {}", e.getMessage()); }
+                    if (name.contains("?"))
+                        name = name.substring(0, name.indexOf("?"));
+                    mb.addFiles(
+                            net.dv8tion.jda.api.utils.FileUpload.fromData(new java.net.URL(url).openStream(), name));
+                } catch (Exception e) {
+                    log.warn("API File attachment failed: {}", e.getMessage());
+                }
             }
         }
 
@@ -323,7 +368,10 @@ public class RestApiServer {
         String attUrl = body.has("attachment_url") ? body.get("attachment_url").getAsString() : null;
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
+        if (guild == null) {
+            ctx.status(500).json(Map.of("error", "Guild not found"));
+            return;
+        }
 
         boolean started = BroadcastService.startBroadcast(guild, message, roleId, attUrl);
         if (started) {
@@ -332,10 +380,11 @@ public class RestApiServer {
             ctx.status(409).json(Map.of("error", "A broadcast is already in progress."));
         }
     }
+
     private static void sendEmbed(Context ctx) {
         String channelId = ctx.pathParam("channelId");
         JsonObject body = JsonParser.parseString(ctx.body()).getAsJsonObject();
-        
+
         String title = body.has("title") ? body.get("title").getAsString() : null;
         String desc = body.has("description") ? body.get("description").getAsString() : null;
         String color = body.has("color") ? body.get("color").getAsString() : null;
@@ -347,12 +396,18 @@ public class RestApiServer {
         String fIcon = body.has("footer_icon") ? body.get("footer_icon").getAsString() : null;
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) { ctx.status(500).json(Map.of("error", "Guild not found")); return; }
+        if (guild == null) {
+            ctx.status(500).json(Map.of("error", "Guild not found"));
+            return;
+        }
         TextChannel channel = guild.getTextChannelById(channelId);
-        if (channel == null) { ctx.status(404).json(Map.of("error", "Channel not found")); return; }
+        if (channel == null) {
+            ctx.status(404).json(Map.of("error", "Channel not found"));
+            return;
+        }
 
         PanelService.reply(channel, com.highcore.bot.utils.EmbedUtil.containerBranded("API", title, desc, image));
-        
+
         ctx.json(Map.of("success", true, "channel", channelId));
     }
 
@@ -369,7 +424,8 @@ public class RestApiServer {
                 Guild guild = jda.getGuildById(Config.GUILD_ID);
                 if (guild != null) {
                     TextChannel channel = guild.getTextChannelById(channelId);
-                    if (channel != null) channel.sendMessage(message).queue();
+                    if (channel != null)
+                        channel.sendMessage(message).queue();
                 }
                 ctx.json(Map.of("success", true));
             }
@@ -390,6 +446,7 @@ public class RestApiServer {
     }
 
     public static void stop() {
-        if (app != null) app.stop();
+        if (app != null)
+            app.stop();
     }
 }

@@ -50,14 +50,19 @@ public class Main {
                         new ModerationCommands(),
                         new InfoCommands(),
                         new GeneralCommands(),
-                        new PointsCommands(),
-                        new ServerLogListener(),
-                        new UserLogListener(),
-                        new WelcomeListener(), 
-                        new GiveawayListener(),
-                        new CentralInteractionListener()
-                )
-                .build().awaitReady();
+                new MessageListener(), 
+                new SlashCommands(),
+                new GiveawayCommands(),
+                new ModerationCommands(),
+                new InfoCommands(),
+                new GeneralCommands(),
+                new ServerLogListener(),
+                new UserLogListener(),
+                new WelcomeListener(), 
+                new GiveawayListener(),
+                new CentralInteractionListener()
+        )
+        .build().awaitReady();
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild != null) LogManager.initialize(guild);
@@ -80,76 +85,121 @@ public class Main {
 
         guild.updateCommands().addCommands(
                 // ===== Core & Business =====
-                Commands.slash("startup", "Show the main dashboard"),
-                Commands.slash("tickets", "Open the ticket system"),
-                Commands.slash("services", "List our services and categories"),
-                Commands.slash("stats", "Show agency and system statistics"),
-                Commands.slash("help", "Display the help manual and commands"),
-                Commands.slash("terms", "View our service policies and media protocols"),
-                Commands.slash("ping", "Check the bot connectivity status"),
-                Commands.slash("bc", "Broadcast a message").addOption(OptionType.STRING, "message", "The message content", true).addOption(OptionType.ROLE, "role", "Target role", false).addOption(OptionType.ATTACHMENT, "attachment", "Media attachment", false),
+                Commands.slash("startup", "عــرض لــوحــة الــتــحــكــم الــرئــيــســيــة"),
+                Commands.slash("tickets", "فــتــح نــظــام الــتــذاكــر"),
+                Commands.slash("services", "عــرض خــدمــاتــنــا وفــئــاتــهــا"),
+                Commands.slash("stats", "عــرض إحــصــائــيــات الــوكــالــة والــنــظــام"),
+                Commands.slash("ping", "فــحــص ســرعــة اتــصــال الــبــوت"),
+                Commands.slash("bc", "بــث رســالــة جــمــاعــيــة")
+                        .addOption(OptionType.STRING, "message", "مــحــتــوى الــرســالــة", true)
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", false)
+                        .addOption(OptionType.ATTACHMENT, "attachment", "مــرفــق الــمــيــديــا", false),
 
                 // ===== Moderation =====
-                Commands.slash("setnick", "Change a member nickname").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "nick", "New nickname", true),
-                Commands.slash("ban", "\u062D\u0638\u0631 \u0639\u0636\u0648 \u0645\u0646 \u0627\u0644\u0633\u0641\u0631").addOption(OptionType.USER, "user", "\u0627\u0644\u0639\u0636\u0648", true).addOption(OptionType.STRING, "reason", "\u0627\u0644\u0633\u0628\u0628", false),
-                Commands.slash("unban", "Unban a member").addOption(OptionType.STRING, "user_id", "Member identifier ID", true),
-                Commands.slash("unban-all", "Clear the entire ban list"),
-                Commands.slash("kick", "Kick a member from the server").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "reason", "Reason", false),
-                Commands.slash("vkick", "Kick a member from a voice channel").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("mute-text", "Mute a member from text channels").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("unmute-text", "Unmute a member from text channels").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("mute-check", "Check the mute status of a member").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("mute-voice", "Mute a member from voice channels").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("unmute-voice", "Unmute a member from voice channels").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("timeout", "Timeout a member").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.INTEGER, "duration", "Duration in minutes", true),
-                Commands.slash("untimeout", "Remove a member timeout").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("clear", "Delete messages from the channel").addOption(OptionType.INTEGER, "amount", "Number of messages", true),
-                Commands.slash("move", "Move a member to a voice channel").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.CHANNEL, "channel", "Destination channel", true),
-                Commands.slash("role", "Add or remove a role from a member").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.ROLE, "role", "Target role", true),
-                Commands.slash("temprole", "Give a temporary role to a member").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.ROLE, "role", "Target role", true).addOption(OptionType.INTEGER, "duration", "Duration in hours", true),
-                Commands.slash("rar", "Strip all roles from a member").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("inrole", "Display members with a specific role").addOption(OptionType.ROLE, "role", "Target role", true),
-                Commands.slash("warn-add", "Add a warning to a member").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.STRING, "reason", "Reason", false),
-                Commands.slash("warn-remove", "Remove warnings from a member").addOption(OptionType.USER, "user", "Target member", true).addOption(OptionType.INTEGER, "id", "Warning ID", false),
-                Commands.slash("warnings", "View member warnings").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("violations", "View filter violations").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("violations-clear", "Clear filter violations").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("lock", "Lock the current channel"),
-                Commands.slash("unlock", "Unlock the current channel"),
-                Commands.slash("hide", "Hide the current channel"),
-                Commands.slash("show", "Show the current channel"),
-                Commands.slash("slowmode", "Enable channel slowmode").addOption(OptionType.INTEGER, "seconds", "Seconds", true),
-                Commands.slash("add-emoji", "\u0625\u0636\u0627\u0641\u0629 \u0625\u064A\u0645\u0648\u062C\u064A \u0644\u0644\u0633\u064A\u0631\u0641\u0631").addOption(OptionType.ATTACHMENT, "image", "\u0627\u0644\u0635\u0648\u0631\u0629", true).addOption(OptionType.STRING, "name", "\u0627\u0633\u0645 \u0627\u0644\u0625\u064A\u0645\u0648\u062C\u064A", true),
-                Commands.slash("role-multiple", "Bulk role management").addOption(OptionType.ROLE, "role", "Target role", true).addOption(OptionType.STRING, "action", "Action (Add/Remove)", true),
+                Commands.slash("setnick", "تــغــيــيــر لــقــب عــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.STRING, "nick", "الــلــقــب الــجــديــد", true),
+                Commands.slash("ban", "حــظــر عــضــو مــن الــســيــرفــر")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", true)
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                Commands.slash("unban", "إلــغــاء حــظــر عــضــو")
+                        .addOption(OptionType.STRING, "user_id", "مــعــرف الــعــضــو", true),
+                Commands.slash("unban-all", "مــســح قــائمة الــحــظــر بــالــكــامــل"),
+                Commands.slash("kick", "طــرد عــضــو مــن الــســيــرفــر")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                Commands.slash("vkick", "طــرد عــضــو مــن الــقـنــاة الــصــوتــيــة")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("mute-text", "كــتــم عــضــو كــتــابــيــاً")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("unmute-text", "إلــغــاء كــتــم عــضــو كــتــابــيــاً")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("mute-check", "فــحــص حــالــة الــكــتــم لــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("mute-voice", "كــتــم عــضــو صــوتــيــاً")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("unmute-voice", "إلــغــاء كــتــم عــضــو صــوتــيــاً")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("timeout", "إســكــات عــضــو لــفــتـرة")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــدقــائــق", true),
+                Commands.slash("untimeout", "إلــغــاء إســكــات الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("clear", "مــســح رســائل الــقــنــاة")
+                        .addOption(OptionType.INTEGER, "amount", "عــدد الــرســائــل", true),
+                Commands.slash("move", "نــقــل عــضــو لــقــنــاة صــوتــيــة")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.CHANNEL, "channel", "الــوجــهــة", true),
+                Commands.slash("role", "إدارة رتــب الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true),
+                Commands.slash("temprole", "إعــطــاء رتــبــة مــؤقــتــة")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
+                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــســاعــات", true),
+                Commands.slash("rar", "ســحــب جــمــيــع الــرتــب")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("inrole", "عــرض الــمــتــواجــديــن فــي رتــبــة")
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true),
+                Commands.slash("warn-add", "إضــافــة تــحــذير لــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                Commands.slash("warn-remove", "إزالــة تــحــذير لــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .addOption(OptionType.INTEGER, "id", "مــعــرف الــتــحــذير", false),
+                Commands.slash("warnings", "عــرض تــحــذيرات الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("violations", "عــرض مــخــالــفــات الــفــلــتــر")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("violations-clear", "مــســح مــخــالــفــات الــفــلــتــر")
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                Commands.slash("lock", "إغــلاق الــقــنــاة الــحــالــيــة"),
+                Commands.slash("unlock", "فــتــح الــقــنــاة الــحــالــيــة"),
+                Commands.slash("hide", "إخــفــاء الــقــنــاة الــحــالــيــة"),
+                Commands.slash("show", "إظــهــار الــقــنــاة الــحــالــيــة"),
+                Commands.slash("slowmode", "تــفــعــيــل الــوضــع الــبــطــيء")
+                        .addOption(OptionType.INTEGER, "seconds", "الــثــوانــي", true),
+                Commands.slash("add-emoji", "إضــافــة إيــمــوجــي جــديــد")
+                        .addOption(OptionType.ATTACHMENT, "image", "الــصــورَة", true)
+                        .addOption(OptionType.STRING, "name", "اســم الــإيــمــوجــي", true),
+                Commands.slash("role-multiple", "إدارة الــرتــب لــلــجــمــيــع")
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
+                        .addOption(OptionType.STRING, "action", "الــإجــراء", true),
 
                 // ===== Giveaways =====
-                Commands.slash("giveaway", "Open the Giveaway Management Control Panel"),
-
+                Commands.slash("giveaway", "فــتــح لــوحــة تــحــكــم الــمــســابــقــات"),
 
                 // ===== Information =====
-                Commands.slash("profile", "View member profile").addOption(OptionType.USER, "user", "Target member", false),
-                Commands.slash("user", "View member information").addOption(OptionType.USER, "user", "Target member", false),
-                Commands.slash("avatar", "\u0639\u0631\u0636 \u0635\u0648\u0631\u0629 \u0627\u0644\u062D\u0633\u0627\u0628").addOption(OptionType.USER, "user", "\u0627\u0644\u0639\u0636\u0648", false),
-                Commands.slash("server", "View server information"),
-                Commands.slash("roles", "List server roles"),
-                Commands.slash("banner", "View member banner").addOption(OptionType.USER, "user", "Target member", false),
-                Commands.slash("invites", "View your invite statistics").addOption(OptionType.USER, "user", "Target member", false),
-                Commands.slash("server-avatar", "View server icon"),
-                Commands.slash("server-banner", "View server banner"),
+                Commands.slash("profile", "عــرض مــلــف الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
+                Commands.slash("user", "عــرض مــعــلــومــات الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
+                Commands.slash("avatar", "عــرض صــورة حــســاب الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
+                Commands.slash("server", "عــرض مــعــلــومــات الــســيــرفــر"),
+                Commands.slash("roles", "قــائمة رتــب الــســيــرفــر"),
+                Commands.slash("banner", "عــرض بــانــر الــعــضــو")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
+                Commands.slash("invites", "عــرض إحــصــائــيــات الــدعــوات")
+                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
+                Commands.slash("server-avatar", "عــرض أيــقــونــة الــســيــرفــر"),
+                Commands.slash("server-banner", "عــرض بــانــر الــســيــرفــر"),
 
                 // ===== General & Fun =====
-                Commands.slash("colors", "View available color roles"),
-                Commands.slash("color-set", "Apply a specific color role").addOption(OptionType.STRING, "code", "Color code", true),
-                Commands.slash("rep", "Give a reputation point to a member").addOption(OptionType.USER, "user", "Target member", true),
-                Commands.slash("translate", "Translate text").addOption(OptionType.STRING, "text", "The content", true).addOption(OptionType.STRING, "language", "Target language", true),
-                Commands.slash("roll", "Roll a dice"),
-                Commands.slash("get-emojis", "Export an emoji").addOption(OptionType.STRING, "emoji", "The emoji", true),
-                Commands.slash("title", "Change your personal title").addOption(OptionType.STRING, "title", "New title", true),
-                Commands.slash("suggest", "Submit a new suggestion").addOption(OptionType.STRING, "suggestion", "The content", true),
-                Commands.slash("suggestion", "Manage suggestions").addOption(OptionType.INTEGER, "id", "Suggestion ID", true).addOption(OptionType.STRING, "action", "Action (Approve/Decline)", true),
-
-                // ===== Merit System =====
-                Commands.slash("leaderboard", "View the Merit Leaderboard")
+                Commands.slash("colors", "عــرض رتــب الألــوان الــمــتــاحــة"),
+                Commands.slash("color-set", "تــطــبــيــق لــون لــاســمــك")
+                        .addOption(OptionType.STRING, "code", "كــود الــلــون", true),
+                Commands.slash("translate", "تــرجــمــة الــنــصــوص")
+                        .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
+                        .addOption(OptionType.STRING, "language", "الــلــغــة", true),
+                Commands.slash("roll", "رمــي الــنــرد"),
+                Commands.slash("title", "تــغــيــيــر لــقــبــك الــشــخــصــي")
+                        .addOption(OptionType.STRING, "title", "الــلــقــب الــجــديــد", true),
+                Commands.slash("suggest", "تــقــديــم اقــتــراح جــديــد")
+                        .addOption(OptionType.STRING, "suggestion", "الــمــحــتــوى", true),
+                Commands.slash("suggestion", "إدارة الاقــتــراحــات")
+                        .addOption(OptionType.INTEGER, "id", "مــعــرف الاقــتــراح", true)
+                        .addOption(OptionType.STRING, "action", "الــإجــراء", true)
         ).queue();
     }
 }

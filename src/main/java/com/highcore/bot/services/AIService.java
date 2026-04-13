@@ -36,21 +36,40 @@ public class AIService {
     private static final Map<String, Boolean> aiStatus = new ConcurrentHashMap<>();
 
     public static String chat(String userId, String message) {
+        return chatWithPrompt(userId, message, SYSTEM_PROMPT);
+    }
+
+    public static String translate(String text, String targetLang) {
+        String prompt = "You are a professional translation engine. Translate the following text to " + targetLang + ". " +
+                "Maintain the original tone. ONLY return the translated text, no extra words.";
+        return chatWithPrompt("translator", text, prompt);
+    }
+
+    private static String chatWithPrompt(String sessionId, String message, String systemPrompt) {
         if (!Config.isGroqConfigured()) return "AI service is not configured. Please contact management.";
 
-        List<JsonObject> history = sessions.computeIfAbsent(userId, k -> new ArrayList<>());
+        List<JsonObject> history = sessions.computeIfAbsent(sessionId, k -> new ArrayList<>());
         JsonObject userMsg = new JsonObject();
         userMsg.addProperty("role", "user");
         userMsg.addProperty("content", message);
-        history.add(userMsg);
-        while (history.size() > 10) history.remove(0);
+        
+        // Only track history for standard chat, not single-use translation
+        if (!sessionId.equals("translator")) {
+            history.add(userMsg);
+            while (history.size() > 10) history.remove(0);
+        }
 
         JsonArray messages = new JsonArray();
-        JsonObject systemMsg = new JsonObject();
-        systemMsg.addProperty("role", "system");
-        systemMsg.addProperty("content", SYSTEM_PROMPT);
-        messages.add(systemMsg);
-        for (JsonObject msg : history) messages.add(msg);
+        JsonObject sys = new JsonObject();
+        sys.addProperty("role", "system");
+        sys.addProperty("content", systemPrompt);
+        messages.add(sys);
+        
+        if (!sessionId.equals("translator")) {
+            for (JsonObject msg : history) messages.add(msg);
+        } else {
+            messages.add(userMsg);
+        }
 
         JsonObject body = new JsonObject();
         body.addProperty("model", Config.GROQ_MODEL);
@@ -71,12 +90,14 @@ public class AIService {
             JsonObject json = JsonParser.parseString(responseBody).getAsJsonObject();
             String reply = json.getAsJsonArray("choices").get(0).getAsJsonObject()
                     .getAsJsonObject("message").get("content").getAsString();
-            if (reply.length() > 1900) reply = reply.substring(0, 1900) + "...";
-
-            JsonObject assistantMsg = new JsonObject();
-            assistantMsg.addProperty("role", "assistant");
-            assistantMsg.addProperty("content", reply);
-            history.add(assistantMsg);
+            
+            if (!sessionId.equals("translator")) {
+                JsonObject assistantMsg = new JsonObject();
+                assistantMsg.addProperty("role", "assistant");
+                assistantMsg.addProperty("content", reply);
+                history.add(assistantMsg);
+            }
+            
             return reply;
         } catch (IOException e) {
             return "Could not connect to the AI service.";
