@@ -503,9 +503,16 @@ public class SupabaseClient {
     }
 
     public static void delete(String table, String filter) {
-        Request request = auth(new Request.Builder()).url(url(table) + "?" + filter).delete().build();
+        String fullUrl = url(table) + "?" + filter;
+        log.info(">>> DELETING from {}: {}", table, fullUrl);
+        Request request = auth(new Request.Builder()).url(fullUrl).delete().build();
         try (Response response = http.newCall(request).execute()) {
-            if (!response.isSuccessful()) log.error("DELETE {} failed: {}", table, response.code());
+            String b = response.body() != null ? response.body().string() : "No body";
+            if (!response.isSuccessful()) {
+                log.error("DELETE {} failed ({}): {}", table, response.code(), b);
+            } else {
+                log.info("DELETE {} success ({}): {}", table, response.code(), b);
+            }
         } catch (IOException e) { log.error("DELETE {} error: {}", table, e.getMessage()); }
     }
 
