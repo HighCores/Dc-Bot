@@ -70,7 +70,7 @@ public class CentralInteractionListener extends ListenerAdapter {
 
             if (id.equals("btn_rules") || id.equals("hub_rules")) { PanelService.replyEphemeral(event, EmbedUtil.rulePanel()); return; }
             if (id.equals("btn_startup") || id.equals("menu_main")) { PanelService.sendStartupHub(event); return; }
-            if (id.equals("btn_highcore") || id.equals("hub_highcore") || id.equals("hub_map")) { PanelService.sendHighcoreHub(event); return; }
+            if (id.equals("btn_highcore") || id.equals("hub_highcore")) { PanelService.sendHighcoreHub(event); return; }
             if (id.equals("btn_pings") || id.equals("hub_pings")) { PanelService.sendPingsHub(event); return; }
             if (id.equals("btn_about") || id.equals("hub_about")) { PanelService.sendAboutUsHub(event); return; }
             if (id.equals("btn_socials") || id.equals("hub_social")) { PanelService.sendSocialsHub(event); return; }
