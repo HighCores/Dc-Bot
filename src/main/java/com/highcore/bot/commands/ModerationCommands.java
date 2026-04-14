@@ -385,14 +385,14 @@ public class ModerationCommands extends ListenerAdapter {
         System.out.println("[STICKER] Initiating emoji deployment: " + finalName);
         PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📥 **Fetching asset data...**"));
 
-        imgMapping.getAsAttachment().retrieveInputStream().thenAccept(stream -> {
+        imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
             try (stream) {
                 System.out.println("[STICKER] Stream received, creating icon...");
                 net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
                 event.getGuild().createEmoji(finalName, icon).queue(
                     v -> {
                         System.out.println("[STICKER] Emoji deployed successfully.");
-                        PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed points.", EmbedUtil.BANNER_MAIN));
+                        PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed.", EmbedUtil.BANNER_MAIN));
                     },
                     e -> {
                         System.err.println("[STICKER] Emoji deployment failed: " + e.getMessage());
@@ -411,7 +411,7 @@ public class ModerationCommands extends ListenerAdapter {
     }
 
     private void handleAddSticker(SlashCommandInteractionEvent event) {
-        if (!hasPerm(event, Permission.MANAGE_GUILD_EXPRESSIONS)) return;
+        if (!hasPerm(event, net.dv8tion.jda.api.Permission.MANAGE_GUILD_EXPRESSIONS)) return;
         String name = event.getOption("name", OptionMapping::getAsString);
         String tags = event.getOption("tags", OptionMapping::getAsString);
         String desc = event.getOption("description", OptionMapping::getAsString);
@@ -422,7 +422,7 @@ public class ModerationCommands extends ListenerAdapter {
         PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📤 **Synchronizing visual asset...**"));
 
         net.dv8tion.jda.api.entities.Message.Attachment attachment = imgMapping.getAsAttachment();
-        attachment.retrieveInputStream().thenAccept(stream -> {
+        attachment.getProxy().download().thenAccept(stream -> {
             try (stream) {
                 System.out.println("[STICKER] Stream received for sticker, reading bytes...");
                 byte[] data = stream.readAllBytes();
