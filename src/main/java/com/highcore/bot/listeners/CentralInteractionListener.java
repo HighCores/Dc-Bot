@@ -22,6 +22,7 @@ import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
+import com.google.gson.JsonArray;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import java.util.List;
@@ -171,20 +172,52 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String[] parts = id.split("_", 3);
                 String method = parts.length > 1 ? parts[1].toUpperCase() : "UNKNOWN";
                 String info = switch (method) {
-                    case "PAYPAL" ->
-                        "### 💳 PayPal\n**Email:** `billing@highcore.agency`\n**Note:** Send as **Friends & Family**.";
+                    case "PAYPAL" -> "### 💳 PayPal\n**Email:** `billing@highcore.agency`\n**Note:** Send as **Friends & Family**.";
                     case "STRIPE" -> "### 🌐 Stripe\nContact a staff member to receive a secure Stripe payment link.";
-                    case "BANK" ->
-                        "### 🏦 Bank Transfer — Al-Rajhi Bank\n**Account Name:** `High Core Agency`\n**IBAN:** `SA29 8000 0000 1234 5678 1234`\n**Swift:** `RJHISARI`\nAfter transfer, send the receipt screenshot here.";
-                    case "USDT" ->
-                        "### 💰 USDT — TRC20 Network\n**Wallet Address:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n⚠️ **Use TRC20 network only.**";
-                    case "STCPAY" ->
-                        "### 📱 STC Pay\n**Number:** `+966 55 123 4567`\n**Name:** `High Core Agency`\nScreenshot the confirmation and send it here.";
+                    case "BANK" -> "### 🏦 Bank Transfer — Al-Rajhi Bank\n**Account Name:** `High Core Agency`\n**IBAN:** `SA29 8000 0000 1234 5678 1234`\n**Swift:** `RJHISARI`\nAfter transfer, send the receipt screenshot here.";
+                    case "USDT" -> "### 💰 USDT — TRC20 Network\n**Wallet Address:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n⚠️ **Use TRC20 network only.**";
+                    case "STCPAY" -> "### 📱 STC Pay\n**Number:** `+966 55 123 4567`\n**Name:** `High Core Agency`\nScreenshot the confirmation and send it here.";
                     default -> "Contact a staff member for payment assistance.";
                 };
-                PanelService.replyEphemeral(event,
-                        EmbedUtil.containerBranded("PAYMENT", "Gateway — " + method, info, EmbedUtil.BANNER_MAIN));
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("PAYMENT", "Gateway — " + method, info, EmbedUtil.BANNER_MAIN));
                 return;
+            }
+
+            if (id.equals("ar_add")) {
+                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setLabel("Keyword").setPlaceholder("Trigger word...").setRequired(true).build();
+                TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setLabel("Response Text").setPlaceholder("What should I reply?").setRequired(true).build();
+                Modal m = Modal.create("modal_ar_add", "Create Response Protocol")
+                    .addComponents(
+                        net.dv8tion.jda.api.components.label.Label.of("Auto-Reply Keyword", kw),
+                        net.dv8tion.jda.api.components.label.Label.of("Matrix Response", resp)
+                    ).build();
+                event.replyModal(m).queue();
+            } else if (id.equals("ar_manage")) {
+                JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
+                if (arr == null || arr.size() == 0) { event.reply("No protocols found.").setEphemeral(true).queue(); return; }
+                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_delete_select").setPlaceholder("Select a protocol to decommission...");
+                for (int i=0; i<Math.min(arr.size(), 25); i++) {
+                    String kw = arr.get(i).getAsJsonObject().get("keyword").getAsString();
+                    menu.addOption(kw, kw);
+                }
+                event.reply("### ⚠️ DECOMMISSION SECTOR\nSelect a response protocol to permanently delete from the matrix.")
+                    .setComponents(ActionRow.of(menu.build())).setEphemeral(true).queue();
+            } else if (id.equals("bw_add")) {
+                TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setLabel("Forbidden Word").setPlaceholder("Enter word to block...").setRequired(true).build();
+                Modal m = Modal.create("modal_bw_add", "Update Security Lexicon")
+                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Restricted Term", word))
+                    .build();
+                event.replyModal(m).queue();
+            } else if (id.equals("bw_remove")) {
+                JsonArray arr = com.highcore.bot.database.SupabaseClient.getWordFilter();
+                if (arr == null || arr.size() == 0) { event.reply("Security Lexicon is clear.").setEphemeral(true).queue(); return; }
+                StringSelectMenu.Builder menu = StringSelectMenu.create("bw_delete_select").setPlaceholder("Select a term to whitelist...");
+                for (int i=0; i<Math.min(arr.size(), 25); i++) {
+                    String w = arr.get(i).getAsJsonObject().get("word").getAsString();
+                    menu.addOption(w, w);
+                }
+                event.reply("### 🛠️ SECURITY OVERRIDE\nSelect a forbidden term to remove from the firewall blacklist.")
+                    .setComponents(ActionRow.of(menu.build())).setEphemeral(true).queue();
             }
         } catch (Exception e) {
             try {
@@ -260,6 +293,16 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("about_category_select")) {
                 PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
                 return;
+            }
+            if (id.equals("ar_delete_select")) {
+                String kw = event.getValues().get(0);
+                com.highcore.bot.database.SupabaseClient.deleteAutoResponse(kw);
+                event.reply("✅ Response protocol `" + kw + "` has been wiped from the matrix.").setEphemeral(true).queue();
+            }
+            if (id.equals("bw_delete_select")) {
+                String w = event.getValues().get(0);
+                com.highcore.bot.database.SupabaseClient.removeForbiddenWord(w);
+                event.reply("✅ Term `" + w + "` has been whitelisted and removed from firewall.").setEphemeral(true).queue();
             }
         } catch (Exception e) {
             try {
@@ -347,6 +390,15 @@ public class CentralInteractionListener extends ListenerAdapter {
                     event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(),
                     event.getValue("o_contact").getAsString(), event.getValue("o_eta").getAsString(), items);
             event.getHook().sendMessage("✅ Order submitted.").setEphemeral(true).queue();
+        } else if (id.equals("modal_ar_add")) {
+            String kw = event.getValue("ar_keyword").getAsString();
+            String resp = event.getValue("ar_response").getAsString();
+            com.highcore.bot.database.SupabaseClient.createAutoResponse(kw, resp, event.getUser().getName());
+            event.reply("✅ **Response Protocol Initialized**\nKeyword: `" + kw + "`").setEphemeral(true).queue();
+        } else if (id.equals("modal_bw_add")) {
+            String w = event.getValue("bw_word").getAsString().toLowerCase();
+            com.highcore.bot.database.SupabaseClient.addForbiddenWord(w);
+            event.reply("✅ **Security Firewall Updated**\nForbidden Term: `" + w + "`").setEphemeral(true).queue();
         }
     }
 

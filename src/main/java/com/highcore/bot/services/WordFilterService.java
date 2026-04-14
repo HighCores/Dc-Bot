@@ -42,12 +42,16 @@ public class WordFilterService {
     }
 
     public static boolean isForbidden(String content) {
+        return findForbiddenWord(content) != null;
+    }
+
+    public static String findForbiddenWord(String content) {
         String lower = content.toLowerCase();
         synchronized (forbiddenWords) {
             for (String word : forbiddenWords) {
-                if (lower.contains(word)) return true;
+                if (lower.contains(word)) return word;
             }
         }
-        return false;
+        return null;
     }
 }

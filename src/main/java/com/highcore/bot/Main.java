@@ -49,6 +49,8 @@ public class Main {
                         new CommandLogListener(),
                         new SlashCommands(),
                         new GiveawayCommands(),
+                        new AutoReplyCommands(),
+                        new BannedWordCommands(),
                         new ModerationCommands(),
                         new InfoCommands(),
                         new GeneralCommands(),
@@ -56,6 +58,7 @@ public class Main {
                         new UserLogListener(),
                         new WelcomeListener(), 
                         new GiveawayListener(),
+                        new SafetyListener(),
                         new CentralInteractionListener()
                 )
         .build().awaitReady();
@@ -190,6 +193,8 @@ public class Main {
 
                 // ===== Giveaways (Administrative) =====
                 Commands.slash("giveaway", "فــتــح لــوحــة تــحــكــم الــمــســابــقــات").setDefaultPermissions(adminPerms),
+                Commands.slash("replay", "إدارة نــظــام الــرد الــتــلــقــائــي").setDefaultPermissions(adminPerms),
+                Commands.slash("banned-words", "إدارة نــظــام الــكــلــمــات الــمــحــظــورة").setDefaultPermissions(adminPerms),
 
                 // ===== Emulation (Administrative) =====
                 Commands.slash("boter", "إرســال رســالــة بــاســم الــبــوت")
