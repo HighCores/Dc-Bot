@@ -1,5 +1,11 @@
 package com.highcore.bot.utils;
 
+import net.dv8tion.jda.api.EmbedBuilder;
+import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.MessageEmbed;
+import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.User;
+import net.dv8tion.jda.api.entities.UserSnowflake;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
@@ -10,8 +16,10 @@ import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.awt.Color;
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 public class EmbedUtil {
     public static final Color ACCENT = Color.decode("#C5A059");
@@ -167,6 +175,41 @@ public class EmbedUtil {
 
     public static Container activityLog(String type, String details, Color color) {
         return containerBranded("activity", type, details, BANNER_MAIN).withAccentColor(color.getRGB() & 0xFFFFFF);
+    }
+
+    public static MessageEmbed createOldLogEmbed(String title, String details, Member moderator, UserSnowflake targetUser, Member targetMember, Color color) {
+        EmbedBuilder eb = new EmbedBuilder();
+        eb.setTitle("\uD83D\uDCDC " + title);
+        eb.setColor(color);
+        eb.setTimestamp(Instant.now());
+
+        if (moderator != null) {
+            eb.addField("Moderator", moderator.getAsMention() + " (`" + moderator.getId() + "`)", true);
+        } else {
+            eb.addField("Moderator", "System Automation", true);
+        }
+
+        if (targetUser != null || targetMember != null) {
+            String targetId = targetMember != null ? targetMember.getId() : targetUser.getId();
+            // "Silent" mention using <@ID> in a field value
+            eb.addField("Subject", "<@" + targetId + "> (`" + targetId + "`)", true);
+            
+            if (targetMember != null) {
+                String roles = targetMember.getRoles().stream()
+                        .map(Role::getAsMention)
+                        .collect(Collectors.joining(" "));
+                if (roles.isEmpty()) roles = "No Roles";
+                eb.addField("User Roles", roles, false);
+            } else {
+                eb.addField("User Roles", "N/A (User not in server)", false);
+            }
+        }
+
+        if (details != null && !details.isEmpty()) {
+            eb.addField("Details", details, false);
+        }
+
+        return eb.build();
     }
 
     public static Container ticketClosed(String id, String user) {

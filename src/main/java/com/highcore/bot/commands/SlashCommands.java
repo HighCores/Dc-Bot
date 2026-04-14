@@ -59,8 +59,8 @@ public class SlashCommands extends ListenerAdapter {
 
         try {
             switch (name) {
-                case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
-                case "tickets" -> { if (isAdmin(event.getMember())) PanelService.sendTicketPanel(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "startup" -> { if (isAdmin(event.getMember())) { PanelService.sendStartupHub(event); LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("System Hub Deployment", "Startup Hub deployed in " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.GOLD)); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "tickets" -> { if (isAdmin(event.getMember())) { PanelService.sendTicketPanel(event); LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Ticket System Deployment", "Ticket Panel deployed in " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.GOLD)); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);
@@ -90,11 +90,13 @@ public class SlashCommands extends ListenerAdapter {
                 String r = event.getOption("response", OptionMapping::getAsString);
                 AutoReplyService.addResponse(k, r, event.getUser().getName());
                 PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Auto-reply added for keyword: **" + k + "**"));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("AutoReply Extension", "Action: Add\nKeyword: `" + k + "`\nResponse: " + r, event.getMember(), null, null, EmbedUtil.SUCCESS));
             }
             case "remove" -> {
                 String k = event.getOption("keyword", OptionMapping::getAsString);
                 AutoReplyService.removeResponse(k);
                 PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Auto-reply removed for keyword: **" + k + "**"));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("AutoReply Removals", "Action: Remove\nKeyword: `" + k + "`", event.getMember(), null, null, EmbedUtil.DANGER));
             }
             case "list" -> {
                 Map<String, String> all = AutoReplyService.getAllResponses();
@@ -137,6 +139,7 @@ public class SlashCommands extends ListenerAdapter {
 
         PanelService.reply(event, EmbedUtil.custom("AGENCY", title, desc, image, thumb, aName, aIcon, fText, fIcon,
                 f1n, f1v, f1i, f2n, f2v, f2i, f3n, f3v, f3i));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Embed Deployment", "Branded embed deployed in " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.GOLD));
     }
 
     private void handleRename(SlashCommandInteractionEvent event) {
@@ -151,7 +154,10 @@ public class SlashCommands extends ListenerAdapter {
             return;
         }
         String old = ch.getName();
-        ch.getManager().setName(n).queue(v -> PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Channel renamed: `" + old + "` \u2192 `" + n + "`")));
+        ch.getManager().setName(n).queue(v -> {
+            PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Channel renamed: `" + old + "` \u2192 `" + n + "`"));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Channel Renamed", "Target: " + ch.getAsMention() + "\n`" + old + "` \u2192 `" + n + "`", event.getMember(), null, null, EmbedUtil.INFO));
+        });
     }
 
     private void handleSetChannel(SlashCommandInteractionEvent event) {
@@ -168,6 +174,7 @@ public class SlashCommands extends ListenerAdapter {
         SupabaseClient.setSetting(p.toUpperCase(), ch.getId());
         Config.updateRuntime(p.toUpperCase(), ch.getId());
         PanelService.replyEphemeral(event, EmbedUtil.success("SETTINGS UPDATED", "Setting `" + p.toUpperCase() + "` now set to: " + ch.getAsMention()));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Configuration Update", "Key: `" + p.toUpperCase() + "`\nValue: " + ch.getAsMention(), event.getMember(), null, null, EmbedUtil.SUCCESS));
     }
 
     private void handleBroadcast(SlashCommandInteractionEvent event) {

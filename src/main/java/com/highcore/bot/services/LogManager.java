@@ -6,6 +6,7 @@ import com.highcore.bot.services.PanelService;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -156,6 +157,14 @@ public class LogManager {
         TextChannel ch = getDashboardLogChannel(guild, Config.LOG_MODS_CMD);
         if (ch != null) {
             PanelService.reply(ch, com.highcore.bot.utils.EmbedUtil.activityLog(title, description, color));
+        }
+    }
+
+    public static void logEmbed(Guild guild, String channelKey, MessageEmbed embed) {
+        if (guild == null || embed == null) return;
+        TextChannel ch = getDashboardLogChannel(guild, channelKey);
+        if (ch != null) {
+            ch.sendMessageEmbeds(embed).queue();
         }
     }
 }

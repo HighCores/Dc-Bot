@@ -1,5 +1,7 @@
 package com.highcore.bot.listeners;
 
+import com.highcore.bot.config.Config;
+import com.highcore.bot.services.LogManager;
 import com.highcore.bot.services.InvoiceService;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.services.BroadcastService;
@@ -8,6 +10,7 @@ import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.entities.Role;
+import net.dv8tion.jda.api.entities.MessageEmbed;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -278,6 +281,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                     PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Broadcast Active",
                             "### 📡 Global Signal Locked\nThe broadcast sequence has been successfully initiated. Transmission to all designated nodes is now in progress.",
                             EmbedUtil.BANNER_MAIN));
+                    LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Global Broadcast", "Message: " + event.getValue("message").getAsString(), event.getMember(), null, null, EmbedUtil.GOLD));
                 } else {
                     PanelService.reply(event, EmbedUtil.error("Broadcast Conflict",
                             "A broadcast sequence is already active in the mainframe."));
@@ -306,6 +310,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                         if (!uploads.isEmpty()) send = send.addFiles(uploads);
                     }
                     send.queue(v -> {
+                        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Boter Message", "Channel: " + tc.getAsMention() + "\nContent: " + msg, event.getMember(), null, null, EmbedUtil.INFO));
                         // Acknowledge silently without a visible message after deployment
                         if (!event.isAcknowledged()) {
                             event.deferReply(true).queue(hook -> hook.deleteOriginal().queue());
