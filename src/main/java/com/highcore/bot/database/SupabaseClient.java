@@ -245,6 +245,10 @@ public class SupabaseClient {
         return get("dc_giveaways", "ended=eq.false");
     }
 
+    public static JsonArray getAllGiveaways() {
+        return get("dc_giveaways", "order=id.desc&limit=20");
+    }
+
     public static void setGiveawayEnded(long id, String[] winners) {
         JsonObject body = new JsonObject();
         body.addProperty("ended", true);
@@ -337,6 +341,10 @@ public class SupabaseClient {
         }
         if (msgId != null) body.addProperty("message_id", msgId);
         patch("dc_suggestions", "id=eq." + id, body);
+    }
+
+    public static void deleteSuggestion(long id) {
+        delete("dc_suggestions", "id=eq." + id);
     }
 
     // ========== AUTO-REPLIES ==========

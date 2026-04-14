@@ -230,14 +230,19 @@ public class SlashCommands extends ListenerAdapter {
             return;
         }
 
-        fileOpt.getAsAttachment().getProxy().download().thenAccept(inputStream -> {
+        net.dv8tion.jda.api.entities.Message.Attachment att = fileOpt.getAsAttachment();
+        att.getProxy().download().thenAccept(inputStream -> {
             try {
-                net.dv8tion.jda.api.utils.FileUpload file = net.dv8tion.jda.api.utils.FileUpload.fromData(inputStream, name + ".png");
+                String ext = att.getFileExtension();
+                String fileName = name + (ext != null ? "." + ext : ".png");
+                net.dv8tion.jda.api.utils.FileUpload file = net.dv8tion.jda.api.utils.FileUpload.fromData(inputStream, fileName);
+                
                 event.getGuild().createSticker(name, "Elite Agency Sticker", file, "agency").queue(s -> {
                     PanelService.replyEphemeral(event, EmbedUtil.success("STICKER HUB", "Sticker Online: **" + name + "**"));
                 }, err -> {
-                    PanelService.replyEphemeral(event, EmbedUtil.error("CREATE FAILED", "Check file size/format (PNG/APNG/Lottie < 512kb/320x320/8MB)."));
-                    log.error("Sticker creation failed: {}", err.getMessage());
+                    String reason = err.getMessage();
+                    PanelService.replyEphemeral(event, EmbedUtil.error("CREATE FAILED", "❌ Discord rejection: " + reason + "\n\nCheck file size/format (PNG/APNG/Lottie < 512kb/320x320/8MB)"));
+                    log.error("Sticker creation failed for {}: {}", name, reason);
                 });
             } catch (Exception e) {
                 PanelService.replyEphemeral(event, EmbedUtil.error("PROCESSING ERROR", "Failed to process image file."));

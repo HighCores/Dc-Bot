@@ -239,8 +239,7 @@ public class PanelService {
                 Button.secondary("btn_highcore", "HighCore"),
                 Button.secondary("btn_about", "About Us"),
                 Button.secondary("btn_partners", "Partners"),
-                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID
-                        + "/1490334823565365308", "Giveaways"));
+                Button.secondary("ticket_init_support", "Support"));
         reply(event, EmbedUtil.startupPanel(row));
     }
 
@@ -368,7 +367,6 @@ public class PanelService {
 
     public static void sendSuggestionList(IReplyCallback event) {
         String guildId = event.getGuild().getId();
-        // Relaxed status filter and added order to ensure we see the most recent ones
         com.google.gson.JsonArray recent = com.highcore.bot.database.SupabaseClient.get("dc_suggestions",
                 "guild_id=eq." + guildId + "&order=id.desc&limit=10");
 

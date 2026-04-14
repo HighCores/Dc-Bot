@@ -92,16 +92,16 @@ public class GiveawayCommands extends ListenerAdapter {
             }
         } else if (id.equals("btn_gw_history")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
-            JsonArray active = SupabaseClient.getActiveGiveaways();
+            JsonArray active = SupabaseClient.getAllGiveaways();
             
             if (active == null || active.size() == 0) {
-                var emptyC = EmbedUtil.containerBranded("REWARDS HISTORY", "Logs Empty", "\u26A0\uFE0F **Registry Entry:** No active reward deployments were found in the current session.", EmbedUtil.BANNER_GIVEAWAY);
+                var emptyC = EmbedUtil.containerBranded("REWARDS HISTORY", "Logs Empty", "\u26A0\uFE0F **Status:** No previous reward sessions were found in our records.", EmbedUtil.BANNER_GIVEAWAY);
                 PanelService.replyEphemeral(event, emptyC);
                 return;
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("### \uD83D\uDCC3 Active Giveaway Log\nListing all current and pending reward sessions:\n\n");
+            sb.append("### \uD83D\uDCC3 Reward Deployment Log\nListing the most recent reward sessions found in the registry:\n\n");
             
             for (int i = 0; i < active.size(); i++) {
                 JsonObject g = active.get(i).getAsJsonObject();

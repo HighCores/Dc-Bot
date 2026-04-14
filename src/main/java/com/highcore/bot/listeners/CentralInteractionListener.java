@@ -244,9 +244,16 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     private void handleSuggestDecision(ButtonInteractionEvent event, String idStr, String status) {
         long id = Long.parseLong(idStr);
-        com.highcore.bot.database.SupabaseClient.updateSuggestion(id, status, "Processed via Panel", event.getUser().getId(), event.getUser().getName(), null);
-        String title = status.equals("Accepted") ? "✅ Suggestion Accepted" : "❌ Suggestion Rejected";
-        String body = String.format("The status for suggestion **#%d** has been updated to: **%s**", id, status);
+        String title, body;
+        if (status.equals("Rejected")) {
+            com.highcore.bot.database.SupabaseClient.deleteSuggestion(id);
+            title = "❌ Suggestion Removed";
+            body = String.format("Suggestion **#%d** has been permanently purged from the registry as requested.", id);
+        } else {
+            com.highcore.bot.database.SupabaseClient.updateSuggestion(id, status, "Processed via Panel", event.getUser().getId(), event.getUser().getName(), null);
+            title = "✅ Suggestion Accepted";
+            body = String.format("The status for suggestion **#%d** has been updated to: **%s**", id, status);
+        }
         event.getHook().editOriginalComponents(EmbedUtil.containerBranded("SYSTEM", title, body, EmbedUtil.BANNER_MAIN)).setComponents(ActionRow.of(Button.secondary("suggest_back", "Return to List"))).queue();
     }
 }
