@@ -371,40 +371,43 @@ public class ModerationCommands extends ListenerAdapter {
         );
     }
 
+    private static final org.slf4j.Logger log = org.slf4j.LoggerFactory.getLogger(ModerationCommands.class);
+
     private void handleAddEmoji(SlashCommandInteractionEvent event) {
-        if (!hasPerm(event, Permission.MANAGE_GUILD_EXPRESSIONS)) return;
+        if (!hasPerm(event, net.dv8tion.jda.api.Permission.MANAGE_GUILD_EXPRESSIONS)) return;
         String name = event.getOption("name", OptionMapping::getAsString);
         OptionMapping imgMapping = event.getOption("image");
         if (imgMapping == null || name == null) return;
-        
+
         // Sanitize emoji name: alphanumeric and underscores only, 2-32 chars
         String sanitized = name.replaceAll("[^a-zA-Z0-9_]", "");
         if (sanitized.length() < 2) sanitized = "emoji_" + sanitized;
         if (sanitized.length() > 32) sanitized = sanitized.substring(0, 32);
         final String finalName = sanitized;
-        System.out.println("[STICKER] Initiating emoji deployment: " + finalName);
-        PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📥 **Fetching asset data...**"));
+        
+        log.info("[MOD] Initiating emoji deployment: {}", finalName);
+        event.getHook().editOriginal("📥 **Fetching asset data...**").queue();
 
         imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
             try (stream) {
-                System.out.println("[STICKER] Stream received, creating icon...");
+                log.info("[MOD] Stream received, creating icon for {}", finalName);
                 net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
                 event.getGuild().createEmoji(finalName, icon).queue(
                     v -> {
-                        System.out.println("[STICKER] Emoji deployed successfully.");
+                        log.info("[MOD] Emoji {} deployed successfully.", finalName);
                         PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed.", EmbedUtil.BANNER_MAIN));
                     },
                     e -> {
-                        System.err.println("[STICKER] Emoji deployment failed: " + e.getMessage());
+                        log.error("[MOD] Emoji deployment failed: {}", e.getMessage());
                         PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()));
                     }
                 );
             } catch (Exception e) { 
-                System.err.println("[STICKER] Stream processing error: " + e.getMessage());
+                log.error("[MOD] Stream processing error for emoji: {}", e.getMessage());
                 PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Stream processing error: " + e.getMessage())); 
             }
         }).exceptionally(ex -> {
-            System.err.println("[STICKER] Retrieval failure: " + ex.getMessage());
+            log.error("[MOD] Retrieval failure for emoji: {}", ex.getMessage());
             PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Asset transmission failure: " + ex.getMessage()));
             return null;
         });
@@ -418,27 +421,27 @@ public class ModerationCommands extends ListenerAdapter {
         OptionMapping imgMapping = event.getOption("image");
         if (imgMapping == null || name == null || tags == null) return;
 
-        System.out.println("[STICKER] Initiating sticker deployment: " + name);
-        PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📤 **Synchronizing visual asset...**"));
+        log.info("[MOD] Initiating sticker deployment: {}", name);
+        event.getHook().editOriginal("📤 **Synchronizing visual asset...**").queue();
 
         net.dv8tion.jda.api.entities.Message.Attachment attachment = imgMapping.getAsAttachment();
         attachment.getProxy().download().thenAccept(stream -> {
             try (stream) {
-                System.out.println("[STICKER] Stream received for sticker, reading bytes...");
+                log.info("[MOD] Stream received for sticker: {}, reading bytes...", name);
                 byte[] data = stream.readAllBytes();
                 String ext = attachment.getFileExtension();
                 if (ext == null) ext = "png";
                 net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + "." + ext);
                 
-                System.out.println("[STICKER] Uploading to Discord...");
+                log.info("[MOD] Uploading sticker {} to Discord...", name);
                 event.getGuild().createSticker(name, desc == null ? "Elite Agency Asset" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
                     .queue(
                         v -> {
-                            System.out.println("[STICKER] Sticker deployed successfully.");
+                            log.info("[MOD] Sticker {} deployed successfully.", name);
                             PanelService.reply(event, EmbedUtil.containerBranded("STICKER SYSTEM", "Asset Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` has been successfully synchronized.", EmbedUtil.BANNER_MAIN));
                         },
                         err -> {
-                            System.err.println("[STICKER] Sticker deployment failed: " + err.getMessage());
+                            log.error("[MOD] Sticker {} deployment failed: {}", name, err.getMessage());
                             String msg = err.getMessage();
                             if (msg.contains("320")) msg = "Discord requires exactly 320x320px for stickers.";
                             else if (msg.contains("512")) msg = "File size exceeds the 512KB limit.";
@@ -447,11 +450,11 @@ public class ModerationCommands extends ListenerAdapter {
                         }
                     );
             } catch (Exception e) {
-                System.err.println("[STICKER] Sticker processing error: " + e.getMessage());
+                log.error("[MOD] Sticker {} processing error: {}", name, e.getMessage());
                 PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
             }
         }).exceptionally(ex -> {
-            System.err.println("[STICKER] Sticker retrieval failure: " + ex.getMessage());
+            log.error("[MOD] Sticker {} retrieval failure: {}", name, ex.getMessage());
             PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Asset synchronization failure: " + ex.getMessage()));
             return null;
         });
