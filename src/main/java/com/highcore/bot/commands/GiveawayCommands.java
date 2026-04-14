@@ -15,7 +15,6 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.components.selections.EntitySelectMenu;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
@@ -156,21 +155,19 @@ public class GiveawayCommands extends ListenerAdapter {
         boolean isDrop = type.equals("Drop");
         String modalId = "modal_gw_" + type.toLowerCase();
         
-        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
+        TextInput prizeInput = TextInput.create("prize", (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details"), TextInputStyle.SHORT)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
                 .setRequired(true).build();
         
-        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
+        TextInput winnersInput = TextInput.create("winners", "Number of Winners", TextInputStyle.SHORT)
                 .setRequired(true).setValue("1").build();
         
-        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create("duration", "Duration (Minutes)", TextInputStyle.SHORT)
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
         Modal.Builder mb = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
-                .addComponents(Label.of(type.equals("Voucher") ? "Voucher Amount/Detail" : type.equals("Discount") ? "Discount Percentage" : "Reward Details", prizeInput))
-                .addComponents(Label.of("Winners Count", winnersInput))
-                .addComponents(Label.of("Duration (Minutes)", timeInput));
+                .addComponents(ActionRow.of(prizeInput), ActionRow.of(winnersInput), ActionRow.of(timeInput));
 
         event.replyModal(mb.build()).queue();
     }

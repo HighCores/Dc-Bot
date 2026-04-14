@@ -47,7 +47,7 @@ public class SlashCommands extends ListenerAdapter {
         if (modCmds.contains(name)) return;
 
         if (!event.isAcknowledged()) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("services") && !name.equals("stats") && !name.equals("terms");
+            boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("terms");
             event.deferReply(ephemeral).queue();
         }
 
@@ -55,8 +55,6 @@ public class SlashCommands extends ListenerAdapter {
             switch (name) {
                 case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "tickets" -> PanelService.sendTicketPanel(event);
-                case "services" -> PanelService.sendServicesCategory(event);
-                case "stats" -> PanelService.sendStatsPanel(event);
                 case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);
@@ -176,9 +174,13 @@ public class SlashCommands extends ListenerAdapter {
 
         BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
-        TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
-        event.replyModal(Modal.create("modal_bc", "BROADCAST")
-                .addComponents(Label.of("Broadcast Content", bcMsg))
+        TextInput bcMsg = TextInput.create("message", "Broadcast Content", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("Enter the message to broadcast...")
+                .setRequired(true)
+                .build();
+
+        event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
+                .addComponents(ActionRow.of(bcMsg))
                 .build()).queue();
     }
 
@@ -198,9 +200,12 @@ public class SlashCommands extends ListenerAdapter {
 
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
-        TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH).setRequired(true).build();
+        TextInput boterMsg = TextInput.create("message", "Emulated Message", TextInputStyle.PARAGRAPH)
+                .setPlaceholder("Enter the message content...")
+                .setRequired(true)
+                .build();
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(Label.of("Emulated Message", boterMsg))
+                .addComponents(ActionRow.of(boterMsg))
                 .build()).queue();
     }
 

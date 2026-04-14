@@ -48,7 +48,8 @@ public class CentralInteractionListener extends ListenerAdapter {
         boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") ||
                 id.equals("ticket_unclaim") ||
                 id.equals("ticket_delete") || id.equals("ticket_reopen") ||
-                id.startsWith("order_status_update_");
+                id.startsWith("order_status_update_") ||
+                id.startsWith("suggest_show_") || id.startsWith("suggest_accept_") || id.startsWith("suggest_reject_") || id.equals("suggest_list_back");
 
         // Exclude system/giveaway buttons from Central handling
         if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_")) return;
@@ -137,8 +138,15 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
             } else if (id.startsWith("ticket_mark_paid_")) {
-                String tid = id.replace("ticket_mark_paid_", "");
                 TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
+            } else if (id.startsWith("suggest_show_")) {
+                handleSuggestShow(event, id.replace("suggest_show_", ""));
+            } else if (id.startsWith("suggest_accept_")) {
+                handleSuggestDecision(event, id.replace("suggest_accept_", ""), "Accepted");
+            } else if (id.startsWith("suggest_reject_")) {
+                handleSuggestDecision(event, id.replace("suggest_reject_", ""), "Rejected");
+            } else if (id.equals("suggest_list_back")) {
+                PanelService.updateSuggestionList(event);
             }
 
 
@@ -201,7 +209,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                     TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT)
                             .setPlaceholder("Describe the technical issue...").setRequired(true).build();
                     Modal m = Modal.create("modal_ticket_open", "Support Request")
-                            .addComponents(Label.of("Problem Brief", subjectInput))
+                            .addComponents(ActionRow.of(subjectInput))
                             .build();
                     event.replyModal(m).queue();
                 }
@@ -209,7 +217,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                     TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH)
                             .setPlaceholder("What are you reporting?").setRequired(true).build();
                     Modal m = Modal.create("modal_report_open", "Submit a Report")
-                            .addComponents(Label.of("Report Context", reasonInput))
+                            .addComponents(ActionRow.of(reasonInput))
                             .build();
                     event.replyModal(m).queue();
                 }
@@ -281,13 +289,18 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         if (id.equals("modal_bc")) {
             com.highcore.bot.commands.SlashCommands.BcSession s = com.highcore.bot.commands.SlashCommands.BC_SESSIONS
-                    .get("bc_" + event.getUser().getId());
+                    .remove("bc_" + event.getUser().getId());
             if (s != null) {
-                BroadcastService.startBroadcast(event.getGuild(),
+                boolean started = BroadcastService.startBroadcast(event.getGuild(),
                         event.getValue("message").getAsString(), s.roleId, s.attUrl);
-                event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
+                if (started) {
+                    event.reply("Broadcast transmission initiated. Users are being prioritized for delivery.").setEphemeral(true).queue();
+                } else {
+                    event.reply("A broadcast is already in progress. Please wait for the current sequence to complete.").setEphemeral(true).queue();
+                }
+            } else {
+                event.reply("Session expired or invalid. Please try the command again.").setEphemeral(true).queue();
             }
-
         } else if (id.equals("modal_support_init")) {
             event.deferReply(true).queue();
             String issueDesc = event.getValue("issue_desc").getAsString();
@@ -363,5 +376,43 @@ public class CentralInteractionListener extends ListenerAdapter {
             PanelService.reply(event, EmbedUtil.success("ORDER SUBMITTED",
                     "Your ticket has been created. It will be unlocked once payment is confirmed."));
         }
+    }
+
+    private void handleSuggestShow(ButtonInteractionEvent event, String idStr) {
+        long id = Long.parseLong(idStr);
+        com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
+        if (sug == null) {
+            event.getHook().editOriginal("Suggestion record not found or data error.").queue();
+            return;
+        }
+
+        String content = sug.get("content").getAsString();
+        String user = sug.get("user_name").getAsString();
+        
+        String body = String.format("""
+                ### \uD83D\uDCDD مراجعة اقتراح رقم #%d
+                **بواسطة:** %s
+                
+                **نص الاقتراح:**
+                %s
+                """, id, user, content);
+
+        ActionRow rows = ActionRow.of(
+            Button.success("suggest_accept_" + id, "قبول"),
+            Button.danger("suggest_reject_" + id, "رفض"),
+            Button.secondary("suggest_list_back", "\u2B05\uFE0F العودة للقائمة")
+        );
+
+        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("\u0644\u0648\u062D\u0629 \u0627\u0644\u062A\u062D\u0643\u0645", "\u062A\u0641\u0627\u0635\u064A\u0644 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D", body, EmbedUtil.BANNER_MAIN))
+            .setComponents(rows).queue();
+    }
+
+    private void handleSuggestDecision(ButtonInteractionEvent event, String idStr, String status) {
+        long id = Long.parseLong(idStr);
+        com.highcore.bot.database.SupabaseClient.updateSuggestion(id, status, "Processed via Panel", 
+            event.getUser().getId(), event.getUser().getName(), null);
+        
+        event.getHook().editOriginalEmbeds(EmbedUtil.success("\u062A\u0645 \u0627\u0644\u062A\u062D\u062F\u0642", "\u062A\u0645 \u062A\u062D\u0648\u064A\u0644 \u062D\u0627\u0644\u0629 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D رقم #" + id + " إلى: **" + status + "**"))
+            .setComponents().queue();
     }
 }

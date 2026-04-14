@@ -16,7 +16,6 @@ import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
@@ -129,7 +128,7 @@ public class PanelService {
         }
         if (target instanceof IReplyCallback event) {
             if (event.isAcknowledged()) {
-                event.getHook().editOriginalComponents(components).useComponentsV2(true).queue();
+                event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue();
             } else {
                 event.replyComponents(components).useComponentsV2(true).setEphemeral(ephemeral).queue();
             }
@@ -263,20 +262,64 @@ public class PanelService {
         replyEphemeral(event, EmbedUtil.eliteContainer("Pings", "Select notification layers.", null));
     }
 
-    public static void sendStatsPanel(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.eliteContainer("Telemetry", "Systems Operational.", null));
-    }
 
     public static void sendPricesCategory(IReplyCallback event) {
         replyEphemeral(event, EmbedUtil.eliteContainer("Pricing", "Service modules processing.", null));
     }
 
-    public static void sendServicesCategory(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.eliteContainer("Services", "Agency assets online.", null));
-    }
 
     public static void sendServerMap(IReplyCallback event) {
         sendHighcoreHub(event);
+    }
+
+    public static void sendSuggestionList(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
+        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
+        if (pending == null || pending.size() == 0) {
+            replyEphemeral(event, EmbedUtil.info("الاقتراحات", "لا يوجد اقتراحات معلقة حالياً."));
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("### \uD83D\uDCDD قائمة الاقتراحات المعلقة\nإليك آخر 10 اقتراحات بانتظار المراجعة:\n\n");
+        java.util.List<net.dv8tion.jda.api.components.buttons.Button> buttons = new java.util.ArrayList<>();
+        for (int i = 0; i < pending.size(); i++) {
+            com.google.gson.JsonObject sug = pending.get(i).getAsJsonObject();
+            long sid = sug.get("id").getAsLong();
+            String content = sug.get("content").getAsString();
+            if (content.length() > 50) content = content.substring(0, 47) + "...";
+            sb.append("**#").append(sid).append("** - ").append(content).append("\n");
+            buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_show_" + sid, "عرض #" + sid));
+        }
+        java.util.List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new java.util.ArrayList<>();
+        for (int i = 0; i < buttons.size(); i += 5) {
+            rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
+        }
+        var embed = EmbedUtil.containerBranded("\u0627\u0644\u062A\u0637\u0648\u064A\u0631", "\u0644\u0648\u062D\u0629 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D\u0627\u062A", sb.toString(), EmbedUtil.BANNER_MAIN);
+        event.replyEmbeds(embed).setComponents(rows).setEphemeral(true).queue();
+    }
+
+    public static void updateSuggestionList(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
+        if (pending == null || pending.size() == 0) {
+            event.getHook().editOriginal("لا يوجد اقتراحات معلقة حالياً.").setComponents().queue();
+            return;
+        }
+        StringBuilder sb = new StringBuilder();
+        sb.append("### \uD83D\uDCDD قائمة الاقتراحات المعلقة\nإليك آخر 10 اقتراحات بانتظار المراجعة:\n\n");
+        java.util.List<net.dv8tion.jda.api.components.buttons.Button> buttons = new java.util.ArrayList<>();
+        for (int i = 0; i < pending.size(); i++) {
+            com.google.gson.JsonObject sug = pending.get(i).getAsJsonObject();
+            long sid = sug.get("id").getAsLong();
+            String content = sug.get("content").getAsString();
+            if (content.length() > 50) content = content.substring(0, 47) + "...";
+            sb.append("**#").append(sid).append("** - ").append(content).append("\n");
+            buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_show_" + sid, "عرض #" + sid));
+        }
+        java.util.List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new java.util.ArrayList<>();
+        for (int i = 0; i < buttons.size(); i += 5) {
+            rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
+        }
+        var embed = EmbedUtil.containerBranded("\u0627\u0644\u062A\u0637\u0648\u064A\u0631", "\u0644\u0648\u062D\u0629 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D\u0627\u062A", sb.toString(), EmbedUtil.BANNER_MAIN);
+        event.getHook().editOriginalEmbeds(embed).setComponents(rows).queue();
     }
 
     public static void sendAboutUs(IReplyCallback event) {
@@ -310,24 +353,21 @@ public class PanelService {
 
     public static void handleSupportFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).build();
-            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).build();
+            TextInput issueInput = TextInput.create("issue_desc", "Describe your issue", TextInputStyle.PARAGRAPH).build();
+            TextInput serviceInput = TextInput.create("service_type", "Service Type", TextInputStyle.SHORT).build();
             modal.replyModal(Modal.create("modal_support_init", "Technical Support")
-                    .addComponents(Label.of("Describe your issue", issueInput))
-                    .addComponents(Label.of("Service (Designer/Dev/Editor/MC)", serviceInput))
+                    .addComponents(ActionRow.of(issueInput), ActionRow.of(serviceInput))
                     .build()).queue();
         }
     }
 
     public static void handleComplaintFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueTypeInput = TextInput.create("comp_type", TextInputStyle.SHORT).build();
-            TextInput personInput = TextInput.create("comp_person", TextInputStyle.SHORT).build();
-            TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).build();
+            TextInput issueTypeInput = TextInput.create("comp_type", "Complaint Category", TextInputStyle.SHORT).build();
+            TextInput personInput = TextInput.create("comp_person", "Person Involved", TextInputStyle.SHORT).build();
+            TextInput descInput = TextInput.create("comp_desc", "Full Details", TextInputStyle.PARAGRAPH).build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
-                    .addComponents(Label.of("Delivery issue or staff member?", issueTypeInput))
-                    .addComponents(Label.of("Staff / person involved (or N/A)", personInput))
-                    .addComponents(Label.of("Describe the issue in full detail", descInput))
+                    .addComponents(ActionRow.of(issueTypeInput), ActionRow.of(personInput), ActionRow.of(descInput))
                     .build()).queue();
         }
     }
@@ -437,15 +477,12 @@ public class PanelService {
 
     public static void handleOrderFinalModal(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).build();
-            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).build();
-            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).build();
+            TextInput projectInput = TextInput.create("o_project", "Project Name", TextInputStyle.SHORT).build();
+            TextInput nameInput = TextInput.create("o_name", "Your Full Name", TextInputStyle.SHORT).build();
+            TextInput contactInput = TextInput.create("o_contact", "Contact Info", TextInputStyle.SHORT).build();
+            TextInput etaInput = TextInput.create("o_eta", "Delivery ETA", TextInputStyle.SHORT).build();
             modal.replyModal(Modal.create("modal_order_final", "Order Details")
-                    .addComponents(Label.of("Project Name", projectInput))
-                    .addComponents(Label.of("Your Full Name", nameInput))
-                    .addComponents(Label.of("Contact (Phone / Email)", contactInput))
-                    .addComponents(Label.of("Expected Delivery Time", etaInput))
+                    .addComponents(ActionRow.of(projectInput), ActionRow.of(nameInput), ActionRow.of(contactInput), ActionRow.of(etaInput))
                     .build()).queue();
         }
     }

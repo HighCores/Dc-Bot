@@ -9,7 +9,6 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import com.highcore.bot.utils.EmbedUtil;
@@ -302,20 +301,17 @@ public class OrderService {
     // STEP 4 — Final details modal (triggered by wiz_finish button)
     // ═══════════════════════════════════════════════════════════
     public static void finishWizard(ButtonInteractionEvent event) {
-        TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT)
+        TextInput projectInput = TextInput.create("o_project", "Project Name", TextInputStyle.SHORT)
             .setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
-        TextInput nameInput    = TextInput.create("o_name",    TextInputStyle.SHORT)
+        TextInput nameInput    = TextInput.create("o_name", "Your Full Name", TextInputStyle.SHORT)
             .setPlaceholder("Full name").setRequired(true).build();
-        TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT)
+        TextInput contactInput = TextInput.create("o_contact", "Contact Info", TextInputStyle.SHORT)
             .setPlaceholder("+966 5X XXX XXXX or email@example.com").setRequired(true).build();
-        TextInput etaInput     = TextInput.create("o_eta",     TextInputStyle.SHORT)
+        TextInput etaInput     = TextInput.create("o_eta", "Delivery ETA", TextInputStyle.SHORT)
             .setPlaceholder("e.g. 3 days, 1 week").setRequired(true).build();
 
         Modal modal = Modal.create("order_modal", "Order Details")
-            .addComponents(Label.of("Project Name",            projectInput))
-            .addComponents(Label.of("Your Full Name",          nameInput))
-            .addComponents(Label.of("Contact (Phone / Email)", contactInput))
-            .addComponents(Label.of("Expected Delivery Time",  etaInput))
+            .addComponents(ActionRow.of(projectInput), ActionRow.of(nameInput), ActionRow.of(contactInput), ActionRow.of(etaInput))
             .build();
 
         event.replyModal(modal).queue();

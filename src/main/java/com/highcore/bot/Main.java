@@ -50,18 +50,12 @@ public class Main {
                         new ModerationCommands(),
                         new InfoCommands(),
                         new GeneralCommands(),
-                new MessageListener(), 
-                new SlashCommands(),
-                new GiveawayCommands(),
-                new ModerationCommands(),
-                new InfoCommands(),
-                new GeneralCommands(),
-                new ServerLogListener(),
-                new UserLogListener(),
-                new WelcomeListener(), 
-                new GiveawayListener(),
-                new CentralInteractionListener()
-        )
+                        new ServerLogListener(),
+                        new UserLogListener(),
+                        new WelcomeListener(), 
+                        new GiveawayListener(),
+                        new CentralInteractionListener()
+                )
         .build().awaitReady();
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
@@ -87,8 +81,6 @@ public class Main {
                 // ===== Core & Business =====
                 Commands.slash("startup", "عــرض لــوحــة الــتــحــكــم الــرئــيــســيــة"),
                 Commands.slash("tickets", "فــتــح نــظــام الــتــذاكــر"),
-                Commands.slash("services", "عــرض خــدمــاتــنــا وفــئــاتــهــا"),
-                Commands.slash("stats", "عــرض إحــصــائــيــات الــوكــالــة والــنــظــام"),
                 Commands.slash("ping", "فــحــص ســرعــة اتــصــال الــبــوت"),
                 Commands.slash("bc", "بــث رســالــة جــمــاعــيــة")
                         .addOption(OptionType.STRING, "message", "مــحــتــوى الــرســالــة", true)
@@ -186,9 +178,6 @@ public class Main {
                 Commands.slash("server-banner", "عــرض بــانــر الــســيــرفــر"),
 
                 // ===== General & Fun =====
-                Commands.slash("colors", "عــرض رتــب الألــوان الــمــتــاحــة"),
-                Commands.slash("color-set", "تــطــبــيــق لــون لــاســمــك")
-                        .addOption(OptionType.STRING, "code", "كــود الــلــون", true),
                 Commands.slash("translate", "تــرجــمــة الــنــصــوص")
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
@@ -198,8 +187,8 @@ public class Main {
                 Commands.slash("suggest", "تــقــديــم اقــتــراح جــديــد")
                         .addOption(OptionType.STRING, "suggestion", "الــمــحــتــوى", true),
                 Commands.slash("suggestion", "إدارة الاقــتــراحــات")
-                        .addOption(OptionType.INTEGER, "id", "مــعــرف الاقــتــراح", true)
-                        .addOption(OptionType.STRING, "action", "الــإجــراء", true)
+                        .addOption(OptionType.INTEGER, "id", "مــعــرف الاقــتــراح", false)
+                        .addOption(OptionType.STRING, "action", "الــإجــراء", false)
         ).queue();
     }
 }

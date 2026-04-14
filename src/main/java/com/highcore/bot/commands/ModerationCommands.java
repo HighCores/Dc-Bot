@@ -290,22 +290,28 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleLock(SlashCommandInteractionEvent event, boolean unlock) {
         if (!hasPerm(event, Permission.MANAGE_CHANNEL)) return;
         TextChannel tc = event.getChannel().asTextChannel();
-        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(unlock ? Permission.MESSAGE_SEND : null).setDenied(unlock ? null : Permission.MESSAGE_SEND).queue(v -> 
-            PanelService.reply(event, EmbedUtil.success("Management", "Channel successfully " + (unlock ? "Unlocked" : "Locked") + ".")));
+        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(unlock ? Permission.MESSAGE_SEND : null).setDenied(unlock ? null : Permission.MESSAGE_SEND).queue(
+            v -> PanelService.reply(event, EmbedUtil.success("Management", "Channel successfully " + (unlock ? "Unlocked" : "Locked") + ".")),
+            e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Permission update failed: " + e.getMessage()))
+        );
     }
 
     private void handleVisibility(SlashCommandInteractionEvent event, boolean show) {
         if (!hasPerm(event, Permission.MANAGE_CHANNEL)) return;
         TextChannel tc = event.getChannel().asTextChannel();
-        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(show ? Permission.VIEW_CHANNEL : null).setDenied(show ? null : Permission.VIEW_CHANNEL).queue(v -> 
-            PanelService.reply(event, EmbedUtil.success("Visibility", "Channel is now " + (show ? "Visible" : "Hidden") + " to everyone.")));
+        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(show ? Permission.VIEW_CHANNEL : null).setDenied(show ? null : Permission.VIEW_CHANNEL).queue(
+            v -> PanelService.reply(event, EmbedUtil.success("Visibility", "Channel is now " + (show ? "Visible" : "Hidden") + " to everyone.")),
+            e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Visibility update failed: " + e.getMessage()))
+        );
     }
 
     private void handleSlowmode(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.MANAGE_CHANNEL)) return;
         int sec = event.getOption("seconds", OptionMapping::getAsInt);
-        event.getChannel().asTextChannel().getManager().setSlowmode(sec).queue(v -> 
-            PanelService.reply(event, EmbedUtil.success("Slowmode", "Slowmode delay set to `" + sec + " seconds`")));
+        event.getChannel().asTextChannel().getManager().setSlowmode(sec).queue(
+            v -> PanelService.reply(event, EmbedUtil.success("Slowmode", "Slowmode delay set to `" + sec + " seconds`")),
+            e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Slowmode update failed: " + e.getMessage()))
+        );
     }
 
     private void handleAddEmoji(SlashCommandInteractionEvent event) {
