@@ -139,12 +139,20 @@ public class InfoCommands extends ListenerAdapter {
     private void handleBanner(SlashCommandInteractionEvent event, boolean server) {
         if (server) {
             String url = event.getGuild().getBannerUrl();
+            if (url != null) url += "?size=2048";
             PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "Server Banner", "### \uD83D\uDDBC High-Resolution Banner", url != null ? url : EmbedUtil.BANNER_MAIN));
         } else {
             User u = event.getOption("user") != null ? event.getOption("user").getAsUser() : event.getUser();
             u.retrieveProfile().queue(profile -> {
                 String banner = profile.getBannerUrl();
-                PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "User Banner", "### \uD83D\uDDBC High-Resolution Banner", banner != null ? banner : u.getEffectiveAvatarUrl()));
+                if (banner != null) {
+                    banner += "?size=2048";
+                    PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "User Banner", "### \uD83D\uDDBC High-Resolution Banner", banner));
+                } else {
+                    PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "User Banner", String.format("### \u26A0\uFE0F NO BANNER DETECTED\nUser **%s** has not configured a visual banner asset in their Discord profile settings.", u.getName()), u.getEffectiveAvatarUrl()));
+                }
+            }, err -> {
+                PanelService.reply(event, EmbedUtil.containerBranded("Visuals", "User Banner", "### \u26A0\uFE0F RETRIEVAL ERROR\nFailed to sync with Discord Registry to fetch the user's profile banner.", u.getEffectiveAvatarUrl()));
             });
         }
     }
