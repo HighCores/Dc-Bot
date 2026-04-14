@@ -38,8 +38,19 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // List of all commands handled by other dedicated classes (Moderation, Info, General, Giveaway)
-        List<String> ignoredCmds = java.util.Arrays.asList(
+        // NO MORE IGNORE LIST for deferral. We want the bot to ALWAYS start thinking immediately 
+        // to avoid "This interaction failed" or timeouts for ALL commands.
+        
+        // SMART DEFERRAL: Do NOT defer if the command uses a Modal (bc, embed, boter)
+        boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
+        
+        if (!event.isAcknowledged() && !usesModal) {
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms") && !name.equals("ping") && !name.equals("roll");
+            event.deferReply(ephemeral).queue();
+        }
+
+        // Now, we ONLY ignore the logic execution if it's a dedicated command
+        List<String> dedicatedCmds = java.util.Arrays.asList(
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
@@ -47,15 +58,7 @@ public class SlashCommands extends ListenerAdapter {
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
             "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
-        if (ignoredCmds.contains(name)) return;
-
-        // SMART DEFERRAL: Do NOT defer if the command uses a Modal (bc, embed, boter)
-        boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
-        
-        if (!event.isAcknowledged() && !usesModal) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms");
-            event.deferReply(ephemeral).queue();
-        }
+        if (dedicatedCmds.contains(name)) return;
 
         try {
             switch (name) {

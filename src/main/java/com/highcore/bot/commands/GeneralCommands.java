@@ -13,10 +13,6 @@ public class GeneralCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName();
-        if (!event.isAcknowledged()) {
-            boolean ephemeral = !name.equals("suggest");
-            event.deferReply(ephemeral).queue();
-        }
         
         switch (name) {
             case "ping" -> handlePing(event);

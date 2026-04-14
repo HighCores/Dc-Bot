@@ -3,6 +3,9 @@ package com.highcore.bot.services;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.MessageTopLevelComponent;
@@ -18,12 +21,15 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
 
 public class PanelService {
+    private static final Logger log = LoggerFactory.getLogger(PanelService.class);
 
     public static class OrderSession {
         public String category;
@@ -114,6 +120,34 @@ public class PanelService {
 
     public static void replyEphemeral(Object target, Object... components) {
         handleReply(target, true, components);
+    }
+
+    public static void reply(SlashCommandInteractionEvent event, MessageCreateData m) {
+        if (event.isAcknowledged()) {
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, err -> log.error("Failed to edit original: {}", err.getMessage()));
+        } else {
+            event.reply(m).queue(null, err -> {
+                if (err.getMessage().contains("already acknowledged") || err.getMessage().contains("replied")) {
+                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                } else {
+                    log.error("Failed to reply: {}", err.getMessage());
+                }
+            });
+        }
+    }
+
+    public static void replyEphemeral(SlashCommandInteractionEvent event, MessageCreateData m) {
+        if (event.isAcknowledged()) {
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, err -> log.error("Failed to edit original: {}", err.getMessage()));
+        } else {
+            event.reply(m).setEphemeral(true).queue(null, err -> {
+                if (err.getMessage().contains("already acknowledged") || err.getMessage().contains("replied")) {
+                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                } else {
+                    log.error("Failed to reply ephemeral: {}", err.getMessage());
+                }
+            });
+        }
     }
 
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {

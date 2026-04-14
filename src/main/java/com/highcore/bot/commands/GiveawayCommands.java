@@ -42,9 +42,6 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
         if (!event.getName().equals("giveaway")) return;
         
-        // Ensure immediate acknowledgment
-        if (!event.isAcknowledged()) event.deferReply(false).queue();
-        
         if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
