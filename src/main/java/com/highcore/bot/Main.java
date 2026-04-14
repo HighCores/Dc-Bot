@@ -78,97 +78,128 @@ public class Main {
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild == null) return;
 
+        var adminPerms = net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.ADMINISTRATOR);
+
         guild.updateCommands().addCommands(
-                // ===== Core & Business =====
-                Commands.slash("startup", "عــرض لــوحــة الــتــحــكــم الــرئــيــســيــة"),
-                Commands.slash("tickets", "فــتــح نــظــام الــتــذاكــر"),
-                Commands.slash("ping", "فــحــص ســرعــة اتــصــال الــبــوت"),
+                // ===== Core & Business (Administrative) =====
+                Commands.slash("startup", "عــرض لــوحــة الــتــحــكــم الــرئــيــســيــة").setDefaultPermissions(adminPerms),
+                Commands.slash("tickets", "فــتــح نــظــام الــتــذاكــر").setDefaultPermissions(adminPerms),
                 Commands.slash("bc", "بــث رســالــة جــمــاعــيــة")
                         .addOption(OptionType.STRING, "message", "مــحــتــوى الــرســالــة", true)
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", false)
-                        .addOption(OptionType.ATTACHMENT, "attachment", "مــرفــق الــمــيــديــا", false),
+                        .addOption(OptionType.ATTACHMENT, "attachment", "مــرفــق الــمــيــديــا", false)
+                        .setDefaultPermissions(adminPerms),
 
-                // ===== Moderation =====
+                // ===== Moderation (Administrative) =====
                 Commands.slash("setnick", "تــغــيــيــر لــقــب عــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.STRING, "nick", "الــلــقــب الــجــديــد", true),
+                        .addOption(OptionType.STRING, "nick", "الــلــقــب الــجــديــد", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("ban", "حــظــر عــضــو مــن الــســيــرفــر")
                         .addOption(OptionType.USER, "user", "الــعــضــو", true)
-                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("unban", "إلــغــاء حــظــر عــضــو")
-                        .addOption(OptionType.STRING, "user_id", "مــعــرف الــعــضــو", true),
-                Commands.slash("unban-all", "مــســح قــائمة الــحــظــر بــالــكــامــل"),
+                        .addOption(OptionType.STRING, "user_id", "مــعــرف الــعــضــو", true)
+                        .setDefaultPermissions(adminPerms),
+                Commands.slash("unban-all", "مــســح قــائمة الــحــظــر بــالــكــامــل").setDefaultPermissions(adminPerms),
                 Commands.slash("kick", "طــرد عــضــو مــن الــســيــرفــر")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("vkick", "طــرد عــضــو مــن الــقـنــاة الــصــوتــيــة")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("mute-text", "كــتــم عــضــو كــتــابــيــاً")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("unmute-text", "إلــغــاء كــتــم عــضــو كــتــابــيــاً")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("mute-check", "فــحــص حــالــة الــكــتــم لــعــضــو")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("mute-voice", "كــتــم عــضــو صــوتــيــاً")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("unmute-voice", "إلــغــاء كــتــم عــضــو صــوتــيــاً")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("timeout", "إســكــات عــضــو لــفــتـرة")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــدقــائــق", true),
+                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــدقــائــق", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("untimeout", "إلــغــاء إســكــات الــعــضــو")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("clear", "مــســح رســائل الــقــنــاة")
-                        .addOption(OptionType.INTEGER, "amount", "عــدد الــرســائــل", true),
+                        .addOption(OptionType.INTEGER, "amount", "عــدد الــرســائــل", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("move", "نــقــل عــضــو لــقــنــاة صــوتــيــة")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.CHANNEL, "channel", "الــوجــهــة", true),
+                        .addOption(OptionType.CHANNEL, "channel", "الــوجــهــة", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("role", "إدارة رتــب الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true),
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("temprole", "إعــطــاء رتــبــة مــؤقــتــة")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
-                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــســاعــات", true),
+                        .addOption(OptionType.INTEGER, "duration", "الــمــدة بــالــســاعــات", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("rar", "ســحــب جــمــيــع الــرتــب")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("inrole", "عــرض الــمــتــواجــديــن فــي رتــبــة")
-                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true),
+                        .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("warn-add", "إضــافــة تــحــذير لــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.STRING, "reason", "الــســبــب", false),
+                        .addOption(OptionType.STRING, "reason", "الــســبــب", false)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("warn-remove", "إزالــة تــحــذير لــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
-                        .addOption(OptionType.INTEGER, "id", "مــعــرف الــتــحــذير", false),
+                        .addOption(OptionType.INTEGER, "id", "مــعــرف الــتــحــذير", false)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("warnings", "عــرض تــحــذيرات الــعــضــو")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("violations", "عــرض مــخــالــفــات الــفــلــتــر")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("violations-clear", "مــســح مــخــالــفــات الــفــلــتــر")
-                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true),
-                Commands.slash("lock", "إغــلاق الــقــنــاة الــحــالــيــة"),
-                Commands.slash("unlock", "فــتــح الــقــنــاة الــحــالــيــة"),
-                Commands.slash("hide", "إخــفــاء الــقــنــاة الــحــالــيــة"),
-                Commands.slash("show", "إظــهــار الــقــنــاة الــحــالــيــة"),
+                        .addOption(OptionType.USER, "user", "الــعــضــو الــمــســتــهــدف", true)
+                        .setDefaultPermissions(adminPerms),
+                Commands.slash("lock", "إغــلاق الــقــنــاة الــحــالــيــة").setDefaultPermissions(adminPerms),
+                Commands.slash("unlock", "فــتــح الــقــنــاة الــحــالــيــة").setDefaultPermissions(adminPerms),
+                Commands.slash("hide", "إخــفــاء الــقــنــاة الــحــالــيــة").setDefaultPermissions(adminPerms),
+                Commands.slash("show", "إظــهــار الــقــنــاة الــحــالــيــة").setDefaultPermissions(adminPerms),
                 Commands.slash("slowmode", "تــفــعــيــل الــوضــع الــبــطــيء")
-                        .addOption(OptionType.INTEGER, "seconds", "الــثــوانــي", true),
+                        .addOption(OptionType.INTEGER, "seconds", "الــثــوانــي", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("add-emoji", "إضــافــة إيــمــوجــي جــديــد")
                         .addOption(OptionType.ATTACHMENT, "image", "الــصــورَة", true)
-                        .addOption(OptionType.STRING, "name", "اســم الــإيــمــوجــي", true),
+                        .addOption(OptionType.STRING, "name", "اســم الــإيــمــوجــي", true)
+                        .setDefaultPermissions(adminPerms),
                 Commands.slash("role-multiple", "إدارة الــرتــب لــلــجــمــيــع")
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
-                        .addOption(OptionType.STRING, "action", "الــإجــراء", true),
+                        .addOption(OptionType.STRING, "action", "الــإجــراء", true)
+                        .setDefaultPermissions(adminPerms),
 
-                // ===== Giveaways =====
-                Commands.slash("giveaway", "فــتــح لــوحــة تــحــكــم الــمــســابــقــات"),
+                // ===== Giveaways (Administrative) =====
+                Commands.slash("giveaway", "فــتــح لــوحــة تــحــكــم الــمــســابــقــات").setDefaultPermissions(adminPerms),
 
-                // ===== Information =====
+                // ===== Information (Administrative & Public) =====
+                Commands.slash("roles", "قــائمة رتــب الــســيــرفــر").setDefaultPermissions(adminPerms), // Restricted per user request
+
+                // ===== Information (Public) =====
+                Commands.slash("ping", "فــحــص ســرعــة اتــصــال الــبــوت"),
                 Commands.slash("profile", "عــرض مــلــف الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو", false),
                 Commands.slash("avatar", "عــرض صــورة حــســاب الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو", false),
                 Commands.slash("server", "عــرض مــعــلــومــات الــســيــرفــر"),
-                Commands.slash("roles", "قــائمة رتــب الــســيــرفــر"),
                 Commands.slash("banner", "عــرض بــانــر الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو", false),
                 Commands.slash("invites", "عــرض إحــصــائــيــات الــدعــوات")
@@ -176,7 +207,7 @@ public class Main {
                 Commands.slash("server-avatar", "عــرض أيــقــونــة الــســيــرفــر"),
                 Commands.slash("server-banner", "عــرض بــانــر الــســيــرفــر"),
 
-                // ===== General & Fun =====
+                // ===== General & Fun (Public) =====
                 Commands.slash("translate", "تــرجــمــة الــنــصــوص")
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
