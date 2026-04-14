@@ -239,7 +239,7 @@ public class PanelService {
                 Button.secondary("btn_highcore", "HighCore"),
                 Button.secondary("btn_about", "About Us"),
                 Button.secondary("btn_partners", "Partners"),
-                Button.secondary("ticket_init_support", "Support"));
+                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support"));
         reply(event, EmbedUtil.startupPanel(row));
     }
 

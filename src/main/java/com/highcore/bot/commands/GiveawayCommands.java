@@ -67,6 +67,12 @@ public class GiveawayCommands extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
+
+        // Defer giveaway interactions early to handle potential DB latency
+        if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_")) {
+            if (!event.isAcknowledged()) event.deferReply(true).queue();
+        }
+
         if (id.equals("btn_gw_create") || id.equals("btn_gw_drop")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) {
                 PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
