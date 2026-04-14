@@ -154,7 +154,8 @@ public class PanelService {
             Button.secondary("btn_highcore", "HighCore"),
             Button.secondary("btn_about", "About Us"),
             Button.secondary("btn_partners", "Partners"),
-            Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support")
+            Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1490334823565365308", "Giveaways"),
+            Button.secondary("hub_map", "Return")
         );
         reply(event, EmbedUtil.startupPanel(row));
     }
@@ -201,7 +202,7 @@ public class PanelService {
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(ActionRow.of(
             Button.secondary("btn_pings", "Pings"),
-            Button.secondary("btn_rules", "Server Rules")
+            Button.secondary("hub_map", "Return")
         ));
 
         reply(event, Container.of(layout));
@@ -287,13 +288,13 @@ public class PanelService {
     public static void sendSuggestionList(IReplyCallback event) {
         com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
         if (pending == null || pending.size() == 0) {
-            replyEphemeral(event, EmbedUtil.info("اقتراحات", "لا توجد اقتراحات معلقة حالياً."));
+            replyEphemeral(event, EmbedUtil.info("Suggestions", "No pending suggestions."));
             return;
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📝 مــراجــعــة الاقــتــراحــات\n");
-        sb.append("اضـغـط عـلـى زر الـرقـم لـمـعـايـنـة الاقـتـراح والـتـحـكـم بـه:\n\n");
+        sb.append("### 📝 Suggestion Review\n");
+        sb.append("Click the number button to preview and manage the suggestion:\n\n");
 
         List<net.dv8tion.jda.api.components.buttons.Button> buttons = new ArrayList<>();
         for (int i = 0; i < pending.size(); i++) {
@@ -331,19 +332,17 @@ public class PanelService {
         String date = sug.get("created_at").getAsString();
 
         String body = String.format("""
-                ### 💡 مـعـايـنـة اقـتـراح تـقـنـي
-                **مــعــرف الاقــتــراح:** `#%d`
-                **صــاحــب الاقــتــراح:** %s
-                **الـتـاريـخ:** %s
+                **Author:** %s
+                **Timestamp:** %s
                 
-                **الـمـحـتـوى الـكـامـل:**
+                **Full Content:**
                 ```%s```
-                """, id, user, date, content);
+                """, user, date, content);
 
         net.dv8tion.jda.api.components.actionrow.ActionRow controls = net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-            net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "قـبـول"),
-            net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "رفـض"),
-            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "الـعـودة")
+            net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "Accept"),
+            net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "Reject"),
+            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "Return")
         );
 
         reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN), controls);

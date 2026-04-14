@@ -164,8 +164,6 @@ public class Main {
                 // ===== Information =====
                 Commands.slash("profile", "عــرض مــلــف الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو", false),
-                Commands.slash("user", "عــرض مــعــلــومــات الــعــضــو")
-                        .addOption(OptionType.USER, "user", "الــعــضــو", false),
                 Commands.slash("avatar", "عــرض صــورة حــســاب الــعــضــو")
                         .addOption(OptionType.USER, "user", "الــعــضــو", false),
                 Commands.slash("server", "عــرض مــعــلــومــات الــســيــرفــر"),

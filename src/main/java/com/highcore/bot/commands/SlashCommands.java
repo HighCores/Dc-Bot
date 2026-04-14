@@ -38,14 +38,16 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        List<String> modCmds = java.util.Arrays.asList(
+        // List of all commands handled by other dedicated classes (Moderation, Info, General, Giveaway)
+        List<String> ignoredCmds = java.util.Arrays.asList(
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
             "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
-            "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites"
+            "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
+            "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
-        if (modCmds.contains(name)) return;
+        if (ignoredCmds.contains(name)) return;
 
         if (!event.isAcknowledged()) {
             boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("terms");

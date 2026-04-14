@@ -35,25 +35,25 @@ public class InfoCommands extends ListenerAdapter {
         long joined = m.getTimeJoined().toEpochSecond();
         
         String body = String.format("""
-                ### 👤 بـيـانـات الـهـويـة الـمـسـجـلـة
-                **الـإسـم الــكــامــل:** %s
-                **الـمـعـرّف الـرقـمـي:** `%s`
+                ### 👤 IDENTITY REGISTRY DATA
+                **Full Name:** %s
+                **Digital ID:** `%s`
                 
-                ▫️ **الـتـسـجـيـلات الـزمـنـيـة:**
-                • **إنـشـاء الـحـسـاب:** <t:%d:D> (<t:%d:R>)
-                • **الـإنـضـمـام لـلـوكـالـة:** <t:%d:D> (<t:%d:R>)
+                ▫️ **Chronological Logs:**
+                • **Account Creation:** <t:%d:D> (<t:%d:R>)
+                • **Agency Admission:** <t:%d:D> (<t:%d:R>)
                 
-                ▫️ **الـتـصـنـيـف والـأذونـات:**
-                • **الـرتـبـة الـعـلـيـا:** %s
-                • **الـأذونـات الـأسـاسـيـة:** %s
-                • **حـالـة الـإتـصـال:** `%s`
+                ▫️ **Classification & Permissions:**
+                • **Primary Designation:** %s
+                • **Security Clearance:** %s
+                • **Connection State:** `%s`
                 """, 
                 m.getEffectiveName(), 
                 m.getId(), 
                 created, created,
                 joined, joined,
                 m.getRoles().isEmpty() ? "None" : m.getRoles().get(0).getAsMention(),
-                m.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) ? "إدارة عــلــيــا" : "عــضــو مــصــرح",
+                m.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) ? "Executive Management" : "Authorized Personnel",
                 m.getOnlineStatus().name().toLowerCase());
         
         PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data", body, m.getUser().getEffectiveAvatarUrl()));
@@ -62,7 +62,7 @@ public class InfoCommands extends ListenerAdapter {
     private void handleAvatar(SlashCommandInteractionEvent event, boolean server) {
         String url = server ? event.getGuild().getIconUrl() : 
             (event.getOption("user") != null ? event.getOption("user").getAsUser().getEffectiveAvatarUrl() : event.getUser().getEffectiveAvatarUrl());
-        PanelService.reply(event, EmbedUtil.containerBranded("VISUALS", "Visual Identity", "### 🖼️ Operational Visual Retrieval", url));
+        PanelService.reply(event, EmbedUtil.containerBranded("VISUALS", "Visual Asset Retrieval", "### 🖼️ High-Resolution Profile Asset", url));
     }
 
     private void handleServer(SlashCommandInteractionEvent event) {
@@ -80,22 +80,22 @@ public class InfoCommands extends ListenerAdapter {
         int bc = g.getBoostCount();
         
         String body = String.format("""
-                ### 🌐 تـقـريـر الـكـيـان الـرئـيـسـي
-                **إسـم الـمـنـظـمـة:** **%s**
-                **الـمـديـر الـمـسـؤول:** <@%s>
+                ### 🌐 PRIMARY ENTITY REPORT
+                **Organization Name:** **%s**
+                **Chief Administrator:** <@%s>
                 
-                ▫️ **الـقـوى الـبـشـريـة والـتـقـنـيـة:**
-                • **إجـمـالـي الـأعـضـاء:** **%d**
-                • **تـاريـخ الـتـأسـيـس:** <t:%d:D> (<t:%d:R>)
+                ▫️ **Personnel & Intelligence:**
+                • **Total Assets:** **%d**
+                • **Foundation Date:** <t:%d:D> (<t:%d:R>)
                 
-                ▫️ **الـبـنـيـة الـتـحـتـيـة:**
-                • **الـقـنوات:** %d كـتـابـيـة / %d صـوتـيـة / %d فـئـات
-                • **الـرتـب:** %d رتـبـة مـفـعـلـة
-                • **الـأصـول:** %d إيـمـوجـي / %d مـلـصـق
+                ▫️ **Infrastructure Matrix:**
+                • **Channels:** %d Text / %d Voice / %d Categories
+                • **Designations:** %d Active Roles
+                • **Assets:** %d Emojis / %d Stickers
                 
-                ▫️ **مـسـتـوى الـتـمـيـز والـأمـان:**
-                • **مـسـتـوى الـتـعـزيـز:** %s (%d بـوسـت)
-                • **مـسـتـوى الـتـحـقـق:** `%s`
+                ▫️ **Performance & Verification:**
+                • **Boost Tier:** %s (%d Boosts)
+                • **Security Protocol:** `%s`
                 """, 
                 g.getName(), 
                 g.getOwnerId(),
@@ -111,7 +111,7 @@ public class InfoCommands extends ListenerAdapter {
     private void handleRoles(SlashCommandInteractionEvent event) {
         java.util.List<net.dv8tion.jda.api.entities.Role> allRoles = event.getGuild().getRoles();
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🔑 دلـيـل الـرتـب الـتـشـغـيـلـيـة\n\n");
+        sb.append("### 🔑 OPERATIONAL ROLE DIRECTORY\n\n");
         
         int count = 0;
         for (net.dv8tion.jda.api.entities.Role role : allRoles) {
@@ -127,12 +127,12 @@ public class InfoCommands extends ListenerAdapter {
             }
             
             if (count > 80) {
-                sb.append("\n*... والـمـزيـد مـن الـرتب*");
+                sb.append("\n*... and more roles*");
                 break;
             }
         }
         
-        sb.append("\n\n*تـم اسـتـخـراج هـذه الـبـيـانـات مـن الـنـظـام الـأسـاسـي لـلـوكـالـة.*");
+        sb.append("\n\n*Data synchronized directly from internal Highcore protocols.*");
         PanelService.reply(event, EmbedUtil.containerBranded("HIERARCHY", "Role Directory", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
@@ -155,11 +155,11 @@ public class InfoCommands extends ListenerAdapter {
         event.getGuild().retrieveInvites().queue(invs -> {
             long count = invs.stream().filter(i -> i.getInviter() != null && i.getInviter().getId().equals(m.getId())).mapToLong(net.dv8tion.jda.api.entities.Invite::getUses).sum();
             String body = String.format("""
-                    ### \u1312 سـجـل الـدعـوات الـتـسـويـقـيـة
-                    **الـعـضـو:** %s
-                    **إجـمـالـي الـدعـوات نـاجـحـة:** **%d** دعـوة
+                    ### 📈 MARKETING AFFILIATION LOG
+                    **Personnel:** %s
+                    **Total Verified Conversions:** **%d** successful invites
                     """, m.getUser().getName(), count);
-            PanelService.reply(event, EmbedUtil.containerBranded("\u0627\u0644\u062A\u0633\u0648\u064A\u0642", "\u0625\u062D\u0635\u0627\u0624\u064A\u0627\u062A \u0627\u0644\u0646\u0645\u0648", body, EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event, EmbedUtil.containerBranded("MARKETING", "Growth Statistics", body, EmbedUtil.BANNER_MAIN));
         });
     }
 }

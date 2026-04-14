@@ -13,6 +13,11 @@ public class GeneralCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName();
+        if (!event.isAcknowledged()) {
+            boolean ephemeral = !name.equals("suggest");
+            event.deferReply(ephemeral).queue();
+        }
+        
         switch (name) {
             case "ping" -> handlePing(event);
             case "roll" -> handleRoll(event);
@@ -26,20 +31,20 @@ public class GeneralCommands extends ListenerAdapter {
     private void handlePing(SlashCommandInteractionEvent event) {
         long ping = event.getJDA().getGatewayPing();
         String body = String.format("""
-                ### \uD83D\uDCE1 تـقـريـر الـإتـصـال
-                **الـحـالـة:** `مـتـصـل`
-                **الـتـأخـيـر:** **%d** مـلـي ثـانـيـة
+                ### 📡 CONNECTIVITY REPORT
+                **Status:** `Operational`
+                **Latency:** **%d**ms
                 """, ping);
-        PanelService.reply(event, EmbedUtil.containerBranded("\u0627\u0644\u062E\u062F\u0645\u0629", "\u0633\u0631\u0639\u0629 \u0627\u0644\u0627\u0633\u062A\u062C\u0627\u0628\u0629", body, EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Network Latency", body, EmbedUtil.BANNER_MAIN));
     }
 
     private void handleRoll(SlashCommandInteractionEvent event) {
         int res = new Random().nextInt(6) + 1;
         String body = String.format("""
-                ### 🎲 تـولـيـد رتـم عـشـوائـي
-                **الـنـتـيـجـة الـمـسـتـخـرجـة:** **%d**
+                ### 🎲 RANDOM ENTROPY GENERATION
+                **Extracted Result:** **%d**
                 
-                *تـم تـولـيـد الـرقـم بـنـجـاح ضـمـن الـنـطـاق الـقـيـاسـي.*
+                *Number generated successfully within standard industrial parameters.*
                 """, res);
         PanelService.reply(event, EmbedUtil.containerBranded("ENTERTAINMENT", "Dice Module", body, EmbedUtil.BANNER_MAIN));
     }

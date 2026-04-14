@@ -39,38 +39,42 @@ public class ModerationCommands extends ListenerAdapter {
 
         if (!event.isAcknowledged()) event.deferReply(true).queue();
 
-        switch (name) {
-            case "setnick" -> handleSetNick(event);
-            case "ban" -> handleBan(event);
-            case "unban" -> handleUnban(event);
-            case "unban-all" -> handleUnbanAll(event);
-            case "kick" -> handleKick(event);
-            case "vkick" -> handleVoiceKick(event);
-            case "mute-text" -> handleMuteText(event);
-            case "unmute-text" -> handleUnmuteText(event);
-            case "mute-check" -> handleMuteCheck(event);
-            case "mute-voice" -> handleMuteVoice(event);
-            case "unmute-voice" -> handleUnmuteVoice(event);
-            case "timeout" -> handleTimeout(event);
-            case "untimeout" -> handleUntimeout(event);
-            case "clear" -> handleClear(event);
-            case "move" -> handleMove(event);
-            case "role" -> handleRole(event);
-            case "role-multiple" -> handleRoleMultiple(event);
-            case "temprole" -> handleTempRole(event);
-            case "rar" -> handleRemoveAllRoles(event);
-            case "inrole" -> handleInRole(event);
-            case "warn-add" -> handleWarnAdd(event);
-            case "warn-remove" -> handleWarnRemove(event);
-            case "warnings" -> handleWarnings(event);
-            case "violations" -> handleViolations(event);
-            case "violations-clear" -> handleViolationsClear(event);
-            case "lock" -> handleLock(event, false);
-            case "unlock" -> handleLock(event, true);
-            case "hide" -> handleVisibility(event, false);
-            case "show" -> handleVisibility(event, true);
-            case "slowmode" -> handleSlowmode(event);
-            case "add-emoji" -> handleAddEmoji(event);
+        try {
+            switch (name) {
+                case "setnick" -> handleSetNick(event);
+                case "ban" -> handleBan(event);
+                case "unban" -> handleUnban(event);
+                case "unban-all" -> handleUnbanAll(event);
+                case "kick" -> handleKick(event);
+                case "vkick" -> handleVoiceKick(event);
+                case "mute-text" -> handleMuteText(event);
+                case "unmute-text" -> handleUnmuteText(event);
+                case "mute-check" -> handleMuteCheck(event);
+                case "mute-voice" -> handleMuteVoice(event);
+                case "unmute-voice" -> handleUnmuteVoice(event);
+                case "timeout" -> handleTimeout(event);
+                case "untimeout" -> handleUntimeout(event);
+                case "clear" -> handleClear(event);
+                case "move" -> handleMove(event);
+                case "role" -> handleRole(event);
+                case "role-multiple" -> handleRoleMultiple(event);
+                case "temprole" -> handleTempRole(event);
+                case "rar" -> handleRemoveAllRoles(event);
+                case "inrole" -> handleInRole(event);
+                case "warn-add" -> handleWarnAdd(event);
+                case "warn-remove" -> handleWarnRemove(event);
+                case "warnings" -> handleWarnings(event);
+                case "violations" -> handleViolations(event);
+                case "violations-clear" -> handleViolationsClear(event);
+                case "lock" -> handleLock(event, false);
+                case "unlock" -> handleLock(event, true);
+                case "hide" -> handleVisibility(event, false);
+                case "show" -> handleVisibility(event, true);
+                case "slowmode" -> handleSlowmode(event);
+                case "add-emoji" -> handleAddEmoji(event);
+            }
+        } catch (Exception e) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("TERMINAL ERROR", "Internal execution failure: " + e.getMessage()));
         }
     }
 
@@ -87,7 +91,7 @@ public class ModerationCommands extends ListenerAdapter {
         User u = event.getOption("user", OptionMapping::getAsUser);
         String reason = getReason(event);
         if (u == null) return;
-        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> PanelService.reply(event, EmbedUtil.success("\u0646\u0638\u0627\u0645 \u0627\u0644\u062D\u0638\u0631", "\u062A\u0645 \u062D\u0638\u0631 " + u.getName() + " \u0645\u0646 \u0627\u0644\u0633\u0641\u0631 \u0628\u0646\u062C\u0627\u062D.\n\u0627\u0644\u0633\u0628\u0628: " + reason)));
+        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> PanelService.reply(event, EmbedUtil.success("Ban Enforcement", u.getName() + " has been banned from the agency.\nReason: " + reason)));
     }
 
     private void handleUnban(SlashCommandInteractionEvent event) {
@@ -243,12 +247,12 @@ public class ModerationCommands extends ListenerAdapter {
         int count = warns != null ? warns.size() : 0;
         
         StringBuilder sb = new StringBuilder();
-        sb.append("### ⚠️ ســجــل الــتــحــذيــرات الــفــنــيــة\n");
-        sb.append("**الــعــضــو:** ").append(u.getName()).append("\n");
-        sb.append("**إجــمــالـي الــتــحــذيــرات:** `").append(count).append("`\n\n");
+        sb.append("### ⚠️ WARNING REGISTRY LOGS\n");
+        sb.append("**Personnel:** ").append(u.getName()).append("\n");
+        sb.append("**Total Records:** `").append(count).append("`\n\n");
         
         if (count > 0) {
-            sb.append("▫️ **آخــر الــتــســجــيــلات:**\n");
+            sb.append("▫️ **Recent Infractions:**\n");
             for (int i = 0; i < Math.min(warns.size(), 5); i++) {
                 com.google.gson.JsonElement el = warns.get(i);
                 if (el == null || !el.isJsonObject()) continue;
@@ -258,7 +262,7 @@ public class ModerationCommands extends ListenerAdapter {
                 sb.append("`").append(date).append("` - ").append(reason).append("\n");
             }
         } else {
-            sb.append("*لا تــوجــد تــحــذيــرات مــســجــلــة لــهـذا الـعــضـو*");
+            sb.append("*No documented warnings discovered for this user.*");
         }
         
         PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Warning Logs", sb.toString(), EmbedUtil.BANNER_MAIN));
@@ -347,9 +351,9 @@ public class ModerationCommands extends ListenerAdapter {
         imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
             try {
                 net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
-                event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("\u062A\u062D\u062F\u064A\u062B \u0627\u0644\u0645\u0644\u062D\u0642\u0627\u062A", "\u062A\u0645 \u0625\u0636\u0627\u0641\u0629 \u0627\u0644\u0625\u064A\u0645\u0648\u062C\u064A `" + name + "` \u0628\u0646\u062C\u0627\u062D.")));
+                event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("Emoji Protocol", "The emoji `" + name + "` has been successfully deployed.")));
             } catch (Exception e) { 
-                PanelService.reply(event, EmbedUtil.error("\u0641\u0634\u0644 \u0627\u0644\u0625\u062C\u0631\u0627\u0621", "\u064A\u0631\u062C\u0649 \u0627\u0644\u062A\u0623\u0643\u0622 \u0645\u0646 \u062C\u0648\u0624\u0629 \u0627\u0644\u0635\u0648\u0631\u0629 \u0648\u062D\u062C\u0645\u0647\u0627.")); 
+                PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Please verify image quality and dimensions according to protocols.")); 
             }
         });
     }
