@@ -353,7 +353,8 @@ public class PanelService {
     }
 
     public static void sendSuggestionList(IReplyCallback event) {
-        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
+        String guildId = event.getGuild().getId();
+        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "guild_id=eq." + guildId + "&status=eq.pending&limit=10");
         if (pending == null || pending.size() == 0) {
             replyEphemeral(event, EmbedUtil.info("Suggestions", "No pending suggestions."));
             return;

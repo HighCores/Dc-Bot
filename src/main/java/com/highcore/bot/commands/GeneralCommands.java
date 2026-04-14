@@ -55,8 +55,28 @@ public class GeneralCommands extends ListenerAdapter {
 
     private void handleSuggest(SlashCommandInteractionEvent event) {
         String sug = event.getOption("suggestion", OptionMapping::getAsString);
-        com.highcore.bot.database.SupabaseClient.createSuggestion(event.getGuild().getId(), event.getUser().getId(), event.getUser().getName(), sug);
-        PanelService.reply(event, EmbedUtil.containerBranded("Development", "Submit Idea", "### \uD83D\uDCDD New Suggestion\nBy: " + event.getUser().getName() + "\n\n" + sug, EmbedUtil.BANNER_MAIN));
+        com.google.gson.JsonObject result = com.highcore.bot.database.SupabaseClient.createSuggestion(event.getGuild().getId(), event.getUser().getId(), event.getUser().getName(), sug);
+        
+        long id = result != null && result.has("id") ? result.get("id").getAsLong() : 0;
+        
+        // Try to find a channel named "suggestions"
+        net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild().getTextChannels().stream()
+                .filter(ch -> ch.getName().toLowerCase().contains("suggest"))
+                .findFirst().orElse(null);
+
+        if (sugChan != null) {
+            String body = String.format("### 💡 NEW SUGGESTION #%d\n**From:** %s\n\n%s", id, event.getUser().getAsMention(), sug);
+            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("DEVELOPMENT", "Community Feedback", body, EmbedUtil.BANNER_MAIN);
+            net.dv8tion.jda.api.components.actionrow.ActionRow buttons = net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_up_" + id, "👍 Upvote"),
+                net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_down_" + id, "👎 Downvote")
+            );
+
+            PanelService.reply(sugChan, container, buttons);
+            PanelService.reply(event, EmbedUtil.success("Success", "Your suggestion has been posted in " + sugChan.getAsMention() + " (ID: #" + id + ")"));
+        } else {
+            PanelService.reply(event, EmbedUtil.containerBranded("Development", "Submit Idea", "### \uD83D\uDCDD New Suggestion\nBy: " + event.getUser().getName() + "\n\n" + sug + "\n\n*Note: No dedicated suggestion channel found to post publicly.*", EmbedUtil.BANNER_MAIN));
+        }
     }
 
     private void handleSuggestionManage(SlashCommandInteractionEvent event) {
