@@ -41,7 +41,15 @@ public class InfoCommands extends ListenerAdapter {
             if (banner != null) banner += "?size=2048";
             else banner = EmbedUtil.BANNER_MAIN;
 
-            String status = switch (m.getOnlineStatus()) {
+            OnlineStatus status = m.getOnlineStatus();
+            if (status == OnlineStatus.OFFLINE) {
+                // High-precision check: If user is interacting, they are online.
+                if (event.getUser().getId().equals(m.getId())) {
+                    status = OnlineStatus.ONLINE;
+                }
+            }
+
+            String statusText = switch (status) {
                 case ONLINE -> "🟢 Online";
                 case IDLE -> "🟡 Idle";
                 case DO_NOT_DISTURB -> "🔴 Busy";

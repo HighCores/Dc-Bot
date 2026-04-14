@@ -42,6 +42,7 @@ public class Main {
                 .setActivity(Activity.watching("High Core [v1.2.0]"))
                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS, GatewayIntent.MESSAGE_CONTENT,
                         GatewayIntent.GUILD_MESSAGE_REACTIONS, GatewayIntent.GUILD_MODERATION, GatewayIntent.GUILD_VOICE_STATES, GatewayIntent.GUILD_PRESENCES)
+                .enableCache(net.dv8tion.jda.api.utils.cache.CacheFlag.ONLINE_STATUS)
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .addEventListeners(
                         new MessageListener(), 
@@ -154,6 +155,10 @@ public class Main {
                 Commands.slash("add-emoji", "إضــافــة إيــمــوجــي جــديــد")
                         .addOption(OptionType.ATTACHMENT, "image", "الــصــورَة", true)
                         .addOption(OptionType.STRING, "name", "اســم الــإيــمــوجــي", true),
+                Commands.slash("add-sticker", "إضــافــة اســتــيــكــر جــديــد")
+                        .addOption(OptionType.ATTACHMENT, "file", "الــمــلــف", true)
+                        .addOption(OptionType.STRING, "name", "الــاســم", true)
+                        .addOption(OptionType.STRING, "tags", "الــتــاجــز", true),
                 Commands.slash("role-multiple", "إدارة الــرتــب لــلــجــمــيــع")
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
                         .addOption(OptionType.STRING, "action", "الــإجــراء", true),
@@ -180,8 +185,6 @@ public class Main {
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
                 Commands.slash("roll", "رمــي الــنــرد"),
-                Commands.slash("title", "تــغــيــيــر لــقــبــك الــشــخــصــي")
-                        .addOption(OptionType.STRING, "title", "الــلــقــب الــجــديــد", true),
                 Commands.slash("suggest", "تــقــديــم اقــتــراح جــديــد")
                         .addOption(OptionType.STRING, "suggestion", "الــمــحــتــوى", true),
                 Commands.slash("suggestion", "إدارة الاقــتــراحــات")

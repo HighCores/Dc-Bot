@@ -375,8 +375,13 @@ public class SupabaseClient {
         return arr != null ? arr.size() : 0;
     }
 
-    public static JsonArray getUserWarnings(String userId, String guildId) {
-        return get("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId);
+    public static com.google.gson.JsonArray getUserWarnings(String userId, String guildId) {
+        com.google.gson.JsonArray arr = get("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId);
+        if (arr == null || arr.size() == 0) {
+            // Global search fallback if guild-specific data is not found
+            arr = get("dc_warnings", "user_id=eq." + userId + "&limit=10");
+        }
+        return arr;
     }
 
     public static JsonArray getServerWarnings(String guildId, int limit) {
