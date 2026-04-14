@@ -60,7 +60,7 @@ public class SlashCommands extends ListenerAdapter {
         try {
             switch (name) {
                 case "startup" -> { if (isAdmin(event.getMember())) PanelService.sendStartupHub(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
-                case "tickets" -> PanelService.sendTicketPanel(event);
+                case "tickets" -> { if (isAdmin(event.getMember())) PanelService.sendTicketPanel(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "bc" -> { if (isAdmin(event.getMember())) handleBroadcast(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> handleEmbed(event);

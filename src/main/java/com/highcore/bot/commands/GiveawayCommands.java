@@ -1,5 +1,6 @@
 package com.highcore.bot.commands;
 
+import com.highcore.bot.config.Config;
 import com.highcore.bot.services.LogManager;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
@@ -43,7 +44,7 @@ public class GiveawayCommands extends ListenerAdapter {
         if (!event.getName().equals("giveaway"))
             return;
 
-        if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) {
+        if (!Config.isAdmin(event.getMember())) {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
         }
@@ -76,7 +77,7 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         if (id.equals("btn_gw_create") || id.equals("btn_gw_drop")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) {
+            if (!Config.isAdmin(event.getMember())) {
                 PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
                 return;
             }
@@ -100,7 +101,7 @@ public class GiveawayCommands extends ListenerAdapter {
                         ActionRow.of(menu)));
             }
         } else if (id.equals("btn_gw_history")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
+            if (!Config.isAdmin(event.getMember()))
                 return;
             JsonArray active = SupabaseClient.getAllGiveaways();
 

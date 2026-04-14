@@ -1,5 +1,6 @@
 package com.highcore.bot.commands;
 
+import com.highcore.bot.config.Config;
 import com.highcore.bot.utils.EmbedUtil;
 import com.highcore.bot.services.PanelService;
 import net.dv8tion.jda.api.entities.Member;
@@ -21,7 +22,7 @@ public class InfoCommands extends ListenerAdapter {
             case "avatar" -> handleAvatar(event, false);
             case "server-avatar" -> handleAvatar(event, true);
             case "server" -> handleServer(event);
-            case "roles" -> handleRoles(event);
+            case "roles" -> { if (Config.isAdmin(event.getMember())) handleRoles(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
             case "banner" -> handleBanner(event, false);
             case "server-banner" -> handleBanner(event, true);
             case "invites" -> handleInvites(event);
