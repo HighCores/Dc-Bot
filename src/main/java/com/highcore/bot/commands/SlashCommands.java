@@ -175,13 +175,12 @@ public class SlashCommands extends ListenerAdapter {
         BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
         TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setLabel("Broadcast Content")
-                .setPlaceholder("Enter the message to broadcast...")
-                .setRequired(true)
-                .build();
+                .label("Broadcast Content")
+                .setPlaceholder("Insert Arabic text to broadcast...")
+                .setRequired(true).build();
 
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
-                .addComponents(ActionRow.of(bcMsg))
+                .addComponents(bcMsg)
                 .build()).queue();
     }
 
@@ -202,12 +201,12 @@ public class SlashCommands extends ListenerAdapter {
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
         TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setLabel("Emulated Message")
+                .label("Emulated Message")
                 .setPlaceholder("Enter the message content...")
                 .setRequired(true)
                 .build();
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(ActionRow.of(boterMsg))
+                .addComponents(boterMsg)
                 .build()).queue();
     }
 

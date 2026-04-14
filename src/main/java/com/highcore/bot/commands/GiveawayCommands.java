@@ -157,23 +157,24 @@ public class GiveawayCommands extends ListenerAdapter {
         
         String prizeLabel = (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
-                .setLabel(prizeLabel)
+                .label(prizeLabel)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
                 .setRequired(true).build();
         
         TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
-                .setLabel("Number of Winners")
+                .label("Number of Winners")
                 .setRequired(true).setValue("1").build();
         
         TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
-                .setLabel("Duration (Minutes)")
+                .label("Duration (Minutes)")
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
-        Modal.Builder mb = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
-                .addComponents(ActionRow.of(prizeInput), ActionRow.of(winnersInput), ActionRow.of(timeInput));
+        Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
+                .addComponents(prizeInput, winnersInput, timeInput)
+                .build();
 
-        event.replyModal(mb.build()).queue();
+        event.replyModal(modal).queue();
     }
 
 

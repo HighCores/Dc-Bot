@@ -159,13 +159,13 @@ public class CentralInteractionListener extends ListenerAdapter {
             switch (choice) {
                 case "purchase" -> com.highcore.bot.services.OrderService.startWizard(event);
                 case "tech_support" -> {
-                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).setLabel("Subject").setPlaceholder("Describe the technical issue...").setRequired(true).build();
-                    Modal m = Modal.create("modal_ticket_open", "Support Request").addComponents(ActionRow.of(subjectInput)).build();
+                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).label("Subject").setPlaceholder("Describe the technical issue...").setRequired(true).build();
+                    Modal m = Modal.create("modal_ticket_open", "Support Request").addComponents(subjectInput).build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
-                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).setLabel("Reason").setPlaceholder("What are you reporting?").setRequired(true).build();
-                    Modal m = Modal.create("modal_report_open", "Submit a Report").addComponents(ActionRow.of(reasonInput)).build();
+                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).label("Reason").setPlaceholder("What are you reporting?").setRequired(true).build();
+                    Modal m = Modal.create("modal_report_open", "Submit a Report").addComponents(reasonInput).build();
                     event.replyModal(m).queue();
                 }
             }

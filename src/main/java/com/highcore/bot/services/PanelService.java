@@ -137,12 +137,16 @@ public class PanelService {
         }
     }
 
-    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        sendHighcoreHub(event);
+    // COMPATIBILITY STUBS (RE-ADDED)
+    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String category) {
+        event.reply("This command is currently maintenance.").setEphemeral(true).queue();
+    }
+    public static void sendStatsPanel(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        event.reply("Stats are currently disabled.").setEphemeral(true).queue();
     }
 
-    public static void sendStatsPanel(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        replyEphemeral(event, EmbedUtil.info("Stats", "System statistics are currently being optimized."));
+    public static void reply(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event, Container container) {
+        event.replyComponents(container).useComponentsV2(true).queue();
     }
 
     public static void sendStartupHub(IReplyCallback event) {
@@ -342,7 +346,7 @@ public class PanelService {
             net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "الـعـودة")
         );
 
-        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN)).setComponents(controls).queue();
+        event.getHook().editOriginalComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN)).setComponents(controls).queue();
     }
 
     public static void sendAboutUs(IReplyCallback event) {
@@ -374,23 +378,24 @@ public class PanelService {
         reply(event, Container.of(children));
     }
 
-    public static void handleSupportFlow(IReplyCallback event) {
-        if (event instanceof IModalCallback modal) {
-            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setLabel("Describe your issue").build();
-            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).setLabel("Service Type").build();
-            modal.replyModal(Modal.create("modal_support_init", "Technical Support")
-                    .addComponents(ActionRow.of(issueInput), ActionRow.of(serviceInput))
-                    .build()).queue();
+    public static void handleSupportFlow(IReplyCallback event, String id) {
+        if (id.equals("support_tech")) {
+            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH, "Describe your issue").build();
+            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT, "Service Type").build();
+            
+            event.replyModal(Modal.create("modal_support_init", "Technical Support")
+                .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(issueInput), net.dv8tion.jda.api.components.actionrow.ActionRow.of(serviceInput))
+                .build()).queue();
         }
     }
 
     public static void handleComplaintFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueTypeInput = TextInput.create("comp_type", TextInputStyle.SHORT).setLabel("Complaint Category").build();
-            TextInput personInput = TextInput.create("comp_person", TextInputStyle.SHORT).setLabel("Person Involved").build();
-            TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setLabel("Full Details").build();
+            TextInput issueTypeInput = TextInput.create("comp_type", TextInputStyle.SHORT).label("Complaint Category").build();
+            TextInput personInput = TextInput.create("comp_person", TextInputStyle.SHORT).label("Person Involved").build();
+            TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).label("Full Details").build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
-                    .addComponents(ActionRow.of(issueTypeInput), ActionRow.of(personInput), ActionRow.of(descInput))
+                    .addComponents(issueTypeInput, personInput, descInput)
                     .build()).queue();
         }
     }
@@ -493,20 +498,21 @@ public class PanelService {
                         "Click **Confirm Order** to fill in your project details and open your ticket."));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-                Button.success("order_open_ticket", "Confirm Order \u2192")
+                Button.success("wiz_finish", "Confirm Order \u2192")
                         .withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
         reply(event, Container.of(children));
     }
 
-    public static void handleOrderFinalModal(IReplyCallback event) {
-        if (event instanceof IModalCallback modal) {
-            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setLabel("Project Name").build();
-            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setLabel("Your Full Name").build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setLabel("Contact Info").build();
-            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).setLabel("Delivery ETA").build();
-            modal.replyModal(Modal.create("modal_order_final", "Order Details")
-                    .addComponents(ActionRow.of(projectInput), ActionRow.of(nameInput), ActionRow.of(contactInput), ActionRow.of(etaInput))
-                    .build()).queue();
+    public static void handleOrderFinalModal(IReplyCallback event, String id) {
+        if (id.equals("wiz_finish")) {
+            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).label("Project Name").build();
+            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).label("Your Full Name").build();
+            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).label("Contact Info").build();
+            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).label("Delivery ETA").build();
+
+            event.replyModal(Modal.create("modal_order_final", "Order Details")
+                .addComponents(projectInput, nameInput, contactInput, etaInput)
+                .build()).queue();
         }
     }
 

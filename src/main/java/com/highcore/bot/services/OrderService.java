@@ -301,13 +301,13 @@ public class OrderService {
     // STEP 4 — Final details modal (triggered by wiz_finish button)
     // ═══════════════════════════════════════════════════════════
     public static void finishWizard(ButtonInteractionEvent event) {
-        TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setLabel("Project Name")
+        TextInput projectInput = TextInput.create("o_project", "Project Name", TextInputStyle.SHORT)
             .setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
-        TextInput nameInput    = TextInput.create("o_name", TextInputStyle.SHORT).setLabel("Your Full Name")
+        TextInput nameInput    = TextInput.create("o_name", "Your Full Name", TextInputStyle.SHORT)
             .setPlaceholder("Full name").setRequired(true).build();
-        TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setLabel("Contact Info")
+        TextInput contactInput = TextInput.create("o_contact", "Contact Info", TextInputStyle.SHORT)
             .setPlaceholder("+966 5X XXX XXXX or email@example.com").setRequired(true).build();
-        TextInput etaInput     = TextInput.create("o_eta", TextInputStyle.SHORT).setLabel("Delivery ETA")
+        TextInput etaInput     = TextInput.create("o_eta", "Delivery ETA", TextInputStyle.SHORT)
             .setPlaceholder("e.g. 3 days, 1 week").setRequired(true).build();
 
         Modal modal = Modal.create("order_modal", "Order Details")

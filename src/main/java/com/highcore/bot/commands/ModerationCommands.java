@@ -239,7 +239,7 @@ public class ModerationCommands extends ListenerAdapter {
         User u = event.getOption("user", OptionMapping::getAsUser);
         if (u == null) return;
         
-        JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
+        com.google.gson.JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
         int count = warns != null ? warns.size() : 0;
         
         StringBuilder sb = new StringBuilder();
