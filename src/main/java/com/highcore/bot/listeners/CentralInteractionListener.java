@@ -184,8 +184,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
 
             if (id.equals("ar_add")) {
-                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setLabel("Keyword").setPlaceholder("Trigger word...").setRequired(true).build();
-                TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setLabel("Response Text").setPlaceholder("What should I reply?").setRequired(true).build();
+                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Trigger word...").setRequired(true).build();
+                TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("What should I reply?").setRequired(true).build();
                 Modal m = Modal.create("modal_ar_add", "Create Response Protocol")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Auto-Reply Keyword", kw),
@@ -203,7 +203,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 event.reply("### ⚠️ DECOMMISSION SECTOR\nSelect a response protocol to permanently delete from the matrix.")
                     .setComponents(ActionRow.of(menu.build())).setEphemeral(true).queue();
             } else if (id.equals("bw_add")) {
-                TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setLabel("Forbidden Word").setPlaceholder("Enter word to block...").setRequired(true).build();
+                TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Enter word to block...").setRequired(true).build();
                 Modal m = Modal.create("modal_bw_add", "Update Security Lexicon")
                     .addComponents(net.dv8tion.jda.api.components.label.Label.of("Restricted Term", word))
                     .build();
