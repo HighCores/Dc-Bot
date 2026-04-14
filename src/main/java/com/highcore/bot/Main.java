@@ -190,6 +190,14 @@ public class Main {
                 // ===== Giveaways (Administrative) =====
                 Commands.slash("giveaway", "فــتــح لــوحــة تــحــكــم الــمــســابــقــات").setDefaultPermissions(adminPerms),
 
+                // ===== Emulation (Administrative) =====
+                Commands.slash("boter", "إرســال رســالــة بــاســم الــبــوت")
+                        .addOption(OptionType.CHANNEL, "channel", "الــقــناة الــمــســتــهــدفــة", false)
+                        .addOption(OptionType.ATTACHMENT, "file1", "الــمــرفــق الأوّل", false)
+                        .addOption(OptionType.ATTACHMENT, "file2", "الــمــرفــق الــثــانــي", false)
+                        .addOption(OptionType.ATTACHMENT, "file3", "الــمــرفــق الــثــالــث", false)
+                        .setDefaultPermissions(adminPerms),
+
                 // ===== Information (Administrative & Public) =====
                 Commands.slash("roles", "قــائمة رتــب الــســيــرفــر").setDefaultPermissions(adminPerms), // Restricted per user request
 

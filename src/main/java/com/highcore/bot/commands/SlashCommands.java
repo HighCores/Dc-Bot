@@ -205,11 +205,11 @@ public class SlashCommands extends ListenerAdapter {
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
         TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Enter the message content...")
+                .setPlaceholder("Enter the transmission content (emojis & separators supported)...")
                 .setRequired(true)
                 .build();
-        event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(Label.of("Emulated Message", boterMsg))
+        event.replyModal(Modal.create("modal_boter", "Highcore Transmission")
+                .addComponents(Label.of("Message Content", boterMsg))
                 .build()).queue();
     }
 

@@ -19,10 +19,13 @@ import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import java.util.List;
 import java.util.ArrayList;
 
 public class CentralInteractionListener extends ListenerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(CentralInteractionListener.class);
 
     private static final String STAFF_ROLE_ID = "1488795130008961040";
 
@@ -287,7 +290,19 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String msg = event.getValue("message").getAsString();
                 var tc = event.getGuild().getTextChannelById(s.channelId);
                 if (tc != null) {
-                    tc.sendMessage(msg).queue(v -> PanelService.reply(event,
+                    var send = tc.sendMessage(msg);
+                    if (!s.fileUrls.isEmpty()) {
+                        List<net.dv8tion.jda.api.utils.FileUpload> uploads = new ArrayList<>();
+                        for (String url : s.fileUrls) {
+                            try {
+                                uploads.add(net.dv8tion.jda.api.utils.FileUpload.fromUrl(url));
+                            } catch (Exception e) {
+                                log.error("Error attaching file from URL: " + url, e);
+                            }
+                        }
+                        if (!uploads.isEmpty()) send = send.addFiles(uploads);
+                    }
+                    send.queue(v -> PanelService.reply(event,
                             EmbedUtil.success("EMULATION", "Message successfully deployed to target channel.")));
                 }
             }
