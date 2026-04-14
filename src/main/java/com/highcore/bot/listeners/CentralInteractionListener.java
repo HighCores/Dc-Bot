@@ -340,13 +340,21 @@ public class CentralInteractionListener extends ListenerAdapter {
                     String mid = sug.get("message_id").getAsString();
                     net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild()
                             .getTextChannels().stream()
-                            .filter(ch -> ch.getName().toLowerCase().contains("suggest"))
+                            .filter(ch -> ch.getName().toLowerCase().contains("suggest") || ch.getName().contains("اقتراحات"))
                             .findFirst().orElse(null);
+                    
+                    System.out.println("[REJECT] Suggestion ID: " + id);
+                    System.out.println("[REJECT] Message ID from DB: " + mid);
+                    System.out.println("[REJECT] Suggestion Channel: " + (sugChan != null ? sugChan.getName() : "NULL"));
+
                     if (sugChan != null) {
                         try {
-                            sugChan.deleteMessageById(mid).queue(null, err -> {
-                            });
-                        } catch (Exception ignored) {
+                            sugChan.deleteMessageById(mid).queue(
+                                s -> System.out.println("[REJECT] SUCCESS: Message deleted in Discord."),
+                                err -> System.err.println("[REJECT] ERROR: Failed to delete message: " + err.getMessage())
+                            );
+                        } catch (Exception e) {
+                            System.err.println("[REJECT] EXCEPTION while deleting message: " + e.getMessage());
                         }
                     }
                 }
