@@ -61,7 +61,7 @@ public class CommandService {
         if (cmd != null) {
             String perm = cmd.has("permission") && !cmd.get("permission").isJsonNull() ? cmd.get("permission").getAsString() : "everyone";
             if (!hasPermission(event.getMember(), perm)) { event.reply("Access denied.").setEphemeral(true).queue(); return; }
-            String response = cmd.get("response_text").getAsString();
+            String response = (cmd.has("response_text") && !cmd.get("response_text").isJsonNull()) ? cmd.get("response_text").getAsString() : "System: Data retrieval returned null.";
             event.reply(response).queue();
             return;
         }
