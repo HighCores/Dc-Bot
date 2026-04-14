@@ -354,25 +354,30 @@ public class PanelService {
 
     public static void sendSuggestionList(IReplyCallback event) {
         String guildId = event.getGuild().getId();
-        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "guild_id=eq." + guildId + "&status=eq.pending&limit=10");
-        if (pending == null || pending.size() == 0) {
-            replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions", "### 📁 INBOX EMPTY\nNo pending entries currently require administrative review.", EmbedUtil.BANNER_MAIN));
+        // Relaxed status filter and added order to ensure we see the most recent ones
+        com.google.gson.JsonArray recent = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", 
+            "guild_id=eq." + guildId + "&order=id.desc&limit=10");
+            
+        if (recent == null || recent.size() == 0) {
+            replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions", "### 📁 INBOX EMPTY\nNo entries currently require administrative review.", EmbedUtil.BANNER_MAIN));
             return;
         }
 
         StringBuilder sb = new StringBuilder();
-        sb.append("### 📝 Suggestion Review\n");
-        sb.append("Click the number button to preview and manage the suggestion:\n\n");
+        sb.append("### 📝 Suggestion Registry\n");
+        sb.append("Click a button to review the corresponding data entry:\n\n");
 
         List<net.dv8tion.jda.api.components.buttons.Button> buttons = new ArrayList<>();
-        for (int i = 0; i < pending.size(); i++) {
-            com.google.gson.JsonObject sug = pending.get(i).getAsJsonObject();
+        for (int i = 0; i < recent.size(); i++) {
+            com.google.gson.JsonObject sug = recent.get(i).getAsJsonObject();
             long sid = sug.get("id").getAsLong();
-            String user = sug.get("user_name").getAsString();
-            String content = sug.get("content").getAsString();
-            if (content.length() > 40) content = content.substring(0, 37) + "...";
+            String user = sug.has("user_name") ? sug.get("user_name").getAsString() : "Unknown";
+            String content = sug.has("content") ? sug.get("content").getAsString() : "Empty";
+            String status = sug.has("status") ? sug.get("status").getAsString().toUpperCase() : "PENDING";
             
-            sb.append("**#").append(sid).append("** - ").append(user).append(": ").append(content).append("\n");
+            if (content.length() > 35) content = content.substring(0, 32) + "...";
+            
+            sb.append("`#").append(sid).append("` [").append(status).append("] \u2014 **").append(user).append("**: ").append(content).append("\n");
             buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_view_" + sid, "#" + sid));
         }
 

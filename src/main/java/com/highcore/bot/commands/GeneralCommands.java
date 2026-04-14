@@ -119,19 +119,37 @@ public class GeneralCommands extends ListenerAdapter {
 
     private void handleTitle(SlashCommandInteractionEvent event) {
         String title = event.getOption("title", OptionMapping::getAsString);
-        com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
+        boolean isReset = title == null || title.equalsIgnoreCase("none") || title.equalsIgnoreCase("reset") || title.trim().isEmpty();
 
-        // Attempt to sync Nickname
-        String newNick = "[" + title + "] " + event.getMember().getEffectiveName();
-        if (newNick.length() > 32)
-            newNick = newNick.substring(0, 32);
+        if (isReset) {
+            com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), null);
+        } else {
+            com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
+        }
 
-        final String finalNick = newNick;
+        // Refined Nickname Sync: Clean old [Title] tags if they exist
+        String currentName = event.getMember().getEffectiveName();
+        // Regex matches anything inside starting brackets: e.g. [ADMIN] Name -> Name
+        String baseName = currentName.replaceAll("^\\[.*?\\]\\s*", "");
+
+        final String finalNick;
+        if (isReset) {
+            finalNick = baseName;
+        } else {
+            String candidate = "[" + title + "] " + baseName;
+            if (candidate.length() > 32) {
+                // If too long, try to truncate title or just use base
+                candidate = candidate.substring(0, 32);
+            }
+            finalNick = candidate;
+        }
+
         event.getMember().modifyNickname(finalNick).queue(
                 success -> PanelService.reply(event,
                         EmbedUtil.success("Identity Update",
+                                isReset ? "Identity registry cleared. Your name has been reset." :
                                 "Identity synchronized. Your title is now set to: **" + title + "**")),
                 error -> PanelService.reply(event, EmbedUtil.success("Identity Update",
-                        "Title saved to database. *Note: Unable to update nickname due to hierarchy restrictions.*")));
+                        "Registry update finalized. *Note: Nickname synchronization failed due to hierarchy restrictions.*")));
     }
 }
