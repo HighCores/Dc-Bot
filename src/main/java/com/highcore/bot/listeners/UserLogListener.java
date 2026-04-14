@@ -4,12 +4,15 @@ import com.highcore.bot.config.Config;
 import com.highcore.bot.services.LogManager;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateFlagsEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateAvatarEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
+
+import java.util.stream.Collectors;
 
 public class UserLogListener extends ListenerAdapter {
 
@@ -57,22 +60,21 @@ public class UserLogListener extends ListenerAdapter {
         });
     }
 
-/*
     @Override
-    public void onUserUpdateBanner(@NotNull UserUpdateBannerEvent event) {
-        String bannerUrl = event.getNewBannerUrl();
-        String details = "### \uD83D\uDDD2 Account Banner Update\n" +
-                "The user has updated their global profile banner.\n\n" +
-                "\u25AB\uFE0F **New Banner:** " + (bannerUrl != null ? "[Access File](" + bannerUrl + ")" : "`Status: Reset/Removed`") + "";
+    public void onUserUpdateFlags(@NotNull UserUpdateFlagsEvent event) {
+        String old = event.getOldFlags().stream().map(Enum::name).collect(Collectors.joining(", "));
+        String curr = event.getNewFlags().stream().map(Enum::name).collect(Collectors.joining(", "));
+        String details = "### \uD83C\uDFC5 Account Badges Update\n" +
+                "\u25AB\uFE0F **Old Flags:** `" + (old.isEmpty() ? "None" : old) + "`\n" +
+                "\u25AB\uFE0F **New Flags:** `" + (curr.isEmpty() ? "None" : curr) + "`";
 
         event.getJDA().getGuilds().forEach(guild -> {
             if (guild.getMember(event.getUser()) != null) {
                 LogManager.logEmbed(guild, Config.LOG_USERS, 
-                    EmbedUtil.createOldLogEmbed("user-banner-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
+                    EmbedUtil.createOldLogEmbed("user-badges-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
             }
         });
     }
-*/
 
     @Override
     public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {

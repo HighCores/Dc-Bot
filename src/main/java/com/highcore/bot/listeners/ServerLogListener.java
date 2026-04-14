@@ -2,12 +2,10 @@ package com.highcore.bot.listeners;
 
 import com.highcore.bot.config.Config;
 import com.highcore.bot.services.LogManager;
-import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.audit.ActionType;
 import net.dv8tion.jda.api.audit.AuditLogEntry;
 import net.dv8tion.jda.api.entities.*;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.entities.channel.middleman.AudioChannel;
 import net.dv8tion.jda.api.events.channel.ChannelCreateEvent;
 import net.dv8tion.jda.api.events.channel.ChannelDeleteEvent;
@@ -27,292 +25,207 @@ import net.dv8tion.jda.api.events.role.RoleDeleteEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdateNameEvent;
 import net.dv8tion.jda.api.events.role.update.RoleUpdatePermissionsEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.jetbrains.annotations.NotNull;
 
 import java.time.Instant;
-import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.stream.Collectors;
 
 public class ServerLogListener extends ListenerAdapter {
-    private static final Logger log = LoggerFactory.getLogger(ServerLogListener.class);
-    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
-            .withZone(ZoneId.of("Asia/Riyadh"));
-
-    private String now() { return TF.format(Instant.now()); }
 
     @Override
-    public void onGuildMemberJoin(GuildMemberJoinEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_JOIN_LEFT);
-        if (ch == null) return;
-        Member m = event.getMember();
-        if (m == null) return;
-        long age = (Instant.now().getEpochSecond() - m.getTimeCreated().toEpochSecond()) / 86400;
-        String created = DateTimeFormatter.ofPattern("MMM dd, yyyy").withZone(ZoneId.of("UTC")).format(m.getTimeCreated().toInstant());
-
-        StringBuilder sb = new StringBuilder();
-        sb.append("### \uD83D\uDFE2 ").append(m.getUser().getName()).append(" joined the server\n");
-        sb.append("**User:** **").append(m.getUser().getName()).append("**\n");
-        sb.append("**ID:** `").append(m.getId()).append("`\n");
-        sb.append("**Created:** ").append(created).append(" (").append(age).append("d ago)\n");
-        sb.append("**Count:** **").append(event.getGuild().getMemberCount()).append("**\n");
-        if (age < 7) sb.append("\u26A0\uFE0F **New account (< 7 days)**\n");
-        sb.append("**Time:** ").append(now());
-        PanelService.reply(ch, EmbedUtil.activityLog("Member Joined", sb.toString(), EmbedUtil.SUCCESS));
+    public void onGuildMemberJoin(@NotNull GuildMemberJoinEvent event) {
+        long age = (Instant.now().getEpochSecond() - event.getUser().getTimeCreated().toEpochSecond()) / 86400;
+        String details = "### \uD83D\uDFE2 Access Granted: New Unit Arrival\n" +
+                "\u25AB\uFE0F **Account Age:** `" + age + " Days`\n" +
+                "\u25AB\uFE0F **Registry Date:** `" + DateTimeFormatter.ISO_INSTANT.format(event.getUser().getTimeCreated().toInstant()) + "`\n" +
+                "\u25AB\uFE0F **Current Population:** `" + event.getGuild().getMemberCount() + "`";
+        
+        LogManager.logEmbed(event.getGuild(), Config.LOG_JOIN_LEFT, 
+            EmbedUtil.createOldLogEmbed("member-join", details, null, event.getUser(), event.getMember(), EmbedUtil.SUCCESS));
     }
 
     @Override
-    public void onGuildMemberRemove(GuildMemberRemoveEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_JOIN_LEFT);
-        if (ch == null) return;
-        User u = event.getUser();
-        Member m = event.getMember();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### \uD83D\uDD34 ").append(u.getName()).append(" left the server\n");
-        sb.append("**User:** **").append(u.getName()).append("**\n");
-        sb.append("**ID:** `").append(u.getId()).append("`\n");
-        sb.append("**Count:** **").append(event.getGuild().getMemberCount()).append("**\n");
-        if (m != null && !m.getRoles().isEmpty())
-            sb.append("**Roles:** ").append(m.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "))).append("\n");
-        sb.append("**Time:** ").append(now());
-        PanelService.reply(ch, EmbedUtil.activityLog("Member Left", sb.toString(), EmbedUtil.DANGER));
+    public void onGuildMemberRemove(@NotNull GuildMemberRemoveEvent event) {
+        String roles = event.getMember() != null ? event.getMember().getRoles().stream().map(Role::getName).collect(Collectors.joining(", ")) : "Unknown";
+        String details = "### \uD83D\uDD34 Access Revoked: Unit Departure\n" +
+                "\u25AB\uFE0F **Last Roles:** `" + (roles.isEmpty() ? "None" : roles) + "`\n" +
+                "\u25AB\uFE0F **Current Population:** `" + event.getGuild().getMemberCount() + "`";
+        
+        LogManager.logEmbed(event.getGuild(), Config.LOG_JOIN_LEFT, 
+            EmbedUtil.createOldLogEmbed("member-leave", details, null, event.getUser(), null, EmbedUtil.DANGER));
     }
 
     @Override
-    public void onGuildBan(GuildBanEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_JOIN_LEFT);
-        if (ch == null) return;
-        User u = event.getUser();
-
-        event.getGuild().retrieveAuditLogs().type(ActionType.BAN).limit(1).queue(entries -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("### \uD83D\uDD28 ").append(u.getName()).append(" was banned\n");
-            sb.append("**User:** **").append(u.getName()).append("**\n");
-            sb.append("**ID:** `").append(u.getId()).append("`\n");
-            if (!entries.isEmpty() && entries.get(0).getTargetId().equals(u.getId())) {
-                AuditLogEntry e = entries.get(0);
-                if (e.getUser() != null) sb.append("**By:** **").append(e.getUser().getName()).append("**\n");
-                if (e.getReason() != null) sb.append("**Reason:** ").append(e.getReason()).append("\n");
-            }
-            sb.append("**Time:** ").append(now());
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Banned", sb.toString(), java.awt.Color.BLACK));
-        }, err -> {
-            String fallback = "### \uD83D\uDD28 " + u.getName() + " was banned\n" +
-                    "**ID:** `" + u.getId() + "`\n" +
-                    "**Time:** " + now();
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Banned", fallback, java.awt.Color.BLACK));
-        });
+    public void onGuildBan(@NotNull GuildBanEvent event) {
+        String details = "### \uD83D\uDD28 Entity Blacklisted\n" +
+                "\u25AB\uFE0F **Target:** " + event.getUser().getAsMention() + " (`" + event.getUser().getId() + "`)\n" +
+                "\u25AB\uFE0F **Status:** `TERMINATED`";
+        LogManager.logEmbed(event.getGuild(), Config.LOG_JOIN_LEFT, 
+            EmbedUtil.createOldLogEmbed("guild-ban", details, null, event.getUser(), null, java.awt.Color.BLACK));
     }
 
     @Override
-    public void onGuildUnban(GuildUnbanEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_JOIN_LEFT);
-        if (ch == null) return;
-        User u = event.getUser();
-        String body = "### \u2705 " + u.getName() + " was unbanned\n" +
-                "**User:** **" + u.getName() + "**\n" +
-                "**ID:** `" + u.getId() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Member Unbanned", body, EmbedUtil.SUCCESS));
+    public void onGuildUnban(@NotNull GuildUnbanEvent event) {
+        String details = "### \u2705 Blacklist Revoked\n" +
+                "\u25AB\uFE0F **Target:** " + event.getUser().getAsMention() + " (`" + event.getUser().getId() + "`)\n" +
+                "\u25AB\uFE0F **Status:** `REINSTATED`";
+        LogManager.logEmbed(event.getGuild(), Config.LOG_JOIN_LEFT, 
+            EmbedUtil.createOldLogEmbed("guild-unban", details, null, event.getUser(), null, EmbedUtil.SUCCESS));
     }
 
     @Override
-    public void onMessageReceived(MessageReceivedEvent event) {
+    public void onMessageReceived(@NotNull MessageReceivedEvent event) {
         if (!event.isFromGuild() || event.getAuthor().isBot()) return;
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_MESSAGE);
-        if (ch == null) return;
         String content = event.getMessage().getContentRaw();
         if (content.isEmpty()) return;
-        if (content.length() > 800) content = content.substring(0, 800) + "...";
+        if (content.length() > 500) content = content.substring(0, 500) + "...";
 
-        String body = "### \uD83D\uDCAC Message Sent\n" +
-                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
-                "**Channel:** #" + event.getChannel().getName() + "\n" +
-                "**ID:** `" + event.getAuthor().getId() + "`\n" +
-                "**Content:** ```" + content + "```\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Message Log", body, EmbedUtil.INFO));
+        String details = "### \uD83D\uDCAC Transmission Intercepted\n" +
+                "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "\u25AB\uFE0F **Content:** ```" + content + "```";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MESSAGE, 
+            EmbedUtil.createOldLogEmbed("message-sent", details, event.getMember(), null, null, EmbedUtil.INFO));
     }
 
     @Override
-    public void onMessageUpdate(MessageUpdateEvent event) {
+    public void onMessageUpdate(@NotNull MessageUpdateEvent event) {
         if (!event.isFromGuild() || event.getAuthor().isBot()) return;
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_MESSAGE);
-        if (ch == null) return;
         String content = event.getMessage().getContentRaw();
-        if (content.length() > 800) content = content.substring(0, 800) + "...";
+        if (content.length() > 500) content = content.substring(0, 500) + "...";
 
-        String body = "### \u270F\uFE0F Message Edited\n" +
-                "**Author:** [" + event.getAuthor().getName() + "](https://discord.com/users/" + event.getAuthor().getId() + ")\n" +
-                "**Channel:** #" + event.getChannel().getName() + "\n" +
-                "**New Content:** ```" + content + "```\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Message Edit", body, EmbedUtil.WARNING));
+        String details = "### \u270F\uFE0F Transmission Modified\n" +
+                "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "\u25AB\uFE0F **New Data:** ```" + content + "```";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MESSAGE, 
+            EmbedUtil.createOldLogEmbed("message-edit", details, event.getMember(), null, null, EmbedUtil.WARNING));
     }
 
     @Override
-    public void onMessageDelete(MessageDeleteEvent event) {
-        if (!event.isFromGuild()) return;
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_MESSAGE);
-        if (ch == null) return;
-        String body = "### \uD83D\uDDD1\uFE0F Message Deleted\n" +
-                "**Channel:** #" + event.getChannel().getName() + "\n" +
-                "**Msg ID:** `" + event.getMessageId() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Message Deletion", body, EmbedUtil.DANGER));
+    public void onMessageDelete(@NotNull MessageDeleteEvent event) {
+        String details = "### \uD83D\uDDD1\uFE0F Transmission Terminated\n" +
+                "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
+                "\u25AB\uFE0F **Message ID:** `" + event.getMessageId() + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MESSAGE, 
+            EmbedUtil.createOldLogEmbed("message-delete", details, null, null, null, EmbedUtil.DANGER));
     }
 
     @Override
-    public void onGuildVoiceUpdate(GuildVoiceUpdateEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_VOICE);
-        if (ch == null) return;
-        Member m = event.getMember();
+    public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
         AudioChannel joined = event.getChannelJoined();
         AudioChannel left = event.getChannelLeft();
-        StringBuilder sb = new StringBuilder();
-        sb.append("**User:** **").append(m.getUser().getName()).append("**\n");
-        sb.append("**ID:** `").append(m.getId()).append("`\n");
+        String details = "";
+        net.dv8tion.jda.api.entities.Member m = event.getMember();
 
-        java.awt.Color color = EmbedUtil.INFO;
         if (left == null && joined != null) {
-            color = EmbedUtil.SUCCESS;
-            sb.append("### \uD83D\uDD0A Joined Voice\n**Channel:** ").append(joined.getName()).append("\n");
+            details = "### \uD83D\uDD0A Voice Link Established\n" +
+                    "\u25AB\uFE0F **Protocol:** `CONNECTION_JOIN`\n" +
+                    "\u25AB\uFE0F **Target Frequency:** `" + joined.getName() + "`\n" +
+                    "\u25AB\uFE0F **Frequency Occupancy:** `" + joined.getMembers().size() + "`";
+            LogManager.logEmbed(event.getGuild(), Config.LOG_VOICE, EmbedUtil.createOldLogEmbed("voice-join", details, m, null, null, EmbedUtil.SUCCESS));
         } else if (left != null && joined == null) {
-            color = EmbedUtil.DANGER;
-            sb.append("### \uD83D\uDD07 Left Voice\n**Channel:** ").append(left.getName()).append("\n");
+            details = "### \uD83D\uDD07 Voice Link Severed\n" +
+                    "\u25AB\uFE0F **Protocol:** `CONNECTION_DISCONNECT`\n" +
+                    "\u25AB\uFE0F **Last Frequency:** `" + left.getName() + "`";
+            LogManager.logEmbed(event.getGuild(), Config.LOG_VOICE, EmbedUtil.createOldLogEmbed("voice-leave", details, m, null, null, EmbedUtil.DANGER));
         } else if (left != null && joined != null) {
-            color = EmbedUtil.WARNING;
-            sb.append("### \uD83D\uDD00 Switched Voice\n**From:** ").append(left.getName()).append("\n**To:** ").append(joined.getName()).append("\n");
+            details = "### \uD83D\uDD00 Voice Link Rerouted\n" +
+                    "\u25AB\uFE0F **Protocol:** `CONNECTION_SWITCH`\n" +
+                    "\u25AB\uFE0F **Source:** `" + left.getName() + "`\n" +
+                    "\u25AB\uFE0F **Destination:** `" + joined.getName() + "`";
+            LogManager.logEmbed(event.getGuild(), Config.LOG_VOICE, EmbedUtil.createOldLogEmbed("voice-switch", details, m, null, null, EmbedUtil.WARNING));
         }
-        sb.append("**Time:** ").append(now());
-        PanelService.reply(ch, EmbedUtil.activityLog("Voice Activity", sb.toString(), color));
     }
 
     @Override
-    public void onChannelCreate(ChannelCreateEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_CHANNELS);
-        if (ch == null) return;
+    public void onChannelCreate(@NotNull ChannelCreateEvent event) {
+        String details = "### \u2795 Structural Node Created\n" +
+                "\u25AB\uFE0F **Type:** `" + event.getChannel().getType().name() + "`\n" +
+                "\u25AB\uFE0F **Identifier:** " + event.getChannel().getAsMention();
 
-        event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_CREATE).limit(1).queue(entries -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("### \u2795 Channel Created\n");
-            sb.append("**Name:** `").append(event.getChannel().getName()).append("`\n");
-            sb.append("**Type:** ").append(event.getChannel().getType().name()).append("\n");
-            if (!entries.isEmpty() && entries.get(0).getUser() != null)
-                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
-            sb.append("**Time:** ").append(now());
-            PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.SUCCESS));
-        });
+        LogManager.logEmbed(event.getGuild(), Config.LOG_CHANNELS, 
+            EmbedUtil.createOldLogEmbed("channel-init", details, null, null, null, EmbedUtil.SUCCESS));
     }
 
     @Override
-    public void onChannelDelete(ChannelDeleteEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_CHANNELS);
-        if (ch == null) return;
+    public void onChannelDelete(@NotNull ChannelDeleteEvent event) {
+        String details = "### \u2796 Structural Node Decommissioned\n" +
+                "\u25AB\uFE0F **Type:** `" + event.getChannel().getType().name() + "`\n" +
+                "\u25AB\uFE0F **Name:** `" + event.getChannel().getName() + "`";
 
-        event.getGuild().retrieveAuditLogs().type(ActionType.CHANNEL_DELETE).limit(1).queue(entries -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("### \u2796 Channel Deleted\n");
-            sb.append("**Name:** `").append(event.getChannel().getName()).append("`\n");
-            if (!entries.isEmpty() && entries.get(0).getUser() != null)
-                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
-            sb.append("**Time:** ").append(now());
-            PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", sb.toString(), EmbedUtil.DANGER));
-        });
+        LogManager.logEmbed(event.getGuild(), Config.LOG_CHANNELS, 
+            EmbedUtil.createOldLogEmbed("channel-purge", details, null, null, null, EmbedUtil.DANGER));
     }
 
     @Override
-    public void onChannelUpdateName(ChannelUpdateNameEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_CHANNELS);
-        if (ch == null) return;
-        String body = "### \u270F\uFE0F Channel Renamed\n" +
-                "**Before:** `" + event.getOldValue() + "`\n" +
-                "**After:** `" + event.getNewValue() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Channel Activity", body, EmbedUtil.WARNING));
+    public void onChannelUpdateName(@NotNull ChannelUpdateNameEvent event) {
+        String details = "### \u270F\uFE0F Structural Node Renamed\n" +
+                "\u25AB\uFE0F **Old Designation:** `" + event.getOldValue() + "`\n" +
+                "\u25AB\uFE0F **New Designation:** `" + event.getNewValue() + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_CHANNELS, 
+            EmbedUtil.createOldLogEmbed("channel-update", details, null, null, null, EmbedUtil.WARNING));
     }
 
     @Override
-    public void onGuildMemberRoleAdd(GuildMemberRoleAddEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
+    public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
         String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
+        String details = "### \u2795 Clearance Level Granted\n" +
+                "\u25AB\uFE0F **Authority:** `" + roles + "`";
 
-        event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(entries -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("### \u2795 Role Added\n");
-            sb.append("**Member:** **").append(event.getMember().getUser().getName()).append("**\n");
-            sb.append("**Role:** ").append(roles).append("\n");
-            if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
-                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
-            sb.append("**Time:** ").append(now());
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Add", sb.toString(), EmbedUtil.SUCCESS));
-        }, err -> {
-            String fallback = "### \u2795 Role Added\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Add", fallback, EmbedUtil.SUCCESS));
-        });
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("clearance-add", details, null, event.getUser(), event.getMember(), EmbedUtil.SUCCESS));
     }
 
     @Override
-    public void onGuildMemberRoleRemove(GuildMemberRoleRemoveEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
+    public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
         String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
+        String details = "### \u2796 Clearance Level Revoked\n" +
+                "\u25AB\uFE0F **Authority:** `" + roles + "`";
 
-        event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(entries -> {
-            StringBuilder sb = new StringBuilder();
-            sb.append("### \u2796 Role Removed\n");
-            sb.append("**Member:** **").append(event.getMember().getUser().getName()).append("**\n");
-            sb.append("**Role:** ").append(roles).append("\n");
-            if (!entries.isEmpty() && entries.get(0).getTargetId().equals(event.getMember().getId()) && entries.get(0).getUser() != null)
-                sb.append("**By:** **").append(entries.get(0).getUser().getName()).append("**\n");
-            sb.append("**Time:** ").append(now());
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Remove", sb.toString(), EmbedUtil.WARNING));
-        }, err -> {
-            String fallback = "### \u2796 Role Removed\n**Member:** **" + event.getMember().getUser().getName() + "**\n**Role:** " + roles + "\n**Time:** " + now();
-            PanelService.reply(ch, EmbedUtil.activityLog("Member Role Remove", fallback, EmbedUtil.WARNING));
-        });
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("clearance-remove", details, null, event.getUser(), event.getMember(), EmbedUtil.DANGER));
     }
 
     @Override
-    public void onRoleCreate(RoleCreateEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
-        String body = "### \u2795 Role Created\n" +
-                "**Name:** `" + event.getRole().getName() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.SUCCESS));
+    public void onRoleCreate(@NotNull RoleCreateEvent event) {
+        String details = "### \u2795 New Administrative Role Issued\n" +
+                "\u25AB\uFE0F **Role Name:** `" + event.getRole().getName() + "`\n" +
+                "\u25AB\uFE0F **Identifier:** `" + event.getRole().getId() + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("role-init", details, null, null, null, EmbedUtil.SUCCESS));
     }
 
     @Override
-    public void onRoleDelete(RoleDeleteEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
-        String body = "### \u2796 Role Deleted\n" +
-                "**Name:** `" + event.getRole().getName() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.DANGER));
+    public void onRoleDelete(@NotNull RoleDeleteEvent event) {
+        String details = "### \u2796 Administrative Role Purged\n" +
+                "\u25AB\uFE0F **Role Name:** `" + event.getRole().getName() + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("role-purge", details, null, null, null, EmbedUtil.DANGER));
     }
 
     @Override
-    public void onRoleUpdateName(RoleUpdateNameEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
-        String body = "### \u270F\uFE0F Role Renamed\n" +
-                "**Before:** `" + event.getOldName() + "`\n" +
-                "**After:** `" + event.getNewName() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING));
+    public void onRoleUpdateName(@NotNull RoleUpdateNameEvent event) {
+        String details = "### \u270F\uFE0F Administrative Role Modified\n" +
+                "\u25AB\uFE0F **Old Identity:** `" + event.getOldName() + "`\n" +
+                "\u25AB\uFE0F **New Identity:** `" + event.getNewName() + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("role-update", details, null, null, null, EmbedUtil.WARNING));
     }
 
     @Override
-    public void onRoleUpdatePermissions(RoleUpdatePermissionsEvent event) {
-        TextChannel ch = LogManager.getDashboardLogChannel(event.getGuild(), Config.LOG_ROLES);
-        if (ch == null) return;
-        String body = "### \uD83D\uDD12 Role Permissions Changed\n" +
-                "**Role Name:** `" + event.getRole().getName() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Role Activity", body, EmbedUtil.WARNING));
+    public void onRoleUpdatePermissions(@NotNull RoleUpdatePermissionsEvent event) {
+        String details = "### \uD83D\uDD12 Authority Protocols Updated\n" +
+                "\u25AB\uFE0F **Target Role:** `" + event.getRole().getName() + "`\n" +
+                "\u25AB\uFE0F **Protocol Update:** Permissions have been synchronized.";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+            EmbedUtil.createOldLogEmbed("role-perms", details, null, null, null, EmbedUtil.WARNING));
     }
 }
