@@ -382,17 +382,31 @@ public class ModerationCommands extends ListenerAdapter {
         if (sanitized.length() < 2) sanitized = "emoji_" + sanitized;
         if (sanitized.length() > 32) sanitized = sanitized.substring(0, 32);
         final String finalName = sanitized;
+        System.out.println("[STICKER] Initiating emoji deployment: " + finalName);
+        PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📥 **Fetching asset data...**"));
 
-        imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
-            try {
+        imgMapping.getAsAttachment().retrieveInputStream().thenAccept(stream -> {
+            try (stream) {
+                System.out.println("[STICKER] Stream received, creating icon...");
                 net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
                 event.getGuild().createEmoji(finalName, icon).queue(
-                    v -> PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed to the agency collective.", EmbedUtil.BANNER_MAIN)),
-                    e -> PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()))
+                    v -> {
+                        System.out.println("[STICKER] Emoji deployed successfully.");
+                        PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed points.", EmbedUtil.BANNER_MAIN));
+                    },
+                    e -> {
+                        System.err.println("[STICKER] Emoji deployment failed: " + e.getMessage());
+                        PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()));
+                    }
                 );
             } catch (Exception e) { 
-                PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Please verify image quality and dimensions according to protocols.")); 
+                System.err.println("[STICKER] Stream processing error: " + e.getMessage());
+                PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Stream processing error: " + e.getMessage())); 
             }
+        }).exceptionally(ex -> {
+            System.err.println("[STICKER] Retrieval failure: " + ex.getMessage());
+            PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Asset transmission failure: " + ex.getMessage()));
+            return null;
         });
     }
 
@@ -404,32 +418,41 @@ public class ModerationCommands extends ListenerAdapter {
         OptionMapping imgMapping = event.getOption("image");
         if (imgMapping == null || name == null || tags == null) return;
 
+        System.out.println("[STICKER] Initiating sticker deployment: " + name);
+        PanelService.replyEphemeral(event, EmbedUtil.info("Status", "📤 **Synchronizing visual asset...**"));
+
         net.dv8tion.jda.api.entities.Message.Attachment attachment = imgMapping.getAsAttachment();
-        attachment.getProxy().download().thenAccept(stream -> {
+        attachment.retrieveInputStream().thenAccept(stream -> {
             try (stream) {
+                System.out.println("[STICKER] Stream received for sticker, reading bytes...");
                 byte[] data = stream.readAllBytes();
                 String ext = attachment.getFileExtension();
                 if (ext == null) ext = "png";
                 net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + "." + ext);
                 
+                System.out.println("[STICKER] Uploading to Discord...");
                 event.getGuild().createSticker(name, desc == null ? "Elite Agency Asset" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
                     .queue(
-                        v -> PanelService.reply(event, EmbedUtil.containerBranded("STICKER SYSTEM", "Asset Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` has been successfully synchronized with the agency collective.", EmbedUtil.BANNER_MAIN)),
+                        v -> {
+                            System.out.println("[STICKER] Sticker deployed successfully.");
+                            PanelService.reply(event, EmbedUtil.containerBranded("STICKER SYSTEM", "Asset Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` has been successfully synchronized.", EmbedUtil.BANNER_MAIN));
+                        },
                         err -> {
+                            System.err.println("[STICKER] Sticker deployment failed: " + err.getMessage());
                             String msg = err.getMessage();
-                            String debug = msg;
                             if (msg.contains("320")) msg = "Discord requires exactly 320x320px for stickers.";
                             else if (msg.contains("512")) msg = "File size exceeds the 512KB limit.";
                             else if (msg.contains("1000")) msg = "Sticker name must be between 2 and 30 characters.";
-                            
-                            PanelService.replyEphemeral(event, EmbedUtil.error("DEPLOYMENT FAILED", "❌ Registry rejection: " + msg + "\n\n*Raw Error:* `" + debug + "`"));
+                            PanelService.reply(event, EmbedUtil.error("DEPLOYMENT FAILED", "❌ Registry rejection: " + msg + "\n\n*Raw Error:* `" + err.getMessage() + "`"));
                         }
                     );
             } catch (Exception e) {
-                PanelService.replyEphemeral(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
+                System.err.println("[STICKER] Sticker processing error: " + e.getMessage());
+                PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
             }
         }).exceptionally(ex -> {
-            PanelService.replyEphemeral(event, EmbedUtil.error("PROCEDURE FAILED", "Download failure: " + ex.getMessage()));
+            System.err.println("[STICKER] Sticker retrieval failure: " + ex.getMessage());
+            PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Asset synchronization failure: " + ex.getMessage()));
             return null;
         });
     }

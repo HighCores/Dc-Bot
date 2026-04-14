@@ -180,10 +180,12 @@ public class PanelService {
                 if (event.isAcknowledged()) {
                     var hook = event.getHook();
                     if (messageData != null) {
-                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
+                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
+                            System.err.println("Interaction hook failure: " + t.getMessage());
                         });
                     } else {
-                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
+                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
+                            System.err.println("Interaction hook failure (components): " + t.getMessage());
                         });
                     }
                 } else {
@@ -193,22 +195,25 @@ public class PanelService {
                         if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
                             var hook = event.getHook();
                             if (messageData != null) {
-                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
+                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
                                 });
                             } else {
-                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
+                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
                                 });
                             }
+                        } else {
+                            System.err.println("Interaction reply failure: " + err.getMessage());
                         }
                     });
                 }
             } catch (Exception ex) {
+                System.err.println("Critical handling error: " + ex.getMessage());
                 var hook = event.getHook();
                 if (messageData != null) {
-                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
+                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
                     });
                 } else {
-                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
+                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
                     });
                 }
             }
