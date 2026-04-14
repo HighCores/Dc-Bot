@@ -35,6 +35,7 @@ public class PanelService {
         public String category;
         public List<String> mainIds = new ArrayList<>();
         public List<String> addonIds = new ArrayList<>();
+
         public List<String> allIds() {
             List<String> all = new ArrayList<>(mainIds);
             all.addAll(addonIds);
@@ -124,11 +125,13 @@ public class PanelService {
 
     public static void reply(SlashCommandInteractionEvent event, MessageCreateData m) {
         if (event.isAcknowledged()) {
-            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, err -> log.error("Failed to edit original: {}", err.getMessage()));
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null,
+                    err -> log.error("Failed to edit original: {}", err.getMessage()));
         } else {
             event.reply(m).queue(null, err -> {
                 if (err.getMessage().contains("already acknowledged") || err.getMessage().contains("replied")) {
-                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {
+                    });
                 } else {
                     log.error("Failed to reply: {}", err.getMessage());
                 }
@@ -138,11 +141,13 @@ public class PanelService {
 
     public static void replyEphemeral(SlashCommandInteractionEvent event, MessageCreateData m) {
         if (event.isAcknowledged()) {
-            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, err -> log.error("Failed to edit original: {}", err.getMessage()));
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null,
+                    err -> log.error("Failed to edit original: {}", err.getMessage()));
         } else {
             event.reply(m).setEphemeral(true).queue(null, err -> {
                 if (err.getMessage().contains("already acknowledged") || err.getMessage().contains("replied")) {
-                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                    event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {
+                    });
                 } else {
                     log.error("Failed to reply ephemeral: {}", err.getMessage());
                 }
@@ -152,13 +157,17 @@ public class PanelService {
 
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        final MessageCreateData[] messageDataArr = {null};
+        final MessageCreateData[] messageDataArr = { null };
 
         for (Object p : parts) {
-            if (p instanceof MessageCreateData mcd) messageDataArr[0] = mcd;
-            else if (p instanceof MessageTopLevelComponent mtc) components.add(mtc);
-            else if (p instanceof ActionRow row) components.add(row);
-            else if (p instanceof Container container) components.add(container);
+            if (p instanceof MessageCreateData mcd)
+                messageDataArr[0] = mcd;
+            else if (p instanceof MessageTopLevelComponent mtc)
+                components.add(mtc);
+            else if (p instanceof ActionRow row)
+                components.add(row);
+            else if (p instanceof Container container)
+                components.add(container);
         }
 
         if (target instanceof IReplyCallback event) {
@@ -167,19 +176,24 @@ public class PanelService {
                 if (event.isAcknowledged()) {
                     var hook = event.getHook();
                     if (messageData != null) {
-                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                        });
                     } else {
-                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                        });
                     }
                 } else {
-                    var interaction = (messageData != null) ? event.reply(messageData) : event.replyComponents(components).useComponentsV2(true);
+                    var interaction = (messageData != null) ? event.reply(messageData)
+                            : event.replyComponents(components).useComponentsV2(true);
                     interaction.setEphemeral(ephemeral).queue(null, err -> {
                         if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
                             var hook = event.getHook();
                             if (messageData != null) {
-                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                                });
                             } else {
-                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                                });
                             }
                         }
                     });
@@ -187,15 +201,19 @@ public class PanelService {
             } catch (Exception ex) {
                 var hook = event.getHook();
                 if (messageData != null) {
-                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                    });
                 } else {
-                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                    });
                 }
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             final MessageCreateData messageData = messageDataArr[0];
-            if (messageData != null) channel.sendMessage(messageData).queue();
-            else channel.sendMessageComponents(components).useComponentsV2(true).queue();
+            if (messageData != null)
+                channel.sendMessage(messageData).queue();
+            else
+                channel.sendMessageComponents(components).useComponentsV2(true).queue();
         }
     }
 
@@ -207,7 +225,8 @@ public class PanelService {
         handleReply(event, true, m);
     }
 
-    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String category) {
+    public static void sendServicesCategory(
+            net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String category) {
         event.reply("This module is initializing.").setEphemeral(true).queue();
     }
 
@@ -217,59 +236,56 @@ public class PanelService {
 
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-            Button.secondary("btn_highcore", "HighCore"),
-            Button.secondary("btn_about", "About Us"),
-            Button.secondary("btn_partners", "Partners"),
-            Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1490334823565365308", "Giveaways"),
-            Button.secondary("hub_map", "Return")
-        );
+                Button.secondary("btn_highcore", "HighCore"),
+                Button.secondary("btn_about", "About Us"),
+                Button.secondary("btn_partners", "Partners"),
+                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID
+                        + "/1490334823565365308", "Giveaways"));
         reply(event, EmbedUtil.startupPanel(row));
     }
 
     public static void sendHighcoreHub(IReplyCallback event) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
-        
+
         layout.add(TextDisplay.of("### \uD83D\uDDFA\uFE0F Server Navigation Guide"));
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         String group1 = """
                 Start Up \u2192 <#1488795130470072321>
-                
+
                 Regrading \u2192 <#1488795130034000038>
-                
+
                 Our Terms \u2192 <#1489158831916454070>
-                
+
                 Server Updates \u2192 <#1488797040732278814>
                 """;
         layout.add(TextDisplay.of(group1));
-        
+
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
 
         String group2 = """
                 Our Client Comments \u2192 <#1491423672202952806>
-                
+
                 Our Brothers \u2192 <#1490334592375324772>
-                
+
                 Giveaways & Challenges \u2192 <#1490334823565365308>
-                
+
                 Developer Pricing \u2192 <#1488800669375795272>
-                
+
                 Designer Pricing  \u2192 <#1488800570629427251>
-                
+
                 MC Developers Price \u2192 <#1488795131019526151>
-                
+
                 Support \u2192 <#1488798547947159612>
-                
+
                 Support Room \u2192 <#1488795130881249406>
                 """;
         layout.add(TextDisplay.of(group2));
 
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(ActionRow.of(
-            Button.secondary("btn_pings", "Pings"),
-            Button.secondary("hub_map", "Return")
-        ));
+                Button.secondary("btn_pings", "Pings")));
 
         reply(event, Container.of(layout));
     }
@@ -277,46 +293,44 @@ public class PanelService {
     public static void sendPingsHub(IReplyCallback event) {
         String body = "### \uD83D\uDCE2 Notification Registry\nSelect deployment layers to stay synchronized with agency updates.";
         ActionRow row = ActionRow.of(
-            Button.secondary("ping_1488916736639238357", "Updates"),
-            Button.secondary("ping_1488916921687736421", "Giveaway"),
-            Button.secondary("ping_1488916879186596081", "Offers"),
-            Button.secondary("ping_1489764018989301840", "Hiring")
-        );
+                Button.secondary("ping_1488916736639238357", "Updates"),
+                Button.secondary("ping_1488916921687736421", "Giveaway"),
+                Button.secondary("ping_1488916879186596081", "Offers"),
+                Button.secondary("ping_1489764018989301840", "Hiring"));
         replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row));
     }
 
     public static void sendAboutUsHub(IReplyCallback event) {
         String body = "### \uD83D\uDCD6 Agency Profile\nSelect a specialist module below to examine our creative service protocols and price scales.";
         ActionRow select = ActionRow.of(
-            StringSelectMenu.create("about_category_select")
-                .setPlaceholder("Choose service category...")
-                .addOption("Designer", "about_designer", "Logos, Branding, UI/UX")
-                .addOption("Developer", "about_developer", "Web, Bots, Full-Stack")
-                .addOption("Editor", "about_editor", "Reels, Animation, Gaming")
-                .addOption("Minecraft", "about_minecraft", "Plugins, Maps, Models")
-                .build()
-        );
+                StringSelectMenu.create("about_category_select")
+                        .setPlaceholder("Choose service category...")
+                        .addOption("Designer", "about_designer", "Logos, Branding, UI/UX")
+                        .addOption("Developer", "about_developer", "Web, Bots, Full-Stack")
+                        .addOption("Editor", "about_editor", "Reels, Animation, Gaming")
+                        .addOption("Minecraft", "about_minecraft", "Plugins, Maps, Models")
+                        .build());
         ActionRow btn = ActionRow.of(
-            Button.secondary("btn_socials", "Social Media")
-        );
-        replyEphemeral(event, EmbedUtil.containerBranded("IDENTITY", "Specialist Modules", body, EmbedUtil.BANNER_MAIN, select, btn));
+                Button.secondary("btn_socials", "Social Media"));
+        replyEphemeral(event,
+                EmbedUtil.containerBranded("SERVICES", "Project Categories", body, EmbedUtil.BANNER_MAIN, select, btn));
     }
 
     public static void sendSocialsHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-            Button.link("https://x.com/CoreHigh70331", "X"),
-            Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"),
-            Button.link("https://www.instagram.com/high_core_agency/", "Insta"),
-            Button.link("https://www.threads.com/@high_core_agency", "Threads")
-        );
-        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels", "Establish a connection with our external communications.", EmbedUtil.BANNER_MAIN, row));
+                Button.link("https://x.com/CoreHigh70331", "X"),
+                Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"),
+                Button.link("https://www.instagram.com/high_core_agency/", "Insta"),
+                Button.link("https://www.threads.com/@high_core_agency", "Threads"));
+        replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels",
+                "Join our community platforms and stay connected.", EmbedUtil.BANNER_MAIN, row));
     }
 
     public static void sendServicePriceInfo(IReplyCallback event, String category) {
         StringBuilder sb = new StringBuilder();
         sb.append("### \u039B ").append(category.toUpperCase()).append(" Protocols\n\n");
-        
-        String prefix = switch(category.toLowerCase()) {
+
+        String prefix = switch (category.toLowerCase()) {
             case "designer" -> "ds_";
             case "developer" -> "dv_";
             case "editor" -> "ed_";
@@ -330,23 +344,23 @@ public class PanelService {
             }
         });
 
-        replyEphemeral(event, EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN));
+        replyEphemeral(event,
+                EmbedUtil.containerBranded("LEDGER", category + " Fees", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {
         String body = "### 🤝 Strategic Alliances\nHighCore Hub is connected with industry leaders to provide elite-scale solutions.";
-        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", body, EmbedUtil.BANNER_MAIN));
+        replyEphemeral(event,
+                EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", body, EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {
         replyEphemeral(event, EmbedUtil.eliteContainer("Pings", "Select notification layers.", null));
     }
 
-
     public static void sendPricesCategory(IReplyCallback event) {
         replyEphemeral(event, EmbedUtil.eliteContainer("Pricing", "Service modules processing.", null));
     }
-
 
     public static void sendServerMap(IReplyCallback event) {
         sendHighcoreHub(event);
@@ -355,11 +369,12 @@ public class PanelService {
     public static void sendSuggestionList(IReplyCallback event) {
         String guildId = event.getGuild().getId();
         // Relaxed status filter and added order to ensure we see the most recent ones
-        com.google.gson.JsonArray recent = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", 
-            "guild_id=eq." + guildId + "&order=id.desc&limit=10");
-            
+        com.google.gson.JsonArray recent = com.highcore.bot.database.SupabaseClient.get("dc_suggestions",
+                "guild_id=eq." + guildId + "&order=id.desc&limit=10");
+
         if (recent == null || recent.size() == 0) {
-            replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions", "### 📁 INBOX EMPTY\nNo entries currently require administrative review.", EmbedUtil.BANNER_MAIN));
+            replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions",
+                    "### 📁 INBOX EMPTY\nNo entries currently require administrative review.", EmbedUtil.BANNER_MAIN));
             return;
         }
 
@@ -374,22 +389,27 @@ public class PanelService {
             String user = sug.has("user_name") ? sug.get("user_name").getAsString() : "Unknown";
             String content = sug.has("content") ? sug.get("content").getAsString() : "Empty";
             String status = sug.has("status") ? sug.get("status").getAsString().toUpperCase() : "PENDING";
-            
-            if (content.length() > 35) content = content.substring(0, 32) + "...";
-            
-            sb.append("`#").append(sid).append("` [").append(status).append("] \u2014 **").append(user).append("**: ").append(content).append("\n");
+
+            if (content.length() > 35)
+                content = content.substring(0, 32) + "...";
+
+            sb.append("`#").append(sid).append("` [").append(status).append("] \u2014 **").append(user).append("**: ")
+                    .append(content).append("\n");
             buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_view_" + sid, "#" + sid));
         }
 
         List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new ArrayList<>();
         for (int i = 0; i < buttons.size(); i += 5) {
-            rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
+            rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow
+                    .of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
         }
 
-        replyEphemeral(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN, rows.toArray(new net.dv8tion.jda.api.components.actionrow.ActionRow[0])));
+        replyEphemeral(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(),
+                EmbedUtil.BANNER_MAIN, rows.toArray(new net.dv8tion.jda.api.components.actionrow.ActionRow[0])));
     }
 
-    public static void handleSuggestionView(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, long id) {
+    public static void handleSuggestionView(
+            net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, long id) {
         com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
         if (sug == null) {
             replyEphemeral(event, EmbedUtil.error("Error", "Suggestion not found in database."));
@@ -404,18 +424,19 @@ public class PanelService {
                 ### 👤 AUTHOR DATA
                 **Identity:** %s
                 **Origin Time:** %s
-                
+
                 ### 💡 PROPOSAL CORE
                 ```%s```
                 """, user, date, content);
 
-        net.dv8tion.jda.api.components.actionrow.ActionRow controls = net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-            net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "Accept"),
-            net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "Reject"),
-            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "Return")
-        );
+        net.dv8tion.jda.api.components.actionrow.ActionRow controls = net.dv8tion.jda.api.components.actionrow.ActionRow
+                .of(
+                        net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "Accept"),
+                        net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "Reject"),
+                        net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "Return"));
 
-        reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN), controls);
+        reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN),
+                controls);
     }
 
     public static void sendAboutUs(IReplyCallback event) {
@@ -424,10 +445,12 @@ public class PanelService {
 
     public static void sendTicketPanel(IReplyCallback event) {
         String imageUrl = "https://media.discordapp.net/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69dc92e1&is=69db4161&hm=feb7a94f059ab34febeb9e1d8a48b1bde4a78c4f5936c6f70be8a48783ed482f&=&format=webp&quality=lossless&width=1845&height=807";
-        
+
         String rules = "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
-                "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +
-                "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n" +
+                "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n"
+                +
+                "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n"
+                +
                 "**Clarity** — Please fully describe your issue or request before a staff member responds.\n\n" +
                 "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
                 "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden.";
@@ -441,24 +464,25 @@ public class PanelService {
         children.add(ActionRow.of(
                 Button.secondary("ticket_init_support", "Technical Support"),
                 Button.secondary("ticket_init_order", "New Order"),
-                Button.secondary("ticket_init_complaint", "File Complaint")
-        ));
-        
+                Button.secondary("ticket_init_complaint", "File Complaint")));
+
         reply(event, Container.of(children));
     }
 
     public static void handleSupportFlow(IReplyCallback event, String id) {
         if (id.equals("support_tech")) {
-            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Describe your issue").build();
-            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).setPlaceholder("Service Type").build();
-            
+            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH)
+                    .setPlaceholder("Describe your issue").build();
+            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT)
+                    .setPlaceholder("Service Type").build();
+
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_support_init", "Technical Support")
-                    .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Technical problem description", issueInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Service to report", serviceInput)
-                    )
-                    .build()).queue();
+                        .addComponents(
+                                net.dv8tion.jda.api.components.label.Label.of("Technical problem description",
+                                        issueInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Service to report", serviceInput))
+                        .build()).queue();
             }
         }
     }
@@ -470,10 +494,9 @@ public class PanelService {
             TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
                     .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Complaint Category", issueTypeInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Person Involved", personInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Full Details", descInput)
-                    )
+                            net.dv8tion.jda.api.components.label.Label.of("Complaint Category", issueTypeInput),
+                            net.dv8tion.jda.api.components.label.Label.of("Person Involved", personInput),
+                            net.dv8tion.jda.api.components.label.Label.of("Full Details", descInput))
                     .build()).queue();
         }
     }
@@ -590,13 +613,12 @@ public class PanelService {
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
-                    .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Project Name", projectInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Your Full Name", nameInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Contact Info", contactInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput)
-                    )
-                    .build()).queue();
+                        .addComponents(
+                                net.dv8tion.jda.api.components.label.Label.of("Project Name", projectInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Your Full Name", nameInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Contact Info", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput))
+                        .build()).queue();
             }
         }
     }
@@ -693,4 +715,3 @@ public class PanelService {
         b.setMinValues(0).setMaxValues(items.size());
         return b.build();
     }
-}

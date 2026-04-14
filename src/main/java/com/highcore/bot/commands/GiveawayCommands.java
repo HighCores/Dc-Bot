@@ -54,12 +54,14 @@ public class GiveawayCommands extends ListenerAdapter {
                 "\uD83D\uDDD2 **View History** — Check active tasks.";
 
         ActionRow row = ActionRow.of(
-                Button.secondary("btn_gw_create", "Create Giveaway"),
+                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID
+                        + "/1490334823565365308", "Giveaways"),
+                Button.secondary("btn_gw_create", "Create Rewards"),
                 Button.secondary("btn_gw_drop", "Instant Drop"),
                 Button.secondary("btn_gw_history", "View History")
         );
 
-        PanelService.reply(event, EmbedUtil.containerBranded("LOGISTICS", "Giveaway Node", desc, EmbedUtil.BANNER_GIVEAWAY, row));
+        PanelService.reply(event, EmbedUtil.containerBranded("REWARDS", "Giveaway Center", desc, EmbedUtil.BANNER_GIVEAWAY, row));
     }
 
     @Override
@@ -86,20 +88,20 @@ public class GiveawayCommands extends ListenerAdapter {
                         .build();
 
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection", 
-                        "Please select the **type of reward** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(menu)));
+                        "Please select the **reward type** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(menu)));
             }
         } else if (id.equals("btn_gw_history")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
             JsonArray active = SupabaseClient.getActiveGiveaways();
             
             if (active == null || active.size() == 0) {
-                var emptyC = EmbedUtil.containerBranded("GIVEAWAY REGISTRY", "History Cache", "\u26A0\uFE0F **Registry Empty:** No active or recent deployments located in the local database.", EmbedUtil.BANNER_GIVEAWAY);
+                var emptyC = EmbedUtil.containerBranded("REWARDS HISTORY", "Logs Empty", "\u26A0\uFE0F **Registry Entry:** No active reward deployments were found in the current session.", EmbedUtil.BANNER_GIVEAWAY);
                 PanelService.replyEphemeral(event, emptyC);
                 return;
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("### \uD83D\uDCC3 Operational Deployment Log\nListing all active and pending reward sequences:\n\n");
+            sb.append("### \uD83D\uDCC3 Active Giveaway Log\nListing all current and pending reward sessions:\n\n");
             
             for (int i = 0; i < active.size(); i++) {
                 JsonObject g = active.get(i).getAsJsonObject();
@@ -127,7 +129,7 @@ public class GiveawayCommands extends ListenerAdapter {
                 sb.append("\n\n");
             }
 
-            var c = EmbedUtil.containerBranded("GIVEAWAY REGISTRY", "Active Deployments", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
+            var c = EmbedUtil.containerBranded("REWARDS", "Live Giveaways", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
             PanelService.replyEphemeral(event, c);
         } else if (id.startsWith("gw_end_early_")) {
             if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;

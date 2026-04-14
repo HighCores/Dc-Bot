@@ -70,6 +70,7 @@ public class SlashCommands extends ListenerAdapter {
                 case "boter" -> handleBoter(event);
                 case "rename" -> handleRename(event);
                 case "setchannel" -> handleSetChannel(event);
+                case "add-sticker" -> handleAddSticker(event);
                 default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {
@@ -215,6 +216,37 @@ public class SlashCommands extends ListenerAdapter {
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
                 .addComponents(net.dv8tion.jda.api.components.label.Label.of("Emulated Message", boterMsg))
                 .build()).queue();
+    }
+
+    private void handleAddSticker(SlashCommandInteractionEvent event) {
+        if (!isAdmin(event.getMember())) {
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
+            return;
+        }
+        OptionMapping fileOpt = event.getOption("file");
+        String name = event.getOption("name", OptionMapping::getAsString);
+        if (fileOpt == null || name == null) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "File and name are required."));
+            return;
+        }
+
+        fileOpt.getAsAttachment().getProxy().download().thenAccept(inputStream -> {
+            try {
+                net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(inputStream);
+                event.getGuild().createSticker(name, icon, name).queue(s -> {
+                    PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Sticker created: **" + name + "**"));
+                }, err -> {
+                    PanelService.replyEphemeral(event, EmbedUtil.error("CREATE FAILED", "Check file size/format (PNG/APNG/Lottie < 512kb/320x320/8MB)."));
+                    log.error("Sticker creation failed: {}", err.getMessage());
+                });
+            } catch (Exception e) {
+                PanelService.replyEphemeral(event, EmbedUtil.error("PROCESSING ERROR", "Failed to process image file."));
+                log.error("Sticker icon conversion failed: ", e);
+            }
+        }).exceptionally(err -> {
+            PanelService.replyEphemeral(event, EmbedUtil.error("DOWNLOAD ERROR", "Failed to retrieve file asset."));
+            return null;
+        });
     }
 
     private boolean isStaff(Member m) { return Config.isStaff(m); }
