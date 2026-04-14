@@ -49,8 +49,11 @@ public class SlashCommands extends ListenerAdapter {
         );
         if (ignoredCmds.contains(name)) return;
 
-        if (!event.isAcknowledged()) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("bc") && !name.equals("tickets") && !name.equals("terms");
+        // SMART DEFERRAL: Do NOT defer if the command uses a Modal (bc, embed, boter)
+        boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
+        
+        if (!event.isAcknowledged() && !usesModal) {
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms");
             event.deferReply(ephemeral).queue();
         }
 
@@ -178,7 +181,7 @@ public class SlashCommands extends ListenerAdapter {
         BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
         TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .setPlaceholder("Insert Arabic text to broadcast...")
+                .setPlaceholder("Insert broadcast announcement here...")
                 .setRequired(true).build();
 
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
