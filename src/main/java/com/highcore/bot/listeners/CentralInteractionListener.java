@@ -333,9 +333,12 @@ public class CentralInteractionListener extends ListenerAdapter {
     private void handleSuggestDecision(ButtonInteractionEvent event, String idStr, String status) {
         try {
             long id = Long.parseLong(idStr);
+            System.out.println("[DECISION] Starting process for ID: " + id + " Status: " + status);
+            com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
+            System.out.println("[DECISION] Raw Suggestion from DB: " + (sug != null ? sug.toString() : "NULL"));
+
             String title, body;
             if (status.equals("Rejected")) {
-                com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
                 if (sug != null && sug.has("message_id") && !sug.get("message_id").isJsonNull()) {
                     String mid = sug.get("message_id").getAsString();
                     net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild()
