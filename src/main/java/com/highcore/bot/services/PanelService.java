@@ -137,6 +137,14 @@ public class PanelService {
         }
     }
 
+    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        sendHighcoreHub(event);
+    }
+
+    public static void sendStatsPanel(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        replyEphemeral(event, EmbedUtil.info("Stats", "System statistics are currently being optimized."));
+    }
+
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
             Button.secondary("btn_highcore", "HighCore"),
@@ -301,9 +309,9 @@ public class PanelService {
         }
 
         if (event instanceof net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent be) {
-            be.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).queue();
+            be.getHook().editOriginalComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).queue();
         } else {
-            event.replyEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).setEphemeral(true).queue();
+            event.replyComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).setEphemeral(true).queue();
         }
     }
 
@@ -368,8 +376,8 @@ public class PanelService {
 
     public static void handleSupportFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueInput = TextInput.create("issue_desc", "Describe your issue", TextInputStyle.PARAGRAPH).build();
-            TextInput serviceInput = TextInput.create("service_type", "Service Type", TextInputStyle.SHORT).build();
+            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setLabel("Describe your issue").build();
+            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT).setLabel("Service Type").build();
             modal.replyModal(Modal.create("modal_support_init", "Technical Support")
                     .addComponents(ActionRow.of(issueInput), ActionRow.of(serviceInput))
                     .build()).queue();
@@ -378,9 +386,9 @@ public class PanelService {
 
     public static void handleComplaintFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueTypeInput = TextInput.create("comp_type", "Complaint Category", TextInputStyle.SHORT).build();
-            TextInput personInput = TextInput.create("comp_person", "Person Involved", TextInputStyle.SHORT).build();
-            TextInput descInput = TextInput.create("comp_desc", "Full Details", TextInputStyle.PARAGRAPH).build();
+            TextInput issueTypeInput = TextInput.create("comp_type", TextInputStyle.SHORT).setLabel("Complaint Category").build();
+            TextInput personInput = TextInput.create("comp_person", TextInputStyle.SHORT).setLabel("Person Involved").build();
+            TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setLabel("Full Details").build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
                     .addComponents(ActionRow.of(issueTypeInput), ActionRow.of(personInput), ActionRow.of(descInput))
                     .build()).queue();
@@ -492,10 +500,10 @@ public class PanelService {
 
     public static void handleOrderFinalModal(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput projectInput = TextInput.create("o_project", "Project Name", TextInputStyle.SHORT).build();
-            TextInput nameInput = TextInput.create("o_name", "Your Full Name", TextInputStyle.SHORT).build();
-            TextInput contactInput = TextInput.create("o_contact", "Contact Info", TextInputStyle.SHORT).build();
-            TextInput etaInput = TextInput.create("o_eta", "Delivery ETA", TextInputStyle.SHORT).build();
+            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setLabel("Project Name").build();
+            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setLabel("Your Full Name").build();
+            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setLabel("Contact Info").build();
+            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).setLabel("Delivery ETA").build();
             modal.replyModal(Modal.create("modal_order_final", "Order Details")
                     .addComponents(ActionRow.of(projectInput), ActionRow.of(nameInput), ActionRow.of(contactInput), ActionRow.of(etaInput))
                     .build()).queue();

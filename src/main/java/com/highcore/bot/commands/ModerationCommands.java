@@ -12,6 +12,9 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import org.jetbrains.annotations.NotNull;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
+import com.google.gson.JsonElement;
 import java.util.*;
 import java.util.concurrent.TimeUnit;
 import java.time.Instant;
@@ -247,7 +250,9 @@ public class ModerationCommands extends ListenerAdapter {
         if (count > 0) {
             sb.append("▫️ **آخــر الــتــســجــيــلات:**\n");
             for (int i = 0; i < Math.min(warns.size(), 5); i++) {
-                JsonObject w = warns.get(i).getAsJsonObject();
+                com.google.gson.JsonElement el = warns.get(i);
+                if (el == null || !el.isJsonObject()) continue;
+                com.google.gson.JsonObject w = el.getAsJsonObject();
                 String reason = w.has("reason") ? w.get("reason").getAsString() : "No Reason";
                 String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "Unknown Date";
                 sb.append("`").append(date).append("` - ").append(reason).append("\n");

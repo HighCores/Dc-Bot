@@ -159,12 +159,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             switch (choice) {
                 case "purchase" -> com.highcore.bot.services.OrderService.startWizard(event);
                 case "tech_support" -> {
-                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
+                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).setLabel("Subject").setPlaceholder("Describe the technical issue...").setRequired(true).build();
                     Modal m = Modal.create("modal_ticket_open", "Support Request").addComponents(ActionRow.of(subjectInput)).build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
-                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build();
+                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).setLabel("Reason").setPlaceholder("What are you reporting?").setRequired(true).build();
                     Modal m = Modal.create("modal_report_open", "Submit a Report").addComponents(ActionRow.of(reasonInput)).build();
                     event.replyModal(m).queue();
                 }
@@ -233,6 +233,6 @@ public class CentralInteractionListener extends ListenerAdapter {
         com.highcore.bot.database.SupabaseClient.updateSuggestion(id, status, "Processed via Panel", event.getUser().getId(), event.getUser().getName(), null);
         String title = status.equals("Accepted") ? "✅ مُــقــتــرَح مــقــبــول" : "❌ مُــقــتــرَح مــرفــوض";
         String body = String.format("تــم تــحــديــث حــالــة الاقــتــراح رقــم **#%d** بــنــجــاح إِلــى: **%s**", id, status);
-        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("SYSTEM", title, body, EmbedUtil.BANNER_MAIN)).setComponents(ActionRow.of(Button.secondary("suggest_back", "الـعـودة لـلـقـائـمـة"))).queue();
+        event.getHook().editOriginalComponents(EmbedUtil.containerBranded("SYSTEM", title, body, EmbedUtil.BANNER_MAIN)).setComponents(ActionRow.of(Button.secondary("suggest_back", "الـعـودة لـلـقـائـمـة"))).queue();
     }
 }

@@ -155,14 +155,18 @@ public class GiveawayCommands extends ListenerAdapter {
         boolean isDrop = type.equals("Drop");
         String modalId = "modal_gw_" + type.toLowerCase();
         
-        TextInput prizeInput = TextInput.create("prize", (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details"), TextInputStyle.SHORT)
+        String prizeLabel = (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
+        TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
+                .setLabel(prizeLabel)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
                 .setRequired(true).build();
         
-        TextInput winnersInput = TextInput.create("winners", "Number of Winners", TextInputStyle.SHORT)
+        TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
+                .setLabel("Number of Winners")
                 .setRequired(true).setValue("1").build();
         
-        TextInput timeInput = TextInput.create("duration", "Duration (Minutes)", TextInputStyle.SHORT)
+        TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
+                .setLabel("Duration (Minutes)")
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
