@@ -376,7 +376,7 @@ public class PanelService {
 
     public static void sendSuggestionList(IReplyCallback event) {
         String guildId = event.getGuild().getId();
-        JsonArray recent = SupabaseClient.get("suggestions", "guild_id=eq." + guildId + "&order=id.desc&limit=25");
+        com.google.gson.JsonArray recent = SupabaseClient.get("dc_suggestions", "guild_id=eq." + guildId + "&order=id.desc&limit=25");
 
         if (recent == null || recent.size() == 0) {
             replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions",

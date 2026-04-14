@@ -61,7 +61,6 @@ public class GeneralCommands extends ListenerAdapter {
 
         long id = result != null && result.has("id") ? result.get("id").getAsLong() : 0;
 
-        // Try to find a channel named "suggestions"
         net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild().getTextChannels().stream()
                 .filter(ch -> ch.getName().toLowerCase().contains("suggest") || ch.getName().contains("اقتراحات"))
                 .findFirst().orElse(null);
@@ -73,10 +72,8 @@ public class GeneralCommands extends ListenerAdapter {
                     "Community Feedback", body, EmbedUtil.BANNER_MAIN);
             net.dv8tion.jda.api.components.actionrow.ActionRow buttons = net.dv8tion.jda.api.components.actionrow.ActionRow
                     .of(
-                            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_up_" + id,
-                                    "👍 Upvote"),
-                            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_down_" + id,
-                                    "👎 Downvote"));
+                            net.dv8tion.jda.api.components.buttons.Button.primary("suggest_vote_up_" + id, "👍"),
+                            net.dv8tion.jda.api.components.buttons.Button.primary("suggest_vote_down_" + id, "👎"));
 
             sugChan.sendMessageComponents(container, buttons).useComponentsV2(true).queue(m -> {
                 com.highcore.bot.database.SupabaseClient.updateSuggestion(id, "pending", null, null, null, m.getId());
@@ -91,10 +88,9 @@ public class GeneralCommands extends ListenerAdapter {
 
                     **Content:**
                     %s
-                    *Note: Active suggestion feed channel not detected. Displaying log only.*
                     """, event.getUser().getAsMention(), sug);
             PanelService.reply(event,
-                    EmbedUtil.containerBranded("Suggition", "Submit Idea", body, EmbedUtil.BANNER_MAIN));
+                    EmbedUtil.containerBranded("SUGGESTION", "Submit Idea", body, EmbedUtil.BANNER_MAIN));
         }
     }
 
