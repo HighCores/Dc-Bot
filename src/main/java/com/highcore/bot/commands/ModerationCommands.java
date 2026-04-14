@@ -82,7 +82,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (!hasPerm(event, Permission.NICKNAME_MANAGE)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         String nick = event.getOption("nick", OptionMapping::getAsString);
-        if (m == null) return;
+        if (!canManage(event, m)) return;
         m.modifyNickname(nick).queue(v -> PanelService.reply(event, EmbedUtil.success("Update Nickname", "Nickname for " + m.getUser().getName() + " has been changed to: `" + (nick == null ? "Original" : nick) + "`")));
     }
 
@@ -91,6 +91,10 @@ public class ModerationCommands extends ListenerAdapter {
         User u = event.getOption("user", OptionMapping::getAsUser);
         String reason = getReason(event);
         if (u == null) return;
+        
+        Member targetMember = event.getGuild().getMember(u);
+        if (targetMember != null && !canManage(event, targetMember)) return;
+
         event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> PanelService.reply(event, EmbedUtil.success("Ban Enforcement", u.getName() + " has been banned from the agency.\nReason: " + reason)));
     }
 
@@ -364,9 +368,18 @@ public class ModerationCommands extends ListenerAdapter {
         });
     }
 
-    private boolean hasPerm(SlashCommandInteractionEvent e, Permission p) {
-        if (!e.getMember().hasPermission(p)) {
-            PanelService.replyEphemeral(e, EmbedUtil.accessDenied());
+    private boolean canManage(SlashCommandInteractionEvent event, Member target) {
+        if (target == null) return false;
+        if (!event.getGuild().getSelfMember().canInteract(target)) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("Hierarchy Error", "I cannot manage this member because their highest role is equal to or higher than mine."));
+            return false;
+        }
+        return true;
+    }
+
+    private boolean hasPerm(SlashCommandInteractionEvent event, Permission perm) {
+        if (!event.getMember().hasPermission(perm)) {
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return false;
         }
         return true;
