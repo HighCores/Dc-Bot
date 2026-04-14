@@ -175,12 +175,11 @@ public class SlashCommands extends ListenerAdapter {
         BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
         TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .label("Broadcast Content")
                 .setPlaceholder("Insert Arabic text to broadcast...")
                 .setRequired(true).build();
 
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
-                .addComponents(bcMsg)
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Broadcast Content", bcMsg))
                 .build()).queue();
     }
 
@@ -201,12 +200,11 @@ public class SlashCommands extends ListenerAdapter {
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
         TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
-                .label("Emulated Message")
                 .setPlaceholder("Enter the message content...")
                 .setRequired(true)
                 .build();
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(boterMsg)
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Emulated Message", boterMsg))
                 .build()).queue();
     }
 

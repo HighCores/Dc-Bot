@@ -155,23 +155,25 @@ public class GiveawayCommands extends ListenerAdapter {
         boolean isDrop = type.equals("Drop");
         String modalId = "modal_gw_" + type.toLowerCase();
         
-        String prizeLabel = (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
-                .label(prizeLabel)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
                 .setRequired(true).build();
         
         TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
-                .label("Number of Winners")
                 .setRequired(true).setValue("1").build();
         
         TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
-                .label("Duration (Minutes)")
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
+        String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
+
         Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
-                .addComponents(prizeInput, winnersInput, timeInput)
+                .addComponents(
+                    net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
+                    net.dv8tion.jda.api.components.label.Label.of("Number of Winners", winnersInput),
+                    net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput)
+                )
                 .build();
 
         event.replyModal(modal).queue();

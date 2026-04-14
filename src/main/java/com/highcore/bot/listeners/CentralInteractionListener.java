@@ -75,10 +75,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("btn_about") || id.equals("hub_about")) { PanelService.sendAboutUsHub(event); return; }
             if (id.equals("btn_socials") || id.equals("hub_social")) { PanelService.sendSocialsHub(event); return; }
             if (id.equals("hub_partners")) { PanelService.sendPartnersPanel(event); return; }
-            if (id.equals("hub_services")) { PanelService.sendServicesCategory(event); return; }
+            if (id.equals("hub_services")) { PanelService.sendServicesCategory(event, "all"); return; }
             if (id.equals("view_prices_cat")) { PanelService.sendPricesCategory(event); return; }
 
-            if (id.equals("ticket_init_support"))   { PanelService.handleSupportFlow(event);   return; }
+            if (id.equals("ticket_init_support"))   { PanelService.handleSupportFlow(event, "support_tech");   return; }
             if (id.equals("ticket_init_order"))     { PanelService.handleOrderFlow(event);     return; }
             if (id.equals("ticket_init_complaint")) { PanelService.handleComplaintFlow(event); return; }
 
@@ -88,7 +88,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
 
             if (id.equals("order_open_ticket")) {
-                PanelService.handleOrderFinalModal(event);
+                PanelService.handleOrderFinalModal(event, "order_final");
                 return;
             }
 
@@ -159,13 +159,17 @@ public class CentralInteractionListener extends ListenerAdapter {
             switch (choice) {
                 case "purchase" -> com.highcore.bot.services.OrderService.startWizard(event);
                 case "tech_support" -> {
-                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).label("Subject").setPlaceholder("Describe the technical issue...").setRequired(true).build();
-                    Modal m = Modal.create("modal_ticket_open", "Support Request").addComponents(subjectInput).build();
+                    TextInput subjectInput = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Describe the technical issue...").setRequired(true).build();
+                    Modal m = Modal.create("modal_ticket_open", "Support Request")
+                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Subject", subjectInput))
+                        .build();
                     event.replyModal(m).queue();
                 }
                 case "complaint" -> {
-                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).label("Reason").setPlaceholder("What are you reporting?").setRequired(true).build();
-                    Modal m = Modal.create("modal_report_open", "Submit a Report").addComponents(reasonInput).build();
+                    TextInput reasonInput = TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("What are you reporting?").setRequired(true).build();
+                    Modal m = Modal.create("modal_report_open", "Submit a Report")
+                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Reason", reasonInput))
+                        .build();
                     event.replyModal(m).queue();
                 }
             }
