@@ -204,7 +204,7 @@ public class PanelService {
             Button.secondary("btn_rules", "Server Rules")
         ));
 
-        event.getHook().editOriginalComponents(Container.of(layout)).useComponentsV2(true).queue();
+        reply(event, Container.of(layout));
     }
 
     public static void sendPingsHub(IReplyCallback event) {
@@ -313,7 +313,7 @@ public class PanelService {
         }
 
         if (event instanceof net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent be) {
-            be.getHook().editOriginalComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).queue();
+            reply(be, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN), rows);
         } else {
             event.replyComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).setEphemeral(true).queue();
         }
@@ -346,7 +346,7 @@ public class PanelService {
             net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "الـعـودة")
         );
 
-        event.getHook().editOriginalComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN)).setComponents(controls).queue();
+        reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN), controls);
     }
 
     public static void sendAboutUs(IReplyCallback event) {

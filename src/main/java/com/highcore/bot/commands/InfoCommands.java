@@ -16,7 +16,7 @@ public class InfoCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName();
         switch (name) {
-            case "profile", "user" -> handleUser(event);
+            case "profile" -> handleUser(event);
             case "avatar" -> handleAvatar(event, false);
             case "server-avatar" -> handleAvatar(event, true);
             case "server" -> handleServer(event);
@@ -67,10 +67,9 @@ public class InfoCommands extends ListenerAdapter {
 
     private void handleServer(SlashCommandInteractionEvent event) {
         var g = event.getGuild();
+        if (g == null) return;
         
         long total = g.getMemberCount();
-        long humans = g.getMembers().stream().filter(m -> !m.getUser().isBot()).count();
-        long bots = total - humans;
         
         int tc = g.getTextChannels().size();
         int vc = g.getVoiceChannels().size();
@@ -86,11 +85,11 @@ public class InfoCommands extends ListenerAdapter {
                 **الـمـديـر الـمـسـؤول:** <@%s>
                 
                 ▫️ **الـقـوى الـبـشـريـة والـتـقـنـيـة:**
-                • **إجـمـالـي الـأعـضـاء:** **%d** (بـشـر: %d | أنـظـمـة: %d)
+                • **إجـمـالـي الـأعـضـاء:** **%d**
                 • **تـاريـخ الـتـأسـيـس:** <t:%d:D> (<t:%d:R>)
                 
                 ▫️ **الـبـنـيـة الـتـحـتـيـة:**
-                • **الـقـنـوات:** %d كـتـابـيـة / %d صـوتـيـة / %d فـئـات
+                • **الـقـنوات:** %d كـتـابـيـة / %d صـوتـيـة / %d فـئـات
                 • **الـرتـب:** %d رتـبـة مـفـعـلـة
                 • **الـأصـول:** %d إيـمـوجـي / %d مـلـصـق
                 
@@ -100,7 +99,7 @@ public class InfoCommands extends ListenerAdapter {
                 """, 
                 g.getName(), 
                 g.getOwnerId(),
-                total, humans, bots,
+                total,
                 g.getTimeCreated().toEpochSecond(), g.getTimeCreated().toEpochSecond(),
                 tc, vc, cat, rc, ec, sc,
                 g.getBoostTier().name(), bc,
