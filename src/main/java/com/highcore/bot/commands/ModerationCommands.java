@@ -413,53 +413,6 @@ public class ModerationCommands extends ListenerAdapter {
         });
     }
 
-    private void handleAddSticker(SlashCommandInteractionEvent event) {
-        if (!hasPerm(event, net.dv8tion.jda.api.Permission.MANAGE_GUILD_EXPRESSIONS)) return;
-        String name = event.getOption("name", OptionMapping::getAsString);
-        String tags = event.getOption("tags", OptionMapping::getAsString);
-        String desc = event.getOption("description", OptionMapping::getAsString);
-        OptionMapping imgMapping = event.getOption("image");
-        if (imgMapping == null || name == null || tags == null) return;
-
-        log.info("[MOD] Initiating sticker deployment: {}", name);
-        event.getHook().editOriginal("📤 **Synchronizing visual asset...**").queue();
-
-        net.dv8tion.jda.api.entities.Message.Attachment attachment = imgMapping.getAsAttachment();
-        attachment.getProxy().download().thenAccept(stream -> {
-            try (stream) {
-                log.info("[MOD] Stream received for sticker: {}, reading bytes...", name);
-                byte[] data = stream.readAllBytes();
-                String ext = attachment.getFileExtension();
-                if (ext == null) ext = "png";
-                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + "." + ext);
-                
-                log.info("[MOD] Uploading sticker {} to Discord...", name);
-                event.getGuild().createSticker(name, desc == null ? "Elite Agency Asset" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
-                    .queue(
-                        v -> {
-                            log.info("[MOD] Sticker {} deployed successfully.", name);
-                            PanelService.reply(event, EmbedUtil.containerBranded("STICKER SYSTEM", "Asset Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` has been successfully synchronized.", EmbedUtil.BANNER_MAIN));
-                        },
-                        err -> {
-                            log.error("[MOD] Sticker {} deployment failed: {}", name, err.getMessage());
-                            String msg = err.getMessage();
-                            if (msg.contains("320")) msg = "Discord requires exactly 320x320px for stickers.";
-                            else if (msg.contains("512")) msg = "File size exceeds the 512KB limit.";
-                            else if (msg.contains("1000")) msg = "Sticker name must be between 2 and 30 characters.";
-                            PanelService.reply(event, EmbedUtil.error("DEPLOYMENT FAILED", "❌ Registry rejection: " + msg + "\n\n*Raw Error:* `" + err.getMessage() + "`"));
-                        }
-                    );
-            } catch (Exception e) {
-                log.error("[MOD] Sticker {} processing error: {}", name, e.getMessage());
-                PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
-            }
-        }).exceptionally(ex -> {
-            log.error("[MOD] Sticker {} retrieval failure: {}", name, ex.getMessage());
-            PanelService.reply(event, EmbedUtil.error("PROCEDURE FAILED", "Asset synchronization failure: " + ex.getMessage()));
-            return null;
-        });
-    }
-
     private boolean canManage(SlashCommandInteractionEvent event, Member target) {
         if (target == null) return false;
         if (!event.getGuild().getSelfMember().canInteract(target)) {

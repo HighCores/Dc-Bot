@@ -51,7 +51,7 @@ public class SlashCommands extends ListenerAdapter {
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
-            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "add-sticker", "giveaway",
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
             "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
