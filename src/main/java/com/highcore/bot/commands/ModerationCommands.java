@@ -406,15 +406,24 @@ public class ModerationCommands extends ListenerAdapter {
 
         imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
             try {
-                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(stream, name + ".png");
+                byte[] data = stream.readAllBytes();
+                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + ".png");
                 
-                event.getGuild().createSticker(name, desc == null ? "" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
+                event.getGuild().createSticker(name, desc == null ? "Elite Agency Asset" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
                     .queue(
-                        v -> PanelService.reply(event, EmbedUtil.containerBranded("Sticker Protocol", "Sticker Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` is now available for agency use.", EmbedUtil.BANNER_MAIN)),
-                        e -> PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()))
+                        v -> PanelService.reply(event, EmbedUtil.containerBranded("STICKER SYSTEM", "Asset Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` has been successfully synchronized with the agency collective.", EmbedUtil.BANNER_MAIN)),
+                        err -> {
+                            String msg = err.getMessage();
+                            String debug = msg;
+                            if (msg.contains("320")) msg = "Discord requires exactly 320x320px for stickers.";
+                            else if (msg.contains("512")) msg = "File size exceeds the 512KB limit.";
+                            else if (msg.contains("1000")) msg = "Sticker name must be between 2 and 30 characters.";
+                            
+                            PanelService.replyEphemeral(event, EmbedUtil.error("DEPLOYMENT FAILED", "❌ Registry rejection: " + msg + "\n\n*Raw Error:* `" + debug + "`"));
+                        }
                     );
             } catch (Exception e) {
-                PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Critical error during asset processing: " + e.getMessage()));
+                PanelService.replyEphemeral(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
             }
         });
     }

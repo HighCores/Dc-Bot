@@ -297,9 +297,9 @@ public class OrderService {
             ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
     // STEP 4 — Final details modal (triggered by wiz_finish button)
-    // ═══════════════════════════════════════════════════════════
+    // ═══════════════════════════════════════════════════════════════
     public static void finishWizard(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
         TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
         TextInput nameInput    = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Full name").setRequired(true).build();

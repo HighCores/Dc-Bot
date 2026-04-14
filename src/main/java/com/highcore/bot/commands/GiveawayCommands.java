@@ -30,7 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class GiveawayCommands extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(GiveawayCommands.class);
-    
+
     // Map to hold pending giveaway settings before channel selection
     private static final Map<String, JsonObject> pendingGiveaways = new ConcurrentHashMap<>();
 
@@ -40,28 +40,29 @@ public class GiveawayCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("giveaway")) return;
-        
+        if (!event.getName().equals("giveaway"))
+            return;
+
         if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
         }
 
-        String desc = "Welcome to the **Giveaway Management Hub**.\n\n" +
+        String desc = "Welcome to the **Registry Hub**.\n\n" +
                 "Easily create rewards, launch instant drops, or review history.\n\n" +
-                "\uD83D\uDCDD **Create Giveaway** — Step-by-step setup.\n" +
+                "\uD83D\uDCDD **Create Reward** — Step-by-step setup.\n" +
                 "\uD83D\uDCA8 **Instant Drop** — Fast 'first-to-claim' prize.\n" +
-                "\uD83D\uDDD2 **View History** — Check active tasks.";
+                "\uD83D\uDDD2 **View History** — Review all active deployments.";
 
         ActionRow row = ActionRow.of(
                 Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID
-                        + "/1490334823565365308", "Giveaways"),
-                Button.secondary("btn_gw_create", "Create Rewards"),
+                        + "/1490334823565365308", "Rewards Feed"),
+                Button.secondary("btn_gw_create", "Create Deployment"),
                 Button.secondary("btn_gw_drop", "Instant Drop"),
-                Button.secondary("btn_gw_history", "View History")
-        );
+                Button.secondary("btn_gw_history", "View Records"));
 
-        PanelService.reply(event, EmbedUtil.containerBranded("REWARDS", "Giveaway Center", desc, EmbedUtil.BANNER_GIVEAWAY, row));
+        PanelService.reply(event,
+                EmbedUtil.containerBranded("LOGISTICS", "Registry Node", desc, EmbedUtil.BANNER_GIVEAWAY, row));
     }
 
     @Override
@@ -70,7 +71,8 @@ public class GiveawayCommands extends ListenerAdapter {
 
         // Defer giveaway interactions early to handle potential DB latency
         if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_")) {
-            if (!event.isAcknowledged()) event.deferReply(true).queue();
+            if (!event.isAcknowledged())
+                event.deferReply(true).queue();
         }
 
         if (id.equals("btn_gw_create") || id.equals("btn_gw_drop")) {
@@ -93,22 +95,27 @@ public class GiveawayCommands extends ListenerAdapter {
                         .addOption("Custom", "Custom", "Anything else")
                         .build();
 
-                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection", 
-                        "Please select the **reward type** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(menu)));
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection",
+                        "Please select the **reward type** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY,
+                        ActionRow.of(menu)));
             }
         } else if (id.equals("btn_gw_history")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
+            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
+                return;
             JsonArray active = SupabaseClient.getAllGiveaways();
-            
+
             if (active == null || active.size() == 0) {
-                var emptyC = EmbedUtil.containerBranded("REWARDS HISTORY", "Logs Empty", "\u26A0\uFE0F **Status:** No previous reward sessions were found in our records.", EmbedUtil.BANNER_GIVEAWAY);
+                var emptyC = EmbedUtil.containerBranded("REWARDS HISTORY", "Logs Empty",
+                        "\u26A0\uFE0F **Status:** No previous reward sessions were found in our records.",
+                        EmbedUtil.BANNER_GIVEAWAY);
                 PanelService.replyEphemeral(event, emptyC);
                 return;
             }
 
             StringBuilder sb = new StringBuilder();
-            sb.append("### \uD83D\uDCC3 Reward Deployment Log\nListing the most recent reward sessions found in the registry:\n\n");
-            
+            sb.append(
+                    "### \uD83D\uDCC3 Reward Deployment Log\nListing the most recent reward sessions found in the registry:\n\n");
+
             for (int i = 0; i < active.size(); i++) {
                 JsonObject g = active.get(i).getAsJsonObject();
                 long gwIdLong = g.get("id").getAsLong();
@@ -116,21 +123,22 @@ public class GiveawayCommands extends ListenerAdapter {
                 String hostId = g.has("host_id") ? g.get("host_id").getAsString() : "0";
                 String chanId = g.has("channel_id") ? g.get("channel_id").getAsString() : "0";
                 String ends = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
-                
+
                 // Get entry count
                 JsonArray entries = SupabaseClient.getGiveawayEntries(gwIdLong);
                 int pCount = (entries != null) ? entries.size() : 0;
 
                 sb.append("\u25AB\uFE0F **Prize:** ").append(prize)
-                  .append("\n\u001F \u001F **Host:** <@").append(hostId).append(">")
-                  .append("\n\u001F \u001F **Room:** <#").append(chanId).append(">")
-                  .append("\n\u001F \u001F **Stats:** ").append(pCount).append(" members joined");
-                
+                        .append("\n\u001F \u001F **Host:** <@").append(hostId).append(">")
+                        .append("\n\u001F \u001F **Room:** <#").append(chanId).append(">")
+                        .append("\n\u001F \u001F **Stats:** ").append(pCount).append(" members joined");
+
                 if (!ends.isEmpty()) {
                     try {
                         long ts = java.time.Instant.parse(ends).getEpochSecond();
                         sb.append("\n\u001F \u001F **Limit:** <t:").append(ts).append(":R>");
-                    } catch (Exception e) {}
+                    } catch (Exception e) {
+                    }
                 }
                 sb.append("\n\n");
             }
@@ -138,15 +146,17 @@ public class GiveawayCommands extends ListenerAdapter {
             var c = EmbedUtil.containerBranded("REWARDS", "Live Giveaways", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
             PanelService.replyEphemeral(event, c);
         } else if (id.startsWith("gw_end_early_")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
+            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
+                return;
             long gwId = Long.parseLong(id.replace("gw_end_early_", ""));
-            com.highcore.bot.services.GiveawayService.endGiveaway(event.getJDA(), gwId, 1); // 1 is default, will pick winners
-            event.reply("Giveaway ended early!").setEphemeral(true).queue();
+            com.highcore.bot.services.GiveawayService.endGiveaway(event.getJDA(), gwId, 1);
+            PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM", "Giveaway ended early!"));
         } else if (id.startsWith("gw_reroll_adm_")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER)) return;
+            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
+                return;
             long gwId = Long.parseLong(id.replace("gw_reroll_adm_", ""));
             com.highcore.bot.services.GiveawayService.rerollGiveaway(event.getJDA(), gwId);
-            event.reply("Rerolled giveaway winner(s)!").setEphemeral(true).queue();
+            PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM", "Rerolled giveaway winner(s)!"));
         }
     }
 
@@ -161,79 +171,92 @@ public class GiveawayCommands extends ListenerAdapter {
     private void showGiveawayModal(net.dv8tion.jda.api.interactions.callbacks.IModalCallback event, String type) {
         boolean isDrop = type.equals("Drop");
         String modalId = "modal_gw_" + type.toLowerCase();
-        
+
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
-                .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : type.equals("Voucher") ? "e.g., $50 Account Credit" : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
+                .setPlaceholder(isDrop ? "e.g., $10 Store Credit"
+                        : type.equals("Voucher") ? "e.g., $50 Account Credit"
+                                : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
                 .setRequired(true).build();
-        
+
         TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
                 .setRequired(true).setValue("1").build();
-        
+
         TextInput timeInput = TextInput.create("duration", TextInputStyle.SHORT)
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
-        String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount" : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
+        String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount"
+                : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
 
         Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
                 .addComponents(
-                    net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
-                    net.dv8tion.jda.api.components.label.Label.of("Number of Winners", winnersInput),
-                    net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput)
-                )
+                        net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Number of Winners", winnersInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput))
                 .build();
 
         event.replyModal(modal).queue();
     }
 
-
     @Override
     public void onModalInteraction(ModalInteractionEvent event) {
-        if (!event.getModalId().startsWith("modal_gw_")) return;
-        
+        if (!event.getModalId().startsWith("modal_gw_"))
+            return;
+
         boolean isDrop = event.getModalId().equals("modal_gw_drop");
         String typeStr = event.getModalId().replace("modal_gw_", "");
         typeStr = typeStr.substring(0, 1).toUpperCase() + typeStr.substring(1); // Capitalize
-        
+
         String prizeStr = event.getValue("prize").getAsString();
 
         // Symbol Validation
         if (typeStr.equalsIgnoreCase("Voucher")) {
             if (!prizeStr.contains("$")) {
-                event.reply("\u26A0\uFE0F **Format Error:** Voucher prizes must include the `$` symbol (e.g., $50).").setEphemeral(true).queue();
+                event.reply("\u26A0\uFE0F **Format Error:** Voucher prizes must include the `$` symbol (e.g., $50).")
+                        .setEphemeral(true).queue();
                 return;
             }
             if (prizeStr.contains("%")) {
-                event.reply("\u26A0\uFE0F **Format Error:** Vouchers cannot use the `%` symbol. Use `$` for amounts.").setEphemeral(true).queue();
+                event.reply("\u26A0\uFE0F **Format Error:** Vouchers cannot use the `%` symbol. Use `$` for amounts.")
+                        .setEphemeral(true).queue();
                 return;
             }
         }
         if (typeStr.equalsIgnoreCase("Discount")) {
             if (!prizeStr.contains("%")) {
-                event.reply("\u26A0\uFE0F **Format Error:** Discount prizes must include the `%` symbol (e.g., 20%).").setEphemeral(true).queue();
+                event.reply("\u26A0\uFE0F **Format Error:** Discount prizes must include the `%` symbol (e.g., 20%).")
+                        .setEphemeral(true).queue();
                 return;
             }
             if (prizeStr.contains("$")) {
-                event.reply("\u26A0\uFE0F **Format Error:** Discounts cannot use the `$` symbol. Use `%` for percentages.").setEphemeral(true).queue();
+                event.reply(
+                        "\u26A0\uFE0F **Format Error:** Discounts cannot use the `$` symbol. Use `%` for percentages.")
+                        .setEphemeral(true).queue();
                 return;
             }
         }
 
         int winCount = 1;
         int duration = 0;
-        
-        try { winCount = Integer.parseInt(event.getValue("winners").getAsString()); } catch (Exception e) {}
-        try { duration = Integer.parseInt(event.getValue("duration").getAsString()); } catch (Exception e) {}
+
+        try {
+            winCount = Integer.parseInt(event.getValue("winners").getAsString());
+        } catch (Exception e) {
+        }
+        try {
+            duration = Integer.parseInt(event.getValue("duration").getAsString());
+        } catch (Exception e) {
+        }
 
         String tempId = "setup_" + System.currentTimeMillis() + "_" + event.getUser().getId();
-        
+
         JsonObject setupObj = new JsonObject();
         setupObj.addProperty("prize", prizeStr);
         setupObj.addProperty("type", typeStr);
         setupObj.addProperty("winCount", winCount);
         setupObj.addProperty("duration", duration);
         setupObj.addProperty("isDrop", isDrop);
-        
+
         pendingGiveaways.put(tempId, setupObj);
 
         EntitySelectMenu menu = EntitySelectMenu.create("sel_gw_chan_" + tempId, EntitySelectMenu.SelectTarget.CHANNEL)
@@ -250,11 +273,12 @@ public class GiveawayCommands extends ListenerAdapter {
     @Override
     public void onEntitySelectInteraction(EntitySelectInteractionEvent event) {
         String idStr = event.getComponentId();
-        if (!idStr.startsWith("sel_gw_chan_")) return;
-        
+        if (!idStr.startsWith("sel_gw_chan_"))
+            return;
+
         String tempId = idStr.replace("sel_gw_chan_", "");
         JsonObject setupObj = pendingGiveaways.remove(tempId);
-        
+
         if (setupObj == null) {
             event.reply("Setup session expired. Please try again.").setEphemeral(true).queue();
             return;
@@ -287,8 +311,7 @@ public class GiveawayCommands extends ListenerAdapter {
                 "General",
                 "",
                 winCount,
-                endsAtIso
-        );
+                endsAtIso);
 
         if (gw == null) {
             event.reply("Failed to create giveaway in database.").setEphemeral(true).queue();
@@ -296,39 +319,46 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         long giveawayId = gw.get("id").getAsLong();
-        
+
         String body;
         if (isDrop) {
-            body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
+            body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** "
+                    + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
         } else {
-            body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:" + endsAt.getEpochSecond() + ":R>";
+            body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** "
+                    + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:"
+                    + endsAt.getEpochSecond() + ":R>";
         }
 
         Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
-                .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
+                .withEmoji(
+                        net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
         Button countBtn = Button.secondary("gw_count_" + giveawayId, "0 entries");
 
         ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
-        var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body, EmbedUtil.BANNER_GIVEAWAY, gwRow);
+        var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
+                EmbedUtil.BANNER_GIVEAWAY, gwRow);
 
         target.sendMessageComponents(gwC).useComponentsV2(true).queue(msg -> {
             SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId());
         });
 
         LogManager.log(event.getGuild(), isDrop ? "DROP LAUNCHED" : "GIVEAWAY STARTED",
-                "Prize: " + prize + "\nAdmin: **" + event.getUser().getAsTag() + "**\nChannel: " + target.getAsMention(), EmbedUtil.INFO);
+                "Prize: " + prize + "\nAdmin: **" + event.getUser().getAsTag() + "**\nChannel: "
+                        + target.getAsMention(),
+                EmbedUtil.INFO);
 
         // Edit the interaction with a Live Dashboard
         String dashDesc = "### " + prize + " | Live Status\n" +
                 "\u25AB\uFE0F **Status:** Currently Active\n" +
                 "\u25AB\uFE0F **Users Joined:** 0 members";
-        
+
         var dashRow = ActionRow.of(
                 Button.danger("gw_end_early_" + giveawayId, "End Early"),
-                Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")
-        );
-        var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow);
-        
+                Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners"));
+        var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
+                EmbedUtil.BANNER_GIVEAWAY, dashRow);
+
         event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(false).queue();
 
         event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {

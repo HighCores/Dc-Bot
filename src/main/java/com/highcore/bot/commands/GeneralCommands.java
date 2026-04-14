@@ -63,7 +63,7 @@ public class GeneralCommands extends ListenerAdapter {
 
         // Try to find a channel named "suggestions"
         net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild().getTextChannels().stream()
-                .filter(ch -> ch.getName().toLowerCase().contains("suggest"))
+                .filter(ch -> ch.getName().toLowerCase().contains("suggest") || ch.getName().contains("اقتراحات"))
                 .findFirst().orElse(null);
 
         if (sugChan != null) {
@@ -78,7 +78,9 @@ public class GeneralCommands extends ListenerAdapter {
                             net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_down_" + id,
                                     "👎 Downvote"));
 
-            PanelService.reply(sugChan, container, buttons);
+            sugChan.sendMessageComponents(container, buttons).useComponentsV2(true).queue(m -> {
+                com.highcore.bot.database.SupabaseClient.updateSuggestion(id, "pending", null, null, null, m.getId());
+            });
             PanelService.reply(event, EmbedUtil.success("Success",
                     "Your suggestion has been logged as **#" + id + "** and posted in " + sugChan.getAsMention()));
         } else {

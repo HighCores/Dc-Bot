@@ -246,7 +246,7 @@ public class SupabaseClient {
     }
 
     public static JsonArray getAllGiveaways() {
-        return get("dc_giveaways", "order=id.desc&limit=20");
+        return get("dc_giveaways", "order=id.desc&limit=50");
     }
 
     public static void setGiveawayEnded(long id, String[] winners) {
@@ -344,6 +344,7 @@ public class SupabaseClient {
     }
 
     public static void deleteSuggestion(long id) {
+        log.info("Deleting suggestion #{} from database", id);
         delete("dc_suggestions", "id=eq." + id);
     }
 

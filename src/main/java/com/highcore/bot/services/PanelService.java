@@ -1,6 +1,10 @@
 package com.highcore.bot.services;
 
 import com.highcore.bot.utils.EmbedUtil;
+import com.highcore.bot.config.Config;
+import com.highcore.bot.database.SupabaseClient;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -176,10 +180,10 @@ public class PanelService {
                 if (event.isAcknowledged()) {
                     var hook = event.getHook();
                     if (messageData != null) {
-                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
                         });
                     } else {
-                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
                         });
                     }
                 } else {
@@ -189,10 +193,10 @@ public class PanelService {
                         if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
                             var hook = event.getHook();
                             if (messageData != null) {
-                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
                                 });
                             } else {
-                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
                                 });
                             }
                         }
@@ -201,10 +205,10 @@ public class PanelService {
             } catch (Exception ex) {
                 var hook = event.getHook();
                 if (messageData != null) {
-                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {
+                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, (Throwable t) -> {
                     });
                 } else {
-                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {
+                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, (Throwable t) -> {
                     });
                 }
             }
@@ -367,8 +371,7 @@ public class PanelService {
 
     public static void sendSuggestionList(IReplyCallback event) {
         String guildId = event.getGuild().getId();
-        com.google.gson.JsonArray recent = com.highcore.bot.database.SupabaseClient.get("dc_suggestions",
-                "guild_id=eq." + guildId + "&order=id.desc&limit=10");
+        JsonArray recent = SupabaseClient.get("suggestions", "guild_id=eq." + guildId + "&order=id.desc&limit=25");
 
         if (recent == null || recent.size() == 0) {
             replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions",
@@ -430,8 +433,7 @@ public class PanelService {
         net.dv8tion.jda.api.components.actionrow.ActionRow controls = net.dv8tion.jda.api.components.actionrow.ActionRow
                 .of(
                         net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "Accept"),
-                        net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "Reject"),
-                        net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "Return"));
+                        net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "Reject"));
 
         reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN),
                 controls);

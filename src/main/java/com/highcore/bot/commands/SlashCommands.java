@@ -13,9 +13,9 @@ import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -38,9 +38,6 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // NO MORE IGNORE LIST for deferral. We want the bot to ALWAYS start thinking immediately 
-        // to avoid "This interaction failed" or timeouts for ALL commands.
-        
         // SMART DEFERRAL: Do NOT defer if the command uses a Modal (bc, embed, boter)
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
@@ -49,12 +46,12 @@ public class SlashCommands extends ListenerAdapter {
             event.deferReply(ephemeral).queue();
         }
 
-        // Now, we ONLY ignore the logic execution if it's a dedicated command
+        // Dedicated commands handled elsewhere
         List<String> dedicatedCmds = java.util.Arrays.asList(
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
-            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "add-sticker", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
             "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
@@ -70,7 +67,6 @@ public class SlashCommands extends ListenerAdapter {
                 case "boter" -> handleBoter(event);
                 case "rename" -> handleRename(event);
                 case "setchannel" -> handleSetChannel(event);
-                case "add-sticker" -> handleAddSticker(event);
                 default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {
@@ -80,7 +76,6 @@ public class SlashCommands extends ListenerAdapter {
             }
         }
     }
-
 
     private void handleAutoReply(SlashCommandInteractionEvent event) {
         if (!isStaff(event.getMember())) {
@@ -187,9 +182,9 @@ public class SlashCommands extends ListenerAdapter {
         TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Insert broadcast announcement here...")
                 .setRequired(true).build();
-
+ 
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Broadcast Content", bcMsg))
+                .addComponents(Label.of("Broadcast Content", bcMsg))
                 .build()).queue();
     }
 
@@ -214,44 +209,8 @@ public class SlashCommands extends ListenerAdapter {
                 .setRequired(true)
                 .build();
         event.replyModal(Modal.create("modal_boter", "EMULATE USER")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Emulated Message", boterMsg))
+                .addComponents(Label.of("Emulated Message", boterMsg))
                 .build()).queue();
-    }
-
-    private void handleAddSticker(SlashCommandInteractionEvent event) {
-        if (!isAdmin(event.getMember())) {
-            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
-            return;
-        }
-        OptionMapping fileOpt = event.getOption("file");
-        String name = event.getOption("name", OptionMapping::getAsString);
-        if (fileOpt == null || name == null) {
-            PanelService.replyEphemeral(event, EmbedUtil.error("DATA ERROR", "File and name are required."));
-            return;
-        }
-
-        net.dv8tion.jda.api.entities.Message.Attachment att = fileOpt.getAsAttachment();
-        att.getProxy().download().thenAccept(inputStream -> {
-            try {
-                String ext = att.getFileExtension();
-                String fileName = name + (ext != null ? "." + ext : ".png");
-                net.dv8tion.jda.api.utils.FileUpload file = net.dv8tion.jda.api.utils.FileUpload.fromData(inputStream, fileName);
-                
-                event.getGuild().createSticker(name, "Elite Agency Sticker", file, "agency").queue(s -> {
-                    PanelService.replyEphemeral(event, EmbedUtil.success("STICKER HUB", "Sticker Online: **" + name + "**"));
-                }, err -> {
-                    String reason = err.getMessage();
-                    PanelService.replyEphemeral(event, EmbedUtil.error("CREATE FAILED", "❌ Discord rejection: " + reason + "\n\nCheck file size/format (PNG/APNG/Lottie < 512kb/320x320/8MB)"));
-                    log.error("Sticker creation failed for {}: {}", name, reason);
-                });
-            } catch (Exception e) {
-                PanelService.replyEphemeral(event, EmbedUtil.error("PROCESSING ERROR", "Failed to process image file."));
-                log.error("Sticker icon conversion failed: ", e);
-            }
-        }).exceptionally(err -> {
-            PanelService.replyEphemeral(event, EmbedUtil.error("DOWNLOAD ERROR", "Failed to retrieve file asset."));
-            return null;
-        });
     }
 
     private boolean isStaff(Member m) { return Config.isStaff(m); }
