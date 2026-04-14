@@ -318,7 +318,10 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleLock(SlashCommandInteractionEvent event, boolean unlock) {
         if (!hasPerm(event, Permission.MANAGE_CHANNEL)) return;
         TextChannel tc = event.getChannel().asTextChannel();
-        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(unlock ? Permission.MESSAGE_SEND : null).setDenied(unlock ? null : Permission.MESSAGE_SEND).queue(
+        EnumSet<Permission> allow = unlock ? EnumSet.of(Permission.MESSAGE_SEND) : EnumSet.noneOf(Permission.class);
+        EnumSet<Permission> deny = unlock ? EnumSet.noneOf(Permission.class) : EnumSet.of(Permission.MESSAGE_SEND);
+        
+        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(allow).setDenied(deny).queue(
             v -> PanelService.reply(event, EmbedUtil.success("Management", "Channel successfully " + (unlock ? "Unlocked" : "Locked") + ".")),
             e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Permission update failed: " + e.getMessage()))
         );
@@ -327,7 +330,10 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleVisibility(SlashCommandInteractionEvent event, boolean show) {
         if (!hasPerm(event, Permission.MANAGE_CHANNEL)) return;
         TextChannel tc = event.getChannel().asTextChannel();
-        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(show ? Permission.VIEW_CHANNEL : null).setDenied(show ? null : Permission.VIEW_CHANNEL).queue(
+        EnumSet<Permission> allow = show ? EnumSet.of(Permission.VIEW_CHANNEL) : EnumSet.noneOf(Permission.class);
+        EnumSet<Permission> deny = show ? EnumSet.noneOf(Permission.class) : EnumSet.of(Permission.VIEW_CHANNEL);
+
+        tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(allow).setDenied(deny).queue(
             v -> PanelService.reply(event, EmbedUtil.success("Visibility", "Channel is now " + (show ? "Visible" : "Hidden") + " to everyone.")),
             e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Visibility update failed: " + e.getMessage()))
         );
