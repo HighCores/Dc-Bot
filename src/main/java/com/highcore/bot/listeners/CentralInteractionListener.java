@@ -41,8 +41,7 @@ public class CentralInteractionListener extends ListenerAdapter {
         boolean isModalTrigger = id.equals("ticket_init_support") || id.equals("ticket_init_complaint")
                 || id.equals("order_open_ticket");
         boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") || id.equals("ticket_unclaim") ||
-                id.equals("ticket_delete") || id.equals("ticket_reopen") || id.startsWith("order_status_update_") ||
-                id.startsWith("suggest_view_") || id.startsWith("suggest_accept_") || id.startsWith("suggest_reject_");
+                id.equals("ticket_delete") || id.equals("ticket_reopen") || id.startsWith("order_status_update_");
 
         if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_"))
             return;
@@ -160,12 +159,6 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("order_status_update_")) {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
-            } else if (id.startsWith("suggest_view_")) {
-                PanelService.handleSuggestionView(event, Long.parseLong(id.replace("suggest_view_", "")));
-            } else if (id.startsWith("suggest_accept_")) {
-                handleSuggestDecision(event, id.replace("suggest_accept_", ""), "Accepted");
-            } else if (id.startsWith("suggest_reject_")) {
-                handleSuggestDecision(event, id.replace("suggest_reject_", ""), "Rejected");
             }
 
             if (id.startsWith("pay_")) {
@@ -330,50 +323,4 @@ public class CentralInteractionListener extends ListenerAdapter {
         }
     }
 
-    private void handleSuggestDecision(ButtonInteractionEvent event, String idStr, String status) {
-        try {
-            long id = Long.parseLong(idStr);
-            System.out.println("[DECISION] Starting process for ID: " + id + " Status: " + status);
-            com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
-            System.out.println("[DECISION] Raw Suggestion from DB: " + (sug != null ? sug.toString() : "NULL"));
-
-            String title, body;
-            if (status.equals("Rejected")) {
-                if (sug != null && sug.has("message_id") && !sug.get("message_id").isJsonNull()) {
-                    String mid = sug.get("message_id").getAsString();
-                    net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild()
-                            .getTextChannels().stream()
-                            .filter(ch -> ch.getName().toLowerCase().contains("suggest") || ch.getName().contains("اقتراحات"))
-                            .findFirst().orElse(null);
-                    
-                    System.out.println("[REJECT] Suggestion ID: " + id);
-                    System.out.println("[REJECT] Message ID from DB: " + mid);
-                    System.out.println("[REJECT] Suggestion Channel: " + (sugChan != null ? sugChan.getName() : "NULL"));
-
-                    if (sugChan != null) {
-                        try {
-                            sugChan.deleteMessageById(mid).queue(
-                                s -> System.out.println("[REJECT] SUCCESS: Message deleted in Discord."),
-                                err -> System.err.println("[REJECT] ERROR: Failed to delete message: " + err.getMessage())
-                            );
-                        } catch (Exception e) {
-                            System.err.println("[REJECT] EXCEPTION while deleting message: " + e.getMessage());
-                        }
-                    }
-                }
-                com.highcore.bot.database.SupabaseClient.deleteSuggestion(id);
-                title = "❌ Suggestion Purged";
-                body = String.format("Data entry **#%d** has been permanently removed from the active registry.", id);
-            } else {
-                com.highcore.bot.database.SupabaseClient.updateSuggestion(id, status,
-                        "Processed via Administrative Hub", event.getUser().getId(), event.getUser().getName(), null);
-                title = "✅ Suggestion Validated";
-                body = String.format("Data entry **#%d** has been synchronized with the **%s** status layer.", id,
-                        status.toUpperCase());
-            }
-            PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", title, body, EmbedUtil.BANNER_MAIN));
-        } catch (Exception e) {
-            PanelService.reply(event, EmbedUtil.error("Error", "An error occurred while processing the decision."));
-        }
-    }
 }

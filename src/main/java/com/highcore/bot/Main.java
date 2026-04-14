@@ -180,12 +180,7 @@ public class Main {
                 Commands.slash("translate", "تــرجــمــة الــنــصــوص")
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
-                Commands.slash("roll", "رمــي الــنــرد"),
-                Commands.slash("suggest", "تــقــديــم اقــتــراح جــديــد")
-                        .addOption(OptionType.STRING, "suggestion", "الــمــحــتــوى", true),
-                Commands.slash("suggestion", "إدارة الاقــتــراحــات")
-                        .addOption(OptionType.INTEGER, "id", "مــعــرف الاقــتــراح", false)
-                        .addOption(OptionType.STRING, "action", "الــإجــراء", false)
+                Commands.slash("roll", "رمــي الــنــرد")
         ).queue();
     }
 }

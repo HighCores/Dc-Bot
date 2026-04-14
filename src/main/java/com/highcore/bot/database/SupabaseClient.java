@@ -316,37 +316,6 @@ public class SupabaseClient {
         upsert("dc_color_roles", body, "role_id");
     }
 
-    public static JsonObject createSuggestion(String guildId, String userId, String userName, String content) {
-        JsonObject body = new JsonObject();
-        body.addProperty("guild_id", guildId);
-        body.addProperty("user_id", userId);
-        body.addProperty("user_name", userName);
-        body.addProperty("content", content);
-        body.addProperty("status", "pending");
-        return post("dc_suggestions", body);
-    }
-
-    public static JsonObject getSuggestion(long id) {
-        JsonArray arr = get("dc_suggestions", "id=eq." + id + "&limit=1");
-        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
-    }
-
-    public static void updateSuggestion(long id, String status, String reason, String modId, String modName, String msgId) {
-        JsonObject body = new JsonObject();
-        if (status != null) body.addProperty("status", status);
-        if (reason != null) body.addProperty("reason", reason);
-        if (modId != null) {
-            body.addProperty("mod_id", modId);
-            if (modName != null) body.addProperty("mod_name", modName);
-        }
-        if (msgId != null) body.addProperty("message_id", msgId);
-        patch("dc_suggestions", "id=eq." + id, body);
-    }
-
-    public static void deleteSuggestion(long id) {
-        log.info("Deleting suggestion #{} from database", id);
-        delete("dc_suggestions", "id=eq." + id);
-    }
 
     // ========== AUTO-REPLIES ==========
 
