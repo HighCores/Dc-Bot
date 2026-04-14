@@ -32,7 +32,7 @@ public class ModerationCommands extends ListenerAdapter {
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
-            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "add-sticker"
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji"
         );
         
         if (!modCmds.contains(name)) return; // Pass to other listeners
@@ -75,7 +75,6 @@ public class ModerationCommands extends ListenerAdapter {
                 case "show" -> handleVisibility(event, true);
                 case "slowmode" -> handleSlowmode(event);
                 case "add-emoji" -> handleAddEmoji(event);
-                case "add-sticker" -> handleAddSticker(event);
             }
         } catch (Exception e) {
             PanelService.replyEphemeral(event, EmbedUtil.error("TERMINAL ERROR", "Internal execution failure: " + e.getMessage()));
