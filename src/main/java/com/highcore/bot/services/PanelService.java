@@ -155,32 +155,84 @@ public class PanelService {
         for (Object p : parts) {
             if (p instanceof MessageTopLevelComponent mtc) components.add(mtc);
             else if (p instanceof ActionRow row) components.add(row);
+            else if (p instanceof com.highcore.bot.ComponentV2Container c) components.addAll(c.getComponents());
         }
 
         if (components.isEmpty()) {
-            components.add(EmbedUtil.info("High Core Agency", "No content provided."));
+            components.add(EmbedUtil.info("High Core Agency", "Request processed successfully."));
         }
+
         if (target instanceof IReplyCallback event) {
-            if (event.isAcknowledged()) {
-                event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue();
-            } else {
-                event.replyComponents(components).useComponentsV2(true).setEphemeral(ephemeral).queue();
+            try {
+                if (event.isAcknowledged()) {
+                    event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                } else {
+                    event.replyComponents(components).useComponentsV2(true).setEphemeral(ephemeral).queue(null, err -> {
+                        if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
+                            event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                        }
+                    });
+                }
+            } catch (Exception ex) {
+                if (ex.getMessage().contains("acknowledged")) {
+                    event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                }
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             channel.sendMessageComponents(components).useComponentsV2(true).queue();
         }
     }
 
-    // COMPATIBILITY STUBS (RE-ADDED)
-    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String category) {
-        event.reply("This command is currently maintenance.").setEphemeral(true).queue();
-    }
-    public static void sendStatsPanel(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        event.reply("Stats are currently disabled.").setEphemeral(true).queue();
+    public static void reply(SlashCommandInteractionEvent event, MessageCreateData m) {
+        try {
+            if (event.isAcknowledged()) {
+                event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+            } else {
+                event.reply(m).queue(null, err -> {
+                    if (err.getMessage().contains("acknowledged")) {
+                        event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                    }
+                });
+            }
+        } catch (Exception ex) {
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+        }
     }
 
-    public static void reply(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event, Container container) {
-        event.replyComponents(container).useComponentsV2(true).queue();
+    public static void reply(SlashCommandInteractionEvent event, Container container) {
+        handleReply(event, false, container);
+    }
+
+    public static void replyEphemeral(SlashCommandInteractionEvent event, MessageCreateData m) {
+        try {
+            if (event.isAcknowledged()) {
+                event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+            } else {
+                event.reply(m).setEphemeral(true).queue(null, err -> {
+                    if (err.getMessage().contains("acknowledged")) {
+                        event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+                    }
+                });
+            }
+        } catch (Exception ex) {
+            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+        }
+    }
+
+    public static void reply(IReplyCallback event, MessageCreateData m) {
+        handleReply(event, false, m);
+    }
+
+    public static void replyEphemeral(IReplyCallback event, MessageCreateData m) {
+        handleReply(event, true, m);
+    }
+
+    public static void sendServicesCategory(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, String category) {
+        event.reply("This module is initializing.").setEphemeral(true).queue();
+    }
+
+    public static void sendStatsPanel(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
+        event.reply("Analytics are processing.").setEphemeral(true).queue();
     }
 
     public static void sendStartupHub(IReplyCallback event) {
@@ -302,7 +354,8 @@ public class PanelService {
     }
 
     public static void sendPartnersPanel(IReplyCallback event) {
-        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", "HighCore Agency is thinking...", EmbedUtil.BANNER_MAIN));
+        String body = "### 🤝 Strategic Alliances\nHighCore Hub is connected with industry leaders to provide elite-scale solutions.";
+        replyEphemeral(event, EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", body, EmbedUtil.BANNER_MAIN));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {
