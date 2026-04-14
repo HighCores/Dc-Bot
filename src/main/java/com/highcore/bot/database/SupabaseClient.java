@@ -484,11 +484,15 @@ public class SupabaseClient {
     }
 
     public static void patch(String table, String filter, JsonObject body) {
-        Request request = auth(new Request.Builder()).url(url(table) + "?" + filter).patch(RequestBody.create(body.toString(), JSON)).build();
+        String fullUrl = url(table) + "?" + filter;
+        log.info(">>> PATCHING to {}: {} with {}", table, fullUrl, body.toString());
+        Request request = auth(new Request.Builder()).url(fullUrl).patch(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
+            String b = response.body() != null ? response.body().string() : "No body";
             if (!response.isSuccessful()) {
-                String b = response.body() != null ? response.body().string() : "No body";
-                log.error("PATCH {} failed: {} - {}", table, response.code(), b);
+                log.error("PATCH {} failed ({}): {}", table, response.code(), b);
+            } else {
+                log.info("PATCH {} success ({}): {}", table, response.code(), b);
             }
         } catch (IOException e) { log.error("PATCH {} error: {}", table, e.getMessage()); }
     }

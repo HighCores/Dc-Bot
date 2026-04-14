@@ -76,7 +76,9 @@ public class GeneralCommands extends ListenerAdapter {
                             net.dv8tion.jda.api.components.buttons.Button.primary("suggest_vote_down_" + id, "👎"));
 
             sugChan.sendMessageComponents(container, buttons).useComponentsV2(true).queue(m -> {
+                System.out.println("[SUGGEST] Discord Message Published: " + m.getId());
                 com.highcore.bot.database.SupabaseClient.updateSuggestion(id, "pending", null, null, null, m.getId());
+                System.out.println("[SUGGEST] Link command processed for ID: " + id);
             });
             PanelService.reply(event, EmbedUtil.success("Success",
                     "Your suggestion has been logged as **#" + id + "** and posted in " + sugChan.getAsMention()));
