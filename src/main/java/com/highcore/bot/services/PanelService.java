@@ -384,6 +384,9 @@ public class PanelService {
             return;
         }
 
+        System.out.println("[LIST] Suggestions fetched: " + recent.size());
+        if (recent.size() > 0) System.out.println("[RAW SUGGESTION SAMPLE]: " + recent.get(0).toString());
+
         StringBuilder sb = new StringBuilder();
         sb.append("### 📝 Suggestion Registry\n");
         sb.append("Click a button to review the corresponding data entry:\n\n");
