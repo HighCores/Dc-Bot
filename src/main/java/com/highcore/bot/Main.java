@@ -155,9 +155,6 @@ public class Main {
                 Commands.slash("add-emoji", "إضــافــة إيــمــوجــي جــديــد")
                         .addOption(OptionType.ATTACHMENT, "image", "الــصــورَة", true)
                         .addOption(OptionType.STRING, "name", "اســم الــإيــمــوجــي", true),
-                Commands.slash("add-sticker", "إضــافــة اســتــيــكــر جــديــد")
-                        .addOption(OptionType.ATTACHMENT, "file", "الــمــلــف", true)
-                        .addOption(OptionType.STRING, "name", "الــاســم", true),
                 Commands.slash("role-multiple", "إدارة الــرتــب لــلــجــمــيــع")
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", true)
                         .addOption(OptionType.STRING, "action", "الــإجــراء", true),
