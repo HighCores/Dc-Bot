@@ -295,7 +295,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                         List<net.dv8tion.jda.api.utils.FileUpload> uploads = new ArrayList<>();
                         for (String url : s.fileUrls) {
                             try {
-                                uploads.add(net.dv8tion.jda.api.utils.FileUpload.fromUrl(url));
+                                java.net.URL urlObj = new java.net.URI(url).toURL();
+                                String fileName = url.substring(url.lastIndexOf('/') + 1);
+                                if (fileName.contains("?")) fileName = fileName.substring(0, fileName.indexOf('?'));
+                                uploads.add(net.dv8tion.jda.api.utils.FileUpload.fromData(urlObj.openStream(), fileName));
                             } catch (Exception e) {
                                 log.error("Error attaching file from URL: " + url, e);
                             }
