@@ -1,61 +1,98 @@
 package com.highcore.bot.listeners;
 
-import com.highcore.bot.services.PanelService;
+import com.highcore.bot.config.Config;
+import com.highcore.bot.services.LogManager;
 import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.user.update.UserUpdateAvatarEvent;
+import net.dv8tion.jda.api.events.user.update.UserUpdateGlobalNameEvent;
 import net.dv8tion.jda.api.events.user.update.UserUpdateNameEvent;
 import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateNicknameEvent;
+import net.dv8tion.jda.api.events.guild.member.update.GuildMemberUpdateAvatarEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import org.jetbrains.annotations.NotNull;
-import java.time.Instant;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
 
 public class UserLogListener extends ListenerAdapter {
-    private static final String LOG_CHANNEL_ID = "1491201543960137758";
-    private static final DateTimeFormatter TF = DateTimeFormatter.ofPattern("EEE, MMM dd yyyy \u2022 hh:mm:ss a")
-            .withZone(ZoneId.of("Asia/Riyadh"));
-
-    private String now() { return TF.format(Instant.now()); }
 
     @Override
     public void onUserUpdateName(@NotNull UserUpdateNameEvent event) {
-        TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
-        if (ch == null) return;
-        String body = "### \uD83D\uDCDD Account Name Updated\n" +
-                "**User:** `" + event.getUser().getName() + "`\n" +
-                "**ID:** `" + event.getUser().getId() + "`\n" +
-                "**Old Name:** `" + event.getOldName() + "`\n" +
-                "**New Name:** `" + event.getNewName() + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Identity Update", body, EmbedUtil.GOLD));
+        String details = "### \uD83D\uDCDD Account Name Update\n" +
+                "\u25AB\uFE0F **Old Name:** `" + event.getOldName() + "`\n" +
+                "\u25AB\uFE0F **New Name:** `" + event.getNewName() + "`";
+        
+        event.getJDA().getGuilds().forEach(guild -> {
+            if (guild.getMember(event.getUser()) != null) {
+                LogManager.logEmbed(guild, Config.LOG_USERS, 
+                    EmbedUtil.createOldLogEmbed("user-name-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
+            }
+        });
+    }
+
+    @Override
+    public void onUserUpdateGlobalName(@NotNull UserUpdateGlobalNameEvent event) {
+        String old = event.getOldGlobalName() != null ? event.getOldGlobalName() : "None";
+        String curr = event.getNewGlobalName() != null ? event.getNewGlobalName() : "None";
+        String details = "### \uD83C\uDF10 Global Name Update\n" +
+                "\u25AB\uFE0F **Old Name:** `" + old + "`\n" +
+                "\u25AB\uFE0F **New Name:** `" + curr + "`";
+
+        event.getJDA().getGuilds().forEach(guild -> {
+            if (guild.getMember(event.getUser()) != null) {
+                LogManager.logEmbed(guild, Config.LOG_USERS, 
+                    EmbedUtil.createOldLogEmbed("user-globalname-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
+            }
+        });
     }
 
     @Override
     public void onUserUpdateAvatar(@NotNull UserUpdateAvatarEvent event) {
-        TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
-        if (ch == null) return;
-        String body = "### \uD83D\uDDBC Profile Picture Updated\n" +
-                "**User:** `" + event.getUser().getName() + "`\n" +
-                "**ID:** `" + event.getUser().getId() + "`\n" +
-                "**New Avatar:** [Click to view](" + event.getNewAvatarUrl() + ")\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Visual Update", body, EmbedUtil.GOLD));
+        String details = "### \uD83D\uDDBC Profile Picture Update\n" +
+                "The user has updated their global account avatar.\n\n" +
+                "\u25AB\uFE0F **New Image:** [Access File](" + event.getNewAvatarUrl() + ")";
+
+        event.getJDA().getGuilds().forEach(guild -> {
+            if (guild.getMember(event.getUser()) != null) {
+                LogManager.logEmbed(guild, Config.LOG_USERS, 
+                    EmbedUtil.createOldLogEmbed("user-avatar-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
+            }
+        });
     }
+
+/*
+    @Override
+    public void onUserUpdateBanner(@NotNull UserUpdateBannerEvent event) {
+        String bannerUrl = event.getNewBannerUrl();
+        String details = "### \uD83D\uDDD2 Account Banner Update\n" +
+                "The user has updated their global profile banner.\n\n" +
+                "\u25AB\uFE0F **New Banner:** " + (bannerUrl != null ? "[Access File](" + bannerUrl + ")" : "`Status: Reset/Removed`") + "";
+
+        event.getJDA().getGuilds().forEach(guild -> {
+            if (guild.getMember(event.getUser()) != null) {
+                LogManager.logEmbed(guild, Config.LOG_USERS, 
+                    EmbedUtil.createOldLogEmbed("user-banner-update", details, null, event.getUser(), null, EmbedUtil.GOLD));
+            }
+        });
+    }
+*/
 
     @Override
     public void onGuildMemberUpdateNickname(@NotNull GuildMemberUpdateNicknameEvent event) {
-        TextChannel ch = event.getJDA().getTextChannelById(LOG_CHANNEL_ID);
-        if (ch == null) return;
-        String old = event.getOldNickname() != null ? event.getOldNickname() : "None";
-        String curr = event.getNewNickname() != null ? event.getNewNickname() : "Reset";
-        String body = "### \uD83C\uDFF7\uFE0F Nickname Updated\n" +
-                "**User:** `" + event.getUser().getName() + "`\n" +
-                "**ID:** `" + event.getUser().getId() + "`\n" +
-                "**Old Nickname:** `" + old + "`\n" +
-                "**New Nickname:** `" + curr + "`\n" +
-                "**Time:** " + now();
-        PanelService.reply(ch, EmbedUtil.activityLog("Nickname Update", body, EmbedUtil.GOLD));
+        String old = event.getOldNickname() != null ? event.getOldNickname() : "Default Identity";
+        String curr = event.getNewNickname() != null ? event.getNewNickname() : "Identity Reset";
+        String details = "### \uD83C\uDFF7\uFE0F Station Nickname Update\n" +
+                "\u25AB\uFE0F **Old Nick:** `" + old + "`\n" +
+                "\u25AB\uFE0F **New Nick:** `" + curr + "`";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_USERS, 
+            EmbedUtil.createOldLogEmbed("user-nickname-update", details, null, event.getUser(), event.getMember(), EmbedUtil.GOLD));
+    }
+
+    @Override
+    public void onGuildMemberUpdateAvatar(@NotNull GuildMemberUpdateAvatarEvent event) {
+        String details = "### \uD83D\uDCDA Server Profile Avatar Update\n" +
+                "The member has updated their station-specific avatar.\n\n" +
+                "\u25AB\uFE0F **New Image:** [Access File](" + event.getNewAvatarUrl() + ")";
+
+        LogManager.logEmbed(event.getGuild(), Config.LOG_USERS, 
+            EmbedUtil.createOldLogEmbed("user-member-avatar-update", details, null, event.getUser(), event.getMember(), EmbedUtil.GOLD));
     }
 }

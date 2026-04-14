@@ -15,11 +15,14 @@ public class Config {
 
     static {
         File envFile = new File(".env");
-        if (!envFile.exists()) envFile = new File("../.env");
+        if (!envFile.exists())
+            envFile = new File("../.env");
         if (envFile.exists()) {
             try (FileInputStream fis = new FileInputStream(envFile)) {
                 properties.load(fis);
-            } catch (IOException e) { System.err.println("Error reading .env: " + e.getMessage()); }
+            } catch (IOException e) {
+                System.err.println("Error reading .env: " + e.getMessage());
+            }
         }
     }
 
@@ -50,7 +53,8 @@ public class Config {
     public static String CH_MINECRAFT_PRICES = get("CH_MINECRAFT_PRICES");
     public static String CH_TICKET = get("CH_TICKET");
     public static String BOT_PREFIX = getOrDefault("BOT_PREFIX", "!");
-    public static String WELCOME_BG_URL = getOrDefault("WELCOME_BG_URL", "https://cdn.discordapp.net/attachments/1488900668042510568/1491442428237054122/IMG_20260408_171922.png?ex=69d7b580&is=69d66400&hm=ac1b5b0da49726696c8deaacfedc1a9f9e966f677384da269173e7680e2089b1&format=png");
+    public static String WELCOME_BG_URL = getOrDefault("WELCOME_BG_URL",
+            "https://cdn.discordapp.net/attachments/1488900668042510568/1491442428237054122/IMG_20260408_171922.png?ex=69d7b580&is=69d66400&hm=ac1b5b0da49726696c8deaacfedc1a9f9e966f677384da269173e7680e2089b1&format=png");
 
     public static final String LOG_JOIN_LEFT = "\u26D4\uFE0Fjoin\u30FBleft\u30FBlogs";
     public static final String LOG_MESSAGE = "\u26D4\uFE0Fmessage\u30FBlogs";
@@ -61,6 +65,7 @@ public class Config {
     public static final String LOG_COMMANDS = "\u26D4\uFE0Fcommands\u30FBlogs";
     public static final String LOG_MODS_CMD = "\u26D4\uFE0Fmods-cmd\u30FBlogs";
     public static final String LOG_ROLES = "\u26D4\uFE0Froles\u30FBlogs";
+    public static final String LOG_USERS = "\u26D4\uFE0Fusers\u30FBlogs";
     public static final String LOG_WARNING = "LOG_WARNING";
 
     public static void updateRuntime(String key, String value) {
@@ -69,9 +74,11 @@ public class Config {
 
     public static String get(String key) {
         String o = runtimeOverrides.get(key);
-        if (o != null && !o.isEmpty()) return o;
+        if (o != null && !o.isEmpty())
+            return o;
         String v = System.getenv(key);
-        if (v != null && !v.isEmpty()) return v;
+        if (v != null && !v.isEmpty())
+            return v;
         return properties.getProperty(key);
     }
 
@@ -80,9 +87,23 @@ public class Config {
         return (v != null && !v.isEmpty()) ? v : def;
     }
 
-    public static List<String> getStaffRoles() { return Arrays.asList(ROLE_HIGH, ROLE_FOUNDER, ROLE_MODERATOR, ROLE_STAFF); }
-    public static List<String> getAdminRoles() { return Arrays.asList(ROLE_HIGH, ROLE_FOUNDER); }
-    public static boolean isStaff(net.dv8tion.jda.api.entities.Member m) { return m != null && m.getRoles().stream().anyMatch(r -> getStaffRoles().contains(r.getId())); }
-    public static boolean isAdmin(net.dv8tion.jda.api.entities.Member m) { return m != null && m.getRoles().stream().anyMatch(r -> getAdminRoles().contains(r.getId())); }
-    public static boolean isGroqConfigured() { return GROQ_API_KEY != null && !GROQ_API_KEY.isEmpty() && !GROQ_API_KEY.equals("your_groq_api_key"); }
+    public static List<String> getStaffRoles() {
+        return Arrays.asList(ROLE_HIGH, ROLE_FOUNDER, ROLE_MODERATOR, ROLE_STAFF);
+    }
+
+    public static List<String> getAdminRoles() {
+        return Arrays.asList(ROLE_HIGH, ROLE_FOUNDER);
+    }
+
+    public static boolean isStaff(net.dv8tion.jda.api.entities.Member m) {
+        return m != null && m.getRoles().stream().anyMatch(r -> getStaffRoles().contains(r.getId()));
+    }
+
+    public static boolean isAdmin(net.dv8tion.jda.api.entities.Member m) {
+        return m != null && m.getRoles().stream().anyMatch(r -> getAdminRoles().contains(r.getId()));
+    }
+
+    public static boolean isGroqConfigured() {
+        return GROQ_API_KEY != null && !GROQ_API_KEY.isEmpty() && !GROQ_API_KEY.equals("your_groq_api_key");
+    }
 }

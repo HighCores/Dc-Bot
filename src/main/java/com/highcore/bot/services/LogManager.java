@@ -29,7 +29,8 @@ public class LogManager {
             Config.LOG_UPDATES,
             Config.LOG_COMMANDS,
             Config.LOG_MODS_CMD,
-            Config.LOG_ROLES
+            Config.LOG_ROLES,
+            Config.LOG_USERS
     };
 
     /**
