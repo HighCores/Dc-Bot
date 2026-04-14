@@ -41,19 +41,27 @@ public class InfoCommands extends ListenerAdapter {
             if (banner != null) banner += "?size=2048";
             else banner = EmbedUtil.BANNER_MAIN;
 
+            String status = switch (m.getOnlineStatus()) {
+                case ONLINE -> "🟢 Online";
+                case IDLE -> "🟡 Idle";
+                case DO_NOT_DISTURB -> "🔴 Busy";
+                case OFFLINE, INVISIBLE -> "🔘 Offline";
+                default -> "⚪ Unknown";
+            };
+
             String body = String.format("""
                     ### 👤 IDENTITY REGISTRY DATA
                     **Full Name:** %s
-                    **Digital ID:** `%s`
+                    **Digital Identifier:** `%s`
                     
                     ▫️ **Chronological Logs:**
                     • **Account Creation:** <t:%d:D> (<t:%d:R>)
                     • **Agency Admission:** <t:%d:D> (<t:%d:R>)
                     
-                    ▫️ **Classification & Permissions:**
+                    ▫️ **HIERARCHY & CLEARANCE:**
                     • **Primary Designation:** %s
                     • **Security Clearance:** %s
-                    • **Connection State:** `%s`
+                    • **Connection State:** %s
                     """, 
                     m.getEffectiveName(), 
                     m.getId(), 
@@ -61,9 +69,9 @@ public class InfoCommands extends ListenerAdapter {
                     joined, joined,
                     m.getRoles().isEmpty() ? "None" : m.getRoles().get(0).getAsMention(),
                     m.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) ? "Executive Management" : "Authorized Personnel",
-                    m.getOnlineStatus().name().toLowerCase());
+                    status);
             
-            PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data", body, banner));
+            PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data Retrieval", body, banner));
         }, err -> {
             // Fallback if profile retrieval fails
             long created = m.getUser().getTimeCreated().toEpochSecond();

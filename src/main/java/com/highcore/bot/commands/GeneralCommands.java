@@ -13,7 +13,7 @@ public class GeneralCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName();
-        
+
         switch (name) {
             case "ping" -> handlePing(event);
             case "roll" -> handleRoll(event);
@@ -39,53 +39,60 @@ public class GeneralCommands extends ListenerAdapter {
         String body = String.format("""
                 ### 🎲 RANDOM ENTROPY GENERATION
                 **Extracted Result:** **%d**
-                
+
                 *Number generated successfully within standard industrial parameters.*
                 """, res);
-        PanelService.reply(event, EmbedUtil.containerBranded("ENTERTAINMENT", "Dice Module", body, EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event,
+                EmbedUtil.containerBranded("ENTERTAINMENT", "Dice Module", body, EmbedUtil.BANNER_MAIN));
     }
-
 
     private void handleTranslate(SlashCommandInteractionEvent event) {
         String text = event.getOption("text", OptionMapping::getAsString);
         String lang = event.getOption("language", OptionMapping::getAsString);
         String result = com.highcore.bot.services.AIService.translate(text, lang);
-        PanelService.reply(event, EmbedUtil.containerBranded("Language", "Translation Engine", "### \uD83C\uDF10 Result\nTarget Language: **" + lang + "**\n\n" + result, EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("Language", "Translation Engine",
+                "### \uD83C\uDF10 Result\nTarget Language: **" + lang + "**\n\n" + result, EmbedUtil.BANNER_MAIN));
     }
 
     private void handleSuggest(SlashCommandInteractionEvent event) {
         String sug = event.getOption("suggestion", OptionMapping::getAsString);
-        com.google.gson.JsonObject result = com.highcore.bot.database.SupabaseClient.createSuggestion(event.getGuild().getId(), event.getUser().getId(), event.getUser().getName(), sug);
-        
+        com.google.gson.JsonObject result = com.highcore.bot.database.SupabaseClient
+                .createSuggestion(event.getGuild().getId(), event.getUser().getId(), event.getUser().getName(), sug);
+
         long id = result != null && result.has("id") ? result.get("id").getAsLong() : 0;
-        
+
         // Try to find a channel named "suggestions"
         net.dv8tion.jda.api.entities.channel.concrete.TextChannel sugChan = event.getGuild().getTextChannels().stream()
                 .filter(ch -> ch.getName().toLowerCase().contains("suggest"))
                 .findFirst().orElse(null);
 
         if (sugChan != null) {
-            String body = String.format("### 💡 NEW SUGGESTION #%d\n**From:** %s\n\n%s", id, event.getUser().getAsMention(), sug);
-            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("DEVELOPMENT", "Community Feedback", body, EmbedUtil.BANNER_MAIN);
-            net.dv8tion.jda.api.components.actionrow.ActionRow buttons = net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-                net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_up_" + id, "👍 Upvote"),
-                net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_down_" + id, "👎 Downvote")
-            );
+            String body = String.format("### 💡 NEW SUGGESTION #%d\n**From:** %s\n\n%s", id,
+                    event.getUser().getAsMention(), sug);
+            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("DEVELOPMENT",
+                    "Community Feedback", body, EmbedUtil.BANNER_MAIN);
+            net.dv8tion.jda.api.components.actionrow.ActionRow buttons = net.dv8tion.jda.api.components.actionrow.ActionRow
+                    .of(
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_up_" + id,
+                                    "👍 Upvote"),
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_vote_down_" + id,
+                                    "👎 Downvote"));
 
             PanelService.reply(sugChan, container, buttons);
-            PanelService.reply(event, EmbedUtil.success("Success", "Your suggestion has been logged as **#" + id + "** and posted in " + sugChan.getAsMention()));
+            PanelService.reply(event, EmbedUtil.success("Success",
+                    "Your suggestion has been logged as **#" + id + "** and posted in " + sugChan.getAsMention()));
         } else {
             String body = String.format("""
                     ### 📝 SUGGESTION LOGGED
                     **Author:** %s
                     **Status:** `Recorded`
-                    
+
                     **Content:**
                     %s
-                    
                     *Note: Active suggestion feed channel not detected. Displaying log only.*
                     """, event.getUser().getAsMention(), sug);
-            PanelService.reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Submit Idea", body, EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event,
+                    EmbedUtil.containerBranded("Suggition", "Submit Idea", body, EmbedUtil.BANNER_MAIN));
         }
     }
 
@@ -94,7 +101,7 @@ public class GeneralCommands extends ListenerAdapter {
             PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
-        
+
         OptionMapping idOpt = event.getOption("id");
         if (idOpt == null) {
             PanelService.sendSuggestionList(event);
@@ -103,26 +110,28 @@ public class GeneralCommands extends ListenerAdapter {
             long id = idOpt.getAsLong();
             OptionMapping actionOpt = event.getOption("action");
             String action = actionOpt != null ? actionOpt.getAsString() : "Accepted";
-            com.highcore.bot.database.SupabaseClient.updateSuggestion(id, action, "Quick Process", event.getUser().getId(), event.getUser().getName(), null);
-            PanelService.reply(event, EmbedUtil.success("Suggestions", "Suggestion ID `" + id + "` quick-updated to: **" + action + "**"));
+            com.highcore.bot.database.SupabaseClient.updateSuggestion(id, action, "Quick Process",
+                    event.getUser().getId(), event.getUser().getName(), null);
+            PanelService.reply(event, EmbedUtil.success("Suggestions",
+                    "Suggestion ID `" + id + "` quick-updated to: **" + action + "**"));
         }
     }
-
-
-
 
     private void handleTitle(SlashCommandInteractionEvent event) {
         String title = event.getOption("title", OptionMapping::getAsString);
         com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
-        
+
         // Attempt to sync Nickname
         String newNick = "[" + title + "] " + event.getMember().getEffectiveName();
-        if (newNick.length() > 32) newNick = newNick.substring(0, 32);
-        
+        if (newNick.length() > 32)
+            newNick = newNick.substring(0, 32);
+
         final String finalNick = newNick;
         event.getMember().modifyNickname(finalNick).queue(
-            success -> PanelService.reply(event, EmbedUtil.success("Identity Update", "Identity synchronized. Your title is now set to: **" + title + "**")),
-            error -> PanelService.reply(event, EmbedUtil.success("Identity Update", "Title saved to database. *Note: Unable to update nickname due to hierarchy restrictions.*"))
-        );
+                success -> PanelService.reply(event,
+                        EmbedUtil.success("Identity Update",
+                                "Identity synchronized. Your title is now set to: **" + title + "**")),
+                error -> PanelService.reply(event, EmbedUtil.success("Identity Update",
+                        "Title saved to database. *Note: Unable to update nickname due to hierarchy restrictions.*")));
     }
 }

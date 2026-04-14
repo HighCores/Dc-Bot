@@ -32,7 +32,7 @@ public class ModerationCommands extends ListenerAdapter {
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
-            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji"
+            "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "add-sticker"
         );
         
         if (!modCmds.contains(name)) return; // Pass to other listeners
@@ -75,6 +75,7 @@ public class ModerationCommands extends ListenerAdapter {
                 case "show" -> handleVisibility(event, true);
                 case "slowmode" -> handleSlowmode(event);
                 case "add-emoji" -> handleAddEmoji(event);
+                case "add-sticker" -> handleAddSticker(event);
             }
         } catch (Exception e) {
             PanelService.replyEphemeral(event, EmbedUtil.error("TERMINAL ERROR", "Internal execution failure: " + e.getMessage()));
@@ -254,29 +255,40 @@ public class ModerationCommands extends ListenerAdapter {
         User u = event.getOption("user", OptionMapping::getAsUser);
         if (u == null) return;
         
+        event.deferReply().queue();
+        
+        // Minor delay to ensure database sync if command was just run
+        try { Thread.sleep(600); } catch (InterruptedException ignored) {}
+
         com.google.gson.JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
         int count = warns != null ? warns.size() : 0;
         
         StringBuilder sb = new StringBuilder();
-        sb.append("### ⚠️ WARNING REGISTRY LOGS\n");
-        sb.append("**Personnel:** ").append(u.getName()).append("\n");
-        sb.append("**Total Records:** `").append(count).append("`\n\n");
+        sb.append("### 👤 SUBJECT IDENTIFICATION\n");
+        sb.append("**Name:** ").append(u.getAsMention()).append("\n");
+        sb.append("**Registry ID:** `").append(u.getId()).append("`\n\n");
+        
+        sb.append("### 📋 WARNING REGISTRY LOGS\n");
+        sb.append("**Total Infractions Detected:** `").append(count).append("`\n\n");
         
         if (count > 0) {
-            sb.append("▫️ **Recent Infractions:**\n");
-            for (int i = 0; i < Math.min(warns.size(), 5); i++) {
+            sb.append("▫️ **Documented Violations:**\n");
+            for (int i = 0; i < Math.min(warns.size(), 8); i++) {
                 com.google.gson.JsonElement el = warns.get(i);
                 if (el == null || !el.isJsonObject()) continue;
                 com.google.gson.JsonObject w = el.getAsJsonObject();
-                String reason = w.has("reason") ? w.get("reason").getAsString() : "No Reason";
-                String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "Unknown Date";
-                sb.append("`").append(date).append("` - ").append(reason).append("\n");
+                String reason = w.has("reason") ? w.get("reason").getAsString() : "Internal Error: Reason Missing";
+                String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "Archive Date Missing";
+                String mod = w.has("warned_by_name") ? w.get("warned_by_name").getAsString() : "System Automation";
+                
+                sb.append("`").append(date).append("` \u2014 **").append(reason).append("** (By: `").append(mod).append("`)\n");
             }
+            if (count > 8) sb.append("\n*+ ").append(count - 8).append(" additional encrypted records in archive.*");
         } else {
-            sb.append("*No documented warnings discovered for this user.*");
+            sb.append("*No documented infractions discovered within the Highcore Security Network.*");
         }
         
-        PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Warning Logs", sb.toString(), EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Infraction Database", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
     private void handleViolations(SlashCommandInteractionEvent event) {
@@ -380,6 +392,29 @@ public class ModerationCommands extends ListenerAdapter {
                 );
             } catch (Exception e) { 
                 PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Please verify image quality and dimensions according to protocols.")); 
+            }
+        });
+    }
+
+    private void handleAddSticker(SlashCommandInteractionEvent event) {
+        if (!hasPerm(event, Permission.MANAGE_GUILD_EXPRESSIONS)) return;
+        String name = event.getOption("name", OptionMapping::getAsString);
+        String tags = event.getOption("tags", OptionMapping::getAsString);
+        String desc = event.getOption("description", OptionMapping::getAsString);
+        OptionMapping imgMapping = event.getOption("image");
+        if (imgMapping == null || name == null || tags == null) return;
+
+        imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
+            try {
+                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(stream, name + ".png");
+                
+                event.getGuild().createSticker(name, desc == null ? "" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
+                    .queue(
+                        v -> PanelService.reply(event, EmbedUtil.containerBranded("Sticker Protocol", "Sticker Deployed", "### 🎨 Visual Asset Online\nThe sticker `" + name + "` is now available for agency use.", EmbedUtil.BANNER_MAIN)),
+                        e -> PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()))
+                    );
+            } catch (Exception e) {
+                PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Critical error during asset processing: " + e.getMessage()));
             }
         });
     }
