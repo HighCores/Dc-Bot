@@ -152,70 +152,50 @@ public class PanelService {
 
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        for (Object p : parts) {
-            if (p instanceof MessageTopLevelComponent mtc) components.add(mtc);
-            else if (p instanceof ActionRow row) components.add(row);
-            else if (p instanceof com.highcore.bot.ComponentV2Container c) components.addAll(c.getComponents());
-        }
+        final MessageCreateData[] messageDataArr = {null};
 
-        if (components.isEmpty()) {
-            components.add(EmbedUtil.info("High Core Agency", "Request processed successfully."));
+        for (Object p : parts) {
+            if (p instanceof MessageCreateData mcd) messageDataArr[0] = mcd;
+            else if (p instanceof MessageTopLevelComponent mtc) components.add(mtc);
+            else if (p instanceof ActionRow row) components.add(row);
+            else if (p instanceof Container container) components.add(container);
         }
 
         if (target instanceof IReplyCallback event) {
+            final MessageCreateData messageData = messageDataArr[0];
             try {
                 if (event.isAcknowledged()) {
-                    event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                    var hook = event.getHook();
+                    if (messageData != null) {
+                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                    } else {
+                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                    }
                 } else {
-                    event.replyComponents(components).useComponentsV2(true).setEphemeral(ephemeral).queue(null, err -> {
+                    var interaction = (messageData != null) ? event.reply(messageData) : event.replyComponents(components).useComponentsV2(true);
+                    interaction.setEphemeral(ephemeral).queue(null, err -> {
                         if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
-                            event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                            var hook = event.getHook();
+                            if (messageData != null) {
+                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                            } else {
+                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                            }
                         }
                     });
                 }
             } catch (Exception ex) {
-                if (ex.getMessage().contains("acknowledged")) {
-                    event.getHook().editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
+                var hook = event.getHook();
+                if (messageData != null) {
+                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, e -> {});
+                } else {
+                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, e -> {});
                 }
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            channel.sendMessageComponents(components).useComponentsV2(true).queue();
-        }
-    }
-
-    public static void reply(SlashCommandInteractionEvent event, MessageCreateData m) {
-        try {
-            if (event.isAcknowledged()) {
-                event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
-            } else {
-                event.reply(m).queue(null, err -> {
-                    if (err.getMessage().contains("acknowledged")) {
-                        event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
-                    }
-                });
-            }
-        } catch (Exception ex) {
-            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
-        }
-    }
-
-    public static void reply(SlashCommandInteractionEvent event, Container container) {
-        handleReply(event, false, container);
-    }
-
-    public static void replyEphemeral(SlashCommandInteractionEvent event, MessageCreateData m) {
-        try {
-            if (event.isAcknowledged()) {
-                event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
-            } else {
-                event.reply(m).setEphemeral(true).queue(null, err -> {
-                    if (err.getMessage().contains("acknowledged")) {
-                        event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
-                    }
-                });
-            }
-        } catch (Exception ex) {
-            event.getHook().editOriginal(MessageEditData.fromCreateData(m)).queue(null, e -> {});
+            final MessageCreateData messageData = messageDataArr[0];
+            if (messageData != null) channel.sendMessage(messageData).queue();
+            else channel.sendMessageComponents(components).useComponentsV2(true).queue();
         }
     }
 
