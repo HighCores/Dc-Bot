@@ -305,8 +305,12 @@ public class CentralInteractionListener extends ListenerAdapter {
                         }
                         if (!uploads.isEmpty()) send = send.addFiles(uploads);
                     }
-                    send.queue(v -> PanelService.reply(event,
-                            EmbedUtil.success("EMULATION", "Message successfully deployed to target channel.")));
+                    send.queue(v -> {
+                        // Acknowledge silently without a visible message after deployment
+                        if (!event.isAcknowledged()) {
+                            event.deferReply(true).queue(hook -> hook.deleteOriginal().queue());
+                        }
+                    });
                 }
             }
         } else if (id.equals("modal_support_init")) {
