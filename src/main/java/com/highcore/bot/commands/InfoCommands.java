@@ -22,7 +22,12 @@ public class InfoCommands extends ListenerAdapter {
             case "avatar" -> handleAvatar(event, false);
             case "server-avatar" -> handleAvatar(event, true);
             case "server" -> handleServer(event);
-            case "roles" -> { if (Config.isAdmin(event.getMember())) handleRoles(event); else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+            case "roles" -> { 
+                if (Config.isAdmin(event.getMember())) {
+                    handleRoles(event); 
+                    com.highcore.bot.services.LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Roles Audit", "Full hierarchy list requested in " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.INFO));
+                } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); 
+            }
             case "banner" -> handleBanner(event, false);
             case "server-banner" -> handleBanner(event, true);
             case "invites" -> handleInvites(event);

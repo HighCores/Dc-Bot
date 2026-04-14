@@ -88,6 +88,8 @@ public class GiveawayService {
             ch.sendMessageComponents(resultC).useComponentsV2(true).queue();
         }
 
+        LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Giveaway Concluded", "ID: #" + giveawayId + "\nPrize: " + prizeDetails + "\nWinners: " + (winners.isEmpty() ? "None" : winners.size()), null, null, null, EmbedUtil.SUCCESS));
+
         // 🔗 Sync Dashboard (if exists)
         String dashMsgId = com.highcore.bot.commands.GiveawayCommands.dashboardMessages.get(giveawayId);
         String dashChId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
@@ -132,6 +134,7 @@ public class GiveawayService {
             ch.sendMessageComponents(c).useComponentsV2(true).queue();
             
             SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
+            LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Giveaway Rerolled", "ID: #" + giveawayId + "\nNew Winners: " + winners.size(), null, null, null, EmbedUtil.WARNING));
         }
     }
 

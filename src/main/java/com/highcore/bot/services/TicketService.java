@@ -102,6 +102,7 @@ public class TicketService {
                 if (event.isAcknowledged()) event.getHook().sendMessage("Your ticket has been opened: " + channel.getAsMention()).setEphemeral(true).queue();
                 else event.reply("Your ticket has been opened: " + channel.getAsMention()).setEphemeral(true).queue();
             }
+            LogManager.logEmbed(cat.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Opened", "Case: #" + ticketId + "\nType: " + type + "\nSubject: " + subject + "\nChannel: " + channel.getAsMention(), null, user, member, EmbedUtil.SUCCESS));
         });
     }
 
@@ -228,6 +229,7 @@ public class TicketService {
             channel.getPermissionOverride(owner).getManager().grant(Permission.MESSAGE_SEND, Permission.MESSAGE_ATTACH_FILES).queue();
         }
         PanelService.reply(channel, Container.of(TextDisplay.of("✅ **Payment Verified** · Ticket Unlocked")));
+        LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Payment Verified", "Case: #" + ticketId + "\nProject: " + pName + "\nChannel: " + channel.getAsMention(), staff, null, null, EmbedUtil.SUCCESS));
     }
 
     public static void claimTicket(TextChannel channel, Member claimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
@@ -248,6 +250,9 @@ public class TicketService {
         
         // Notification
         PanelService.reply(channel, EmbedUtil.containerBranded("NOTICE", "Claimed", "📡 **Ticket Handled By:** " + claimer.getAsMention(), null));
+        
+        String tid = ticket != null ? ticket.get("ticket_id").getAsString() : "Unknown";
+        LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Claimed", "Case: #" + tid + "\nChannel: " + channel.getAsMention(), claimer, null, null, EmbedUtil.SUCCESS));
     }
 
     public static void unclaimTicket(TextChannel channel, Member unclaimer, net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
@@ -268,6 +273,9 @@ public class TicketService {
         
         // Notification
         PanelService.reply(channel, EmbedUtil.containerBranded("NOTICE", "Unclaimed", "↩️ **Ticket Unclaimed By:** " + unclaimer.getAsMention(), null));
+        
+        String tid = ticket != null ? ticket.get("ticket_id").getAsString() : "Unknown";
+        LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Unclaimed", "Case: #" + tid + "\nChannel: " + channel.getAsMention(), unclaimer, null, null, EmbedUtil.WARNING));
     }
 
     public static List<ContainerChildComponent> rebuildWelcomeComponents(JsonObject ticket, boolean claimed, TextChannel channel, String claimerMention) {
@@ -360,6 +368,7 @@ public class TicketService {
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(getTicketButtons("open")));
         PanelService.reply(channel, Container.of(children));
+        LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Reopened", "Channel: " + channel.getAsMention(), reopener, null, null, EmbedUtil.SUCCESS));
     }
 
     public static void closeTicket(TextChannel channel, Member closer) {
@@ -371,6 +380,7 @@ public class TicketService {
             Button.danger("ticket_delete", "Delete Immediately").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1\ufe0f"))
         ));
         PanelService.reply(channel, Container.of(children));
+        LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Closing Requested", "Channel: " + channel.getAsMention(), closer, null, null, EmbedUtil.WARNING));
     }
 
     public static void finalizeClose(TextChannel channel, Member closer, String status) {
@@ -417,6 +427,7 @@ public class TicketService {
                     EmbedUtil.BANNER_SUPPORT,
                     ActionRow.of(Button.link(url, "View Web Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))))).useComponentsV2(true).queue();
             }
+            LogManager.logEmbed(channel.getGuild(), Config.LOG_TICKETS, EmbedUtil.createOldLogEmbed("Ticket Finalized", "Case: #" + ticketId + "\nChannel: " + channel.getName() + " (Deleted)\nOpener: <@" + openerId + ">", closer, null, null, EmbedUtil.DANGER));
         }
     }
 

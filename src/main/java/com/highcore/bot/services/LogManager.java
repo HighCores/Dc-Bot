@@ -144,13 +144,17 @@ public class LogManager {
      * Get a log channel. Prioritizes the Dashboard configuration, 
      * falls back to category-based auto-creation.
      */
-    public static TextChannel getDashboardLogChannel(Guild guild, String channelName) {
-        String dashboardId = SettingSyncService.getModerationLogChannel();
-        if (dashboardId != null && !dashboardId.isEmpty()) {
-            TextChannel dashChan = guild.getTextChannelById(dashboardId);
-            if (dashChan != null) return dashChan;
+    public static TextChannel getDashboardLogChannel(Guild guild, String channelKey) {
+        // Only use the global dashboard 'Moderation Log Channel' override FOR core moderation actions
+        // (Bans, Kicks, Mutes). Other logs (Commands, Tickets) should stay in their specific channels.
+        if (channelKey.equals(Config.LOG_MODS_CMD)) {
+            String dashboardId = SettingSyncService.getModerationLogChannel();
+            if (dashboardId != null && !dashboardId.isEmpty()) {
+                TextChannel dashChan = guild.getTextChannelById(dashboardId);
+                if (dashChan != null) return dashChan;
+            }
         }
-        return get(guild, channelName);
+        return get(guild, channelKey);
     }
 
     public static void log(Guild guild, String title, String description, java.awt.Color color) {
