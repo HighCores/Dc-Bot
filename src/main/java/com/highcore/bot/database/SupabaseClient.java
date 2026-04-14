@@ -477,13 +477,17 @@ public class SupabaseClient {
     public static void delete(String table, String filter) {
         String fullUrl = url(table) + "?" + filter;
         log.info(">>> DELETING from {}: {}", table, fullUrl);
-        Request request = auth(new Request.Builder()).url(fullUrl).delete().build();
+        Request request = auth(new Request.Builder())
+                .url(fullUrl)
+                .delete()
+                .header("Prefer", "return=representation")
+                .build();
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "No body";
             if (!response.isSuccessful()) {
                 log.error("DELETE {} failed ({}): {}", table, response.code(), b);
             } else {
-                log.info("DELETE {} success ({}): {}", table, response.code(), b);
+                log.info("DELETE {} success ({}) - Rows affected: {}", table, response.code(), b);
             }
         } catch (IOException e) { log.error("DELETE {} error: {}", table, e.getMessage()); }
     }
