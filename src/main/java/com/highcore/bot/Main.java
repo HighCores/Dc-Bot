@@ -46,6 +46,7 @@ public class Main {
                 .setMemberCachePolicy(MemberCachePolicy.ALL)
                 .addEventListeners(
                         new MessageListener(), 
+                        new CommandLogListener(),
                         new SlashCommands(),
                         new GiveawayCommands(),
                         new ModerationCommands(),

@@ -294,10 +294,20 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleWarnRemove(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.MODERATE_MEMBERS)) return;
         User u = event.getOption("user", OptionMapping::getAsUser);
+        OptionMapping idOpt = event.getOption("id");
+        
         if (u == null) return;
-        com.highcore.bot.database.SupabaseClient.clearUserWarnings(u.getId(), event.getGuild().getId());
-        PanelService.reply(event, EmbedUtil.success("Clear History", "All warnings removed for " + u.getName()));
-        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("warn-remove", "Action: Disciplinary Record Purge\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
+        
+        if (idOpt != null) {
+            int id = idOpt.getAsInt();
+            com.highcore.bot.database.SupabaseClient.deleteWarningById(id);
+            PanelService.reply(event, EmbedUtil.success("Infraction Removed", "Warning entry #`" + id + "` has been purged for " + u.getName()));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("warn-remove", "Action: Specific Record Purge\nID: #`" + id + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
+        } else {
+            com.highcore.bot.database.SupabaseClient.clearUserWarnings(u.getId(), event.getGuild().getId());
+            PanelService.reply(event, EmbedUtil.success("Clear History", "All verified warnings removed for " + u.getName()));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("warn-remove", "Action: Full Disciplinary Purge\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
+        }
     }
 
     private void handleWarnings(SlashCommandInteractionEvent event) {

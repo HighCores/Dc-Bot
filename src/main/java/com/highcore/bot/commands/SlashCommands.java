@@ -59,14 +59,14 @@ public class SlashCommands extends ListenerAdapter {
 
         try {
             switch (name) {
-                case "startup" -> { if (isAdmin(event.getMember())) { PanelService.sendStartupHub(event); LogManager.logCommandInteraction(event, "Operation: Global Deployment\nTarget: System Mainframe Hub"); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
-                case "tickets" -> { if (isAdmin(event.getMember())) { PanelService.sendTicketPanel(event); LogManager.logCommandInteraction(event, "Operation: Service Deployment\nTarget: Ticket Reception Module"); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
-                case "bc" -> { if (isAdmin(event.getMember())) { handleBroadcast(event); LogManager.logCommandInteraction(event, "Initiating Global Transmission Channel..."); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "startup" -> { if (isAdmin(event.getMember())) { PanelService.sendStartupHub(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "tickets" -> { if (isAdmin(event.getMember())) { PanelService.sendTicketPanel(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "bc" -> { if (isAdmin(event.getMember())) { handleBroadcast(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "autoreply" -> handleAutoReply(event);
-                case "embed" -> { handleEmbed(event); LogManager.logCommandInteraction(event, "Custom Intelligence Embed generated."); }
-                case "boter" -> { handleBoter(event); LogManager.logCommandInteraction(event, "Boter Identity Session initialized."); }
-                case "rename" -> { handleRename(event); LogManager.logCommandInteraction(event, "Renaming sequence initiated."); }
-                case "setchannel" -> { handleSetChannel(event); LogManager.logCommandInteraction(event, "Channel configuration modified."); }
+                case "embed" -> { handleEmbed(event); }
+                case "boter" -> { handleBoter(event); }
+                case "rename" -> { handleRename(event); }
+                case "setchannel" -> { handleSetChannel(event); }
                 default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {

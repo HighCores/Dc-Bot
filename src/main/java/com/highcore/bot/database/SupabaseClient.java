@@ -354,12 +354,7 @@ public class SupabaseClient {
     }
 
     public static com.google.gson.JsonArray getUserWarnings(String userId, String guildId) {
-        com.google.gson.JsonArray arr = get("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId);
-        if (arr == null || arr.size() == 0) {
-            // Global search fallback if guild-specific data is not found
-            arr = get("dc_warnings", "user_id=eq." + userId + "&limit=10");
-        }
-        return arr;
+        return get("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId + "&order=created_at.desc");
     }
 
     public static JsonArray getServerWarnings(String guildId, int limit) {
@@ -372,6 +367,10 @@ public class SupabaseClient {
 
     public static void clearAllWarnings(String guildId) {
         delete("dc_warnings", "guild_id=eq." + guildId);
+    }
+
+    public static void deleteWarningById(int id) {
+        delete("dc_warnings", "id=eq." + id);
     }
 
     public static JsonArray getUserViolations(String userId, String guildId) {
