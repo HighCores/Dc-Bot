@@ -232,9 +232,9 @@ public class SlashCommands extends ListenerAdapter {
 
         fileOpt.getAsAttachment().getProxy().download().thenAccept(inputStream -> {
             try {
-                net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(inputStream);
-                event.getGuild().createSticker(name, icon, name).queue(s -> {
-                    PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM UPDATED", "Sticker created: **" + name + "**"));
+                net.dv8tion.jda.api.utils.FileUpload file = net.dv8tion.jda.api.utils.FileUpload.fromData(inputStream, name + ".png");
+                event.getGuild().createSticker(name, "Elite Agency Sticker", file, "agency").queue(s -> {
+                    PanelService.replyEphemeral(event, EmbedUtil.success("STICKER HUB", "Sticker Online: **" + name + "**"));
                 }, err -> {
                     PanelService.replyEphemeral(event, EmbedUtil.error("CREATE FAILED", "Check file size/format (PNG/APNG/Lottie < 512kb/320x320/8MB)."));
                     log.error("Sticker creation failed: {}", err.getMessage());

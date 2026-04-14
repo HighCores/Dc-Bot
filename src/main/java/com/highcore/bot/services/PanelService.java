@@ -715,3 +715,4 @@ public class PanelService {
         b.setMinValues(0).setMaxValues(items.size());
         return b.build();
     }
+}
