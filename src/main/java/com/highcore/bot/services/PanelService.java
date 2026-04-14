@@ -356,7 +356,7 @@ public class PanelService {
         String guildId = event.getGuild().getId();
         com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "guild_id=eq." + guildId + "&status=eq.pending&limit=10");
         if (pending == null || pending.size() == 0) {
-            replyEphemeral(event, EmbedUtil.info("Suggestions", "No pending suggestions."));
+            replyEphemeral(event, EmbedUtil.containerBranded("INFO", "Suggestions", "### 📁 INBOX EMPTY\nNo pending entries currently require administrative review.", EmbedUtil.BANNER_MAIN));
             return;
         }
 
@@ -381,11 +381,7 @@ public class PanelService {
             rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
         }
 
-        if (event instanceof net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent be) {
-            reply(be, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN), rows);
-        } else {
-            event.replyComponents(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).setEphemeral(true).queue();
-        }
+        replyEphemeral(event, EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN, rows.toArray(new net.dv8tion.jda.api.components.actionrow.ActionRow[0])));
     }
 
     public static void handleSuggestionView(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, long id) {
@@ -400,10 +396,11 @@ public class PanelService {
         String date = sug.get("created_at").getAsString();
 
         String body = String.format("""
-                **Author:** %s
-                **Timestamp:** %s
+                ### 👤 AUTHOR DATA
+                **Identity:** %s
+                **Origin Time:** %s
                 
-                **Full Content:**
+                ### 💡 PROPOSAL CORE
                 ```%s```
                 """, user, date, content);
 

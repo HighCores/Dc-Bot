@@ -73,9 +73,19 @@ public class GeneralCommands extends ListenerAdapter {
             );
 
             PanelService.reply(sugChan, container, buttons);
-            PanelService.reply(event, EmbedUtil.success("Success", "Your suggestion has been posted in " + sugChan.getAsMention() + " (ID: #" + id + ")"));
+            PanelService.reply(event, EmbedUtil.success("Success", "Your suggestion has been logged as **#" + id + "** and posted in " + sugChan.getAsMention()));
         } else {
-            PanelService.reply(event, EmbedUtil.containerBranded("Development", "Submit Idea", "### \uD83D\uDCDD New Suggestion\nBy: " + event.getUser().getName() + "\n\n" + sug + "\n\n*Note: No dedicated suggestion channel found to post publicly.*", EmbedUtil.BANNER_MAIN));
+            String body = String.format("""
+                    ### 📝 SUGGESTION LOGGED
+                    **Author:** %s
+                    **Status:** `Recorded`
+                    
+                    **Content:**
+                    %s
+                    
+                    *Note: Active suggestion feed channel not detected. Displaying log only.*
+                    """, event.getUser().getAsMention(), sug);
+            PanelService.reply(event, EmbedUtil.containerBranded("DEVELOPMENT", "Submit Idea", body, EmbedUtil.BANNER_MAIN));
         }
     }
 
