@@ -235,9 +235,28 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleWarnings(SlashCommandInteractionEvent event) {
         User u = event.getOption("user", OptionMapping::getAsUser);
         if (u == null) return;
-        com.google.gson.JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
+        
+        JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
         int count = warns != null ? warns.size() : 0;
-        PanelService.reply(event, EmbedUtil.containerBranded("History", "Warnings", "User: " + u.getName() + "\nTotal Warnings: **" + count + "**", EmbedUtil.BANNER_MAIN));
+        
+        StringBuilder sb = new StringBuilder();
+        sb.append("### ⚠️ ســجــل الــتــحــذيــرات الــفــنــيــة\n");
+        sb.append("**الــعــضــو:** ").append(u.getName()).append("\n");
+        sb.append("**إجــمــالـي الــتــحــذيــرات:** `").append(count).append("`\n\n");
+        
+        if (count > 0) {
+            sb.append("▫️ **آخــر الــتــســجــيــلات:**\n");
+            for (int i = 0; i < Math.min(warns.size(), 5); i++) {
+                JsonObject w = warns.get(i).getAsJsonObject();
+                String reason = w.has("reason") ? w.get("reason").getAsString() : "No Reason";
+                String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "Unknown Date";
+                sb.append("`").append(date).append("` - ").append(reason).append("\n");
+            }
+        } else {
+            sb.append("*لا تــوجــد تــحــذيــرات مــســجــلــة لــهـذا الـعــضـو*");
+        }
+        
+        PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Warning Logs", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
     private void handleViolations(SlashCommandInteractionEvent event) {

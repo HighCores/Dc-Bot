@@ -59,20 +59,22 @@ public class GeneralCommands extends ListenerAdapter {
     }
 
     private void handleSuggestionManage(SlashCommandInteractionEvent event) {
-        if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) return;
-        
-        OptionMapping idOpt = event.getOption("id");
-        OptionMapping actionOpt = event.getOption("action");
-
-        if (idOpt == null) {
-            PanelService.sendSuggestionList(event);
+        if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR)) {
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
             return;
         }
-
-        long id = idOpt.getAsLong();
-        String action = actionOpt != null ? actionOpt.getAsString() : "Accepted";
-        com.highcore.bot.database.SupabaseClient.updateSuggestion(id, action, "Processed by Administration", event.getUser().getId(), event.getUser().getName(), null);
-        PanelService.reply(event, EmbedUtil.success("Suggestions", "Suggestion ID `" + id + "` state updated to: **" + action + "**"));
+        
+        OptionMapping idOpt = event.getOption("id");
+        if (idOpt == null) {
+            PanelService.sendSuggestionList(event);
+        } else {
+            // If they manually put an ID and optional action
+            long id = idOpt.getAsLong();
+            OptionMapping actionOpt = event.getOption("action");
+            String action = actionOpt != null ? actionOpt.getAsString() : "Accepted";
+            com.highcore.bot.database.SupabaseClient.updateSuggestion(id, action, "Quick Process", event.getUser().getId(), event.getUser().getName(), null);
+            PanelService.reply(event, EmbedUtil.success("Suggestions", "Suggestion ID `" + id + "` quick-updated to: **" + action + "**"));
+        }
     }
 
 
@@ -81,6 +83,15 @@ public class GeneralCommands extends ListenerAdapter {
     private void handleTitle(SlashCommandInteractionEvent event) {
         String title = event.getOption("title", OptionMapping::getAsString);
         com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
-        PanelService.reply(event, EmbedUtil.success("Identity Update", "Your personal tile has been updated to: **" + title + "**"));
+        
+        // Attempt to sync Nickname
+        String newNick = "[" + title + "] " + event.getMember().getEffectiveName();
+        if (newNick.length() > 32) newNick = newNick.substring(0, 32);
+        
+        final String finalNick = newNick;
+        event.getMember().modifyNickname(finalNick).queue(
+            success -> PanelService.reply(event, EmbedUtil.success("Identity Update", "Identity synchronized. Your title is now set to: **" + title + "**")),
+            error -> PanelService.reply(event, EmbedUtil.success("Identity Update", "Title saved to database. *Note: Unable to update nickname due to hierarchy restrictions.*"))
+        );
     }
 }

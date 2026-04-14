@@ -456,9 +456,10 @@ public class SupabaseClient {
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "{}";
             if (!response.isSuccessful()) { 
-                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("POST {} failed: Status {} - Response: {}", table, response.code(), b); 
+                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("POST {} failed ({}): {}", table, response.code(), b); 
                 return null; 
             }
+            org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).info("POST {} success: {}", table, b);
             JsonElement el = JsonParser.parseString(b);
             if (el.isJsonArray() && el.getAsJsonArray().size() > 0) return el.getAsJsonArray().get(0).getAsJsonObject();
             return el.isJsonObject() ? el.getAsJsonObject() : new JsonObject();

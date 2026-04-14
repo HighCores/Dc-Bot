@@ -272,54 +272,69 @@ public class PanelService {
         sendHighcoreHub(event);
     }
 
-    public static void sendSuggestionList(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
+    public static void sendSuggestionList(IReplyCallback event) {
         com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
         if (pending == null || pending.size() == 0) {
-            replyEphemeral(event, EmbedUtil.info("الاقتراحات", "لا يوجد اقتراحات معلقة حالياً."));
+            replyEphemeral(event, EmbedUtil.info("اقتراحات", "لا توجد اقتراحات معلقة حالياً."));
             return;
         }
+
         StringBuilder sb = new StringBuilder();
-        sb.append("### \uD83D\uDCDD قائمة الاقتراحات المعلقة\nإليك آخر 10 اقتراحات بانتظار المراجعة:\n\n");
-        java.util.List<net.dv8tion.jda.api.components.buttons.Button> buttons = new java.util.ArrayList<>();
+        sb.append("### 📝 مــراجــعــة الاقــتــراحــات\n");
+        sb.append("اضـغـط عـلـى زر الـرقـم لـمـعـايـنـة الاقـتـراح والـتـحـكـم بـه:\n\n");
+
+        List<net.dv8tion.jda.api.components.buttons.Button> buttons = new ArrayList<>();
         for (int i = 0; i < pending.size(); i++) {
             com.google.gson.JsonObject sug = pending.get(i).getAsJsonObject();
             long sid = sug.get("id").getAsLong();
+            String user = sug.get("user_name").getAsString();
             String content = sug.get("content").getAsString();
-            if (content.length() > 50) content = content.substring(0, 47) + "...";
-            sb.append("**#").append(sid).append("** - ").append(content).append("\n");
-            buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_show_" + sid, "عرض #" + sid));
+            if (content.length() > 40) content = content.substring(0, 37) + "...";
+            
+            sb.append("**#").append(sid).append("** - ").append(user).append(": ").append(content).append("\n");
+            buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_view_" + sid, "#" + sid));
         }
-        java.util.List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new java.util.ArrayList<>();
+
+        List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new ArrayList<>();
         for (int i = 0; i < buttons.size(); i += 5) {
             rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
         }
-        var embed = EmbedUtil.containerBranded("\u0627\u0644\u062A\u0637\u0648\u064A\u0631", "\u0644\u0648\u062D\u0629 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D\u0627\u062A", sb.toString(), EmbedUtil.BANNER_MAIN);
-        event.replyEmbeds(embed).setComponents(rows).setEphemeral(true).queue();
+
+        if (event instanceof net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent be) {
+            be.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).queue();
+        } else {
+            event.replyEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Inbox", sb.toString(), EmbedUtil.BANNER_MAIN)).setComponents(rows).setEphemeral(true).queue();
+        }
     }
 
-    public static void updateSuggestionList(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
-        com.google.gson.JsonArray pending = com.highcore.bot.database.SupabaseClient.get("dc_suggestions", "status=eq.pending&limit=10");
-        if (pending == null || pending.size() == 0) {
-            event.getHook().editOriginal("لا يوجد اقتراحات معلقة حالياً.").setComponents().queue();
+    public static void handleSuggestionView(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event, long id) {
+        com.google.gson.JsonObject sug = com.highcore.bot.database.SupabaseClient.getSuggestion(id);
+        if (sug == null) {
+            replyEphemeral(event, EmbedUtil.error("Error", "Suggestion not found in database."));
             return;
         }
-        StringBuilder sb = new StringBuilder();
-        sb.append("### \uD83D\uDCDD قائمة الاقتراحات المعلقة\nإليك آخر 10 اقتراحات بانتظار المراجعة:\n\n");
-        java.util.List<net.dv8tion.jda.api.components.buttons.Button> buttons = new java.util.ArrayList<>();
-        for (int i = 0; i < pending.size(); i++) {
-            com.google.gson.JsonObject sug = pending.get(i).getAsJsonObject();
-            long sid = sug.get("id").getAsLong();
-            String content = sug.get("content").getAsString();
-            if (content.length() > 50) content = content.substring(0, 47) + "...";
-            sb.append("**#").append(sid).append("** - ").append(content).append("\n");
-            buttons.add(net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_show_" + sid, "عرض #" + sid));
-        }
-        java.util.List<net.dv8tion.jda.api.components.actionrow.ActionRow> rows = new java.util.ArrayList<>();
-        for (int i = 0; i < buttons.size(); i += 5) {
-            rows.add(net.dv8tion.jda.api.components.actionrow.ActionRow.of(buttons.subList(i, Math.min(i + 5, buttons.size()))));
-        }
-        var embed = EmbedUtil.containerBranded("\u0627\u0644\u062A\u0637\u0648\u064A\u0631", "\u0644\u0648\u062D\u0629 \u0627\u0644\u0627\u0642\u062A\u0631\u0627\u062D\u0627\u062A", sb.toString(), EmbedUtil.BANNER_MAIN);
-        event.getHook().editOriginalEmbeds(embed).setComponents(rows).queue();
+
+        String user = sug.get("user_name").getAsString();
+        String content = sug.get("content").getAsString();
+        String date = sug.get("created_at").getAsString();
+
+        String body = String.format("""
+                ### 💡 مـعـايـنـة اقـتـراح تـقـنـي
+                **مــعــرف الاقــتــراح:** `#%d`
+                **صــاحــب الاقــتــراح:** %s
+                **الـتـاريـخ:** %s
+                
+                **الـمـحـتـوى الـكـامـل:**
+                ```%s```
+                """, id, user, date, content);
+
+        net.dv8tion.jda.api.components.actionrow.ActionRow controls = net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+            net.dv8tion.jda.api.components.buttons.Button.success("suggest_accept_" + id, "قـبـول"),
+            net.dv8tion.jda.api.components.buttons.Button.danger("suggest_reject_" + id, "رفـض"),
+            net.dv8tion.jda.api.components.buttons.Button.secondary("suggest_back", "الـعـودة")
+        );
+
+        event.getHook().editOriginalEmbeds(EmbedUtil.containerBranded("DEVELOPMENT", "Suggestion Review", body, EmbedUtil.BANNER_MAIN)).setComponents(controls).queue();
     }
 
     public static void sendAboutUs(IReplyCallback event) {
