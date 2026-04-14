@@ -90,7 +90,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (!canManage(event, m)) return;
         m.modifyNickname(nick).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Update Nickname", "Nickname for " + m.getUser().getName() + " has been changed to: `" + (nick == null ? "Original" : nick) + "`"));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Nickname Update", "New Nickname: `" + (nick == null ? "Original" : nick) + "`", event.getMember(), m.getUser(), m, EmbedUtil.INFO));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("setnick", "Update Summary: Nickname Synchronization\nOriginal Result: " + (nick == null ? "Reset" : nick) + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.INFO));
         });
     }
 
@@ -105,7 +105,7 @@ public class ModerationCommands extends ListenerAdapter {
 
         event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Ban Enforcement", u.getName() + " has been banned from the agency.\nReason: " + reason));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Member Banned", "Reason: " + reason, event.getMember(), u, targetMember, EmbedUtil.DANGER));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("ban", "Action: Global Blacklist\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, targetMember, EmbedUtil.DANGER));
         });
     }
 
@@ -114,7 +114,7 @@ public class ModerationCommands extends ListenerAdapter {
         String userId = event.getOption("user_id", OptionMapping::getAsString);
         event.getGuild().unban(User.fromId(userId)).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Unban System", "Restrictions removed for user ID: `" + userId + "`"));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("User Unbanned", "Target ID: `" + userId + "`", event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Exile Revocation\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
         });
     }
 
@@ -123,6 +123,7 @@ public class ModerationCommands extends ListenerAdapter {
         event.getGuild().retrieveBanList().queue(bans -> {
             bans.forEach(ban -> event.getGuild().unban(ban.getUser()).queue());
             PanelService.reply(event, EmbedUtil.success("Clear Ban List", "**" + bans.size() + "** members have been unbanned successfully."));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban-all", "Operation: Database Wipe\nAffected: **" + bans.size() + "** subjects unbanned.\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.WARNING));
         });
     }
 
@@ -133,7 +134,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (m == null) return;
         m.kick().reason(reason).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Kick System", m.getUser().getName() + " has been kicked from the server.\nReason: " + reason));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Member Kicked", "Reason: " + reason, event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("kick", "Action: Manual Disconnect\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
         });
     }
 
@@ -141,7 +142,10 @@ public class ModerationCommands extends ListenerAdapter {
         if (!hasPerm(event, Permission.KICK_MEMBERS)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         if (m != null && m.getVoiceState().inAudioChannel()) {
-            event.getGuild().kickVoiceMember(m).queue(v -> PanelService.reply(event, EmbedUtil.success("Voice Kick", m.getUser().getName() + " has been disconnected from the voice channel.")));
+            event.getGuild().kickVoiceMember(m).queue(v -> {
+                PanelService.reply(event, EmbedUtil.success("Voice Kick", m.getUser().getName() + " has been disconnected from the voice channel."));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("vkick", "Action: Voice Channel Eviction\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+            });
         }
     }
 
@@ -151,7 +155,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (m == null) return;
         m.timeoutFor(24, TimeUnit.HOURS).reason("Text Mute").queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Mute System", m.getUser().getName() + " has been muted for 24 hours."));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Member Muted", "Duration: 24h\nReason: Text Mute", event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("mute-text", "Action: Text Isolation\nDuration: 24h\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
         });
     }
 
@@ -161,7 +165,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (m == null) return;
         m.removeTimeout().queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Unmute System", "Writing permissions restored for " + m.getUser().getName()));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Member Unmuted", "Restrictions removed manually.", event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unmute-text", "Action: Isolation Revocation\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
         });
     }
 
@@ -176,14 +180,20 @@ public class ModerationCommands extends ListenerAdapter {
         if (!hasPerm(event, Permission.VOICE_MUTE_OTHERS)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         if (m == null) return;
-        m.mute(true).queue(v -> PanelService.reply(event, EmbedUtil.success("Voice Mute", "Microphone muted for " + m.getUser().getName())));
+        m.mute(true).queue(v -> {
+            PanelService.reply(event, EmbedUtil.success("Voice Mute", "Microphone muted for " + m.getUser().getName()));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("mute-voice", "Action: Microphone Restriction\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+        });
     }
 
     private void handleUnmuteVoice(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.VOICE_MUTE_OTHERS)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         if (m == null) return;
-        m.mute(false).queue(v -> PanelService.reply(event, EmbedUtil.success("Voice Unmute", "Microphone enabled for " + m.getUser().getName())));
+        m.mute(false).queue(v -> {
+            PanelService.reply(event, EmbedUtil.success("Voice Unmute", "Microphone enabled for " + m.getUser().getName()));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unmute-voice", "Action: Voice Restoration\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
+        });
     }
 
     private void handleTimeout(SlashCommandInteractionEvent event) {
@@ -193,7 +203,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (m == null) return;
         m.timeoutFor(dur, TimeUnit.MINUTES).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Timeout System", m.getUser().getName() + " has been timed out for **" + dur + "** minutes."));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Member Timeout", "Duration: " + dur + "m", event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("timeout", "Action: Temporal Access Restriction\nDuration: " + dur + "m\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
         });
     }
 
@@ -207,7 +217,7 @@ public class ModerationCommands extends ListenerAdapter {
         event.getChannel().getIterableHistory().takeAsync(amt).thenAccept(msgs -> {
             event.getGuildChannel().deleteMessages(msgs).queue(v -> {
                 PanelService.replyEphemeral(event, EmbedUtil.success("Channel Purge", "**" + msgs.size() + "** messages deleted."));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Channel Purge", "Amount: " + msgs.size() + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.DANGER));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("clear", "Action: Intelligence Wipe\nAmount: " + msgs.size() + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.DANGER));
             });
         });
     }
@@ -218,7 +228,10 @@ public class ModerationCommands extends ListenerAdapter {
         var chMapping = event.getOption("channel");
         if (m != null && chMapping != null) {
             net.dv8tion.jda.api.entities.channel.middleman.AudioChannel ch = chMapping.getAsChannel().asAudioChannel();
-            event.getGuild().moveVoiceMember(m, ch).queue(v -> PanelService.reply(event, EmbedUtil.success("Member Move", m.getUser().getName() + " moved to channel " + ch.getName())));
+            event.getGuild().moveVoiceMember(m, ch).queue(v -> {
+                PanelService.reply(event, EmbedUtil.success("Member Move", m.getUser().getName() + " moved to channel " + ch.getName()));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("move", "Action: Station Relocation\nTarget: " + ch.getAsMention() + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.INFO));
+            });
         }
     }
 
@@ -235,7 +248,7 @@ public class ModerationCommands extends ListenerAdapter {
         } else {
             event.getGuild().addRoleToMember(m, r).queue(v -> {
                 PanelService.reply(event, EmbedUtil.success("Role System", "Role " + r.getName() + " added to " + m.getUser().getName()));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Role Added", "Role: " + r.getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("role", "Update Summary: Role Allocation\nRole: " + r.getAsMention() + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
             });
         }
     }
@@ -251,7 +264,7 @@ public class ModerationCommands extends ListenerAdapter {
         com.highcore.bot.database.SupabaseClient.saveTempRole(m.getId(), event.getGuild().getId(), r.getId(), expiry);
         event.getGuild().addRoleToMember(m, r).queue(v -> {
             PanelService.reply(event, EmbedUtil.success("Temporary Role", "Role " + r.getName() + " added to " + m.getUser().getName() + " for " + hours + " hours."));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Temp Role Added", "Role: " + r.getAsMention() + "\nDuration: " + hours + "h", event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("temprole", "Action: Temporal Role Assignment\nRole: " + r.getAsMention() + "\nDuration: " + hours + "h\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.SUCCESS));
         });
     }
 
@@ -275,7 +288,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (u == null) return;
         com.highcore.bot.database.SupabaseClient.addWarning(u.getId(), u.getName(), event.getUser().getId(), event.getUser().getName(), reason, event.getGuild().getId());
         PanelService.reply(event, EmbedUtil.success("New Warning", "Warning recorded for " + u.getName() + ".\nReason: " + reason));
-        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Warning Issued", "Reason: " + reason, event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.WARNING));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("warn-add", "Action: Official Warning Issuance\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.WARNING));
     }
 
     private void handleWarnRemove(SlashCommandInteractionEvent event) {
@@ -284,7 +297,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (u == null) return;
         com.highcore.bot.database.SupabaseClient.clearUserWarnings(u.getId(), event.getGuild().getId());
         PanelService.reply(event, EmbedUtil.success("Clear History", "All warnings removed for " + u.getName()));
-        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Warnings Cleared", "Infraction record wiped.", event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("warn-remove", "Action: Disciplinary Record Purge\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
     }
 
     private void handleWarnings(SlashCommandInteractionEvent event) {
@@ -341,7 +354,7 @@ public class ModerationCommands extends ListenerAdapter {
         if (u == null) return;
         com.highcore.bot.database.SupabaseClient.clearUserViolations(u.getId(), event.getGuild().getId());
         PanelService.reply(event, EmbedUtil.success("Clear Violations", "All filter violations removed for " + u.getName()));
-        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Filter Records Wiped", "Violation history cleared.", event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("violations-clear", "Operation: Filter Interaction Wipe\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, event.getGuild().getMember(u), EmbedUtil.SUCCESS));
     }
 
     private void handleRoleMultiple(SlashCommandInteractionEvent event) {
@@ -362,7 +375,7 @@ public class ModerationCommands extends ListenerAdapter {
                 }
             }
             PanelService.reply(event, EmbedUtil.success("Bulk Management", "Role: " + r.getName() + "\nAction: " + action + "\nAffected Members: **" + count + "**"));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Bulk Role Update", "Action: " + action + "\nRole: " + r.getAsMention() + "\nAffected Members: " + count, event.getMember(), null, null, EmbedUtil.GOLD));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("role-multiple", "Operation: Bulk Intelligence Modification\nAction: " + action + "\nRole: " + r.getAsMention() + "\nAffected: " + count + " Members\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.GOLD));
         });
     }
 
@@ -386,7 +399,7 @@ public class ModerationCommands extends ListenerAdapter {
         tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(allow).setDenied(deny).queue(
             v -> {
                 PanelService.reply(event, EmbedUtil.success("Management", "Channel successfully " + (unlock ? "Unlocked" : "Locked") + "."));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Channel Security Toggle", "Status: " + (unlock ? "Unlocked" : "Locked") + "\nTarget: " + tc.getAsMention(), event.getMember(), null, null, unlock ? EmbedUtil.SUCCESS : EmbedUtil.DANGER));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("lock/unlock", "Action: Global Security Protocol Override\nStatus: " + (unlock ? "🔓 System Unlocked" : "🔒 System Locked") + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, unlock ? EmbedUtil.SUCCESS : EmbedUtil.DANGER));
             },
             e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Permission update failed: " + e.getMessage()))
         );
@@ -401,7 +414,7 @@ public class ModerationCommands extends ListenerAdapter {
         tc.upsertPermissionOverride(event.getGuild().getPublicRole()).setAllowed(allow).setDenied(deny).queue(
             v -> {
                 PanelService.reply(event, EmbedUtil.success("Visibility", "Channel is now " + (show ? "Visible" : "Hidden") + " to everyone."));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Channel Visibility Toggle", "Status: " + (show ? "Visible" : "Hidden") + "\nTarget: " + tc.getAsMention(), event.getMember(), null, null, show ? EmbedUtil.SUCCESS : EmbedUtil.WARNING));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("show/hide", "Action: Optical Intelligence Toggle\nStatus: " + (show ? "👁 Visible" : "🌫 Hidden") + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, show ? EmbedUtil.SUCCESS : EmbedUtil.WARNING));
             },
             e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Visibility update failed: " + e.getMessage()))
         );
@@ -413,7 +426,7 @@ public class ModerationCommands extends ListenerAdapter {
         event.getChannel().asTextChannel().getManager().setSlowmode(sec).queue(
             v -> {
                 PanelService.reply(event, EmbedUtil.success("Slowmode", "Slowmode delay set to `" + sec + " seconds`"));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("Slowmode Updated", "Delay: " + sec + "s\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.INFO));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("slowmode", "Action: Operational Pace Adjustment\nDelay: " + sec + "s\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.INFO));
             },
             e -> PanelService.replyEphemeral(event, EmbedUtil.error("Failed", "Slowmode update failed: " + e.getMessage()))
         );
@@ -444,6 +457,7 @@ public class ModerationCommands extends ListenerAdapter {
                     v -> {
                         log.info("[MOD] Emoji {} deployed successfully.", finalName);
                         PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed.", EmbedUtil.BANNER_MAIN));
+                        LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("add-emoji", "Action: Creative Asset Deployment\nEmoji Name: `:" + finalName + ":`" + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.SUCCESS));
                     },
                     e -> {
                         log.error("[MOD] Emoji deployment failed: {}", e.getMessage());

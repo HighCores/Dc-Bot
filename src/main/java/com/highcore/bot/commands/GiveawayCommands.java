@@ -323,7 +323,7 @@ public class GiveawayCommands extends ListenerAdapter {
         dashboardMessages.put(giveawayId, ""); // Placeholder to be updated by msg queue
         dashboardChannels.put(giveawayId, target.getId());
         
-        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Giveaway Started", "Deployment Node: " + target.getAsMention() + "\nPrize: `" + prize + "`\nWinners: " + winCount + "\nDuration: " + (isDrop ? "Instant" : duration + "m"), event.getMember(), null, null, EmbedUtil.SUCCESS));
+        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-start", "Operation: Incentive Deployment Initiated\nDeployment Node: " + target.getAsMention() + "\nPrize Asset: `" + prize + "`\nWinner Slots: " + winCount + "\nDuration: " + (isDrop ? "Instant" : duration + "m"), event.getMember(), null, null, EmbedUtil.SUCCESS));
 
         String body;
         if (isDrop) {

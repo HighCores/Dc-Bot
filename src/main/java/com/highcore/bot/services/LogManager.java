@@ -171,4 +171,10 @@ public class LogManager {
             ch.sendMessageEmbeds(embed).queue();
         }
     }
+
+    public static void logCommandInteraction(net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event, String details) {
+        if (event.getGuild() == null) return;
+        logEmbed(event.getGuild(), Config.LOG_COMMANDS, 
+            com.highcore.bot.utils.EmbedUtil.createOldLogEmbed(event.getName(), details + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, com.highcore.bot.utils.EmbedUtil.GOLD));
+    }
 }

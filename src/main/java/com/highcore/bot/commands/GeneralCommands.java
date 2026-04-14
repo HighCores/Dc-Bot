@@ -87,5 +87,8 @@ public class GeneralCommands extends ListenerAdapter {
                                         : "Identity synchronized. Your title is now set to: **" + title + "**")),
                 error -> PanelService.reply(event, EmbedUtil.success("Identity Update",
                         "Registry update finalized. *Note: Nickname synchronization failed due to hierarchy restrictions.*")));
+        
+        com.highcore.bot.services.LogManager.logEmbed(event.getGuild(), com.highcore.bot.config.Config.LOG_COMMANDS, 
+            EmbedUtil.createOldLogEmbed("title", "Action: " + (isReset ? "Identity Cleared" : "Title Synchronized") + "\nNew Title: " + (title == null ? "None" : title) + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), null, null, EmbedUtil.INFO));
     }
 }

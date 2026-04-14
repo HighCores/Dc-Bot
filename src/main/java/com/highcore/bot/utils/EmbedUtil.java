@@ -177,37 +177,51 @@ public class EmbedUtil {
         return containerBranded("activity", type, details, BANNER_MAIN).withAccentColor(color.getRGB() & 0xFFFFFF);
     }
 
-    public static MessageEmbed createOldLogEmbed(String title, String details, Member moderator, UserSnowflake targetUser, Member targetMember, Color color) {
+    public static MessageEmbed createOldLogEmbed(String command, String details, Member moderator, UserSnowflake targetUser, Member targetMember, Color color) {
         EmbedBuilder eb = new EmbedBuilder();
-        eb.setTitle("\uD83D\uDCDC " + title);
+        
+        // Match the screenshot: Banner + Activity Sector Header
+        eb.setImage(BANNER_MAIN);
+        eb.setTitle("\u25C8 ACTIVITY SECTOR \u30FB COMMAND LOG");
+        eb.setAuthor("⚙\uFE0F Command Executed", null, null);
         eb.setColor(color);
         eb.setTimestamp(Instant.now());
 
+        // Body Fields with the exact style
+        eb.addField("Command:", "`/" + command + "`", false);
+
         if (moderator != null) {
-            eb.addField("Moderator", moderator.getAsMention() + " (`" + moderator.getId() + "`)", true);
+            eb.addField("User:", moderator.getAsMention() + " (`" + moderator.getId() + "`)", true);
         } else {
-            eb.addField("Moderator", "System Automation", true);
+            eb.addField("User:", "System Automation", true);
+        }
+
+        // Add context for the channel if available
+        if (moderator != null && moderator.getGuild() != null) {
+             // We'll try to guess if we can get the interaction channel in a better way later, 
+             // but for now we rely on the command handling pass-through or generic tag.
+             // Usually, logs provide channel info in 'details'.
         }
 
         if (targetUser != null || targetMember != null) {
             String targetId = targetMember != null ? targetMember.getId() : targetUser.getId();
-            // "Silent" mention using <@ID> in a field value
-            eb.addField("Subject", "<@" + targetId + "> (`" + targetId + "`)", true);
+            eb.addField("Subject:", "<@" + targetId + "> (`" + targetId + "`)", true);
             
             if (targetMember != null) {
                 String roles = targetMember.getRoles().stream()
                         .map(Role::getAsMention)
                         .collect(Collectors.joining(" "));
-                if (roles.isEmpty()) roles = "No Roles";
-                eb.addField("User Roles", roles, false);
-            } else {
-                eb.addField("User Roles", "N/A (User not in server)", false);
+                if (roles.isEmpty()) roles = "None";
+                eb.addField("Clearance:", roles, false);
             }
         }
 
         if (details != null && !details.isEmpty()) {
-            eb.addField("Details", details, false);
+            eb.addField("Intelligence/Data:", details, false);
         }
+
+        // Exact Footer from screenshot
+        eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA");
 
         return eb.build();
     }
