@@ -22,7 +22,7 @@ public class BannedWordCommands extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferReply(false).queue();
 
         JsonArray words = SupabaseClient.getWordFilter();
         StringBuilder sb = new StringBuilder();

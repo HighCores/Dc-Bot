@@ -53,7 +53,7 @@ public class SlashCommands extends ListenerAdapter {
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
             "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
-            "ping", "roll", "translate", "suggest", "suggestion", "title"
+            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
         if (dedicatedCmds.contains(name)) return;
 

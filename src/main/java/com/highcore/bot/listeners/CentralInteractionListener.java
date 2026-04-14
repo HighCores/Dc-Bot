@@ -46,7 +46,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
 
         boolean isModalTrigger = id.equals("ticket_init_support") || id.equals("ticket_init_complaint")
-                || id.equals("order_open_ticket");
+                || id.equals("order_open_ticket") || id.equals("ar_add") || id.equals("bw_add");
         boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") || id.equals("ticket_unclaim") ||
                 id.equals("ticket_delete") || id.equals("ticket_reopen") || id.startsWith("order_status_update_");
 
@@ -63,7 +63,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 }
                 event.deferEdit().queue(v -> processButton(event));
             } else {
-                event.deferReply(true).queue(v -> processButton(event));
+                event.deferReply(false).queue(v -> processButton(event));
             }
             return;
         }

@@ -22,7 +22,7 @@ public class AutoReplyCommands extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(true).queue();
+        event.deferReply(false).queue();
 
         JsonArray responses = SupabaseClient.getAutoResponses();
         StringBuilder sb = new StringBuilder();
