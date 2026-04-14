@@ -404,10 +404,13 @@ public class ModerationCommands extends ListenerAdapter {
         OptionMapping imgMapping = event.getOption("image");
         if (imgMapping == null || name == null || tags == null) return;
 
-        imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
-            try {
+        net.dv8tion.jda.api.entities.Message.Attachment attachment = imgMapping.getAsAttachment();
+        attachment.getProxy().download().thenAccept(stream -> {
+            try (stream) {
                 byte[] data = stream.readAllBytes();
-                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + ".png");
+                String ext = attachment.getFileExtension();
+                if (ext == null) ext = "png";
+                net.dv8tion.jda.api.utils.FileUpload upload = net.dv8tion.jda.api.utils.FileUpload.fromData(data, name + "." + ext);
                 
                 event.getGuild().createSticker(name, desc == null ? "Elite Agency Asset" : desc, upload, java.util.Arrays.asList(tags.split(" ")))
                     .queue(
@@ -425,6 +428,9 @@ public class ModerationCommands extends ListenerAdapter {
             } catch (Exception e) {
                 PanelService.replyEphemeral(event, EmbedUtil.error("PROCEDURE FAILED", "Critical stream error: " + e.getMessage()));
             }
+        }).exceptionally(ex -> {
+            PanelService.replyEphemeral(event, EmbedUtil.error("PROCEDURE FAILED", "Download failure: " + ex.getMessage()));
+            return null;
         });
     }
 

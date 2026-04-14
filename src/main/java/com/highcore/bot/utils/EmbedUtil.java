@@ -14,33 +14,35 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class EmbedUtil {
-    public static final Color ACCENT      = Color.decode("#C5A059");
-    public static final Color SUCCESS     = Color.decode("#10b981");
-    public static final Color DANGER      = Color.decode("#f43f5e");
-    public static final Color INFO        = Color.decode("#3b82f6");
-    public static final Color WARNING     = Color.decode("#f59e0b");
-    public static final Color GOLD        = Color.decode("#fbbf24");
+    public static final Color ACCENT = Color.decode("#C5A059");
+    public static final Color SUCCESS = Color.decode("#10b981");
+    public static final Color DANGER = Color.decode("#f43f5e");
+    public static final Color INFO = Color.decode("#3b82f6");
+    public static final Color WARNING = Color.decode("#f59e0b");
+    public static final Color GOLD = Color.decode("#fbbf24");
     public static final Color ACCENT_GOLD = Color.decode("#FFD700");
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
-    public static final Color PRIMARY     = Color.decode("#10b981");
+    public static final Color PRIMARY = Color.decode("#35423E");
 
-    public static final String BANNER_MAIN           = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_SUPPORT        = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
-    public static final String BANNER_COMPLAINT      = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
-    public static final String BANNER_GIVEAWAY       = BANNER_MAIN;
-    public static final String BANNER_INVOICE        = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69dc188a&is=69dac70a&hm=ce79513d28baf3f7572a0c473107c30930365356dbc52fbe84534ab3bce9ce25&format=png";
-    public static final String BANNER_INVOICE_PAID   = "https://media.discordapp.net/attachments/1491360207568113787/1492627055974678610/invoice_site_.png?ex=69dc04c5&is=69dab345&hm=a5f31dd32ae1ecc06f3c87fdde8008018c32ad89da7e28642b62c38f278f4a5d&format=png";
-    public static final String BANNER_ORDER_TICKET   = "https://media.discordapp.net/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69dc562b&is=69db04ab&hm=d50957bf79f630507bf19486529e4d539fa2f0453945f36c44d00fce6be3e1be&=&format=webp&width=1845&height=807";
+    public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
+    public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
+    public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
+    public static final String BANNER_GIVEAWAY = BANNER_MAIN;
+    public static final String BANNER_INVOICE = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69dc188a&is=69dac70a&hm=ce79513d28baf3f7572a0c473107c30930365356dbc52fbe84534ab3bce9ce25&format=png";
+    public static final String BANNER_INVOICE_PAID = "https://media.discordapp.net/attachments/1491360207568113787/1492627055974678610/invoice_site_.png?ex=69dc04c5&is=69dab345&hm=a5f31dd32ae1ecc06f3c87fdde8008018c32ad89da7e28642b62c38f278f4a5d&format=png";
+    public static final String BANNER_ORDER_TICKET = "https://media.discordapp.net/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69dc562b&is=69db04ab&hm=d50957bf79f630507bf19486529e4d539fa2f0453945f36c44d00fce6be3e1be&=&format=webp&width=1845&height=807";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
     }
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl, ActionRow... rows) {
+    public static Container containerBranded(String sector, String title, String body, String imageUrl,
+            ActionRow... rows) {
         return containerBranded(sector, title, body, imageUrl, null, rows);
     }
 
-    public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji, ActionRow... rows) {
+    public static Container containerBranded(String sector, String title, String body, String imageUrl, Emoji iconEmoji,
+            ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
 
         if (imageUrl != null && !imageUrl.isEmpty()) {
@@ -53,7 +55,7 @@ public class EmbedUtil {
         } else {
             text.append("## ").append(title).append("\n");
         }
-        
+
         if (body != null && !body.isEmpty()) {
             text.append(body);
         }
@@ -83,20 +85,23 @@ public class EmbedUtil {
     public static Container startupPanel(ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_MAIN)));
-        
+
         layout.add(TextDisplay.of("**Highcore Agency**"));
         layout.add(Separator.createDivider(Spacing.SMALL));
-        
-        layout.add(TextDisplay.of("**PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS**\n\nEstablishing the definitive global standard for advanced digital infrastructure and elite creative operations. Highcore provides high-fidelity solutions across system development, visual architecture, and strategic media management.\n\nOur internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners."));
-        
+
+        layout.add(TextDisplay.of(
+                "**PROFESSIONAL MULTI-SECTOR AGENCY OPERATIONS**\n\nEstablishing the definitive global standard for advanced digital infrastructure and elite creative operations. Highcore provides high-fidelity solutions across system development, visual architecture, and strategic media management.\n\nOur internal systems are engineered for absolute brand dominance and superior technological precision. We merge artistic vision with technical mastery to deliver the unlimited potential of the agency directly to our global partners."));
+
         layout.add(Separator.createDivider(Spacing.SMALL));
-        
-        layout.add(TextDisplay.of("By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.\n\n**SYSTEM NAVIGATION PROTOCOLS**\nExamine our operational modules and establish a secure connection using the authorized protocols below."));
-        
+
+        layout.add(TextDisplay.of(
+                "By establishing a connection with our operational modules, you gain access to a spectrum of specialized digital assets designed for performance and reliability at scale.\n\n**SYSTEM NAVIGATION PROTOCOLS**\nExamine our operational modules and establish a secure connection using the authorized protocols below."));
+
         layout.add(Separator.createDivider(Spacing.SMALL));
 
         if (rows != null && rows.length > 0) {
-            for (ActionRow row : rows) layout.add(row);
+            for (ActionRow row : rows)
+                layout.add(row);
         }
         return Container.of(layout);
     }
@@ -107,23 +112,23 @@ public class EmbedUtil {
 
                 ### \uD83D\uDEE1\uFE0F I. General Rules
                 1- **Mutual Respect:** Harassment, bullying, or offensive language is strictly prohibited. We are a professional community built on support and respect.
-                
+
                 2- **Professional Identity:** Please use clear, respectful names and appropriate avatars.
-                
+
                 3- **Privacy:** Any form of Doxxing or sharing personal information of members or clients is strictly prohibited and grounds for immediate termination.
 
                 ### \uD83D\uDCBC II. Business Rules
                 1- **Order Integrity:** Order channels are for professional work only. Pranks or fake requests will result in restricted access.
-                
+
                 2- **Intellectual Property:** All code, designs, and assets remain the property of "Highcore Agency" unless agreed otherwise with the client.
-                
+
                 3- **Official Communication:** All financial or technical agreements must be localized within Tickets to ensure transparency and proper documentation.
 
                 ### \uD83D\uDEAB III. Prohibitions
                 1- **No Advertisements:** Posting external server links or promoting external services without administration approval is prohibited.
-                
+
                 2- **No Spam:** Avoid repetitive messages or random pings to the administration. We are here to serve you efficiently.
-                
+
                 3- **Sensitive Content:** Posting political, extreme religious, or NSFW content is strictly forbidden.
 
                 ### \u26A0\uFE0F IV. Administrative Actions
@@ -199,10 +204,12 @@ public class EmbedUtil {
     }
 
     public static Container help() {
-        return containerBranded("SYSTEM", "Command Directory", "Access all operative commands via standard slash interface (`/`).", BANNER_MAIN);
+        return containerBranded("SYSTEM", "Command Directory",
+                "Access all operative commands via standard slash interface (`/`).", BANNER_MAIN);
     }
 
-    public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl, ActionRow... rows) {
+    public static Container containerBrandedRows(String title, String subtitle, String body, String imageUrl,
+            ActionRow... rows) {
         return containerBranded(title, subtitle, body, imageUrl, rows);
     }
 
@@ -222,7 +229,8 @@ public class EmbedUtil {
     }
 
     public static Color parseColor(String colorStr) {
-        if (colorStr == null) return ACCENT_TEAL;
+        if (colorStr == null)
+            return ACCENT_TEAL;
         try {
             return Color.decode(colorStr.startsWith("#") ? colorStr : "#" + colorStr);
         } catch (Exception e) {
