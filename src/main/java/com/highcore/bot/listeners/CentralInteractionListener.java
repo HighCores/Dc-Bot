@@ -207,9 +207,19 @@ public class CentralInteractionListener extends ListenerAdapter {
             com.highcore.bot.commands.SlashCommands.BcSession s = com.highcore.bot.commands.SlashCommands.BC_SESSIONS.remove("bc_" + event.getUser().getId());
             if (s != null) {
                 if (BroadcastService.startBroadcast(event.getGuild(), event.getValue("message").getAsString(), s.roleId, s.attUrl)) {
-                    event.reply("Broadcast transmission initiated.").setEphemeral(true).queue();
+                    PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Broadcast Active", "### 📡 Global Signal Locked\nThe broadcast sequence has been successfully initiated. Transmission to all designated nodes is now in progress.", EmbedUtil.BANNER_MAIN));
                 } else {
-                    event.reply("A broadcast is already in progress.").setEphemeral(true).queue();
+                    PanelService.reply(event, EmbedUtil.error("Broadcast Conflict", "A broadcast sequence is already active in the mainframe."));
+                }
+            }
+        } else if (id.equals("modal_boter")) {
+            com.highcore.bot.commands.SlashCommands.BoterSession s = com.highcore.bot.commands.SlashCommands.BOTER_SESSIONS.remove("boter_" + event.getUser().getId());
+            if (s != null) {
+                String msg = event.getValue("message").getAsString();
+                var tc = event.getGuild().getTextChannelById(s.channelId);
+                if (tc != null) {
+                    tc.sendMessage(msg).queue(v -> 
+                        PanelService.reply(event, EmbedUtil.success("EMULATION", "Message successfully deployed to target channel.")));
                 }
             }
         } else if (id.equals("modal_support_init")) {

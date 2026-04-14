@@ -37,7 +37,10 @@ public class ModerationCommands extends ListenerAdapter {
         
         if (!modCmds.contains(name)) return; // Pass to other listeners
 
-        if (!event.isAcknowledged()) event.deferReply(true).queue();
+        java.util.List<String> publicCmds = java.util.Arrays.asList("hide", "show", "lock", "unlock", "slowmode", "inrole", "add-emoji");
+        boolean ephemeral = !publicCmds.contains(name);
+        
+        if (!event.isAcknowledged()) event.deferReply(ephemeral).queue();
 
         try {
             switch (name) {
@@ -221,8 +224,12 @@ public class ModerationCommands extends ListenerAdapter {
         Role r = event.getOption("role", OptionMapping::getAsRole);
         if (r == null) return;
         event.getGuild().loadMembers().onSuccess(members -> {
-            String list = members.stream().filter(m -> m.getRoles().contains(r)).map(Member::getEffectiveName).limit(20).collect(Collectors.joining(", "));
-            PanelService.reply(event, EmbedUtil.containerBranded("Query", "Role Members", "Role: " + r.getName() + "\nMembers: " + (list.isEmpty() ? "None" : list), EmbedUtil.BANNER_MAIN));
+            java.util.List<Member> list = members.stream().filter(m -> m.getRoles().contains(r)).collect(java.util.stream.Collectors.toList());
+            String names = list.stream().map(Member::getEffectiveName).limit(100).collect(java.util.stream.Collectors.joining(", "));
+            if (list.size() > 100) names += "... and " + (list.size() - 100) + " more";
+            
+            String body = String.format("**Role:** %s\n**Members:** %s", r.getAsMention(), names.isEmpty() ? "None" : names);
+            PanelService.reply(event, EmbedUtil.containerBranded("QUERY", "Role Members", body, EmbedUtil.BANNER_MAIN));
         });
     }
 
@@ -356,12 +363,21 @@ public class ModerationCommands extends ListenerAdapter {
         if (!hasPerm(event, Permission.MANAGE_GUILD_EXPRESSIONS)) return;
         String name = event.getOption("name", OptionMapping::getAsString);
         OptionMapping imgMapping = event.getOption("image");
-        if (imgMapping == null) return;
+        if (imgMapping == null || name == null) return;
         
+        // Sanitize emoji name: alphanumeric and underscores only, 2-32 chars
+        String sanitized = name.replaceAll("[^a-zA-Z0-9_]", "");
+        if (sanitized.length() < 2) sanitized = "emoji_" + sanitized;
+        if (sanitized.length() > 32) sanitized = sanitized.substring(0, 32);
+        final String finalName = sanitized;
+
         imgMapping.getAsAttachment().getProxy().download().thenAccept(stream -> {
             try {
                 net.dv8tion.jda.api.entities.Icon icon = net.dv8tion.jda.api.entities.Icon.from(stream);
-                event.getGuild().createEmoji(name, icon).queue(v -> PanelService.reply(event, EmbedUtil.success("Emoji Protocol", "The emoji `" + name + "` has been successfully deployed.")));
+                event.getGuild().createEmoji(finalName, icon).queue(
+                    v -> PanelService.reply(event, EmbedUtil.containerBranded("Emoji Protocol", "Emoji Deployed", "### ⚡ Data Asset Initialized\nThe emoji `" + finalName + "` has been successfully deployed to the agency collective.", EmbedUtil.BANNER_MAIN)),
+                    e -> PanelService.reply(event, EmbedUtil.error("Deployment Failure", "Registry rejected asset: " + e.getMessage()))
+                );
             } catch (Exception e) { 
                 PanelService.reply(event, EmbedUtil.error("Procedure Failed", "Please verify image quality and dimensions according to protocols.")); 
             }

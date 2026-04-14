@@ -31,32 +31,54 @@ public class InfoCommands extends ListenerAdapter {
         Member m = event.getOption("user") != null ? event.getOption("user").getAsMember() : event.getMember();
         if (m == null) return;
         
-        long created = m.getUser().getTimeCreated().toEpochSecond();
-        long joined = m.getTimeJoined().toEpochSecond();
+        event.deferReply().queue();
         
-        String body = String.format("""
-                ### 👤 IDENTITY REGISTRY DATA
-                **Full Name:** %s
-                **Digital ID:** `%s`
-                
-                ▫️ **Chronological Logs:**
-                • **Account Creation:** <t:%d:D> (<t:%d:R>)
-                • **Agency Admission:** <t:%d:D> (<t:%d:R>)
-                
-                ▫️ **Classification & Permissions:**
-                • **Primary Designation:** %s
-                • **Security Clearance:** %s
-                • **Connection State:** `%s`
-                """, 
-                m.getEffectiveName(), 
-                m.getId(), 
-                created, created,
-                joined, joined,
-                m.getRoles().isEmpty() ? "None" : m.getRoles().get(0).getAsMention(),
-                m.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) ? "Executive Management" : "Authorized Personnel",
-                m.getOnlineStatus().name().toLowerCase());
-        
-        PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data", body, m.getUser().getEffectiveAvatarUrl()));
+        m.getUser().retrieveProfile().queue(profile -> {
+            long created = m.getUser().getTimeCreated().toEpochSecond();
+            long joined = m.getTimeJoined().toEpochSecond();
+            
+            String banner = profile.getBannerUrl();
+            if (banner != null) banner += "?size=2048";
+            else banner = EmbedUtil.BANNER_MAIN;
+
+            String body = String.format("""
+                    ### 👤 IDENTITY REGISTRY DATA
+                    **Full Name:** %s
+                    **Digital ID:** `%s`
+                    
+                    ▫️ **Chronological Logs:**
+                    • **Account Creation:** <t:%d:D> (<t:%d:R>)
+                    • **Agency Admission:** <t:%d:D> (<t:%d:R>)
+                    
+                    ▫️ **Classification & Permissions:**
+                    • **Primary Designation:** %s
+                    • **Security Clearance:** %s
+                    • **Connection State:** `%s`
+                    """, 
+                    m.getEffectiveName(), 
+                    m.getId(), 
+                    created, created,
+                    joined, joined,
+                    m.getRoles().isEmpty() ? "None" : m.getRoles().get(0).getAsMention(),
+                    m.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) ? "Executive Management" : "Authorized Personnel",
+                    m.getOnlineStatus().name().toLowerCase());
+            
+            PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data", body, banner));
+        }, err -> {
+            // Fallback if profile retrieval fails
+            long created = m.getUser().getTimeCreated().toEpochSecond();
+            long joined = m.getTimeJoined().toEpochSecond();
+            String body = String.format("""
+                    ### 👤 IDENTITY REGISTRY DATA (CACHED)
+                    **Full Name:** %s
+                    **Digital ID:** `%s`
+                    
+                    ▫️ **Chronological Logs:**
+                    • **Account Creation:** <t:%d:D> (<t:%d:R>)
+                    • **Agency Admission:** <t:%d:D> (<t:%d:R>)
+                    """, m.getEffectiveName(), m.getId(), created, created, joined, joined);
+            PanelService.reply(event, EmbedUtil.containerBranded("IDENTITY", "Profile Data", body, EmbedUtil.BANNER_MAIN));
+        });
     }
 
     private void handleAvatar(SlashCommandInteractionEvent event, boolean server) {
