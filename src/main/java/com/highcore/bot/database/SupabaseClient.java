@@ -19,12 +19,12 @@ public class SupabaseClient {
         return Config.SUPABASE_URL + "/rest/v1/" + table;
     }
 
-    private static Request.Builder auth(Request.Builder builder) {
-        return builder
-                .header("apikey", Config.SUPABASE_KEY)
-                .header("Authorization", "Bearer " + Config.SUPABASE_KEY)
-                .header("Content-Type", "application/json")
-                .header("Prefer", "return=representation");
+    private static Request.Builder auth(Request.Builder rb) {
+        String key = (Config.SUPABASE_KEY != null) ? Config.SUPABASE_KEY.trim() : "";
+        return rb.header("apikey", key)
+                 .header("Authorization", "Bearer " + key)
+                 .header("Content-Type", "application/json")
+                 .header("Prefer", "return=representation");
     }
 
     // ========== GLOBAL SETTINGS & CONFIG ==========

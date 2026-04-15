@@ -209,6 +209,17 @@ public class PanelService {
                     event.getHook().sendMessage("System Error: " + ex.getMessage()).setEphemeral(true).queue();
                 } catch (Exception ignored) {}
             }
+        } else if (target instanceof net.dv8tion.jda.api.entities.Message message) {
+            net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
+            if (messageDataArr[0] != null) {
+                try {
+                    builder.setContent(messageDataArr[0].getContent());
+                } catch (Exception ignored) {}
+            }
+            if (!components.isEmpty()) {
+                builder.setComponents(components).useComponentsV2(true);
+            }
+            message.editMessage(builder.build()).queue();
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             final MessageCreateData messageData = messageDataArr[0];
             if (messageData != null)

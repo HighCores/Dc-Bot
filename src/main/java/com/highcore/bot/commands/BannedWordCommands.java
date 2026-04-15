@@ -54,22 +54,49 @@ public class BannedWordCommands extends ListenerAdapter {
         StringBuilder sb = new StringBuilder();
         sb.append("### 🛡️ Word Monitor: Forbidden Terms\n");
         sb.append("Current restricted terminology in the active list:\n\n");
-
-        if (words == null || words.isEmpty()) {
-            sb.append("`FILTER BLACKLIST IS CURRENTLY EMPTY`\n");
-        } else {
+        if (words != null) {
             words.forEach(el -> {
                 sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
             });
-            sb.append("\n");
         }
-
-        sb.append("\n_Use the buttons below to manage terms._");
-
+        sb.append("\n\n_Use the buttons below to manage terms._");
         var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN);
-        hook.editOriginal("").setComponents(container, ActionRow.of(
+        PanelService.reply(hook, container, ActionRow.of(
                 Button.success("bw_add", "➕ Add Term"),
                 Button.secondary("bw_remove", "🗑️ Delete Term")
-        )).useComponentsV2(true).queue();
+        ));
+    }
+
+    public static void refreshChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+        channel.getHistory().retrievePast(20).queue(msgs -> {
+            for (var m : msgs) {
+                boolean isPanel = m.getComponents().stream().anyMatch(c -> {
+                    String s = c.toString();
+                    return s.contains("bw_add") || s.contains("bw_remove");
+                });
+                if (m.getAuthor().getId().equals(channel.getJDA().getSelfUser().getId()) && isPanel) {
+                    updatePanelMessage(m);
+                    return;
+                }
+            }
+        });
+    }
+
+    private static void updatePanelMessage(net.dv8tion.jda.api.entities.Message m) {
+        JsonArray words = SupabaseClient.getWordFilter();
+        StringBuilder sb = new StringBuilder();
+        sb.append("### 🛡️ Word Monitor: Forbidden Terms\n");
+        sb.append("Current restricted terminology in the active list:\n\n");
+        if (words != null) {
+            words.forEach(el -> {
+                sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
+            });
+        }
+        sb.append("\n\n_Use the buttons below to manage terms._");
+        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN);
+        PanelService.reply(m, container, ActionRow.of(
+            Button.success("bw_add", "➕ Add Term"),
+            Button.secondary("bw_remove", "🗑️ Delete Term")
+        ));
     }
 }

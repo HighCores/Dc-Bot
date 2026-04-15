@@ -37,7 +37,7 @@ public class CentralInteractionListener extends ListenerAdapter {
 
     private static final String STAFF_ROLE_ID = "1488795130008961040";
 
-    private boolean isStaff(Member member) {
+    private boolean isStaff(net.dv8tion.jda.api.entities.Member member) {
         return member != null && member.getRoles().stream()
                 .anyMatch(r -> r.getId().equals(STAFF_ROLE_ID));
     }
@@ -59,12 +59,8 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
-                // DO NOT defer if opening a Modal
-                if (id.equals("ar_add") || id.equals("bw_add")) {
-                    processButton(event);
-                } else {
-                    event.deferEdit().queue(v -> processButton(event));
-                }
+                // Modal triggers must be handled immediately on the event
+                processButton(event);
             } else if (isStaffAction) {
                 if (!isStaff(member)) {
                     event.reply("⛔ This action is restricted to staff members.").setEphemeral(true).queue();
@@ -72,7 +68,13 @@ public class CentralInteractionListener extends ListenerAdapter {
                 }
                 event.deferEdit().queue(v -> processButton(event));
             } else {
-                event.deferReply(false).queue(v -> processButton(event));
+                // Management buttons (edit/delete) should be EPHEMERAL to maintain public panel
+                boolean isManage = id.equals("ar_edit") || id.equals("ar_manage") || id.equals("bw_remove");
+                if (isManage) {
+                    event.deferReply(true).queue(v -> processButton(event));
+                } else {
+                    event.deferReply(false).queue(v -> processButton(event));
+                }
             }
             return;
         }
@@ -215,7 +217,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("ar_edit_select")
                         .setPlaceholder("Select a response to edit...");
                 arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
-                PanelService.reply(event, "### 📝 Edit Assistant\nSelect a response to modify its content.", ActionRow.of(menu.build()));
+                PanelService.replyEphemeral(event, "### 📝 Edit Assistant\nSelect a response to modify its content.", ActionRow.of(menu.build()));
             } else if (id.equals("ar_manage")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
                 if (arr == null || arr.isEmpty()) {
@@ -225,7 +227,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("ar_del_select")
                         .setPlaceholder("Select a response to delete...");
                 arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
-                PanelService.reply(event, "### 🗑️ Delete Assistant\nSelect a response to remove it permanently.", ActionRow.of(menu.build()));
+                PanelService.replyEphemeral(event, "### 🗑️ Delete Assistant\nSelect a response to remove it permanently.", ActionRow.of(menu.build()));
             } else if (id.equals("bw_add")) {
                 TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Enter word to block...").setRequired(true).build();
                 Modal m = Modal.create("modal_bw_add", "Add Banned Word")
@@ -241,7 +243,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("bw_del_select")
                         .setPlaceholder("Select a term to remove...");
                 words.forEach(el -> { String w = el.getAsJsonObject().get("word").getAsString(); menu.addOption(w, w); });
-                PanelService.reply(event, "### 🗑️ Remove Term\nSelect a word to purge from the security list.", ActionRow.of(menu.build()));
+                PanelService.replyEphemeral(event, "### 🗑️ Remove Term\nSelect a word to purge from the security list.", ActionRow.of(menu.build()));
             }
         } catch (Exception e) {
             try {
@@ -318,46 +320,29 @@ public class CentralInteractionListener extends ListenerAdapter {
                 PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
                 return;
             }
-            if (id.equals("ar_delete_select")) {
-                String kw = event.getValues().get(0);
-                AutoReplyService.removeResponse(kw);
-                event.reply("✅ Auto-reply entry `" + kw + "` has been removed.").setEphemeral(true).queue();
-                event.deferEdit().queue(hook -> com.highcore.bot.commands.AutoReplyCommands.updatePanel(hook));
-                return;
-            }
-            if (id.equals("bw_delete_select")) {
-                String word = event.getValues().get(0);
-                WordFilterService.removeWord(word);
-                event.reply("✅ Word `" + word + "` has been removed from the filter.").setEphemeral(true).queue();
-                event.deferEdit().queue(hook -> com.highcore.bot.commands.BannedWordCommands.updatePanel(hook));
-                return;
-            }
             if (id.equals("ar_edit_select")) {
-                String kw = event.getValues().get(0);
-                String current = "";
-                JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
-                for (int i = 0; i < arr.size(); i++) {
-                    if (arr.get(i).getAsJsonObject().get("keyword").getAsString().equalsIgnoreCase(kw)) {
-                        current = arr.get(i).getAsJsonObject().get("response_text").getAsString();
-                        break;
-                    }
-                }
+                String val = event.getValues().get(0);
                 TextInput respInput = TextInput.create("ar_new_response", TextInputStyle.PARAGRAPH)
                         .setPlaceholder("Enter new reply text...")
-                        .setValue(current)
-                        .setRequired(true)
-                        .build();
-                Modal m = Modal.create("modal_ar_edit:" + kw, "Edit Auto-Response: " + kw)
+                        .setRequired(true).build();
+                Modal m = Modal.create("modal_ar_edit_submit:" + val, "Edit Response: " + val)
                         .addComponents(net.dv8tion.jda.api.components.label.Label.of("New Response", respInput))
                         .build();
                 event.replyModal(m).queue();
-                return;
+            } else if (id.equals("ar_del_select")) {
+                String val = event.getValues().get(0);
+                com.highcore.bot.services.AutoReplyService.removeResponse(val);
+                event.getHook().editOriginal("✅ Response **" + val + "** has been decommissioned.").setComponents().queue();
+                AutoReplyCommands.refreshChannel(event.getChannel());
+            } else if (id.equals("bw_del_select")) {
+                String val = event.getValues().get(0);
+                com.highcore.bot.database.SupabaseClient.removeForbiddenWord(val);
+                com.highcore.bot.services.WordFilterService.reload();
+                event.getHook().editOriginal("✅ Term **" + val + "** has been purged from filter.").setComponents().queue();
+                BannedWordCommands.refreshChannel(event.getChannel());
             }
         } catch (Exception e) {
-            try {
-                event.getHook().sendMessage("An error occurred: `" + e.getMessage() + "`").setEphemeral(true).queue();
-            } catch (Exception ignored) {
-            }
+            log.error("Error in processSelect", e);
         }
     }
 
@@ -412,7 +397,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                                 EmbedUtil.createOldLogEmbed("Boter Message",
                                         "Channel: " + tc.getAsMention() + "\nContent: " + msg, event.getMember(), null,
                                         null, EmbedUtil.INFO));
-                        // Acknowledge silently without a visible message after deployment
                         if (!event.isAcknowledged()) {
                             event.deferReply(true).queue(hook -> hook.deleteOriginal().queue());
                         }
@@ -426,19 +410,22 @@ public class CentralInteractionListener extends ListenerAdapter {
             TicketService.createTicket(event, subject, "MEDIUM", "SUPPORT",
                     "**Service:** " + event.getValue("service_type").getAsString());
         } else if (id.equals("modal_ar_add")) {
-            String kw = event.getValue("ar_keyword").getAsString();
-            String resp = event.getValue("ar_response").getAsString();
-            com.highcore.bot.services.AutoReplyService.addResponse(kw, resp, event.getUser().getName());
-            event.deferEdit().queue(hook -> com.highcore.bot.commands.AutoReplyCommands.updatePanel(hook));
-        } else if (id.startsWith("modal_ar_edit:")) {
+            String keyword = event.getValue("ar_keyword").getAsString();
+            String response = event.getValue("ar_response").getAsString();
+            AutoReplyService.addResponse(keyword, response, event.getUser().getId());
+            event.reply("✅ New response pair integrated: **" + keyword + "**").setEphemeral(true).queue();
+            com.highcore.bot.commands.AutoReplyCommands.refreshChannel(event.getChannel());
+        } else if (id.startsWith("modal_ar_edit_submit:")) {
             String kw = id.split(":")[1];
-            String newResp = event.getValue("ar_new_response").getAsString();
-            com.highcore.bot.services.AutoReplyService.addResponse(kw, newResp, event.getUser().getName());
-            event.deferEdit().queue(hook -> com.highcore.bot.commands.AutoReplyCommands.updatePanel(hook));
+            String text = event.getValue("ar_new_response").getAsString();
+            AutoReplyService.addResponse(kw, text, event.getUser().getId());
+            event.reply("✅ Response updated: **" + kw + "**").setEphemeral(true).queue();
+            com.highcore.bot.commands.AutoReplyCommands.refreshChannel(event.getChannel());
         } else if (id.equals("modal_bw_add")) {
             String word = event.getValue("bw_word").getAsString();
-            com.highcore.bot.services.WordFilterService.addWord(word);
-            event.deferEdit().queue(hook -> com.highcore.bot.commands.BannedWordCommands.updatePanel(hook));
+            WordFilterService.addWord(word);
+            event.reply("✅ Term blacklisted: **" + word + "**").setEphemeral(true).queue();
+            com.highcore.bot.commands.BannedWordCommands.refreshChannel(event.getChannel());
         } else if (id.equals("modal_complaint_init")) {
             event.deferReply(true).queue();
             String compType = event.getValue("comp_type").getAsString();

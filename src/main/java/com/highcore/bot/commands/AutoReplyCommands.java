@@ -56,24 +56,55 @@ public class AutoReplyCommands extends ListenerAdapter {
         StringBuilder sb = new StringBuilder();
         sb.append("### 🤖 Assistant: Auto-Replies\n");
         sb.append("Current saved responses in the active list:\n\n");
-
-        if (responses == null || responses.isEmpty()) {
-            sb.append("`NO SAVED RESPONSES FOUND`\n");
-        } else {
+        if (responses != null) {
             responses.forEach(el -> {
                 var obj = el.getAsJsonObject();
                 sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
                   .append("`").append(obj.get("response_text").getAsString()).append("`\n");
             });
         }
-
         sb.append("\n_Use the control panel below to add, edit or remove responses._");
-
         var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
-        hook.editOriginal("").setComponents(container, ActionRow.of(
+        hook.editOriginalComponents(container, ActionRow.of(
                 Button.success("ar_add", "➕ Add Response"),
                 Button.secondary("ar_edit", "📝 Edit Response"),
                 Button.danger("ar_manage", "🗑️ Delete Response")
         )).useComponentsV2(true).queue();
+    }
+
+    public static void refreshChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
+        channel.getHistory().retrievePast(20).queue(msgs -> {
+            for (var m : msgs) {
+                boolean isPanel = m.getComponents().stream().anyMatch(c -> {
+                    String s = c.toString();
+                    return s.contains("ar_add") || s.contains("ar_edit") || s.contains("ar_manage");
+                });
+                if (m.getAuthor().getId().equals(channel.getJDA().getSelfUser().getId()) && isPanel) {
+                    updatePanelMessage(m);
+                    return;
+                }
+            }
+        });
+    }
+
+    private static void updatePanelMessage(net.dv8tion.jda.api.entities.Message m) {
+        JsonArray responses = SupabaseClient.getAutoResponses();
+        StringBuilder sb = new StringBuilder();
+        sb.append("### 🤖 Assistant: Auto-Replies\n");
+        sb.append("Current saved responses in the active list:\n\n");
+        if (responses != null) {
+            responses.forEach(el -> {
+                var obj = el.getAsJsonObject();
+                sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
+                  .append("`").append(obj.get("response_text").getAsString()).append("`\n");
+            });
+        }
+        sb.append("\n_Use the control panel below to add, edit or remove responses._");
+        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
+        PanelService.reply(m, container, ActionRow.of(
+            Button.success("ar_add", "➕ Add Response"),
+            Button.secondary("ar_edit", "📝 Edit Response"),
+            Button.danger("ar_manage", "🗑️ Delete Response")
+        ));
     }
 }
