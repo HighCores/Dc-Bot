@@ -158,12 +158,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                         .addComponents(net.dv8tion.jda.api.components.label.Label.of("Reason", input))
                         .build();
                 event.replyModal(m).queue();
+            } else if (id.equals("about_category_select")) {
+                PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
+                return;
             }
-            return;
-        }
-        } else if (id.equals("about_category_select")) {
-            PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
-            return;
         }
 
         boolean publicHandler = id.equals("ar_del_select") || id.equals("bw_del_select") || id.equals("ar_edit_select");
