@@ -35,13 +35,16 @@ public class InvoiceService {
             String templateUrl = isPaid ? EmbedUtil.BANNER_INVOICE_PAID : EmbedUtil.BANNER_INVOICE;
             
             try {
+                log.info("Attempting to load template from: {}", templateUrl);
                 java.net.URLConnection conn = new URL(templateUrl).openConnection();
                 conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64)");
+                conn.setConnectTimeout(5000);
+                conn.setReadTimeout(5000);
                 try (InputStream is = conn.getInputStream()) {
                     template = ImageIO.read(is);
                 }
             } catch (Exception e) {
-                log.error("CRITICAL: Failed to load invoice template: {}", e.getMessage());
+                log.error("CRITICAL: Failed to load invoice template ({}): {}", templateUrl, e.getMessage());
             }
 
             if (template == null) return null;

@@ -36,9 +36,9 @@ public class EmbedUtil {
     public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_INVOICE = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_discord.jpg";
+    public static final String BANNER_INVOICE = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_discord.png";
     public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
-    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER.jpg";
+    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER.png";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
