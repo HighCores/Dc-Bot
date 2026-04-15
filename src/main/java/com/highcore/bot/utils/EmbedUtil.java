@@ -36,9 +36,9 @@ public class EmbedUtil {
     public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_INVOICE = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69dc188a&is=69dac70a&hm=ce79513d28baf3f7572a0c473107c30930365356dbc52fbe84534ab3bce9ce25&format=png";
-    public static final String BANNER_INVOICE_PAID = "https://media.discordapp.net/attachments/1491360207568113787/1492627055974678610/invoice_site_.png?ex=69dc04c5&is=69dab345&hm=a5f31dd32ae1ecc06f3c87fdde8008018c32ad89da7e28642b62c38f278f4a5d&format=png";
-    public static final String BANNER_ORDER_TICKET = "https://media.discordapp.net/attachments/1488900668042510568/1491808487104057455/ORDER-.jpg?ex=69dc562b&is=69db04ab&hm=d50957bf79f630507bf19486529e4d539fa2f0453945f36c44d00fce6be3e1be&=&format=webp&width=1845&height=807";
+    public static final String BANNER_INVOICE = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_discord.jpg";
+    public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
+    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER-.jpg";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
@@ -217,11 +217,11 @@ public class EmbedUtil {
         }
 
         if (details != null && !details.isEmpty()) {
-            eb.addField("Information:", details, false);
+            eb.addField("Intelligence/Data:", details, false);
         }
 
         // Exact Footer from screenshot
-        eb.setFooter("Highcore Agency | Management System");
+        eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA");
 
         return eb.build();
     }

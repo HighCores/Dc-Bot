@@ -190,11 +190,11 @@ public class InvoiceService {
     }
 
     private static Font boldFont(int w, float sizePct) {
-        return new Font("Dialog", Font.BOLD, (int)(w * sizePct));
+        return new Font("SansSerif", Font.BOLD, (int)(w * sizePct));
     }
 
     private static Font plainFont(int w, float sizePct) {
-        return new Font("Dialog", Font.PLAIN, (int)(w * sizePct));
+        return new Font("SansSerif", Font.PLAIN, (int)(w * sizePct));
     }
 
     public static class OrderItem {
