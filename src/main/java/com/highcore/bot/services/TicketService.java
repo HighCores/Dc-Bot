@@ -150,9 +150,9 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                // CLEAN TOPIC - Move JSON to the end after many spaces so it's not visible in UI
-                String cleanTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
-                channel.getManager().setTopic(cleanTopic).queue();
+                // Only set metadata in topic, remove description
+                String initialTopic = "||META:" + meta.toString();
+                channel.getManager().setTopic(initialTopic).queue();
                 
                 SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH_END");
 
