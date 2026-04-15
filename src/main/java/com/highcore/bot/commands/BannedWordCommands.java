@@ -35,9 +35,8 @@ public class BannedWordCommands extends ListenerAdapter {
             sb.append("`FILTER BLACKLIST IS CURRENTLY EMPTY`\n");
         } else {
             words.forEach(el -> {
-                sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
+                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
             });
-            sb.append("\n");
         }
 
         sb.append("\n_Use the buttons below to manage terms._");
@@ -56,7 +55,7 @@ public class BannedWordCommands extends ListenerAdapter {
         sb.append("Current restricted terminology in the active list:\n\n");
         if (words != null) {
             words.forEach(el -> {
-                sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
+                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
             });
         }
         sb.append("\n\n_Use the buttons below to manage terms._");
@@ -89,7 +88,7 @@ public class BannedWordCommands extends ListenerAdapter {
         sb.append("Current restricted terminology in the active list:\n\n");
         if (words != null) {
             words.forEach(el -> {
-                sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
+                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
             });
         }
         sb.append("\n\n_Use the buttons below to manage terms._");
