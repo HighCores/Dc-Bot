@@ -42,7 +42,6 @@ public class AutoReplyCommands extends ListenerAdapter {
         }
 
         sb.append("\n_Use the control panel below to add, edit or remove responses._");
-
         var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
         PanelService.reply(event, container, ActionRow.of(
                 Button.success("ar_add", "➕ Add Response"),
