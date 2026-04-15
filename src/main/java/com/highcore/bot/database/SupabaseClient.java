@@ -470,7 +470,12 @@ public class SupabaseClient {
         rb.header("Prefer", "resolution=merge-duplicates,return=representation");
         Request request = rb.post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
-            if (!response.isSuccessful()) log.error("UPSERT {} failed: {}", table, response.code());
+            String b = response.body() != null ? response.body().string() : "No body";
+            if (!response.isSuccessful()) {
+                log.error("UPSERT {} failed ({}): {}", table, response.code(), b);
+            } else {
+                log.info("UPSERT {} success: {}", table, b);
+            }
         } catch (IOException e) { log.error("UPSERT {} error: {}", table, e.getMessage()); }
     }
 
