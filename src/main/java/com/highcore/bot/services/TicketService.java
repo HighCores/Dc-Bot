@@ -145,16 +145,19 @@ public class TicketService {
                 ticket.addProperty("user_id", user.getId());
                 ticket.addProperty("channel_id", channel.getId());
                 ticket.addProperty("subject", pName);
-                ticket.addProperty("priority", "HIGH");
+                ticket.addProperty("priority", "HIGH_END");
                 ticket.addProperty("type", "ORDER");
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                channel.getManager().setTopic(pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString()).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH");
+                // CLEAN TOPIC - Move JSON to the end after many spaces so it's not visible in UI
+                String cleanTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
+                channel.getManager().setTopic(cleanTopic).queue();
+                
+                SupabaseClient.createTicket(ticketId, user.getId(), user.getEffectiveName(), channel.getId(), "ORDER", pName, "HIGH_END");
 
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
-                PanelService.reply(channel, Container.of(children));
+                channel.sendMessageComponents(Container.of(children)).useComponentsV2(true).queue();
 
                 byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact);
                 
@@ -169,7 +172,7 @@ public class TicketService {
                         .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
                         .queue(msg -> {
                             meta.addProperty("invoice_msg_id", msg.getId());
-                            String newTopic = pName + "|HIGH_END|ORDER|" + user.getId() + "||META:" + meta.toString();
+                            String newTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
                             channel.getManager().setTopic(newTopic).queue();
                         });
                 } else {
@@ -177,7 +180,7 @@ public class TicketService {
                     log.warn("Invoice image failed to generate. Sending fallback message.");
                     channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true).queue(msg -> {
                         meta.addProperty("invoice_msg_id", msg.getId());
-                        String newTopic = pName + "|HIGH_END|ORDER|" + user.getId() + "||META:" + meta.toString();
+                        String newTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
                         channel.getManager().setTopic(newTopic).queue();
                     });
                 }
