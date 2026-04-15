@@ -70,8 +70,9 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
 
-        // Defer giveaway interactions early to handle potential DB latency
-        if (id.startsWith("gw_") || id.startsWith("btn_gw_") || id.startsWith("sel_gw_")) {
+        // Fix: DO NOT defer if we plan to show a modal (drop/create)
+        // Only defer if we are doing standard replies like history or management
+        if (id.equals("btn_gw_history") || id.startsWith("gw_end_early_") || id.startsWith("gw_reroll_adm_")) {
             if (!event.isAcknowledged())
                 event.deferReply(true).queue();
         }

@@ -67,6 +67,30 @@ public class CentralInteractionListener extends ListenerAdapter {
                             net.dv8tion.jda.api.components.label.Label.of("Details", desc))
                         .build();
                 event.replyModal(m).queue();
+            } else if (id.equals("ticket_init_order")) {
+                PanelService.handleOrderFlow(event);
+            } else if (id.equals("btn_highcore")) {
+                PanelService.sendHighcoreHub(event);
+            } else if (id.equals("btn_about")) {
+                PanelService.sendAboutUsHub(event);
+            } else if (id.equals("btn_partners")) {
+                PanelService.sendPartnersPanel(event);
+            } else if (id.equals("btn_pings")) {
+                PanelService.sendPingsHub(event);
+            } else if (id.equals("btn_socials")) {
+                PanelService.sendSocialsHub(event);
+            } else if (id.startsWith("ping_")) {
+                String roleId = id.replace("ping_", "");
+                net.dv8tion.jda.api.entities.Role role = event.getGuild().getRoleById(roleId);
+                if (role != null) {
+                    if (member.getRoles().contains(role)) {
+                        event.getGuild().removeRoleFromMember(member, role).queue();
+                        PanelService.replyEphemeral(event, "### 🔔 Alerts Updated\nYou will no longer receive notifications for **" + role.getName() + "**.");
+                    } else {
+                        event.getGuild().addRoleToMember(member, role).queue();
+                        PanelService.replyEphemeral(event, "### 🔔 Alerts Updated\nYou are now subscribed to **" + role.getName() + "** notifications.");
+                    }
+                }
             } else if (id.equals("order_open_ticket")) {
                 StringSelectMenu menu = StringSelectMenu.create("ticket_type_select")
                         .setPlaceholder("Ticket Purpose Selection")
@@ -135,6 +159,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                         .build();
                 event.replyModal(m).queue();
             }
+            return;
+        }
+        } else if (id.equals("about_category_select")) {
+            PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
             return;
         }
 
