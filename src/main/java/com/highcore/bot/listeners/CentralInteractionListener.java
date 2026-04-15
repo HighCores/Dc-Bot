@@ -28,8 +28,8 @@ public class CentralInteractionListener extends ListenerAdapter {
     private static final String STAFF_ROLE_ID = "1488795130008961040";
 
     private boolean isStaff(net.dv8tion.jda.api.entities.Member member) {
-        return member != null && member.getRoles().stream()
-                .anyMatch(r -> r.getId().equals(STAFF_ROLE_ID));
+        return member != null && (member.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) || member.isOwner() || member.getRoles().stream()
+                .anyMatch(r -> r.getId().equals(STAFF_ROLE_ID)));
     }
 
     @Override
@@ -67,6 +67,14 @@ public class CentralInteractionListener extends ListenerAdapter {
                             net.dv8tion.jda.api.components.label.Label.of("Details", desc))
                         .build();
                 event.replyModal(m).queue();
+            } else if (id.equals("ticket_claim")) {
+                TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("ticket_close")) {
+                TicketService.closeTicket(event.getChannel().asTextChannel(), member);
+            } else if (id.equals("ticket_unclaim")) {
+                TicketService.unclaimTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("order_final")) {
+                PanelService.handleOrderFinalModal(event, id);
             } else if (id.equals("ticket_init_order")) {
                 PanelService.handleOrderFlow(event);
             } else if (id.equals("btn_highcore")) {

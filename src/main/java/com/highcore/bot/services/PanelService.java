@@ -254,7 +254,6 @@ public class PanelService {
                 Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support"));
         reply(event, EmbedUtil.startupPanel(row));
     }
-
     public static void sendHighcoreHub(IReplyCallback event) {
         List<ContainerChildComponent> layout = new ArrayList<>();
         layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
@@ -298,7 +297,7 @@ public class PanelService {
         layout.add(ActionRow.of(
                 Button.secondary("btn_pings", "Pings")));
 
-        reply(event, Container.of(layout));
+        replyEphemeral(event, Container.of(layout));
     }
 
     public static void sendPingsHub(IReplyCallback event) {
