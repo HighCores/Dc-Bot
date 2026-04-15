@@ -176,14 +176,19 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String[] parts = id.split("_", 3);
                 String method = parts.length > 1 ? parts[1].toUpperCase() : "UNKNOWN";
                 String info = switch (method) {
-                    case "PAYPAL" -> "### 💳 PayPal\n**Email:** `billing@highcore.agency`\n**Note:** Send as **Friends & Family**.";
+                    case "PAYPAL" ->
+                        "### 💳 PayPal\n**Email:** `billing@highcore.agency`\n**Note:** Send as **Friends & Family**.";
                     case "STRIPE" -> "### 🌐 Stripe\nContact a staff member to receive a secure Stripe payment link.";
-                    case "BANK" -> "### 🏦 Bank Transfer — Al-Rajhi Bank\n**Account Name:** `High Core Agency`\n**IBAN:** `SA29 8000 0000 1234 5678 1234`\n**Swift:** `RJHISARI`\nAfter transfer, send the receipt screenshot here.";
-                    case "USDT" -> "### 💰 USDT — TRC20 Network\n**Wallet Address:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n⚠️ **Use TRC20 network only.**";
-                    case "STCPAY" -> "### 📱 STC Pay\n**Number:** `+966 55 123 4567`\n**Name:** `High Core Agency`\nScreenshot the confirmation and send it here.";
+                    case "BANK" ->
+                        "### 🏦 Bank Transfer — Al-Rajhi Bank\n**Account Name:** `High Core Agency`\n**IBAN:** `SA29 8000 0000 1234 5678 1234`\n**Swift:** `RJHISARI`\nAfter transfer, send the receipt screenshot here.";
+                    case "USDT" ->
+                        "### 💰 USDT — TRC20 Network\n**Wallet Address:**\n```\nTHighCoreAgencyWallet9xR3mZXq\n```\n⚠️ **Use TRC20 network only.**";
+                    case "STCPAY" ->
+                        "### 📱 STC Pay\n**Number:** `+966 55 123 4567`\n**Name:** `High Core Agency`\nScreenshot the confirmation and send it here.";
                     default -> "Contact a staff member for payment assistance.";
                 };
-                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("PAYMENT", "Gateway — " + method, info, EmbedUtil.BANNER_MAIN));
+                PanelService.replyEphemeral(event,
+                        EmbedUtil.containerBranded("PAYMENT", "Gateway — " + method, info, EmbedUtil.BANNER_MAIN));
                 return;
             }
 
@@ -191,47 +196,47 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Keyword to watch for...").setRequired(true).build();
                 TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("What should I reply?").setRequired(true).build();
                 Modal m = Modal.create("modal_ar_add", "Add Auto-Response")
-                    .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Keyword", kw),
-                        net.dv8tion.jda.api.components.label.Label.of("Response Message", resp)
-                    ).build();
+                        .addComponents(
+                                net.dv8tion.jda.api.components.label.Label.of("Keyword", kw),
+                                net.dv8tion.jda.api.components.label.Label.of("Response", resp))
+                        .build();
                 event.replyModal(m).queue();
             } else if (id.equals("ar_edit")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
-                if (arr == null || arr.size() == 0) { PanelService.replyEphemeral(event, "No saved responses found."); return; }
-                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_edit_select").setPlaceholder("Choose a response to edit...");
-                for (int i=0; i<Math.min(arr.size(), 25); i++) {
-                    String kw = arr.get(i).getAsJsonObject().get("keyword").getAsString();
-                    menu.addOption(kw, kw);
+                if (arr == null || arr.isEmpty()) {
+                    PanelService.replyEphemeral(event, "### ❌ Error\nNo responses available to edit.");
+                    return;
                 }
-                PanelService.replyEphemeral(event, "### 📝 Edit Assistant\nSelect a response to modify its content.", 
-                    ActionRow.of(menu.build()));
+                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_edit_select")
+                        .setPlaceholder("Select a response to edit...");
+                arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
+                event.deferEdit().queue(hook -> hook.editOriginal("### 📝 Edit Assistant\nSelect a response to modify its content.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
             } else if (id.equals("ar_manage")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
-                if (arr == null || arr.size() == 0) { PanelService.replyEphemeral(event, "No saved responses found."); return; }
-                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_delete_select").setPlaceholder("Choose a response to remove...");
-                for (int i=0; i<Math.min(arr.size(), 25); i++) {
-                    String kw = arr.get(i).getAsJsonObject().get("keyword").getAsString();
-                    menu.addOption(kw, kw);
+                if (arr == null || arr.isEmpty()) {
+                    PanelService.replyEphemeral(event, "### ❌ Error\nNo responses available to delete.");
+                    return;
                 }
-                PanelService.replyEphemeral(event, "### 🗑️ Delete Assistant\nSelect a response to remove it permanently.",
-                    ActionRow.of(menu.build()));
+                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_del_select")
+                        .setPlaceholder("Select a response to delete...");
+                arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
+                event.deferEdit().queue(hook -> hook.editOriginal("### 🗑️ Delete Assistant\nSelect a response to remove it permanently.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
             } else if (id.equals("bw_add")) {
                 TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Enter word to block...").setRequired(true).build();
                 Modal m = Modal.create("modal_bw_add", "Add Banned Word")
-                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Word", word))
-                    .build();
+                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Word", word))
+                        .build();
                 event.replyModal(m).queue();
             } else if (id.equals("bw_remove")) {
-                JsonArray arr = com.highcore.bot.database.SupabaseClient.getWordFilter();
-                if (arr == null || arr.size() == 0) { PanelService.replyEphemeral(event, "The word filter is currently empty."); return; }
-                StringSelectMenu.Builder menu = StringSelectMenu.create("bw_delete_select").setPlaceholder("Choose a word to unblock...");
-                for (int i=0; i<Math.min(arr.size(), 25); i++) {
-                    String w = arr.get(i).getAsJsonObject().get("word").getAsString();
-                    menu.addOption(w, w);
+                JsonArray words = com.highcore.bot.database.SupabaseClient.getWordFilter();
+                if (words == null || words.isEmpty()) {
+                    PanelService.replyEphemeral(event, "### ❌ Error\nNo words found in the filter.");
+                    return;
                 }
-                PanelService.replyEphemeral(event, "### ⚙️ Filter Configuration\nSelect a term to remove it from the list.",
-                    ActionRow.of(menu.build()));
+                StringSelectMenu.Builder menu = StringSelectMenu.create("bw_del_select")
+                        .setPlaceholder("Select a term to remove...");
+                words.forEach(el -> { String w = el.getAsJsonObject().get("word").getAsString(); menu.addOption(w, w); });
+                event.deferEdit().queue(hook -> hook.editOriginal("### 🗑️ Remove Term\nSelect a word to purge from the security list.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
             }
         } catch (Exception e) {
             try {
@@ -326,11 +331,11 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String kw = event.getValues().get(0);
                 String current = "";
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
-                for (int i=0; i<arr.size(); i++) {
-                   if (arr.get(i).getAsJsonObject().get("keyword").getAsString().equalsIgnoreCase(kw)) {
-                       current = arr.get(i).getAsJsonObject().get("response_text").getAsString();
-                       break;
-                   }
+                for (int i = 0; i < arr.size(); i++) {
+                    if (arr.get(i).getAsJsonObject().get("keyword").getAsString().equalsIgnoreCase(kw)) {
+                        current = arr.get(i).getAsJsonObject().get("response_text").getAsString();
+                        break;
+                    }
                 }
                 TextInput respInput = TextInput.create("ar_new_response", TextInputStyle.PARAGRAPH)
                         .setPlaceholder("Enter new reply text...")
@@ -363,7 +368,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                     PanelService.replyEphemeral(event, EmbedUtil.containerBranded("SYSTEM", "Broadcast Initiated",
                             "### 📡 Message Sending\nYour broadcast message is being delivered to the target roles.",
                             EmbedUtil.BANNER_MAIN));
-                    LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Global Broadcast", "Message: " + event.getValue("message").getAsString(), event.getMember(), null, null, EmbedUtil.GOLD));
+                    LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS,
+                            EmbedUtil.createOldLogEmbed("Global Broadcast",
+                                    "Message: " + event.getValue("message").getAsString(), event.getMember(), null,
+                                    null, EmbedUtil.GOLD));
                 } else {
                     PanelService.replyEphemeral(event, EmbedUtil.error("Broadcast Busy",
                             "Another broadcast is currently in progress. Please wait."));
@@ -383,16 +391,22 @@ public class CentralInteractionListener extends ListenerAdapter {
                             try {
                                 java.net.URL urlObj = new java.net.URI(url).toURL();
                                 String fileName = url.substring(url.lastIndexOf('/') + 1);
-                                if (fileName.contains("?")) fileName = fileName.substring(0, fileName.indexOf('?'));
-                                uploads.add(net.dv8tion.jda.api.utils.FileUpload.fromData(urlObj.openStream(), fileName));
+                                if (fileName.contains("?"))
+                                    fileName = fileName.substring(0, fileName.indexOf('?'));
+                                uploads.add(
+                                        net.dv8tion.jda.api.utils.FileUpload.fromData(urlObj.openStream(), fileName));
                             } catch (Exception e) {
                                 log.error("Error attaching file from URL: " + url, e);
                             }
                         }
-                        if (!uploads.isEmpty()) send = send.addFiles(uploads);
+                        if (!uploads.isEmpty())
+                            send = send.addFiles(uploads);
                     }
                     send.queue(v -> {
-                        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("Boter Message", "Channel: " + tc.getAsMention() + "\nContent: " + msg, event.getMember(), null, null, EmbedUtil.INFO));
+                        LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS,
+                                EmbedUtil.createOldLogEmbed("Boter Message",
+                                        "Channel: " + tc.getAsMention() + "\nContent: " + msg, event.getMember(), null,
+                                        null, EmbedUtil.INFO));
                         // Acknowledge silently without a visible message after deployment
                         if (!event.isAcknowledged()) {
                             event.deferReply(true).queue(hook -> hook.deleteOriginal().queue());
@@ -447,11 +461,19 @@ public class CentralInteractionListener extends ListenerAdapter {
             String kw = event.getValue("ar_keyword").getAsString();
             String resp = event.getValue("ar_response").getAsString();
             com.highcore.bot.database.SupabaseClient.createAutoResponse(kw, resp, event.getUser().getName());
-            PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Sector Online", "### \u2705 Protocol Initialized\nNew auto-reply keyword `" + kw + "` is now active in the matrix.", EmbedUtil.BANNER_MAIN));
+            PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Sector Online",
+                    "### \u2705 Protocol Initialized\nNew auto-reply keyword `" + kw + "` is now active in the matrix.",
+                    EmbedUtil.BANNER_MAIN));
         } else if (id.equals("modal_bw_add")) {
             String w = event.getValue("bw_word").getAsString().toLowerCase();
             com.highcore.bot.database.SupabaseClient.addForbiddenWord(w);
-            PanelService.reply(event, EmbedUtil.containerBranded("SECURITY", "Lexicon Update", "### \u2705 Security Filter Reinforced\nForbidden term `" + w + "` has been added to the firewall blacklist.", EmbedUtil.BANNER_MAIN));
+            PanelService
+                    .reply(event,
+                            EmbedUtil
+                                    .containerBranded("SECURITY", "Lexicon Update",
+                                            "### \u2705 Security Filter Reinforced\nForbidden term `" + w
+                                                    + "` has been added to the firewall blacklist.",
+                                            EmbedUtil.BANNER_MAIN));
         }
     }
 

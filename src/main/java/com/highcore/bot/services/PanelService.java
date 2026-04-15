@@ -182,7 +182,7 @@ public class PanelService {
                 if (event.isAcknowledged()) {
                     var hook = event.getHook();
                     if (messageData != null) {
-                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
+                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).setComponents(components).useComponentsV2(true).queue(null, t -> {
                             System.err.println("Interaction hook failure: " + t.getMessage());
                         });
                     } else {
@@ -193,6 +193,11 @@ public class PanelService {
                 } else {
                     var interaction = (messageData != null) ? event.reply(messageData)
                             : event.replyComponents(components).useComponentsV2(true);
+                    
+                    if (messageData != null && !components.isEmpty()) {
+                        interaction.setComponents(components).useComponentsV2(true);
+                    }
+                    
                     interaction.setEphemeral(ephemeral).queue(null, err -> {
                         if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
                             var hook = event.getHook();
