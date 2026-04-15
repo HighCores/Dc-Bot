@@ -42,11 +42,11 @@ public class BannedWordCommands extends ListenerAdapter {
 
         sb.append("\n_Use the buttons below to manage terms._");
 
-        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN);
-        PanelService.reply(event, container, ActionRow.of(
+        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
                 Button.success("bw_add", "➕ Add Term"),
                 Button.secondary("bw_remove", "🗑️ Delete Term")
         ));
+        PanelService.reply(event, container);
     }
 
     public static void updatePanel(net.dv8tion.jda.api.interactions.InteractionHook hook) {
@@ -60,11 +60,11 @@ public class BannedWordCommands extends ListenerAdapter {
             });
         }
         sb.append("\n\n_Use the buttons below to manage terms._");
-        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN);
-        PanelService.reply(hook, container, ActionRow.of(
+        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
                 Button.success("bw_add", "➕ Add Term"),
                 Button.secondary("bw_remove", "🗑️ Delete Term")
         ));
+        PanelService.reply(hook, container);
     }
 
     public static void refreshChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
