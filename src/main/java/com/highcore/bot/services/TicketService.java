@@ -166,7 +166,7 @@ public class TicketService {
                 invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
 
-                String topicBase = pName + "|HIGH|ORDER|" + user.getId() + "||META:";
+                String topicBase = "||META:";
 
                 if (invoiceData != null) {
                     invChildren.add(0, MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-" + ticketId + ".png")));
