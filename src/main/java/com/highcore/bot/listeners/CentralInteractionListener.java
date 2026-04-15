@@ -297,12 +297,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (id.equals("ar_delete_select")) {
                 String kw = event.getValues().get(0);
                 com.highcore.bot.database.SupabaseClient.deleteAutoResponse(kw);
-                event.reply("✅ Response protocol `" + kw + "` has been wiped from the matrix.").setEphemeral(true).queue();
+                PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Sector Sanitized", "### \u2705 Protocol Wiped\nKeyword entry `" + kw + "` has been permanently purged from the auto-reply matrix.", EmbedUtil.BANNER_MAIN));
             }
             if (id.equals("bw_delete_select")) {
                 String w = event.getValues().get(0);
                 com.highcore.bot.database.SupabaseClient.removeForbiddenWord(w);
-                event.reply("✅ Term `" + w + "` has been whitelisted and removed from firewall.").setEphemeral(true).queue();
+                PanelService.reply(event, EmbedUtil.containerBranded("SECURITY", "Firewall Patch", "### \u2705 Whitelist Updated\nTerm `" + w + "` has been successfully whitelisted and removed from active security protocols.", EmbedUtil.BANNER_MAIN));
             }
         } catch (Exception e) {
             try {
@@ -394,11 +394,11 @@ public class CentralInteractionListener extends ListenerAdapter {
             String kw = event.getValue("ar_keyword").getAsString();
             String resp = event.getValue("ar_response").getAsString();
             com.highcore.bot.database.SupabaseClient.createAutoResponse(kw, resp, event.getUser().getName());
-            event.reply("✅ **Response Protocol Initialized**\nKeyword: `" + kw + "`").setEphemeral(true).queue();
+            PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Sector Online", "### \u2705 Protocol Initialized\nNew auto-reply keyword `" + kw + "` is now active in the matrix.", EmbedUtil.BANNER_MAIN));
         } else if (id.equals("modal_bw_add")) {
             String w = event.getValue("bw_word").getAsString().toLowerCase();
             com.highcore.bot.database.SupabaseClient.addForbiddenWord(w);
-            event.reply("✅ **Security Firewall Updated**\nForbidden Term: `" + w + "`").setEphemeral(true).queue();
+            PanelService.reply(event, EmbedUtil.containerBranded("SECURITY", "Lexicon Update", "### \u2705 Security Filter Reinforced\nForbidden term `" + w + "` has been added to the firewall blacklist.", EmbedUtil.BANNER_MAIN));
         }
     }
 

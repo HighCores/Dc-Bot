@@ -105,12 +105,18 @@ public class ServerLogListener extends ListenerAdapter {
 
     @Override
     public void onMessageDelete(@NotNull MessageDeleteEvent event) {
-        String details = "### \uD83D\uDDD1\uFE0F Transmission Terminated\n" +
-                "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
-                "\u25AB\uFE0F **Message ID:** `" + event.getMessageId() + "`";
+        event.getGuild().retrieveAuditLogs().type(ActionType.MESSAGE_DELETE).limit(1).queue(logs -> {
+            AuditLogEntry entry = logs.isEmpty() ? null : logs.get(0);
+            String executor = (entry != null && entry.getTargetId().equals(event.getMessageId())) ? entry.getUser().getAsMention() : "System/Unknown";
+            
+            String details = "### \uD83D\uDDD1\uFE0F Transmission Terminated\n" +
+                    "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
+                    "\u25AB\uFE0F **Operator:** " + executor + "\n" +
+                    "\u25AB\uFE0F **Message ID:** `" + event.getMessageId() + "`";
 
-        LogManager.logEmbed(event.getGuild(), Config.LOG_MESSAGE, 
-            EmbedUtil.createOldLogEmbed("message-delete", details, null, null, null, EmbedUtil.DANGER));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_MESSAGE, 
+                EmbedUtil.createOldLogEmbed("message-delete", details, null, null, null, EmbedUtil.DANGER));
+        });
     }
 
     @Override
@@ -172,22 +178,36 @@ public class ServerLogListener extends ListenerAdapter {
 
     @Override
     public void onGuildMemberRoleAdd(@NotNull GuildMemberRoleAddEvent event) {
-        String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
-        String details = "### \u2795 Clearance Level Granted\n" +
-                "\u25AB\uFE0F **Authority:** `" + roles + "`";
+        event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(logs -> {
+            AuditLogEntry entry = logs.isEmpty() ? null : logs.get(0);
+            String operator = (entry != null && entry.getTargetId().equals(event.getUser().getId())) ? entry.getUser().getAsMention() : "Higher Authority";
+            
+            String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
+            String details = "### \u2795 Clearance Level Granted\n" +
+                    "\u25AB\uFE0F **Target:** " + event.getUser().getAsMention() + "\n" +
+                    "\u25AB\uFE0F **Operator:** " + operator + "\n" +
+                    "\u25AB\uFE0F **Authority:** `" + roles + "`";
 
-        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
-            EmbedUtil.createOldLogEmbed("clearance-add", details, null, event.getUser(), event.getMember(), EmbedUtil.SUCCESS));
+            LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+                EmbedUtil.createOldLogEmbed("clearance-add", details, null, event.getUser(), event.getMember(), EmbedUtil.SUCCESS));
+        });
     }
 
     @Override
     public void onGuildMemberRoleRemove(@NotNull GuildMemberRoleRemoveEvent event) {
-        String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
-        String details = "### \u2796 Clearance Level Revoked\n" +
-                "\u25AB\uFE0F **Authority:** `" + roles + "`";
+        event.getGuild().retrieveAuditLogs().type(ActionType.MEMBER_ROLE_UPDATE).limit(1).queue(logs -> {
+            AuditLogEntry entry = logs.isEmpty() ? null : logs.get(0);
+            String operator = (entry != null && entry.getTargetId().equals(event.getUser().getId())) ? entry.getUser().getAsMention() : "Higher Authority";
 
-        LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
-            EmbedUtil.createOldLogEmbed("clearance-remove", details, null, event.getUser(), event.getMember(), EmbedUtil.DANGER));
+            String roles = event.getRoles().stream().map(Role::getName).collect(Collectors.joining(", "));
+            String details = "### \u2796 Clearance Level Revoked\n" +
+                    "\u25AB\uFE0F **Target:** " + event.getUser().getAsMention() + "\n" +
+                    "\u25AB\uFE0F **Operator:** " + operator + "\n" +
+                    "\u25AB\uFE0F **Authority:** `" + roles + "`";
+
+            LogManager.logEmbed(event.getGuild(), Config.LOG_ROLES, 
+                EmbedUtil.createOldLogEmbed("clearance-remove", details, null, event.getUser(), event.getMember(), EmbedUtil.DANGER));
+        });
     }
 
     @Override

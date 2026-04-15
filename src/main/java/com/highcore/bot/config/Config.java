@@ -66,6 +66,7 @@ public class Config {
     public static final String LOG_MODS_CMD = "\u26D4\uFE0Fmods-cmd\u30FBlogs";
     public static final String LOG_ROLES = "\u26D4\uFE0Froles\u30FBlogs";
     public static final String LOG_USERS = "\u26D4\uFE0Fusers\u30FBlogs";
+    public static final String LOG_BANNED_WORDS = "1490834724518760448";
     public static final String LOG_WARNING = "LOG_WARNING";
 
     public static void updateRuntime(String key, String value) {

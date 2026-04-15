@@ -298,6 +298,8 @@ public class ModerationCommands extends ListenerAdapter {
         
         if (u == null) return;
         
+        event.deferReply(false).queue();
+        
         if (idOpt != null) {
             int id = idOpt.getAsInt();
             com.highcore.bot.database.SupabaseClient.deleteWarningById(id);
