@@ -495,7 +495,7 @@ public class SupabaseClient {
     // ========== WORD FILTER ==========
 
     public static JsonArray getWordFilter() {
-        return get("dc_word_filter", null);
+        return get("dc_word_filter", (String) null);
     }
 
     public static void addForbiddenWord(String word) {

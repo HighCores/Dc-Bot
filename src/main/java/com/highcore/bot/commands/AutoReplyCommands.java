@@ -22,12 +22,14 @@ public class AutoReplyCommands extends ListenerAdapter {
             return;
         }
 
-        event.deferReply(false).queue();
+        sendPanel(event);
+    }
 
+    public static void sendPanel(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event) {
         JsonArray responses = SupabaseClient.getAutoResponses();
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🤖 Customer Service: Auto-Replies\n");
-        sb.append("Current saved responses in the database:\n\n");
+        sb.append("### 🤖 Assistant: Auto-Replies\n");
+        sb.append("Current saved responses in the active list:\n\n");
 
         if (responses == null || responses.isEmpty()) {
             sb.append("`NO SAVED RESPONSES FOUND`\n");
@@ -39,12 +41,39 @@ public class AutoReplyCommands extends ListenerAdapter {
             });
         }
 
-        sb.append("\n_You can add or delete responses using the control panel below._");
+        sb.append("\n_Use the control panel below to add, edit or remove responses._");
 
         var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
         PanelService.reply(event, container, ActionRow.of(
                 Button.success("ar_add", "➕ Add Response"),
-                Button.secondary("ar_manage", "⚙️ Delete Response")
+                Button.secondary("ar_edit", "📝 Edit Response"),
+                Button.danger("ar_manage", "🗑️ Delete Response")
         ));
+    }
+
+    public static void updatePanel(net.dv8tion.jda.api.interactions.InteractionHook hook) {
+        JsonArray responses = SupabaseClient.getAutoResponses();
+        StringBuilder sb = new StringBuilder();
+        sb.append("### 🤖 Assistant: Auto-Replies\n");
+        sb.append("Current saved responses in the active list:\n\n");
+
+        if (responses == null || responses.isEmpty()) {
+            sb.append("`NO SAVED RESPONSES FOUND`\n");
+        } else {
+            responses.forEach(el -> {
+                var obj = el.getAsJsonObject();
+                sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
+                  .append("`").append(obj.get("response_text").getAsString()).append("`\n");
+            });
+        }
+
+        sb.append("\n_Use the control panel below to add, edit or remove responses._");
+
+        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
+        hook.editOriginal("").setComponents(container, ActionRow.of(
+                Button.success("ar_add", "➕ Add Response"),
+                Button.secondary("ar_edit", "📝 Edit Response"),
+                Button.danger("ar_manage", "🗑️ Delete Response")
+        )).useComponentsV2(true).queue();
     }
 }

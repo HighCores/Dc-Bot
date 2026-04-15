@@ -33,27 +33,29 @@ public class MessageListener extends ListenerAdapter {
                 // 1. Delete message
                 event.getMessage().delete().queue(null, (err) -> {});
                 
-                // 2. Reply to user ephemerally
-                // 2. Reply to user privately (DM)
+                // 2. DM the user
                 event.getAuthor().openPrivateChannel().flatMap(chan -> 
                     chan.sendMessage("⚠️ Hello, your message in **" + event.getGuild().getName() + "** was removed because it contained restricted language. Please maintain a professional environment.")
                 ).queue(null, (err) -> {});
 
-                // 3. Detailed Logging
+                // 3. Record Violation (Warning)
+                SupabaseClient.addWarning(event.getAuthor().getId(), event.getAuthor().getName(), "SYSTEM", "Automated Filter", "Restricted Term: " + forbidden, event.getGuild().getId());
+
+                // 4. Detailed Logging
                 String logId = "1490834724518760448";
                 TextChannel logChannel = event.getGuild().getTextChannelById(logId);
                 if (logChannel != null) {
                     java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy - HH:mm");
                     String now = java.time.LocalDateTime.now().format(dtf);
                     
-                    String logBody = "### 🛑 Banned Word Detected\n" +
+                    String logBody = "### 🛡️ Restricted Content Removed\n" +
                             "**User:** " + event.getAuthor().getName() + " ( <@" + event.getAuthor().getId() + "> )\n" +
                             "**Channel:** " + event.getChannel().getAsMention() + "\n" +
                             "**Timestamp:** `" + now + "`\n" +
-                            "**Restricted Term:** `" + forbidden + "`\n" +
+                            "**Detected Term:** `" + forbidden + "`\n" +
                             "**Original Content:**\n> " + content;
                     
-                    PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE VIOLATION", logBody, EmbedUtil.DANGER));
+                    PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS));
                 }
                 return;
             }
@@ -65,6 +67,7 @@ public class MessageListener extends ListenerAdapter {
             return;
         }
 
+        // 🤖 Auto Replies
         String autoReply = AutoReplyService.getResponse(content);
         if (autoReply != null) {
             event.getMessage().reply(autoReply).queue();

@@ -166,6 +166,8 @@ public class PanelService {
         for (Object p : parts) {
             if (p instanceof MessageCreateData mcd)
                 messageDataArr[0] = mcd;
+            else if (p instanceof String s)
+                messageDataArr[0] = MessageCreateData.fromContent(s);
             else if (p instanceof MessageTopLevelComponent mtc)
                 components.add(mtc);
             else if (p instanceof ActionRow row)

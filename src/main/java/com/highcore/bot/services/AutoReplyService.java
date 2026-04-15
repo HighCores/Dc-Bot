@@ -1,79 +1,71 @@
 package com.highcore.bot.services;
 
 import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.HashMap;
 import java.util.Map;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
 
 public class AutoReplyService {
-
     private static final Logger log = LoggerFactory.getLogger(AutoReplyService.class);
+    private static final Map<String, String> responses = new HashMap<>();
+    private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    private static final Map<String, String> cache = new ConcurrentHashMap<>();
-    private static long lastRefresh = 0;
-    private static final long CACHE_TTL = 5 * 60 * 1000; // 5 minutes
-
-    public static String getResponse(String message) {
-        refreshCacheIfNeeded();
-
-        String lowerMessage = message.toLowerCase().trim();
-
-        // Exact match first
-        if (cache.containsKey(lowerMessage)) {
-            return cache.get(lowerMessage);
-        }
-
-        // Contains match
-        for (Map.Entry<String, String> entry : cache.entrySet()) {
-            if (lowerMessage.contains(entry.getKey())) {
-                return entry.getValue();
-            }
-        }
-
-        return null;
+    public static void init() {
+        refreshCache();
+        // Background sync
+        scheduler.scheduleAtFixedRate(AutoReplyService::refreshCache, 10, 10, TimeUnit.MINUTES);
     }
 
     public static void refreshCache() {
         try {
-            JsonArray responses = SupabaseClient.getAutoResponses();
-            if (responses == null) return;
-
-            cache.clear();
-            for (var element : responses) {
-                JsonObject obj = element.getAsJsonObject();
-                String keyword = obj.get("keyword").getAsString().toLowerCase();
-                String response = obj.get("response_text").getAsString();
-                cache.put(keyword, response);
+            JsonArray arr = SupabaseClient.getAutoResponses();
+            synchronized (responses) {
+                responses.clear();
+                if (arr != null) {
+                    arr.forEach(el -> {
+                        var obj = el.getAsJsonObject();
+                        if (obj.has("keyword") && obj.has("response_text")) {
+                            responses.put(obj.get("keyword").getAsString().toLowerCase(), 
+                                          obj.get("response_text").getAsString());
+                        }
+                    });
+                }
             }
-            lastRefresh = System.currentTimeMillis();
-            log.info("Auto-reply cache refreshed: {} entries", cache.size());
+            log.info("Auto-replies reloaded. Total pairs: {}", responses.size());
         } catch (Exception e) {
-            log.error("Failed to refresh auto-reply cache: {}", e.getMessage());
+            log.error("Failed to reload auto-replies: {}", e.getMessage());
         }
     }
 
-    private static void refreshCacheIfNeeded() {
-        if (System.currentTimeMillis() - lastRefresh > CACHE_TTL) {
-            refreshCache();
-        }
-    }
-
-    public static void addResponse(String keyword, String response, String createdBy) {
-        SupabaseClient.createAutoResponse(keyword.toLowerCase(), response, createdBy);
-        cache.put(keyword.toLowerCase(), response);
+    public static void addResponse(String keyword, String response, String author) {
+        SupabaseClient.createAutoResponse(keyword, response, author);
+        refreshCache();
     }
 
     public static void removeResponse(String keyword) {
-        SupabaseClient.deleteAutoResponse(keyword.toLowerCase());
-        cache.remove(keyword.toLowerCase());
+        SupabaseClient.deleteAutoResponse(keyword);
+        refreshCache();
     }
 
     public static Map<String, String> getAllResponses() {
-        refreshCacheIfNeeded();
-        return Map.copyOf(cache);
+        synchronized (responses) {
+            return new HashMap<>(responses);
+        }
+    }
+
+    public static String getResponse(String content) {
+        String lower = content.toLowerCase();
+        synchronized (responses) {
+            for (Map.Entry<String, String> entry : responses.entrySet()) {
+                if (lower.contains(entry.getKey())) return entry.getValue();
+            }
+        }
+        return null;
     }
 }

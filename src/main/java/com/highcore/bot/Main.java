@@ -58,7 +58,6 @@ public class Main {
                         new UserLogListener(),
                         new WelcomeListener(), 
                         new GiveawayListener(),
-                        new SafetyListener(),
                         new CentralInteractionListener()
                 )
         .build().awaitReady();
@@ -67,7 +66,7 @@ public class Main {
         if (guild != null) LogManager.initialize(guild);
 
         registerCommands(jda);
-        AutoReplyService.refreshCache();
+        AutoReplyService.init();
         TicketReminderService.start(jda);
         GiveawayService.start(jda);
         SettingSyncService.start();

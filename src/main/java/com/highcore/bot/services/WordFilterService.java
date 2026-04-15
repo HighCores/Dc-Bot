@@ -41,6 +41,16 @@ public class WordFilterService {
         }
     }
 
+    public static void addWord(String word) {
+        SupabaseClient.addForbiddenWord(word);
+        reload();
+    }
+
+    public static void removeWord(String word) {
+        SupabaseClient.removeForbiddenWord(word);
+        reload();
+    }
+
     public static boolean isForbidden(String content) {
         return findForbiddenWord(content) != null;
     }
