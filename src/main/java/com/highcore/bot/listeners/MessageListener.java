@@ -48,12 +48,12 @@ public class MessageListener extends ListenerAdapter {
                 java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy - HH:mm");
                 String now = java.time.LocalDateTime.now().format(dtf);
                 
-                String logBody = "### 🛡️ تـم رصـد كـلـمـة مـحـظـورة\n" +
-                        "**العضو:** <@" + event.getAuthor().getId() + "> ( `" + event.getAuthor().getId() + "` )\n" +
-                        "**القناة:** " + event.getChannel().getAsMention() + "\n" +
-                        "**التوقيت:** `" + now + "`\n" +
-                        "**الكلمة المرصودة:** `" + forbidden + "`\n" +
-                        "**المحتوى الأصلي:**\n> " + content;
+                String logBody = "### 🛡️ RESTRICTED WORD DETECTED\n" +
+                        "**Under surveillance:** <@" + event.getAuthor().getId() + "> ( `" + event.getAuthor().getId() + "` )\n" +
+                        "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                        "**Timestamp:** `" + now + "`\n" +
+                        "**Forbidden term:** `" + forbidden + "`\n" +
+                        "**Original content:**\n> " + content;
                 
                 var logEmbed = EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS);
                 var messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
