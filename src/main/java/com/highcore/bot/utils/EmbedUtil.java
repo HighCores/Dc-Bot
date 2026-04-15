@@ -38,7 +38,7 @@ public class EmbedUtil {
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
     public static final String BANNER_INVOICE = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_discord.jpg";
     public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
-    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER-.jpg";
+    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER.jpg";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);

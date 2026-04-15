@@ -162,12 +162,14 @@ public class TicketService {
                 byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact);
                 
                 List<ContainerChildComponent> invChildren = new ArrayList<>();
-                invChildren.add(MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-" + ticketId + ".png")));
                 invChildren.add(TextDisplay.of("## 🧾 Invoice — Payment Required\nReview your order and choose a payment method."));
                 invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
 
                 if (invoiceData != null) {
+                    // Only add the image if it was generated successfully
+                    invChildren.add(0, MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-" + ticketId + ".png")));
+                    
                     channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true)
                         .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
                         .queue(msg -> {
