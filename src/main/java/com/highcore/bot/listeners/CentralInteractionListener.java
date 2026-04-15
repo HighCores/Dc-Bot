@@ -39,7 +39,9 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (member == null) return;
 
         boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") || id.equals("ticket_unclaim") ||
-                id.equals("invoice_gen") || id.equals("order_manage") || id.equals("giveaway_manage");
+                id.equals("invoice_gen") || id.equals("order_manage") || id.equals("giveaway_manage") ||
+                id.equals("ticket_reopen") || id.equals("ticket_delete") || id.startsWith("ticket_mark_paid_") ||
+                id.startsWith("order_status_update_");
 
         if (isStaffAction && !isStaff(member)) {
             PanelService.replyEphemeral(event, "### ⛔ Access Denied\nThis control interface is reserved for staff members.");
@@ -140,6 +142,16 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("bw_del_select").setPlaceholder("Term to remove...");
                 words.forEach(el -> { String w = el.getAsJsonObject().get("word").getAsString(); menu.addOption(w, w); });
                 PanelService.replyEphemeral(event, "### 🗑️ Firewall Update\nSelect term to purge:", ActionRow.of(menu.build()));
+            } else if (id.equals("ticket_reopen")) {
+                TicketService.reopenTicket(event.getChannel().asTextChannel(), member);
+            } else if (id.equals("ticket_delete")) {
+                event.getChannel().delete().queue();
+            } else if (id.startsWith("ticket_mark_paid_")) {
+                String tid = id.replace("ticket_mark_paid_", "");
+                TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
+            } else if (id.startsWith("order_status_update_")) {
+                String status = id.replace("order_status_update_", "");
+                TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
             }
         } catch (Exception e) {
             log.error("Button error", e);

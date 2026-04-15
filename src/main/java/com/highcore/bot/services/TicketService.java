@@ -169,10 +169,17 @@ public class TicketService {
                         .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
                         .queue(msg -> {
                             meta.addProperty("invoice_msg_id", msg.getId());
-                            // Update topic instead of patching non-existent DB column
-                            String newTopic = pName + "|HIGH|ORDER|" + user.getId() + "||META:" + meta.toString();
+                            String newTopic = pName + "|HIGH_END|ORDER|" + user.getId() + "||META:" + meta.toString();
                             channel.getManager().setTopic(newTopic).queue();
                         });
+                } else {
+                    // Fallback if image generation fails (CDN expiry etc.)
+                    log.warn("Invoice image failed to generate. Sending fallback message.");
+                    channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true).queue(msg -> {
+                        meta.addProperty("invoice_msg_id", msg.getId());
+                        String newTopic = pName + "|HIGH_END|ORDER|" + user.getId() + "||META:" + meta.toString();
+                        channel.getManager().setTopic(newTopic).queue();
+                    });
                 }
             });
     }
