@@ -24,24 +24,20 @@ public class GeneralCommands extends ListenerAdapter {
 
     private void handlePing(SlashCommandInteractionEvent event) {
         long ping = event.getJDA().getGatewayPing();
-        String body = String.format("""
-                ### 📡 CONNECTIVITY REPORT
-                **Status:** `Operational`
-                **Latency:** **%d**ms
-                """, ping);
-        PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Network Latency", body, EmbedUtil.BANNER_MAIN));
+        String body = String.format("### 📡 سرعة الاستجابة\n**%d**ms", ping);
+        PanelService.reply(event, EmbedUtil.containerBranded("SYSTEM", "Bot Latency", body, EmbedUtil.BANNER_MAIN));
     }
 
     private void handleRoll(SlashCommandInteractionEvent event) {
         int res = new Random().nextInt(6) + 1;
         String body = String.format("""
-                ### 🎲 RANDOM ENTROPY GENERATION
-                **Extracted Result:** **%d**
-
-                *Number generated successfully within standard industrial parameters*
+                ### 🎲 نـتـيـجـة رمـي الـنـرد
+                **الرقم المستخرج:** **%d**
+                
+                *تم توليد الرقم عشوائياً بنجاح*
                 """, res);
         PanelService.reply(event,
-                EmbedUtil.containerBranded("ENTERTAINMENT", "Dice Module", body, EmbedUtil.BANNER_MAIN));
+                EmbedUtil.containerBranded("GAME", "Dice result", body, EmbedUtil.BANNER_MAIN));
     }
 
     private void handleTranslate(SlashCommandInteractionEvent event) {

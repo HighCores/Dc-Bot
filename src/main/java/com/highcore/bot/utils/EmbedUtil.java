@@ -182,18 +182,18 @@ public class EmbedUtil {
         
         // Match the screenshot: Banner + Activity Sector Header
         eb.setImage(BANNER_MAIN);
-        eb.setTitle("\u25C8 ACTIVITY SECTOR \u30FB COMMAND LOG");
-        eb.setAuthor("⚙\uFE0F Command Executed", null, null);
+        eb.setTitle("► Highcore Agency ・ Activity Log");
+        eb.setAuthor("Action Executed", null, null);
         eb.setColor(color);
         eb.setTimestamp(Instant.now());
 
         // Body Fields with the exact style
-        eb.addField("Command:", "`/" + command + "`", false);
+        eb.addField("Action:", "`/" + command + "`", false);
 
         if (moderator != null) {
             eb.addField("User:", moderator.getAsMention() + " (`" + moderator.getId() + "`)", true);
         } else {
-            eb.addField("User:", "System Automation", true);
+            eb.addField("User:", "Automated System", true);
         }
 
         // Add context for the channel if available
@@ -205,23 +205,23 @@ public class EmbedUtil {
 
         if (targetUser != null || targetMember != null) {
             String targetId = targetMember != null ? targetMember.getId() : targetUser.getId();
-            eb.addField("Subject:", "<@" + targetId + "> (`" + targetId + "`)", true);
+            eb.addField("Target:", "<@" + targetId + "> (`" + targetId + "`)", true);
             
             if (targetMember != null) {
                 String roles = targetMember.getRoles().stream()
                         .map(Role::getAsMention)
                         .collect(Collectors.joining(" "));
                 if (roles.isEmpty()) roles = "None";
-                eb.addField("Clearance:", roles, false);
+                eb.addField("Roles:", roles, false);
             }
         }
 
         if (details != null && !details.isEmpty()) {
-            eb.addField("Intelligence/Data:", details, false);
+            eb.addField("Information:", details, false);
         }
 
         // Exact Footer from screenshot
-        eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA");
+        eb.setFooter("Highcore Agency | Management System");
 
         return eb.build();
     }

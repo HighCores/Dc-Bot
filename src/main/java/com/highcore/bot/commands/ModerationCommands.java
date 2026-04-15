@@ -325,31 +325,31 @@ public class ModerationCommands extends ListenerAdapter {
         int count = warns != null ? warns.size() : 0;
         
         StringBuilder sb = new StringBuilder();
-        sb.append("### 👤 SUBJECT IDENTIFICATION\n");
-        sb.append("**Name:** ").append(u.getAsMention()).append("\n");
-        sb.append("**Registry ID:** `").append(u.getId()).append("`\n\n");
+        sb.append("### 👤 معــلومــات الــعــضــو\n");
+        sb.append("**الاسم:** ").append(u.getAsMention()).append("\n");
+        sb.append("**الأيدي:** `").append(u.getId()).append("`\n\n");
         
-        sb.append("### 📋 WARNING REGISTRY LOGS\n");
-        sb.append("**Total Infractions Detected:** `").append(count).append("`\n\n");
+        sb.append("### 📋 ســجــل الــتــحــذيرات\n");
+        sb.append("**إجمالي المخالفات المسجلة:** `").append(count).append("`\n\n");
         
         if (count > 0) {
-            sb.append("▫️ **Documented Violations:**\n");
+            sb.append("▫️ **المخالفات المؤرشفة:**\n");
             for (int i = 0; i < Math.min(warns.size(), 8); i++) {
                 com.google.gson.JsonElement el = warns.get(i);
                 if (el == null || !el.isJsonObject()) continue;
                 com.google.gson.JsonObject w = el.getAsJsonObject();
                 String reason = w.has("reason") ? w.get("reason").getAsString() : "Internal Error: Reason Missing";
-                String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "Archive Date Missing";
-                String mod = w.has("warned_by_name") ? w.get("warned_by_name").getAsString() : "System Automation";
+                String date = w.has("created_at") ? w.get("created_at").getAsString().split("T")[0] : "تاريخ غير معروف";
+                String mod = w.has("warned_by_name") ? w.get("warned_by_name").getAsString() : "بواسطة النظام";
                 
-                sb.append("`").append(date).append("` \u2014 **").append(reason).append("** (By: `").append(mod).append("`)\n");
+                sb.append("`").append(date).append("` \u2014 **").append(reason).append("** (بواسطة: `").append(mod).append("`)\n");
             }
-            if (count > 8) sb.append("\n*+ ").append(count - 8).append(" additional encrypted records in archive.*");
+            if (count > 8) sb.append("\n*+ ").append(count - 8).append(" سجلات إضافية في الأرشيف.*");
         } else {
-            sb.append("*No documented infractions discovered within the Highcore Security Network.*");
+            sb.append("*لا توجد مخالفات مسجلة لهذا العضو في شبكة Highcore حالياً.*");
         }
         
-        PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Infraction Database", sb.toString(), EmbedUtil.BANNER_MAIN));
+        PanelService.reply(event, EmbedUtil.containerBranded("HISTORY", "Warnings History", sb.toString(), EmbedUtil.BANNER_MAIN));
     }
 
     private void handleViolations(SlashCommandInteractionEvent event) {
