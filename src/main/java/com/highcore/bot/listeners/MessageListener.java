@@ -49,13 +49,19 @@ public class MessageListener extends ListenerAdapter {
                 String now = java.time.LocalDateTime.now().format(dtf);
                 
                 String logBody = "### 🛡️ Restricted Content Removed\n" +
-                            "**User:** @" + event.getAuthor().getName() + " ( `" + event.getAuthor().getId() + "` )\n" +
+                        "**User:** <@" + event.getAuthor().getId() + "> ( `" + event.getAuthor().getId() + "` )\n" +
                         "**Channel:** " + event.getChannel().getAsMention() + "\n" +
                         "**Timestamp:** `" + now + "`\n" +
                         "**Detected Term:** `" + forbidden + "`\n" +
                         "**Original Content:**\n> " + content;
                 
-                PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS));
+                var logEmbed = EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS);
+                var messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .setComponents(logEmbed)
+                    .setAllowedMentions(java.util.Collections.emptyList())
+                    .build();
+                
+                PanelService.reply(logChannel, messageData);
             }
             return;
         }
