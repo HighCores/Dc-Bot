@@ -166,24 +166,22 @@ public class TicketService {
                 invChildren.add(Separator.createDivider(Spacing.SMALL));
                 invChildren.add(ActionRow.of(getPaymentButtons(ticketId)));
 
+                String topicBase = pName + "|HIGH|ORDER|" + user.getId() + "||META:";
+
                 if (invoiceData != null) {
-                    // Only add the image if it was generated successfully
                     invChildren.add(0, MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice-" + ticketId + ".png")));
                     
                     channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true)
                         .addFiles(FileUpload.fromData(invoiceData, "invoice-" + ticketId + ".png"))
                         .queue(msg -> {
                             meta.addProperty("invoice_msg_id", msg.getId());
-                            String newTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
-                            channel.getManager().setTopic(newTopic).queue();
+                            channel.getManager().setTopic(topicBase + meta.toString()).queue();
                         });
                 } else {
-                    // Fallback if image generation fails (CDN expiry etc.)
-                    log.warn("Invoice image failed to generate. Sending fallback message.");
+                    log.warn("Invoice generation returned null. Sending fallback.");
                     channel.sendMessageComponents(Container.of(invChildren)).useComponentsV2(true).queue(msg -> {
                         meta.addProperty("invoice_msg_id", msg.getId());
-                        String newTopic = pName + " | HIGH_END | ORDER | " + user.getId() + "                                                                                                    ||META:" + meta.toString();
-                        channel.getManager().setTopic(newTopic).queue();
+                        channel.getManager().setTopic(topicBase + meta.toString()).queue();
                     });
                 }
             });
