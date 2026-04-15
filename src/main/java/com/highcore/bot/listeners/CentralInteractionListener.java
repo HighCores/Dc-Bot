@@ -175,7 +175,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String val = event.getValues().get(0);
                 WordFilterService.removeWord(val);
                 var res = EmbedUtil.containerBranded("SUCCESS", "Term Purged", "The term **" + val + "** has been removed from filter.", EmbedUtil.BANNER_MAIN);
-                PanelService.reply(event, res);
+                PanelService.replyEphemeral(event, res);
                 BannedWordCommands.refreshChannel(event.getChannel());
             }
         } catch (Exception e) {
@@ -209,7 +209,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             String word = event.getValue("bw_word").getAsString();
             WordFilterService.addWord(word);
             var res = EmbedUtil.containerBranded("SUCCESS", "Term Blacklisted", "The term **" + word + "** is now monitored.", EmbedUtil.BANNER_MAIN);
-            PanelService.reply(event, res);
+            PanelService.replyEphemeral(event, res);
             BannedWordCommands.refreshChannel(event.getChannel());
         }
  else if (id.equals("modal_complaint_init")) {

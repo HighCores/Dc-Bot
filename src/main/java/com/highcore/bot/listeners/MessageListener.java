@@ -58,6 +58,8 @@ public class MessageListener extends ListenerAdapter {
                     PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS));
                 }
                 return;
+            } else {
+                org.slf4j.LoggerFactory.getLogger(MessageListener.class).info("[DEBUG] Word filter bypassed for {} because they have MANAGE_SERVER perms.", event.getAuthor().getName());
             }
         }
 
