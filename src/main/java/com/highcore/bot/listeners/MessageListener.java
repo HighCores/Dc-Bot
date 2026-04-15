@@ -29,39 +29,35 @@ public class MessageListener extends ListenerAdapter {
         // 🛡️ Word Filter
         String forbidden = WordFilterService.findForbiddenWord(content);
         if (forbidden != null) {
-            if (event.getMember() != null && !event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
-                // 1. Delete message
-                event.getMessage().delete().queue(null, (err) -> {});
+            // 1. Delete message
+            event.getMessage().delete().queue(null, (err) -> {});
+            
+            // 2. Alert the user in channel with auto-delete
+            event.getChannel().sendMessage("⚠️ <@" + event.getAuthor().getId() + ">, your message was removed because it contained restricted language. Please maintain a professional environment.")
+                .delay(5, java.util.concurrent.TimeUnit.SECONDS)
+                .flatMap(net.dv8tion.jda.api.entities.Message::delete)
+                .queue(null, (err) -> {});
+
+            // 3. Record Violation (Warning)
+            SupabaseClient.addWarning(event.getAuthor().getId(), event.getAuthor().getName(), "SYSTEM", "Automated Filter", "Restricted Term: " + forbidden, event.getGuild().getId());
+
+            // 4. Detailed Logging
+            String logId = "1490834724518760448";
+            TextChannel logChannel = event.getGuild().getTextChannelById(logId);
+            if (logChannel != null) {
+                java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy - HH:mm");
+                String now = java.time.LocalDateTime.now().format(dtf);
                 
-                // 2. Alert the user in channel with auto-delete
-                event.getChannel().sendMessage("⚠️ <@" + event.getAuthor().getId() + ">, your message was removed because it contained restricted language. Please maintain a professional environment.")
-                    .delay(5, java.util.concurrent.TimeUnit.SECONDS)
-                    .flatMap(net.dv8tion.jda.api.entities.Message::delete)
-                    .queue(null, (err) -> {});
-
-                // 3. Record Violation (Warning)
-                SupabaseClient.addWarning(event.getAuthor().getId(), event.getAuthor().getName(), "SYSTEM", "Automated Filter", "Restricted Term: " + forbidden, event.getGuild().getId());
-
-                // 4. Detailed Logging
-                String logId = "1490834724518760448";
-                TextChannel logChannel = event.getGuild().getTextChannelById(logId);
-                if (logChannel != null) {
-                    java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy - HH:mm");
-                    String now = java.time.LocalDateTime.now().format(dtf);
-                    
-                    String logBody = "### 🛡️ Restricted Content Removed\n" +
-                            "**User:** " + event.getAuthor().getName() + " ( <@" + event.getAuthor().getId() + "> )\n" +
-                            "**Channel:** " + event.getChannel().getAsMention() + "\n" +
-                            "**Timestamp:** `" + now + "`\n" +
-                            "**Detected Term:** `" + forbidden + "`\n" +
-                            "**Original Content:**\n> " + content;
-                    
-                    PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS));
-                }
-                return;
-            } else {
-                org.slf4j.LoggerFactory.getLogger(MessageListener.class).info("[DEBUG] Word filter bypassed for {} because they have MANAGE_SERVER perms.", event.getAuthor().getName());
+                String logBody = "### 🛡️ Restricted Content Removed\n" +
+                        "**User:** " + event.getAuthor().getName() + " ( <@" + event.getAuthor().getId() + "> )\n" +
+                        "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                        "**Timestamp:** `" + now + "`\n" +
+                        "**Detected Term:** `" + forbidden + "`\n" +
+                        "**Original Content:**\n> " + content;
+                
+                PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS));
             }
+            return;
         }
 
         if (AIService.isAIEnabled(channelId)) {
