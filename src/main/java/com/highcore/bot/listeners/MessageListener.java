@@ -73,7 +73,7 @@ public class MessageListener extends ListenerAdapter {
         switch (cmd) {
             case "warn-remove" -> {
                 if (event.getMessage().getMentions().getUsers().isEmpty()) {
-                    event.getChannel().sendMessage(EmbedUtil.error("Input Error", "Subject identification required: `+warn-remove @user [id]`")).queue();
+                    PanelService.reply(event.getChannel(), EmbedUtil.error("Input Error", "Subject identification required: `+warn-remove @user [id]`"));
                     return;
                 }
                 net.dv8tion.jda.api.entities.User target = event.getMessage().getMentions().getUsers().get(0);
@@ -81,13 +81,13 @@ public class MessageListener extends ListenerAdapter {
                     try {
                         int id = Integer.parseInt(args[2]);
                         SupabaseClient.deleteWarningById(id);
-                        event.getChannel().sendMessage(EmbedUtil.success("Infraction Purged", "Specific warning record ID: `" + id + "` has been wiped for " + target.getName())).queue();
+                        PanelService.reply(event.getChannel(), EmbedUtil.success("Infraction Purged", "Specific warning record ID: `" + id + "` has been wiped for " + target.getName()));
                     } catch (NumberFormatException e) {
-                        event.getChannel().sendMessage(EmbedUtil.error("Data Type Error", "Invalid record identifier.")).queue();
+                        PanelService.reply(event.getChannel(), EmbedUtil.error("Data Type Error", "Invalid record identifier."));
                     }
                 } else {
                     SupabaseClient.clearUserWarnings(target.getId(), event.getGuild().getId());
-                    event.getChannel().sendMessage(EmbedUtil.success("Archive Sanitized", "Full disciplinary history has been cleaned for " + target.getName())).queue();
+                    PanelService.reply(event.getChannel(), EmbedUtil.success("Archive Sanitized", "Full disciplinary history has been cleaned for " + target.getName()));
                 }
                 
                 // Log the manual command usage
