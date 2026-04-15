@@ -168,12 +168,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("ar_del_select")) {
                 String val = event.getValues().get(0);
                 AutoReplyService.removeResponse(val);
-                event.reply("### 🗑️ Auto-Reply Removed\nThe keyword **" + val + "** has been deleted.").queue();
+                event.reply("### 🗑️ Auto-Reply Removed\nThe keyword **" + val + "** has been deleted.").setEphemeral(true).queue();
                 AutoReplyCommands.refreshChannel(event.getChannel());
             } else if (id.equals("bw_del_select")) {
                 String val = event.getValues().get(0);
                 WordFilterService.removeWord(val);
-                event.reply("### 🗑️ Term Purged\nThe term **" + val + "** has been removed from filter.").queue();
+                event.reply("### 🗑️ Term Purged\nThe term **" + val + "** has been removed from filter.").setEphemeral(true).queue();
                 BannedWordCommands.refreshChannel(event.getChannel());
             }
         } catch (Exception e) {
@@ -193,18 +193,18 @@ public class CentralInteractionListener extends ListenerAdapter {
             String kw = event.getValue("ar_keyword").getAsString();
             String resp = event.getValue("ar_response").getAsString();
             AutoReplyService.addResponse(kw, resp, event.getUser().getId());
-            event.reply("### ✅ Auto-Reply Added\nKeyword: **" + kw + "**\nResponse: `" + resp + "`").queue();
+            event.reply("### ✅ Auto-Reply Added\nKeyword: **" + kw + "**\nResponse: `" + resp + "`").setEphemeral(true).queue();
             AutoReplyCommands.refreshChannel(event.getChannel());
         } else if (id.startsWith("modal_ar_edit_submit:")) {
             String kw = id.split(":")[1];
             String text = event.getValue("ar_new_response").getAsString();
             AutoReplyService.addResponse(kw, text, event.getUser().getId());
-            event.reply("### ✅ Auto-Reply Updated\nKeyword: **" + kw + "**").queue();
+            event.reply("### ✅ Auto-Reply Updated\nKeyword: **" + kw + "**").setEphemeral(true).queue();
             AutoReplyCommands.refreshChannel(event.getChannel());
         } else if (id.equals("modal_bw_add")) {
             String word = event.getValue("bw_word").getAsString();
             WordFilterService.addWord(word);
-            event.reply("### 🔒 Term Blacklisted\nThe term **" + word + "** is now monitored.").queue();
+            event.reply("### 🔒 Term Blacklisted\nThe term **" + word + "** is now monitored.").setEphemeral(true).queue();
             BannedWordCommands.refreshChannel(event.getChannel());
         } else if (id.equals("modal_complaint_init")) {
             event.deferReply(true).queue();
