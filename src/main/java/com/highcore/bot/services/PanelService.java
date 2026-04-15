@@ -181,48 +181,33 @@ public class PanelService {
             try {
                 if (event.isAcknowledged()) {
                     var hook = event.getHook();
+                    List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
                     if (messageData != null) {
-                        hook.editOriginal(MessageEditData.fromCreateData(messageData)).setComponents(components).useComponentsV2(true).queue(null, t -> {
-                            System.err.println("Interaction hook failure: " + t.getMessage());
-                        });
-                    } else {
-                        hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
-                            System.err.println("Interaction hook failure (components): " + t.getMessage());
-                        });
+                        try {
+                            String c = messageData.getContent();
+                            if (c != null && !c.isEmpty()) allComps.add(0, TextDisplay.of(c));
+                        } catch (Exception ignored) {}
                     }
-                } else {
-                    var interaction = (messageData != null) ? event.reply(messageData)
-                            : event.replyComponents(components).useComponentsV2(true);
-                    
-                    if (messageData != null && !components.isEmpty()) {
-                        interaction.setComponents(components).useComponentsV2(true);
-                    }
-                    
-                    interaction.setEphemeral(ephemeral).queue(null, err -> {
-                        if (err.getMessage().contains("acknowledged") || err.getMessage().contains("replied")) {
-                            var hook = event.getHook();
-                            if (messageData != null) {
-                                hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
-                                });
-                            } else {
-                                hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
-                                });
-                            }
-                        } else {
-                            System.err.println("Interaction reply failure: " + err.getMessage());
-                        }
+                    hook.editOriginalComponents(allComps).useComponentsV2(true).queue(null, t -> {
+                        System.err.println("Interaction hook failure: " + t.getMessage());
                     });
+                } else {
+                    if (messageData != null && components.isEmpty()) {
+                        event.reply(messageData).setEphemeral(ephemeral).queue();
+                    } else {
+                        List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
+                        if (messageData != null) {
+                           String c = messageData.getContent();
+                           if (c != null && !c.isEmpty()) allComps.add(0, TextDisplay.of(c));
+                        }
+                        event.replyComponents(allComps).useComponentsV2(true).setEphemeral(ephemeral).queue();
+                    }
                 }
             } catch (Exception ex) {
                 System.err.println("Critical handling error: " + ex.getMessage());
-                var hook = event.getHook();
-                if (messageData != null) {
-                    hook.editOriginal(MessageEditData.fromCreateData(messageData)).queue(null, t -> {
-                    });
-                } else {
-                    hook.editOriginal("").setComponents(components).useComponentsV2(true).queue(null, t -> {
-                    });
-                }
+                try {
+                    event.getHook().sendMessage("System Error: " + ex.getMessage()).setEphemeral(true).queue();
+                } catch (Exception ignored) {}
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             final MessageCreateData messageData = messageDataArr[0];

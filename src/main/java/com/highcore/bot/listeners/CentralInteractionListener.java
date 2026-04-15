@@ -59,7 +59,12 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         if (!event.isAcknowledged()) {
             if (isModalTrigger) {
-                processButton(event);
+                // DO NOT defer if opening a Modal
+                if (id.equals("ar_add") || id.equals("bw_add")) {
+                    processButton(event);
+                } else {
+                    event.deferEdit().queue(v -> processButton(event));
+                }
             } else if (isStaffAction) {
                 if (!isStaff(member)) {
                     event.reply("⛔ This action is restricted to staff members.").setEphemeral(true).queue();
