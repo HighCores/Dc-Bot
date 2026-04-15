@@ -58,6 +58,7 @@ public class MessageListener extends ListenerAdapter {
                 var logEmbed = EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS);
                 var messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
                     .setComponents(logEmbed)
+                    .useComponentsV2(true)
                     .setAllowedMentions(java.util.Collections.emptyList())
                     .build();
                 
