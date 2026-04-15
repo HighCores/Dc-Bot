@@ -50,7 +50,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             return;
 
         boolean isModalTrigger = id.equals("ticket_init_support") || id.equals("ticket_init_complaint")
-                || id.equals("order_open_ticket") || id.equals("ar_add") || id.equals("ar_edit") || id.equals("bw_add");
+                || id.equals("order_open_ticket") || id.equals("ar_add") || id.equals("bw_add");
         boolean isStaffAction = id.equals("ticket_claim") || id.equals("ticket_close") || id.equals("ticket_unclaim") ||
                 id.equals("ticket_delete") || id.equals("ticket_reopen") || id.startsWith("order_status_update_");
 
@@ -215,7 +215,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("ar_edit_select")
                         .setPlaceholder("Select a response to edit...");
                 arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
-                event.deferEdit().queue(hook -> hook.editOriginal("### 📝 Edit Assistant\nSelect a response to modify its content.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
+                PanelService.reply(event, "### 📝 Edit Assistant\nSelect a response to modify its content.", ActionRow.of(menu.build()));
             } else if (id.equals("ar_manage")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
                 if (arr == null || arr.isEmpty()) {
@@ -225,7 +225,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("ar_del_select")
                         .setPlaceholder("Select a response to delete...");
                 arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
-                event.deferEdit().queue(hook -> hook.editOriginal("### 🗑️ Delete Assistant\nSelect a response to remove it permanently.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
+                PanelService.reply(event, "### 🗑️ Delete Assistant\nSelect a response to remove it permanently.", ActionRow.of(menu.build()));
             } else if (id.equals("bw_add")) {
                 TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Enter word to block...").setRequired(true).build();
                 Modal m = Modal.create("modal_bw_add", "Add Banned Word")
@@ -241,7 +241,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 StringSelectMenu.Builder menu = StringSelectMenu.create("bw_del_select")
                         .setPlaceholder("Select a term to remove...");
                 words.forEach(el -> { String w = el.getAsJsonObject().get("word").getAsString(); menu.addOption(w, w); });
-                event.deferEdit().queue(hook -> hook.editOriginal("### 🗑️ Remove Term\nSelect a word to purge from the security list.").setComponents(ActionRow.of(menu.build())).useComponentsV2(true).queue());
+                PanelService.reply(event, "### 🗑️ Remove Term\nSelect a word to purge from the security list.", ActionRow.of(menu.build()));
             }
         } catch (Exception e) {
             try {
