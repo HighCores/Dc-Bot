@@ -33,10 +33,11 @@ public class MessageListener extends ListenerAdapter {
                 // 1. Delete message
                 event.getMessage().delete().queue(null, (err) -> {});
                 
-                // 2. DM the user
-                event.getAuthor().openPrivateChannel().flatMap(chan -> 
-                    chan.sendMessage("⚠️ Hello, your message in **" + event.getGuild().getName() + "** was removed because it contained restricted language. Please maintain a professional environment.")
-                ).queue(null, (err) -> {});
+                // 2. Alert the user in channel with auto-delete
+                event.getChannel().sendMessage("⚠️ <@" + event.getAuthor().getId() + ">, your message was removed because it contained restricted language. Please maintain a professional environment.")
+                    .delay(5, java.util.concurrent.TimeUnit.SECONDS)
+                    .flatMap(net.dv8tion.jda.api.entities.Message::delete)
+                    .queue(null, (err) -> {});
 
                 // 3. Record Violation (Warning)
                 SupabaseClient.addWarning(event.getAuthor().getId(), event.getAuthor().getName(), "SYSTEM", "Automated Filter", "Restricted Term: " + forbidden, event.getGuild().getId());
