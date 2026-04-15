@@ -27,20 +27,33 @@ public class MessageListener extends ListenerAdapter {
         String userId = event.getAuthor().getId();
 
         // 🛡️ Word Filter
-        if (WordFilterService.isForbidden(content)) {
+        String forbidden = WordFilterService.findForbiddenWord(content);
+        if (forbidden != null) {
             if (event.getMember() != null && !event.getMember().hasPermission(Permission.MANAGE_SERVER)) {
-                event.getMessage().delete().queue();
+                // 1. Delete message
+                event.getMessage().delete().queue(null, (err) -> {});
                 
-                String logId = Config.LOG_BANNED_WORDS;
+                // 2. Reply to user ephemerally
+                // 2. Reply to user privately (DM)
+                event.getAuthor().openPrivateChannel().flatMap(chan -> 
+                    chan.sendMessage("⚠️ Hello, your message in **" + event.getGuild().getName() + "** was removed because it contained restricted language. Please maintain a professional environment.")
+                ).queue(null, (err) -> {});
+
+                // 3. Detailed Logging
+                String logId = "1490834724518760448";
                 TextChannel logChannel = event.getGuild().getTextChannelById(logId);
                 if (logChannel != null) {
-                    String logBody = "### ⚠️ Security Alert: Restricted Content\n" +
-                            "**User:** **" + event.getAuthor().getName() + "** (`" + event.getAuthor().getId() + "`)\n" +
-                            "**Channel:** #" + event.getChannel().getName() + "\n" +
-                            "**Detected Text:**\n> " + content;
+                    java.time.format.DateTimeFormatter dtf = java.time.format.DateTimeFormatter.ofPattern("MMMM dd, yyyy - HH:mm");
+                    String now = java.time.LocalDateTime.now().format(dtf);
                     
-                    PanelService.reply(logChannel, EmbedUtil.activityLog("SECURITY LOG", logBody, EmbedUtil.DANGER));
-                    PanelService.reply(event.getChannel(), EmbedUtil.error("PROTECTION VIOLATION", "Restricted content detected. Security sequence initiated."));
+                    String logBody = "### 🛑 Banned Word Detected\n" +
+                            "**User:** " + event.getAuthor().getName() + " ( <@" + event.getAuthor().getId() + "> )\n" +
+                            "**Channel:** " + event.getChannel().getAsMention() + "\n" +
+                            "**Timestamp:** `" + now + "`\n" +
+                            "**Restricted Term:** `" + forbidden + "`\n" +
+                            "**Original Content:**\n> " + content;
+                    
+                    PanelService.reply(logChannel, EmbedUtil.activityLog("LANGUAGE VIOLATION", logBody, EmbedUtil.DANGER));
                 }
                 return;
             }

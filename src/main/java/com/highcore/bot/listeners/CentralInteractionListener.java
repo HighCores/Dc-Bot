@@ -184,40 +184,40 @@ public class CentralInteractionListener extends ListenerAdapter {
             }
 
             if (id.equals("ar_add")) {
-                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Trigger word...").setRequired(true).build();
+                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Keyword to watch for...").setRequired(true).build();
                 TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("What should I reply?").setRequired(true).build();
-                Modal m = Modal.create("modal_ar_add", "Create Response Protocol")
+                Modal m = Modal.create("modal_ar_add", "Add Auto-Response")
                     .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Auto-Reply Keyword", kw),
-                        net.dv8tion.jda.api.components.label.Label.of("Matrix Response", resp)
+                        net.dv8tion.jda.api.components.label.Label.of("Keyword", kw),
+                        net.dv8tion.jda.api.components.label.Label.of("Response Message", resp)
                     ).build();
                 event.replyModal(m).queue();
             } else if (id.equals("ar_manage")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getAutoResponses();
-                if (arr == null || arr.size() == 0) { event.reply("No protocols found.").setEphemeral(true).queue(); return; }
-                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_delete_select").setPlaceholder("Select a protocol to decommission...");
+                if (arr == null || arr.size() == 0) { PanelService.replyEphemeral(event, "No saved responses found."); return; }
+                StringSelectMenu.Builder menu = StringSelectMenu.create("ar_delete_select").setPlaceholder("Choose a response to remove...");
                 for (int i=0; i<Math.min(arr.size(), 25); i++) {
                     String kw = arr.get(i).getAsJsonObject().get("keyword").getAsString();
                     menu.addOption(kw, kw);
                 }
-                event.reply("### ⚠️ DECOMMISSION SECTOR\nSelect a response protocol to permanently delete from the matrix.")
-                    .setComponents(ActionRow.of(menu.build())).setEphemeral(true).queue();
+                PanelService.reply(event, "### 🗑️ Delete Assistant\nSelect a response from the list to remove it permanently.", 
+                    ActionRow.of(menu.build()));
             } else if (id.equals("bw_add")) {
                 TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Enter word to block...").setRequired(true).build();
-                Modal m = Modal.create("modal_bw_add", "Update Security Lexicon")
-                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Restricted Term", word))
+                Modal m = Modal.create("modal_bw_add", "Add Banned Word")
+                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Word", word))
                     .build();
                 event.replyModal(m).queue();
             } else if (id.equals("bw_remove")) {
                 JsonArray arr = com.highcore.bot.database.SupabaseClient.getWordFilter();
-                if (arr == null || arr.size() == 0) { event.reply("Security Lexicon is clear.").setEphemeral(true).queue(); return; }
-                StringSelectMenu.Builder menu = StringSelectMenu.create("bw_delete_select").setPlaceholder("Select a term to whitelist...");
+                if (arr == null || arr.size() == 0) { PanelService.replyEphemeral(event, "The word filter is currently empty."); return; }
+                StringSelectMenu.Builder menu = StringSelectMenu.create("bw_delete_select").setPlaceholder("Choose a word to unblock...");
                 for (int i=0; i<Math.min(arr.size(), 25); i++) {
                     String w = arr.get(i).getAsJsonObject().get("word").getAsString();
                     menu.addOption(w, w);
                 }
-                event.reply("### 🛠️ SECURITY OVERRIDE\nSelect a forbidden term to remove from the firewall blacklist.")
-                    .setComponents(ActionRow.of(menu.build())).setEphemeral(true).queue();
+                PanelService.reply(event, "### 🛠️ Configuration\nSelect a word from the list to remove it from the filter.",
+                    ActionRow.of(menu.build()));
             }
         } catch (Exception e) {
             try {

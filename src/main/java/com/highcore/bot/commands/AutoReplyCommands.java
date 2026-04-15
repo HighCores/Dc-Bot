@@ -26,11 +26,11 @@ public class AutoReplyCommands extends ListenerAdapter {
 
         JsonArray responses = SupabaseClient.getAutoResponses();
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🤖 Security Protocol: Auto-Reply v1.0\n");
-        sb.append("Current active responses linked to the database:\n\n");
+        sb.append("### 🤖 Customer Service: Auto-Replies\n");
+        sb.append("Current saved responses in the database:\n\n");
 
         if (responses == null || responses.isEmpty()) {
-            sb.append("`NO ACTIVE PROTOCOLS FOUND`\n");
+            sb.append("`NO SAVED RESPONSES FOUND`\n");
         } else {
             responses.forEach(el -> {
                 var obj = el.getAsJsonObject();
@@ -39,12 +39,12 @@ public class AutoReplyCommands extends ListenerAdapter {
             });
         }
 
-        sb.append("\n_Use the interface below to extend or decommission protocols._");
+        sb.append("\n_You can add or delete responses using the control panel below._");
 
-        var container = EmbedUtil.containerBranded("TERMINAL", "Auto-Response Matrix", sb.toString(), EmbedUtil.BANNER_MAIN);
+        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
         PanelService.reply(event, container, ActionRow.of(
-                Button.success("ar_add", "➕ Add Protocol"),
-                Button.secondary("ar_manage", "⚙️ Decommission")
+                Button.success("ar_add", "➕ Add Response"),
+                Button.secondary("ar_manage", "⚙️ Delete Response")
         ));
     }
 }

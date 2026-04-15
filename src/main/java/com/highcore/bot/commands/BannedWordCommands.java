@@ -26,11 +26,11 @@ public class BannedWordCommands extends ListenerAdapter {
 
         JsonArray words = SupabaseClient.getWordFilter();
         StringBuilder sb = new StringBuilder();
-        sb.append("### 🛡️ Firewall Protocol: Word Filter v1.0\n");
-        sb.append("Current restricted terminology in effect:\n\n");
+        sb.append("### 🛡️ Language Protection: Word Filter\n");
+        sb.append("Current banned words in the database:\n\n");
 
         if (words == null || words.isEmpty()) {
-            sb.append("`FIREWALL DEACTIVATED — NO RESTRICTED TERMS`\n");
+            sb.append("`FILTER STATUS: NO BANNED WORDS`\n");
         } else {
             words.forEach(el -> {
                 sb.append("▫️ `").append(el.getAsJsonObject().get("word").getAsString()).append("` ");
@@ -38,12 +38,12 @@ public class BannedWordCommands extends ListenerAdapter {
             sb.append("\n");
         }
 
-        sb.append("\n_Use the interface to reinforce the firewall or purge specific terms._");
+        sb.append("\n_You can add or remove words from the filter using the buttons below._");
 
-        var container = EmbedUtil.containerBranded("SECURITY", "Term Filtering Node", sb.toString(), EmbedUtil.BANNER_MAIN);
+        var container = EmbedUtil.containerBranded("MODERATION", "Word List", sb.toString(), EmbedUtil.BANNER_MAIN);
         PanelService.reply(event, container, ActionRow.of(
-                Button.danger("bw_add", "➕ Reinforce Firewall"),
-                Button.secondary("bw_remove", "🗑️ Purge Entry")
+                Button.danger("bw_add", "➕ Add Word"),
+                Button.secondary("bw_remove", "🗑️ Delete Word")
         ));
     }
 }
