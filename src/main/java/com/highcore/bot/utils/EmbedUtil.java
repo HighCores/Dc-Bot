@@ -36,7 +36,7 @@ public class EmbedUtil {
     public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_INVOICE = "https://media.discordapp.net/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg?ex=69e15e8a&is=69e00d0a&hm=4c1d5c646b9d97900324ef8e379911e3ef5823a770b98d6f9253ed78f6d84eb2&=&format=webp&width=625&height=883";
+    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg";
     public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
     public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER.png";
 

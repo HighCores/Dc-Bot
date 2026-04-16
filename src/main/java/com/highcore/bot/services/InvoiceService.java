@@ -134,8 +134,8 @@ public class InvoiceService {
             int col_TotalX    = (int)(W * 0.88);
 
             double subtotalVal = 0;
-            int tableStartY = (int)(H * 0.655);
-            int tableRowGap = (int)(H * 0.063); 
+            int tableStartY = (int)(H * 0.685);
+            int tableRowGap = (int)(H * 0.0632); 
             
             for (int i = 0; i < Math.min(items.size(), 4); i++) {
                 OrderItem item = items.get(i);
