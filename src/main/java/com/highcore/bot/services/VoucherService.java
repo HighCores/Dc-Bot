@@ -16,18 +16,14 @@ public class VoucherService {
 
     public static String generateRandomCode(int value, boolean isPercent) {
         Random r = new Random();
+        int singleDigit = r.nextInt(10); // One digit
         char c1 = (char) ('A' + r.nextInt(26));
         char c2 = (char) ('A' + r.nextInt(26));
         int n1 = r.nextInt(10);
         int n2 = r.nextInt(10);
         
-        if (isPercent) {
-            String percStr = String.format("%02d", value);
-            return "HC" + percStr + "-" + c1 + c2 + n1 + n2;
-        } else {
-            // Purchase Voucher - no number in HC prefix as requested
-            return "HC-" + c1 + c2 + n1 + n2;
-        }
+        // Format: HC[0-9]-[A-Z][A-Z][0-9][0-9]
+        return "HC" + singleDigit + "-" + c1 + c2 + n1 + n2;
     }
 
     public static byte[] drawVoucher(String code) {
