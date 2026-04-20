@@ -45,14 +45,14 @@ public class VoucherService {
 
             // Draw Code
             // User requested "Source Code Pro". Fallback to Monospaced if not found.
-            Font font = new Font("Source Code Pro", Font.BOLD, 48);
+            Font font = new Font("Source Code Pro", Font.BOLD, 60);
             // Check if font exists, if not use Monospaced
             if (font.getFamily().equals("Dialog") || font.getFamily().equals("SansSerif")) {
-                font = new Font("Monospaced", Font.BOLD, 48);
+                font = new Font("Monospaced", Font.BOLD, 60);
             }
             
             g.setFont(font);
-            g.setColor(new Color(255, 215, 0)); // Gold/Yellowish for the code
+            g.setColor(Color.WHITE); // User requested white
 
             FontMetrics fm = g.getFontMetrics();
             int textW = fm.stringWidth(code);
@@ -91,8 +91,7 @@ public class VoucherService {
         user.openPrivateChannel().queue(pc -> {
             pc.sendMessage("### Congratulations! \uD83C\uDF8A\n" +
                     "You won a voucher from **Highcore Agency**.\n" +
-                    "> **Your Code:** `" + code + "`\n\n" +
-                    "**Question:** هل تود استخدام كود الخصم الآن؟ (Do you want to use the discount code now?)")
+                    "> **Your Code:** `" + code + "`")
               .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"))
               .queue();
         });

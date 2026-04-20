@@ -92,9 +92,10 @@ public class GiveawayService {
         LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-end", "Operation: Asset Distribution Finalized\nID: #" + giveawayId + "\nPrize: " + prizeDetails + "\nWinners Picked: " + (winners.isEmpty() ? "None" : winners.size()), null, null, null, EmbedUtil.SUCCESS));
 
         // 🎟️ Send Vouchers in DMs
+        int perc = extractPercentage(prizeDetails);
         for (String userId : winners) {
             jda.retrieveUserById(userId).queue(user -> {
-                VoucherService.issueVoucher(user, 15); // Default 15% Giveaway Discount
+                VoucherService.issueVoucher(user, perc); 
             }, e -> {});
         }
 
@@ -144,13 +145,24 @@ public class GiveawayService {
             SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
             LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-reroll", "Action: Operational Backup Triggered\nID: #" + giveawayId + "\nNew Winners Identified: " + winners.size(), null, null, null, EmbedUtil.WARNING));
 
-            // 🎟️ Send Vouchers in DMs
+            String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Gift";
+            int perc = extractPercentage(prizeDetails);
             for (String userId : winners) {
                 jda.retrieveUserById(userId).queue(user -> {
-                    VoucherService.issueVoucher(user, 15);
+                    VoucherService.issueVoucher(user, perc);
                 }, e -> {});
             }
         }
+    }
+
+    private static int extractPercentage(String text) {
+        if (text == null) return 15;
+        // Regex to find numbers. If "20%", it takes 20.
+        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(text);
+        if (m.find()) {
+            return Integer.parseInt(m.group(1));
+        }
+        return 15; // Default fallback
     }
 
     private static List<String> pickWinners(List<String> pool, int count) {
