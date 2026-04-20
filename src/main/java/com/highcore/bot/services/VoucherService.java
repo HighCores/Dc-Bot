@@ -14,15 +14,20 @@ public class VoucherService {
 
     private static final String BACKGROUND_URL = "https://cdn.discordapp.com/attachments/1488900668042510568/1495869713081700512/Voucher_Code.jpg?ex=69e7d0bb&is=69e67f3b&hm=a099ef3ba0136cb704eadd76293fc113af774951aba72b07bfc70452781f5931&";
 
-    public static String generateRandomCode(int percentage) {
+    public static String generateRandomCode(int value, boolean isPercent) {
         Random r = new Random();
         char c1 = (char) ('A' + r.nextInt(26));
         char c2 = (char) ('A' + r.nextInt(26));
         int n1 = r.nextInt(10);
         int n2 = r.nextInt(10);
         
-        String percStr = String.format("%02d", percentage);
-        return "HC" + percStr + "-" + c1 + c2 + n1 + n2;
+        if (isPercent) {
+            String percStr = String.format("%02d", value);
+            return "HC" + percStr + "-" + c1 + c2 + n1 + n2;
+        } else {
+            // Purchase Voucher - no number in HC prefix as requested
+            return "HC-" + c1 + c2 + n1 + n2;
+        }
     }
 
     public static byte[] drawVoucher(String code) {
@@ -81,9 +86,10 @@ public class VoucherService {
         }
     }
 
-    public static void issueVoucher(User user, int percentage) {
-        String code = generateRandomCode(percentage);
-        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, percentage);
+    public static void issueVoucher(User user, int value, String type) {
+        boolean isPercent = type.equalsIgnoreCase("PERCENT");
+        String code = generateRandomCode(value, isPercent);
+        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type);
         
         byte[] img = drawVoucher(code);
         if (img == null) return;

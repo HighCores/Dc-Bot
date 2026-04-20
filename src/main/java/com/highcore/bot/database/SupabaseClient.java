@@ -502,11 +502,12 @@ public class SupabaseClient {
     }
 
     // ===== Vouchers =====
-    public static void createVoucher(String userId, String code, int percentage) {
+    public static void createVoucher(String userId, String code, int value, String type) {
         JsonObject json = new JsonObject();
         json.addProperty("user_id", userId);
         json.addProperty("code", code);
-        json.addProperty("percentage", percentage);
+        json.addProperty("amount", value); // renamed for clarity
+        json.addProperty("type", type); // 'PERCENT' or 'AMOUNT'
         post("dc_vouchers", json);
     }
 

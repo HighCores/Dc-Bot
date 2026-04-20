@@ -267,10 +267,19 @@ public class CentralInteractionListener extends ListenerAdapter {
             PanelService.OrderSession session = PanelService.SESSIONS.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (session != null) ? PanelService.resolveItems(new ArrayList<String>() {{ addAll(session.mainIds); addAll(session.addonIds); }}) : new ArrayList<>();
             
-            String vCode = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : null;
+            String vCode = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
+            
+            // Ephemeral alert if voucher is bad
+            if (!vCode.isBlank()) {
+                com.google.gson.JsonObject voucher = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vCode);
+                if (voucher == null || !voucher.get("user_id").getAsString().equals(event.getUser().getId()) || voucher.get("is_used").getAsBoolean()) {
+                    event.getHook().sendMessage("### \u26A0\uFE0F Voucher Alert\nThe code you entered (`" + vCode + "`) is **invalid** or has already been used. The order will proceed without this discount.").setEphemeral(true).queue();
+                }
+            }
+
             TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_eta").getAsString(), items, vCode);
             
-            event.getHook().sendMessage("✅ Order submitted.").setEphemeral(true).queue();
+            event.getHook().sendMessage("✅ Order submitted and ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_bc")) {
             com.highcore.bot.commands.SlashCommands.BcSession s = com.highcore.bot.commands.SlashCommands.BC_SESSIONS.remove("bc_" + event.getUser().getId());
             if (s != null && BroadcastService.startBroadcast(event.getGuild(), event.getValue("message").getAsString(), s.roleId, s.attUrl)) {

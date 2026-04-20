@@ -119,36 +119,52 @@ public class TicketService {
                 if (member == null) return;
                 
                 int globalDiscount = SupabaseClient.getGlobalDiscountPercentage();
-                int voucherDiscount = 0;
+                int voucherPercent = 0;
+                int voucherAmount = 0;
                 String appliedVoucher = null;
 
                 // 🎫 Voucher Validation
                 if (voucherCode != null && !voucherCode.isBlank()) {
                     JsonObject voucher = SupabaseClient.getVoucherByCode(voucherCode);
                     if (voucher != null && voucher.get("user_id").getAsString().equals(user.getId()) && !voucher.get("is_used").getAsBoolean()) {
-                        voucherDiscount = voucher.get("percentage").getAsInt();
+                        String vType = voucher.has("type") ? voucher.get("type").getAsString() : "PERCENT";
+                        int vVal = voucher.has("amount") ? voucher.get("amount").getAsInt() : 0;
+                        
+                        if (vType.equalsIgnoreCase("PERCENT")) {
+                           voucherPercent = vVal;
+                        } else {
+                           voucherAmount = vVal;
+                        }
+                        
                         appliedVoucher = voucherCode;
                         SupabaseClient.markVoucherAsUsed(voucherCode);
                     }
                 }
-
-                // Apply highest discount
-                int finalDiscountPerc = Math.max(globalDiscount, voucherDiscount);
-                if (finalDiscountPerc > 0) {
-                    double multiplier = (100.0 - finalDiscountPerc) / 100.0;
+                                // Apply Percentage Discount (Highest of global vs voucher percent)
+                int finalPerc = Math.max(globalDiscount, voucherPercent);
+                if (finalPerc > 0) {
+                    double multiplier = (100.0 - finalPerc) / 100.0;
                     for (var item : items) {
                         item.price = item.price * multiplier;
                     }
                 }
 
+                // Apply Fixed Amount Deduction (if any)
+                // We'll subtract it from the items proportionally or just from the first one?
+                // To keep it simple for the display, we'll just subtract it from the results in meta.
+                double totalAmountDeduction = voucherAmount;
+                
+                boolean voucherInvalid = (voucherCode != null && !voucherCode.isBlank() && appliedVoucher == null);
+
                 String finalVCode = appliedVoucher;
-                int finalPerc = finalDiscountPerc;
-                String discSource = (voucherDiscount >= globalDiscount && voucherDiscount > 0) ? "Voucher" : "Global Event";
+                String discSource = (voucherPercent >= globalDiscount && voucherPercent > 0) ? "Voucher %" : 
+                                   (voucherAmount > 0) ? "Voucher $" : "Global Event";
 
                 guild.createTextChannel(name, cat)
                     .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                     .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
                     .queue(channel -> {
+                        // Metadata for later invoice generation
                         JsonArray itemsArr = new JsonArray();
                         for (var i : items) {
                             JsonObject iObj = new JsonObject();
@@ -167,8 +183,14 @@ public class TicketService {
                         meta.addProperty("display_name", user.getEffectiveName());
                         
                         if (finalPerc > 0) {
+                            meta.addProperty("discount_percent", finalPerc + "%");
+                        }
+                        if (totalAmountDeduction > 0) {
+                            meta.addProperty("discount_fixed", "$" + totalAmountDeduction);
+                        }
+                        if (finalPerc > 0 || totalAmountDeduction > 0) {
                             if (finalVCode != null) meta.addProperty("voucher_code", finalVCode);
-                            meta.addProperty("discount_applied", finalPerc + "% (" + discSource + ")");
+                            meta.addProperty("discount_source", discSource);
                         }
                         
                         meta.add("items", itemsArr);
