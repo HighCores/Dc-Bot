@@ -90,7 +90,7 @@ public class GiveawayCommands extends ListenerAdapter {
                     event.getHook().sendMessage("No active deployments found.").setEphemeral(true).queue();
                     return;
                 }
-                StringBuilder sb = new StringBuilder("### 📋 Tactical History\n\n");
+                StringBuilder sb = new StringBuilder("### Tactical History\n\n");
                 for (int i = 0; i < Math.min(active.size(), 10); i++) {
                     JsonObject g = active.get(i).getAsJsonObject();
                     sb.append("▫️ **Prize:** ").append(g.get("prize_details").getAsString()).append("\n");
@@ -192,13 +192,13 @@ public class GiveawayCommands extends ListenerAdapter {
         dashboardMessages.put(gwId, ""); 
         dashboardChannels.put(gwId, target.getId());
 
-        String body = "### 🎁 Active Sweepstakes\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + s.get("win").getAsInt() + "\n▫️ **Ends:** <t:" + ends.getEpochSecond() + ":R>\n\nInteract below to enter.";
-        ActionRow row = ActionRow.of(Button.primary("gw_enter_" + gwId, "Join Sweepstakes"), Button.secondary("gw_count_" + gwId, "0 entries").asDisabled());
+        String body = "### Active Sweepstakes\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + s.get("win").getAsInt() + "\n▫️ **Ends:** <t:" + ends.getEpochSecond() + ":R>\n\nInteract below to enter.";
+        ActionRow row = ActionRow.of(Button.secondary("gw_enter_" + gwId, "Join Sweepstakes"), Button.secondary("gw_count_" + gwId, "0 entries").asDisabled());
         
         target.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY", "Active Reward", body, EmbedUtil.BANNER_GIVEAWAY, row)).useComponentsV2(true).queue(m -> SupabaseClient.setGiveawayMessageId(gwId, m.getId()));
         
         String dashDesc = "### " + prize + " | Logistics\n▫️ **Joins:** 0 members";
-        ActionRow dashRow = ActionRow.of(Button.danger("gw_end_early_" + gwId, "Close Early"));
+        ActionRow dashRow = ActionRow.of(Button.secondary("gw_end_early_" + gwId, "Close Early"));
         event.getHook().sendMessageComponents(EmbedUtil.containerBranded("DASHBOARD", "Command Monitoring", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow)).useComponentsV2(true).queue(dm -> {
             dashboardMessages.put(gwId, dm.getId());
             dashboardChannels.put(gwId, dm.getChannel().getId());
@@ -216,6 +216,6 @@ public class GiveawayCommands extends ListenerAdapter {
         JsonObject g = SupabaseClient.getGiveawayById(gwId);
         if (g == null) return;
         String desc = "### " + g.get("prize_details").getAsString() + " | Logistics\n▫️ **Joins:** " + count + " members";
-        ch.editMessageComponentsById(mid, EmbedUtil.containerBranded("DASHBOARD", "Monitoring", desc, EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(Button.danger("gw_end_early_" + gwId, "Close Early")))).useComponentsV2(true).queue(null, e -> {});
+        ch.editMessageComponentsById(mid, EmbedUtil.containerBranded("DASHBOARD", "Monitoring", desc, EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(Button.secondary("gw_end_early_" + gwId, "Close Early")))).useComponentsV2(true).queue(null, e -> {});
     }
 }

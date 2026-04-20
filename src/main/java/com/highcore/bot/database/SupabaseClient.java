@@ -8,6 +8,8 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 import java.time.Instant;
+import java.util.List;
+import java.util.ArrayList;
 
 public class SupabaseClient {
 
@@ -320,6 +322,23 @@ public class SupabaseClient {
 
     public static void deleteAutoResponse(String keyword) {
         delete("dc_auto_responses", "keyword=eq." + keyword);
+    }
+
+    public static List<String> getBannedWords() {
+        JsonArray arr = get("dc_banned_words", null);
+        java.util.List<String> words = new java.util.ArrayList<>();
+        if (arr != null) for (var e : arr) words.add(e.getAsJsonObject().get("word").getAsString());
+        return words;
+    }
+
+    public static void addBannedWord(String word) {
+        JsonObject body = new JsonObject();
+        body.addProperty("word", word);
+        upsert("dc_banned_words", body, "word");
+    }
+
+    public static void removeBannedWord(String word) {
+        delete("dc_banned_words", "word=eq." + word);
     }
 
     // ========== MODERATION & WARNINGS ==========

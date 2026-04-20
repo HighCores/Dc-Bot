@@ -499,7 +499,7 @@ public class PanelService {
                 "Now choose any add-ons, or click **Confirm Order** to skip.",
                 EmbedUtil.getCategoryBanner(session.category),
                 ActionRow.of(addonMenu),
-                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
+                ActionRow.of(Button.secondary("order_final", "Confirm Order"))));
     }
 
     public static void handleAddonsSelected(IReplyCallback event, String userId, List<String> selected) {
@@ -525,7 +525,7 @@ public class PanelService {
                 "**Add-ons:** " + addonSummary + "\n\n" +
                 "Click **Confirm Order** to fill in your project details and open your ticket.",
                 EmbedUtil.getCategoryBanner(session.category),
-                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
+                ActionRow.of(Button.secondary("order_final", "Confirm Order"))));
     }
 
     public static void handleOrderFinalModal(IReplyCallback event, String id) {

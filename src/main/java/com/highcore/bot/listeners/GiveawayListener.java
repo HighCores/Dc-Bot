@@ -36,18 +36,16 @@ public class GiveawayListener extends ListenerAdapter {
 
         JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
         if (g == null || g.get("ended").getAsBoolean()) {
-            event.reply("\u274C This giveaway operation has concluded.").setEphemeral(true).queue();
+            event.reply("This giveaway operation has concluded.").setEphemeral(true).queue();
             return;
         }
 
         if (SupabaseClient.hasEnteredGiveaway(giveawayId, event.getUser().getId())) {
-            event.reply("\u2705 Your entry is already synchronized. Good luck! \uD83C\uDF40").setEphemeral(true).queue();
+            event.reply("Your entry is already synchronized.").setEphemeral(true).queue();
             return;
         }
 
-        // Defer edit to update the message count without "Interaction Failed"
         event.deferEdit().queue();
-
         String prizeType = g.has("prize_type") ? g.get("prize_type").getAsString() : "";
         boolean isDrop = prizeType.equalsIgnoreCase("drop");
         
@@ -55,7 +53,7 @@ public class GiveawayListener extends ListenerAdapter {
 
         if (isDrop) {
             GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
-            event.getHook().sendMessage("\uD83D\uDCA8 **Target Optimized:** You have successfully claimed the priority reward!").setEphemeral(true).queue();
+            event.getHook().sendMessage("Target Optimized: You have successfully claimed the priority reward!").setEphemeral(true).queue();
             return;
         }
 
@@ -67,32 +65,22 @@ public class GiveawayListener extends ListenerAdapter {
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
         long endsTs = !endsStr.isEmpty() ? java.time.Instant.parse(endsStr).getEpochSecond() : 0;
 
-        String body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** " + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:" + endsTs + ":R>";
+        String body = "### Active Sweepstakes\nA new reward opportunity is available.\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + winCount + "\n▫️ **Ends In:** <t:" + endsTs + ":R>";
 
-        Button joinBtn = Button.primary("gw_enter_" + giveawayId, "Join Sweepstakes")
-                .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode("\uD83C\uDF89"));
-        Button countBtn = Button.secondary("gw_count_" + giveawayId, count + " entries");
+        Button joinBtn = Button.secondary("gw_enter_" + giveawayId, "Join Sweepstakes");
+        Button countBtn = Button.secondary("gw_count_" + giveawayId, count + " entries").asDisabled();
 
-        // Update existing giveaway message components globally
         event.getHook().editOriginalComponents(ActionRow.of(joinBtn, countBtn)).queue(null, err -> {});
+        event.getHook().sendMessage("Registry updated. You have successfully entered the giveaway!").setEphemeral(true).queue();
         
-        // Provide private confirmation to the entrant
-        event.getHook().sendMessage("\u2705 Registry updated. You have successfully entered the giveaway!").setEphemeral(true).queue();
-        
-        // Sync Dashboard
         String dashMsgId = GiveawayCommands.dashboardMessages.get(giveawayId);
         String dashChId = GiveawayCommands.dashboardChannels.get(giveawayId);
-        
         if (dashMsgId != null && dashChId != null) {
             TextChannel dashCh = event.getGuild().getTextChannelById(dashChId);
             if (dashCh != null) {
-                String dashDesc = "### " + prize + " | Live Status\n" +
-                        "\u25AB\uFE0F **Status:** Currently Active\n" +
-                        "\u25AB\uFE0F **Users Joined:** " + count + " members";
-                
+                String dashDesc = "### " + prize + " | Live Status\n▫️ **Status:** Currently Active\n▫️ **Users Joined:** " + count + " members";
                 var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Status", dashDesc, EmbedUtil.BANNER_GIVEAWAY, 
-                        ActionRow.of(Button.danger("gw_end_early_" + giveawayId, "End Early"), Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners")));
-                
+                        ActionRow.of(Button.secondary("gw_end_early_" + giveawayId, "End Early"), Button.secondary("gw_reroll_adm_" + giveawayId, "Reroll Winners")));
                 dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
             }
         }
@@ -102,9 +90,8 @@ public class GiveawayListener extends ListenerAdapter {
         String idStr = event.getComponentId().replace("gw_count_", "");
         long giveawayId;
         try { giveawayId = Long.parseLong(idStr); } catch (Exception e) { return; }
-
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         int count = entries != null ? entries.size() : 0;
-        event.reply("\uD83D\uDCCA Current registry confirms **" + count + "** active entries for this session.").setEphemeral(true).queue();
+        event.reply("Current registry confirms **" + count + "** active entries for this session.").setEphemeral(true).queue();
     }
 }

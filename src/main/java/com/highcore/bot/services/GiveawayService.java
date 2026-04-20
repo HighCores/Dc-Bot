@@ -98,7 +98,7 @@ public class GiveawayService {
 
         if (messageId != null) {
             ch.editMessageComponentsById(messageId, resultC)
-              .setComponents(ActionRow.of(Button.secondary("giveaway_ended", "GIVEAWAY ENDED").asDisabled()))
+              .setComponents(ActionRow.of(Button.secondary("giveaway_ended", "Deployment Concluded").asDisabled()))
               .useComponentsV2(true)
               .queue(null, e -> {
                   // Fallback if edit fails
@@ -156,7 +156,7 @@ public class GiveawayService {
                         "\u25AB\uFE0F **Total Joined:** " + userIds.size() + " members";
                 
                 var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Operation Complete", dashDesc, EmbedUtil.BANNER_GIVEAWAY, 
-                        ActionRow.of(Button.success("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
+                        ActionRow.of(Button.secondary("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
                 
                 dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
             }

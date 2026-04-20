@@ -25,7 +25,7 @@ public class CommandService {
     }
  
     public static void handleServiceSelection(net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event, List<String> vals) {
-        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Finalizing", "Click to proceed.", null, ActionRow.of(Button.success("order_final_meta", "Proceed"))));
+        PanelService.replyEphemeral(event, EmbedUtil.eliteContainer("Finalizing", "Click to proceed.", null, ActionRow.of(Button.secondary("order_final_meta", "Proceed"))));
     }
 
     public static boolean execute(Member member, MessageChannel channel, String command) {

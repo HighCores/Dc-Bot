@@ -41,6 +41,8 @@ public class CentralInteractionListener extends ListenerAdapter {
         try {
             if (id.equals("ticket_claim")) {
                 TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("ticket_unclaim")) {
+                TicketService.unclaimTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_close")) {
                 TicketService.closeTicket(event.getChannel().asTextChannel(), member);
             } else if (id.equals("wiz_finish")) {

@@ -5,12 +5,10 @@ import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.CalendarUtil;
 import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.container.Container;
 
 import java.time.LocalDate;
 import java.util.HashSet;
@@ -65,19 +63,19 @@ public class DiscountService {
 
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
         
-        String desc = "### \uD83C\uDFAB Discount Infrastructure\n" +
-                "Manage scheduled discount events (Auto/Manual).\n\n" +
+        String desc = "### Discount Infrastructure\n" +
+                "Manage scheduled discount events.\n\n" +
                 calendar + "\n" +
                 "*Dates marked with `*` indicate scheduled events.*";
 
         ActionRow navRow = ActionRow.of(
-            Button.secondary("disc_prev_" + year + "_" + month, Emoji.fromFormatted("\u25C0\uFE0F")),
-            Button.secondary("disc_next_" + year + "_" + month, Emoji.fromFormatted("\u25B6\uFE0F"))
+            Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
+            Button.secondary("disc_next_" + year + "_" + month, "Next")
         );
         
         ActionRow actionRow = ActionRow.of(
-            Button.primary("disc_deploy_auto", "New Auto Discount"),
-            Button.success("disc_deploy_manual", "New Manual Discount")
+            Button.secondary("disc_deploy_auto", "New Auto Discount"),
+            Button.secondary("disc_deploy_manual", "New Manual Discount")
         );
 
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow));
@@ -124,19 +122,19 @@ public class DiscountService {
         }
 
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
-        String desc = "### \uD83C\uDFAB Discount Infrastructure\n" +
-                "Manage scheduled discount events (Auto/Manual).\n\n" +
+        String desc = "### Discount Infrastructure\n" +
+                "Manage scheduled discount events.\n\n" +
                 calendar + "\n" +
                 "*Dates marked with `*` indicate scheduled events.*";
 
         ActionRow navRow = ActionRow.of(
-            Button.secondary("disc_prev_" + year + "_" + month, Emoji.fromFormatted("\u25C0\uFE0F")),
-            Button.secondary("disc_next_" + year + "_" + month, Emoji.fromFormatted("\u25B6\uFE0F"))
+            Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
+            Button.secondary("disc_next_" + year + "_" + month, "Next")
         );
         
         ActionRow actionRow = ActionRow.of(
-            Button.primary("disc_deploy_auto", "New Auto Discount"),
-            Button.success("disc_deploy_manual", "New Manual Discount")
+            Button.secondary("disc_deploy_auto", "New Auto Discount"),
+            Button.secondary("disc_deploy_manual", "New Manual Discount")
         );
 
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow));

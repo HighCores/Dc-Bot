@@ -1,101 +1,56 @@
 package com.highcore.bot.commands;
 
-import com.google.gson.JsonArray;
-import com.highcore.bot.database.SupabaseClient;
+import com.highcore.bot.config.Config;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.Permission;
+import com.highcore.bot.database.SupabaseClient;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
+import java.util.List;
+import java.util.ArrayList;
 
 public class BannedWordCommands extends ListenerAdapter {
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        if (!event.getName().equals("bannedwords")) return;
+        if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        sendPanel(event, false);
+    }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("banned-words")) return;
-
-        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
-            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
-            return;
-        }
-
-        sendPanel(event);
+    public void onButtonInteraction(ButtonInteractionEvent event) {
+        if (!event.getComponentId().equals("bw_add")) return;
+        if (!Config.isAdmin(event.getMember())) return;
+        TextInput word = TextInput.create("word", TextInputStyle.SHORT).setPlaceholder("Banned term...").setRequired(true).build();
+        event.replyModal(Modal.create("modal_bw_add", "Banned Word").addComponents(net.dv8tion.jda.api.components.label.Label.of("Banned Word", word)).build()).queue();
     }
 
-    public static void sendPanel(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event) {
-        JsonArray words = SupabaseClient.getWordFilter();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🛡️ Word Monitor: Forbidden Terms\n");
-        sb.append("Current restricted terminology in the active list:\n\n");
-
-        if (words == null || words.isEmpty()) {
-            sb.append("`FILTER BLACKLIST IS CURRENTLY EMPTY`\n");
-        } else {
-            words.forEach(el -> {
-                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
-            });
-        }
-
-        sb.append("\n_Use the buttons below to manage terms._");
-
-        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
-                Button.success("bw_add", "➕ Add Term"),
-                Button.secondary("bw_remove", "🗑️ Delete Term")
-        ));
-        PanelService.reply(event, container);
+    @Override
+    public void onModalInteraction(ModalInteractionEvent event) {
+        if (!event.getModalId().equals("modal_bw_add")) return;
+        String w = event.getValue("word").getAsString();
+        SupabaseClient.addBannedWord(w);
+        sendPanel(event, true);
     }
 
-    public static void updatePanel(net.dv8tion.jda.api.interactions.InteractionHook hook) {
-        JsonArray words = SupabaseClient.getWordFilter();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🛡️ Word Monitor: Forbidden Terms\n");
-        sb.append("Current restricted terminology in the active list:\n\n");
-        if (words != null) {
-            words.forEach(el -> {
-                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
-            });
-        }
-        sb.append("\n\n_Use the buttons below to manage terms._");
-        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
-                Button.success("bw_add", "➕ Add Term"),
-                Button.secondary("bw_remove", "🗑️ Delete Term")
-        ));
-        PanelService.reply(hook, container);
-    }
+    private void sendPanel(Object event, boolean edit) {
+        List<String> words = SupabaseClient.getBannedWords();
+        StringBuilder sb = new StringBuilder("### Banned Terms Registry\n\n");
+        if (words.isEmpty()) sb.append("*No terms indexed.*");
+        else words.forEach(w -> sb.append("▫️ `").append(w).append("`\n"));
 
-    public static void refreshChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-        channel.getHistory().retrievePast(20).queue(msgs -> {
-            for (var m : msgs) {
-                boolean isPanel = m.getComponents().stream().anyMatch(c -> {
-                    String s = c.toString();
-                    return s.contains("bw_add") || s.contains("bw_remove");
-                });
-                if (m.getAuthor().getId().equals(channel.getJDA().getSelfUser().getId()) && isPanel) {
-                    updatePanelMessage(m);
-                    return;
-                }
-            }
-        });
-    }
-
-    private static void updatePanelMessage(net.dv8tion.jda.api.entities.Message m) {
-        JsonArray words = SupabaseClient.getWordFilter();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🛡️ Word Monitor: Forbidden Terms\n");
-        sb.append("Current restricted terminology in the active list:\n\n");
-        if (words != null) {
-            words.forEach(el -> {
-                sb.append("▫️ **").append(el.getAsJsonObject().get("word").getAsString()).append("**\n");
-            });
-        }
-        sb.append("\n\n_Use the buttons below to manage terms._");
-        var container = EmbedUtil.containerBranded("MODERATION", "Word Filter", sb.toString(), EmbedUtil.BANNER_MAIN);
-        PanelService.reply(m, container, ActionRow.of(
-            Button.success("bw_add", "➕ Add Term"),
-            Button.secondary("bw_remove", "🗑️ Delete Term")
-        ));
+        ActionRow row = ActionRow.of(Button.secondary("bw_add", "Add Term"));
+        var c = EmbedUtil.containerBranded("MODERATION", "Filter Hub", sb.toString(), null, row);
+        if (edit) {
+            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editComponents(c).queue();
+            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editComponents(c).queue();
+        } else PanelService.replyEphemeral((SlashCommandInteractionEvent)event, c);
     }
 }

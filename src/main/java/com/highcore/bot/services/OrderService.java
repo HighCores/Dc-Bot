@@ -239,7 +239,7 @@ public class OrderService {
             "Enhance your project with specialized delivery options.",
             EmbedUtil.getCategoryBanner(session.category),
             ActionRow.of(b.build()),
-            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("📝")))));
+            ActionRow.of(Button.secondary("wiz_finish", "Confirm Order"))));
     }
 
     private static void sendConfirmView(Object event, OrderSession session) {
@@ -247,7 +247,7 @@ public class OrderService {
             "ORDER SUMMARY", "Review & Submit",
             "Click **Confirm Order** to provide your project details.",
             EmbedUtil.getCategoryBanner(session.category),
-            ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("📝")))));
+            ActionRow.of(Button.secondary("wiz_finish", "Confirm Order"))));
     }
 
     public static void finishWizard(net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {

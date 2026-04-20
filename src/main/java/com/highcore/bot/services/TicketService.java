@@ -10,7 +10,6 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
-import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
@@ -25,10 +24,10 @@ import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.time.Instant;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
@@ -59,12 +58,15 @@ public class TicketService {
                 
                 JsonObject meta = new JsonObject();
                 meta.addProperty("category", type);
+                meta.addProperty("subject", subject);
+                meta.addProperty("body", body);
+                meta.addProperty("priority", priority);
                 ticket.add("metadata", meta);
                 ticketCache.put(ch.getId(), ticket);
 
                 SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
                 
-                ch.sendMessageComponents(Container.of(rebuildWelcomeComponents(ticket, false, (TextChannel)ch, null))).useComponentsV2(true).queue();
+                ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
                 event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
             });
     }
@@ -121,44 +123,91 @@ public class TicketService {
                 channel.getManager().setTopic("||META:" + meta.toString()).queue();
                 SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
 
-                channel.sendMessageComponents(Container.of(rebuildWelcomeComponents(ticket, false, channel, null))).useComponentsV2(true).queue();
+                channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
 
                 byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
                 if (inv != null) {
-                    List<ContainerChildComponent> invUI = new ArrayList<>();
-                    invUI.add(MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice.png")));
-                    invUI.add(ActionRow.of(Button.primary("ticket_pay_paypal_" + tid, "PayPal"), Button.secondary("ticket_pay_crypto_" + tid, "Crypto"), Button.success("ticket_mark_paid_" + tid, "Mark as Paid")));
-                    channel.sendMessageComponents(Container.of(invUI)).useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
+                    channel.sendMessageComponents(EmbedUtil.containerBranded("PROJECT INVOICE", "Payment Required", "Please select a payment method below.", "attachment://invoice.png",
+                        ActionRow.of(Button.secondary("ticket_pay_paypal_" + tid, "PayPal"), Button.secondary("ticket_pay_crypto_" + tid, "Crypto"), Button.secondary("ticket_mark_paid_" + tid, "Mark as Paid"))))
+                        .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                 }
             });
     }
 
-    public static List<ContainerChildComponent> rebuildWelcomeComponents(JsonObject ticket, boolean claimed, TextChannel channel, Member staff) {
-        List<ContainerChildComponent> comps = new ArrayList<>();
+    private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff) {
         JsonObject meta = ticket.getAsJsonObject("metadata");
         String tid = ticket.get("ticket_id").getAsString();
         String cat = (meta != null && meta.has("category")) ? meta.get("category").getAsString() : "Support";
-        comps.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.getCategoryBanner(cat))));
-        comps.add(TextDisplay.of("## Highcore Agency | " + cat + " #" + tid + "\nWelcome. High-fidelity operations initiated."));
-        comps.add(Separator.createDivider(Spacing.SMALL));
-        if (claimed && staff != null) comps.add(TextDisplay.of("📁 **Status:** Active\n💂 **Agent:** " + staff.getAsMention()));
-        else comps.add(TextDisplay.of("📁 **Status:** Awaiting Response\n💂 **Agent:** <@&" + ADMIN_ROLE_ID + ">"));
-        comps.add(ActionRow.of(Button.success("ticket_claim", "Claim Project").withEmoji(Emoji.fromUnicode("💼")), Button.danger("ticket_close", "Archive Session").withEmoji(Emoji.fromUnicode("📁"))));
-        return comps;
+        
+        StringBuilder desc = new StringBuilder();
+        desc.append("### \uD83D\uDCE9 SESSION DETAILS\n");
+        if (meta != null) {
+            if (meta.has("project_name")) desc.append("**Project:** ").append(meta.get("project_name").getAsString()).append("\n");
+            if (meta.has("subject")) desc.append("**Subject:** ").append(meta.get("subject").getAsString()).append("\n");
+            if (meta.has("client_name")) desc.append("**Client:** ").append(meta.get("client_name").getAsString()).append("\n");
+            if (meta.has("body")) desc.append("**Details:** ").append(meta.get("body").getAsString()).append("\n");
+            if (meta.has("priority")) desc.append("**Priority:** ").append(meta.get("priority").getAsString()).append("\n");
+        }
+        desc.append("\n---\n\n");
+        desc.append("\uD83D\uDCC1 **Status:** ").append(claimed ? "Active / In Progress" : "Awaiting Response").append("\n");
+        desc.append("\uD83D\uDC82 **Agent:** ").append(claimed && staff != null ? staff.getAsMention() : "Unassigned / <@&" + ADMIN_ROLE_ID + ">");
+
+        ActionRow row;
+        if (!claimed) {
+            row = ActionRow.of(
+                Button.secondary("ticket_claim", "Claim Project"),
+                Button.secondary("ticket_close", "Archive Session")
+            );
+        } else {
+            row = ActionRow.of(
+                Button.secondary("ticket_unclaim", "Release Project"),
+                Button.secondary("ticket_close", "Archive Session")
+            );
+        }
+
+        return EmbedUtil.containerBranded(cat.toUpperCase(), "Case #" + tid, desc.toString(), EmbedUtil.getCategoryBanner(cat), row);
     }
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) return;
+        if (ticket == null) ticket = resolveFromTopic(ch);
+        if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
+        
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
-        ch.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, true, ch, member))).useComponentsV2(true).queue();
-        event.reply("Operation Success: Sector claimed.").setEphemeral(true).queue();
+        event.deferEdit().queue();
+        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
+        event.getHook().sendMessage("✅ **Sector Claimed.** Agent " + member.getAsMention() + " is now handling this session.").queue();
+    }
+
+    public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
+        JsonObject ticket = ticketCache.get(ch.getId());
+        if (ticket == null) ticket = resolveFromTopic(ch);
+        if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
+
+        SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
+        event.deferEdit().queue();
+        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
+        event.getHook().sendMessage("🔓 **Sector Released.** Ticket is now available for other agents.").queue();
+    }
+
+    private static JsonObject resolveFromTopic(TextChannel ch) {
+        String topic = ch.getTopic();
+        if (topic != null && topic.startsWith("||META:")) {
+            JsonObject ticket = new JsonObject();
+            String name = ch.getName();
+            String tid = name.substring(name.lastIndexOf("-") + 1);
+            ticket.addProperty("ticket_id", tid);
+            try {
+                ticket.add("metadata", com.google.gson.JsonParser.parseString(topic.replace("||META:", "")));
+                return ticket;
+            } catch (Exception e) { return null; }
+        }
+        return null;
     }
 
     public static void closeTicket(TextChannel ch, Member member) {
-        JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) return;
-        SupabaseClient.updateTicketStatus(ticket.get("ticket_id").getAsString(), "closed", member.getEffectiveName());
+        String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
+        SupabaseClient.updateTicketStatus(tid, "closed", member.getEffectiveName());
         ch.sendMessage("⚠️ Transmission ending. Archiving sector...").queue(m -> ch.delete().queueAfter(5, java.util.concurrent.TimeUnit.SECONDS));
     }
 

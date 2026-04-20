@@ -1,109 +1,69 @@
 package com.highcore.bot.commands;
 
-import com.google.gson.JsonArray;
-import com.highcore.bot.database.SupabaseClient;
+import com.highcore.bot.config.Config;
 import com.highcore.bot.services.PanelService;
 import com.highcore.bot.utils.EmbedUtil;
-import net.dv8tion.jda.api.Permission;
+import com.highcore.bot.database.SupabaseClient;
+import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
+import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
+import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
-import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import org.jetbrains.annotations.NotNull;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 
 public class AutoReplyCommands extends ListenerAdapter {
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        if (!event.getName().equals("autoreply")) return;
+        if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        sendPanel(event, false);
+    }
 
     @Override
-    public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("replay")) return;
-
-        if (!event.getMember().hasPermission(Permission.ADMINISTRATOR)) {
-            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
-            return;
+    public void onButtonInteraction(ButtonInteractionEvent event) {
+        String id = event.getComponentId();
+        if (!Config.isAdmin(event.getMember())) return;
+        if (id.equals("ar_add")) {
+            TextInput tr = TextInput.create("trigger", TextInputStyle.SHORT).setPlaceholder("Keyword...").setRequired(true).build();
+            TextInput re = TextInput.create("reply", TextInputStyle.PARAGRAPH).setPlaceholder("Bot reply...").setRequired(true).build();
+            event.replyModal(Modal.create("modal_ar_add", "Auto Reply")
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Trigger", tr), net.dv8tion.jda.api.components.label.Label.of("Response", re))
+                .build()).queue();
+        } else if (id.equals("ar_manage")) {
+             event.reply("Deletions not yet available in V2 Registry.").setEphemeral(true).queue();
         }
-
-        sendPanel(event);
     }
 
-    public static void sendPanel(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event) {
-        JsonArray responses = SupabaseClient.getAutoResponses();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🤖 Assistant: Auto-Replies\n");
-        sb.append("Current saved responses in the active list:\n\n");
-
-        if (responses == null || responses.isEmpty()) {
-            sb.append("`NO SAVED RESPONSES FOUND`\n");
-        } else {
-            responses.forEach(el -> {
-                var obj = el.getAsJsonObject();
-                sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
-                  .append("`").append(obj.get("response_text").getAsString()).append("`\n");
-            });
-        }
-
-        sb.append("\n_Use the control panel below to add, edit or remove responses._");
-        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
-                Button.success("ar_add", "➕ Add Response"),
-                Button.secondary("ar_edit", "📝 Edit Response"),
-                Button.danger("ar_manage", "🗑️ Delete Response")
-        ));
-        PanelService.reply(event, container);
+    @Override
+    public void onModalInteraction(ModalInteractionEvent event) {
+        if (!event.getModalId().equals("modal_ar_add")) return;
+        String t = event.getValue("trigger").getAsString();
+        String r = event.getValue("reply").getAsString();
+        SupabaseClient.createAutoResponse(t, r, event.getUser().getName());
+        sendPanel(event, true);
     }
 
-    public static void updatePanel(net.dv8tion.jda.api.interactions.InteractionHook hook) {
-        JsonArray responses = SupabaseClient.getAutoResponses();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🤖 Assistant: Auto-Replies\n");
-        sb.append("Current saved responses in the active list:\n\n");
-        if (responses != null) {
-            responses.forEach(el -> {
-                var obj = el.getAsJsonObject();
-                sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
-                  .append("`").append(obj.get("response_text").getAsString()).append("`\n");
-            });
-        }
-        sb.append("\n_Use the control panel below to add, edit or remove responses._");
-        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN);
-        hook.editOriginalComponents(container, ActionRow.of(
-                Button.success("ar_add", "➕ Add Response"),
-                Button.secondary("ar_edit", "📝 Edit Response"),
-                Button.danger("ar_manage", "🗑️ Delete Response")
-        )).useComponentsV2(true).queue();
-    }
-
-    public static void refreshChannel(net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-        channel.getHistory().retrievePast(20).queue(msgs -> {
-            for (var m : msgs) {
-                boolean isPanel = m.getComponents().stream().anyMatch(c -> {
-                    String s = c.toString();
-                    return s.contains("ar_add") || s.contains("ar_edit") || s.contains("ar_manage");
-                });
-                if (m.getAuthor().getId().equals(channel.getJDA().getSelfUser().getId()) && isPanel) {
-                    updatePanelMessage(m);
-                    return;
-                }
+    private void sendPanel(Object event, boolean edit) {
+        JsonArray replies = SupabaseClient.getAutoResponses();
+        StringBuilder sb = new StringBuilder("### Autonomous Response Registry\n\n");
+        if (replies == null || replies.size() == 0) sb.append("*No triggers indexed.*");
+        else {
+            for (var el : replies) {
+                JsonObject o = el.getAsJsonObject();
+                sb.append("▫️ **").append(o.get("keyword").getAsString()).append(":** ").append(o.get("response_text").getAsString()).append("\n");
             }
-        });
-    }
-
-    private static void updatePanelMessage(net.dv8tion.jda.api.entities.Message m) {
-        JsonArray responses = SupabaseClient.getAutoResponses();
-        StringBuilder sb = new StringBuilder();
-        sb.append("### 🤖 Assistant: Auto-Replies\n");
-        sb.append("Current saved responses in the active list:\n\n");
-        if (responses != null) {
-            responses.forEach(el -> {
-                var obj = el.getAsJsonObject();
-                sb.append("▫️ **").append(obj.get("keyword").getAsString()).append("**: ")
-                  .append("`").append(obj.get("response_text").getAsString()).append("`\n");
-            });
         }
-        sb.append("\n_Use the control panel below to add, edit or remove responses._");
-        var container = EmbedUtil.containerBranded("MANAGEMENT", "Response Center", sb.toString(), EmbedUtil.BANNER_MAIN, ActionRow.of(
-            Button.success("ar_add", "➕ Add Response"),
-            Button.secondary("ar_edit", "📝 Edit Response"),
-            Button.danger("ar_manage", "🗑️ Delete Response")
-        ));
-        PanelService.reply(m, container);
+
+        ActionRow row = ActionRow.of(Button.secondary("ar_add", "Add Response"), Button.secondary("ar_manage", "Delete Response"));
+        var c = EmbedUtil.containerBranded("AUTOMATION", "Logic Hub", sb.toString(), null, row);
+        if (edit) {
+            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editComponents(c).queue();
+            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editComponents(c).queue();
+        } else PanelService.replyEphemeral((SlashCommandInteractionEvent)event, c);
     }
 }
