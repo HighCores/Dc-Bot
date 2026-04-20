@@ -277,7 +277,27 @@ public class CentralInteractionListener extends ListenerAdapter {
                 }
             }
 
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_eta").getAsString(), items, vCode);
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), 
+                event.getValue("o_project").getAsString(), 
+                event.getValue("o_name").getAsString(), 
+                event.getValue("o_contact").getAsString(),
+                event.getValue("o_phone").getAsString(),
+                event.getValue("o_eta").getAsString(), 
+                items, vCode);
+            
+            event.getHook().sendMessage("✅ Order submitted and ticket created.").setEphemeral(true).queue();
+        } else if (id.equals("order_modal")) {
+            event.deferReply(true).queue();
+            OrderService.OrderSession session = OrderService.sessions.remove(event.getUser().getId());
+            List<InvoiceService.OrderItem> items = (session != null) ? OrderService.resolveItems(new ArrayList<String>() {{ addAll(session.selectedServices); addAll(session.selectedAddons); }}) : new ArrayList<>();
+            
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), 
+                event.getValue("o_project").getAsString(), 
+                event.getValue("o_name").getAsString(), 
+                event.getValue("o_contact").getAsString(),
+                event.getValue("o_phone").getAsString(),
+                event.getValue("o_eta").getAsString(), 
+                items, ""); // No voucher field in wizard
             
             event.getHook().sendMessage("✅ Order submitted and ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_bc")) {

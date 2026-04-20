@@ -304,13 +304,15 @@ public class OrderService {
         TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
         TextInput nameInput    = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Ghabs - Enter your name").setRequired(true).build();
         TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("Handle @ platform or clear email").setRequired(true).build();
+        TextInput phoneInput   = TextInput.create("o_phone", TextInputStyle.SHORT).setPlaceholder("+966 50 000 0000").setRequired(true).build();
         TextInput etaInput     = TextInput.create("o_eta", TextInputStyle.SHORT).setPlaceholder("e.g. 3 days, 1 week").setRequired(true).build();
 
         Modal modal = Modal.create("order_modal", "Order Details")
             .addComponents(
                 net.dv8tion.jda.api.components.label.Label.of("Project Description", projectInput),
-                net.dv8tion.jda.api.components.label.Label.of("Your Name (Required)", nameInput),
-                net.dv8tion.jda.api.components.label.Label.of("Contact Handle / Email", contactInput),
+                net.dv8tion.jda.api.components.label.Label.of("Authorized Full Name", nameInput),
+                net.dv8tion.jda.api.components.label.Label.of("Contact Handle (Platform)", contactInput),
+                net.dv8tion.jda.api.components.label.Label.of("Phone Number", phoneInput),
                 net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput)
             )
             .build();

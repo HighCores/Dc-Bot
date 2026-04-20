@@ -82,18 +82,25 @@ public class VoucherService {
         }
     }
 
-    public static void issueVoucher(User user, int value, String type) {
+    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails) {
         boolean isPercent = type.equalsIgnoreCase("PERCENT");
         String code = generateRandomCode(value, isPercent);
-        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type);
+        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
         byte[] img = drawVoucher(code);
         if (img == null) return;
 
         user.openPrivateChannel().queue(pc -> {
+            long ts = 0;
+            try {
+                ts = java.time.Instant.parse(expiresAt).getEpochSecond();
+            } catch (Exception ignored) {}
+
             pc.sendMessage("### Congratulations! \uD83C\uDF8A\n" +
-                    "You won a voucher from **Highcore Agency**.\n" +
-                    "> **Your Code:** `" + code + "`")
+                    "You won a reward from **Highcore Agency**.\n" +
+                    "> **Reward:** `" + prizeDetails + "`\n" +
+                    "> **Your Code:** `" + code + "`\n" +
+                    "> **Valid Until:** <t:" + ts + ":D> (<t:" + ts + ":R>)")
               .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"))
               .queue();
         });

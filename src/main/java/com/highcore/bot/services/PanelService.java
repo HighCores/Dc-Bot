@@ -549,6 +549,9 @@ public class PanelService {
                     .setPlaceholder("e.g. Discord Tag / Email / Platform Handle")
                     .setRequired(true).build();
             TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).build();
+            TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT)
+                    .setPlaceholder("e.g. +966 50 000 0000")
+                    .setRequired(true).build();
             TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT)
                     .setPlaceholder("Insert code if available").setRequired(false).build();
 
@@ -556,8 +559,9 @@ public class PanelService {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
                         .addComponents(
                                 net.dv8tion.jda.api.components.label.Label.of("Project Name", projectInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Your Name (Ghabs)", nameInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Contact (Email / Platform)", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Authorized Full Name", nameInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Contact (Platform/Email)", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Phone Number", phoneInput),
                                 net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput),
                                 net.dv8tion.jda.api.components.label.Label.of("Voucher Applied", voucherInput))
                         .build()).queue();

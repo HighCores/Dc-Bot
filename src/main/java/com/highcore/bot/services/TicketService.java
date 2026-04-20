@@ -106,7 +106,7 @@ public class TicketService {
         });
     }
 
-    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String eta, List<InvoiceService.OrderItem> items, String voucherCode) {
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String eta, List<InvoiceService.OrderItem> items, String voucherCode) {
         String category = "Agency Projects";
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
@@ -170,6 +170,7 @@ public class TicketService {
                         meta.addProperty("client_name", cName);
                         meta.addProperty("project_name", pName);
                         meta.addProperty("contact", contact);
+                        meta.addProperty("phone", phone);
                         meta.addProperty("eta", eta);
                         meta.addProperty("category", category);
                         meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
@@ -204,7 +205,7 @@ public class TicketService {
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 channel.sendMessageComponents(Container.of(children)).useComponentsV2(true).queue();
 
-                byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDiscountVal);
+                byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDiscountVal, phone);
                 
                 List<ContainerChildComponent> invChildren = new ArrayList<>();
                 invChildren.add(TextDisplay.of("## 🧾 Invoice — Payment Required\nReview your order and choose a payment method."));
@@ -261,10 +262,11 @@ public class TicketService {
         }
 
         double discount = meta.has("total_discount_dollars") ? meta.get("total_discount_dollars").getAsDouble() : 0.0;
+        String phone = meta.has("phone") ? meta.get("phone").getAsString() : "";
 
         byte[] paidData = InvoiceService.generateInvoice(ticketId, cName, pName, items, true, 
                 meta.get("avatar_url").getAsString(), meta.get("display_name").getAsString(), 
-                meta.get("category").getAsString(), meta.get("contact").getAsString(), discount);
+                meta.get("category").getAsString(), meta.get("contact").getAsString(), discount, phone);
 
         if (paidData != null && msgId != null) {
             channel.retrieveMessageById(msgId).queue(msg -> {

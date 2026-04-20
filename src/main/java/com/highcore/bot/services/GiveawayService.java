@@ -13,12 +13,31 @@ import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.EmbedBuilder;
 import com.highcore.bot.services.VoucherService;
+import javax.imageio.ImageIO;
+import java.awt.Color;
+import java.awt.Font;
+import java.awt.Graphics2D;
+import java.awt.RenderingHints;
+import java.awt.Shape;
+import java.awt.geom.Ellipse2D;
+import java.awt.image.BufferedImage;
+import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
+import java.net.URL;
 import java.time.Instant;
-import java.util.*;
-import java.util.concurrent.*;
+import java.util.Collections;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.concurrent.Executors;
+import java.util.concurrent.ScheduledExecutorService;
+import java.util.concurrent.TimeUnit;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 public class GiveawayService {
+    private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
+    private static final String BANNER_WINNER = "https://media.discordapp.net/attachments/1488900668042510568/1495899297814810654/Winner_.jpg?ex=69e7ec49&is=69e69ac9&hm=9351912b157d2f1d56cfbb5e49c450ce5009022e87f1717d119b7890364ee706&=&format=webp&width=1867&height=700";
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {
@@ -91,13 +110,37 @@ public class GiveawayService {
 
         LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-end", "Operation: Asset Distribution Finalized\nID: #" + giveawayId + "\nPrize: " + prizeDetails + "\nWinners Picked: " + (winners.isEmpty() ? "None" : winners.size()), null, null, null, EmbedUtil.SUCCESS));
 
-        // 🎟️ Send Vouchers in DMs
+        // 🎟️ Send Vouchers in DMs and send final message with IMAGE
         int value = extractValue(prizeDetails);
         String type = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Discount") ? "PERCENT" : "AMOUNT";
-        for (String userId : winners) {
-            jda.retrieveUserById(userId).queue(user -> {
-                VoucherService.issueVoucher(user, value, type); 
+        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+        String expiresAt = Instant.now().plus(java.time.Duration.ofDays(expiryDays)).toString();
+
+        if (!winners.isEmpty()) {
+            final String firstWinnerId = winners.get(0);
+            jda.retrieveUserById(firstWinnerId).queue(user -> {
+                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
+                
+                // Construct final container with WINNER IMAGE
+                byte[] winnerImg = generateWinnerImage(user);
+                if (winnerImg != null) {
+                    StringBuilder wb = new StringBuilder();
+                    for (String w : winners) wb.append("<@").append(w).append("> ");
+                    
+                    // We modify the resultC with the new attachment image
+                    // This is handled via sending a file
+                    ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"))
+                      .addContent("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!")
+                      .queue();
+                }
             }, e -> {});
+            
+            // Issue vouchers to remaining winners
+            for (int i = 1; i < winners.size(); i++) {
+                jda.retrieveUserById(winners.get(i)).queue(user -> {
+                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
+                }, e -> {});
+            }
         }
 
         // 🔗 Sync Dashboard (if exists)
@@ -149,9 +192,12 @@ public class GiveawayService {
             String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Gift";
             int value = extractValue(prizeDetails);
             String type = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Discount") ? "PERCENT" : "AMOUNT";
+            int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+            String expiresAt = Instant.now().plus(java.time.Duration.ofDays(expiryDays)).toString();
+
             for (String userId : winners) {
                 jda.retrieveUserById(userId).queue(user -> {
-                    VoucherService.issueVoucher(user, value, type);
+                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
                 }, e -> {});
             }
         }
@@ -169,5 +215,64 @@ public class GiveawayService {
         List<String> shuffled = new ArrayList<>(pool);
         Collections.shuffle(shuffled);
         return shuffled.subList(0, Math.min(count, shuffled.size()));
+    }
+
+    public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user) {
+        try {
+            java.net.URLConnection conn = new URL(BANNER_WINNER).openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            BufferedImage template;
+            try (InputStream is = conn.getInputStream()) {
+                template = ImageIO.read(is);
+            }
+            if (template == null) return null;
+
+            int W = template.getWidth();
+            int H = template.getHeight();
+
+            BufferedImage image = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
+            Graphics2D g = image.createGraphics();
+            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.drawImage(template, 0, 0, null);
+
+            // 1. Draw Avatar in the box
+            String avatarUrl = user.getEffectiveAvatarUrl();
+            try {
+                java.net.URLConnection avConn = new URL(avatarUrl).openConnection();
+                avConn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                try (InputStream is = avConn.getInputStream()) {
+                    BufferedImage avatar = ImageIO.read(is);
+                    if (avatar != null) {
+                        // Coordinates for the glass box (approx 175, 175)
+                        int boxX = (int)(W * 0.093);
+                        int boxY = (int)(H * 0.25);
+                        int boxW = (int)(W * 0.21);
+                        int boxH = (int)(H * 0.54);
+                        g.drawImage(avatar, boxX, boxY, boxW, boxH, null);
+                    }
+                }
+            } catch (Exception ignored) {}
+
+            // 2. Draw Name in the bar
+            g.setFont(new Font("Source Code Pro", Font.BOLD, (int)(H * 0.08)));
+            g.setColor(Color.WHITE);
+            String name = user.getName().toUpperCase();
+            int nameBarX = (int)(W * 0.49);
+            int nameBarY = (int)(H * 0.675);
+            int barWidth = (int)(W * 0.35);
+            
+            // Center the name in the bar area
+            int textW = g.getFontMetrics().stringWidth(name);
+            g.drawString(name, nameBarX + (barWidth - textW)/2, nameBarY);
+
+            g.dispose();
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ImageIO.write(image, "png", baos);
+            return baos.toByteArray();
+        } catch (Exception e) {
+            log.error("Winner image generation failed: {}", e.getMessage());
+            return null;
+        }
     }
 }

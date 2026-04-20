@@ -90,11 +90,10 @@ public class GiveawayCommands extends ListenerAdapter {
                 // Drop skips type selection
                 showGiveawayModal(event, "Drop");
             } else {
-                // Regular giveaway shows type selection first
                 StringSelectMenu menu = StringSelectMenu.create("sel_gw_type")
                         .setPlaceholder("Select the type of giveaway...")
                         .addOption("Voucher", "Voucher", "Prize of a specific amount")
-                        .addOption("Discount", "Discount", "Percentage-based discount")
+                        .addOption("Discount (10%-60%)", "Discount_Select", "Select a fixed percentage discount")
                         .addOption("Custom", "Custom", "Anything else")
                         .build();
 
@@ -102,7 +101,10 @@ public class GiveawayCommands extends ListenerAdapter {
                         "Please select the **reward type** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY,
                         ActionRow.of(menu)));
             }
-        } else if (id.equals("btn_gw_history")) {
+        } else if (id.startsWith("btn_gw_perc_")) {
+            // New intermediate step for discount percentages
+            String perc = id.replace("btn_gw_perc_", "");
+            showGiveawayModal(event, "Discount_" + perc);
             if (!Config.isAdmin(event.getMember()))
                 return;
             JsonArray active = SupabaseClient.getAllGiveaways();
@@ -178,18 +180,43 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         if (event.getComponentId().equals("sel_gw_type")) {
             String type = event.getValues().get(0);
-            showGiveawayModal(event, type);
+            if (type.equals("Discount_Select")) {
+                StringSelectMenu menu = StringSelectMenu.create("sel_gw_perc")
+                        .setPlaceholder("Select Discount Percentage...")
+                        .addOption("10% Off", "10")
+                        .addOption("20% Off", "20")
+                        .addOption("30% Off", "30")
+                        .addOption("40% Off", "40")
+                        .addOption("50% Off", "50")
+                        .addOption("60% Off", "60")
+                        .build();
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT SETUP", "Step 2: Percentage",
+                        "Select the fixed percentage for this deployment.", EmbedUtil.BANNER_GIVEAWAY,
+                        ActionRow.of(menu)));
+            } else {
+                showGiveawayModal(event, type);
+            }
+        } else if (event.getComponentId().equals("sel_gw_perc")) {
+            String perc = event.getValues().get(0);
+            showGiveawayModal(event, "Discount-" + perc);
         }
     }
 
     private void showGiveawayModal(net.dv8tion.jda.api.interactions.callbacks.IModalCallback event, String type) {
         boolean isDrop = type.equals("Drop");
+        String cleanType = type.contains("-") ? type.split("-")[0] : type;
         String modalId = "modal_gw_" + type.toLowerCase();
+
+        String defaultPrize = "";
+        if (type.startsWith("Discount-")) {
+            defaultPrize = type.split("-")[1] + "% Discount";
+        }
 
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit"
-                        : type.equals("Voucher") ? "e.g., $50 Account Credit"
-                                : type.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
+                        : cleanType.equals("Voucher") ? "e.g., $50 Account Credit"
+                                : cleanType.equals("Discount") ? "e.g., 20% Discount" : "e.g., VIP Rank")
+                .setValue(defaultPrize)
                 .setRequired(true).build();
 
         TextInput winnersInput = TextInput.create("winners", TextInputStyle.SHORT)
@@ -202,11 +229,17 @@ public class GiveawayCommands extends ListenerAdapter {
         String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount"
                 : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
 
+        TextInput expiryInput = TextInput.create("reward_expiry", TextInputStyle.SHORT)
+                .setPlaceholder("Days valid after win (e.g. 7)")
+                .setValue("7")
+                .setRequired(true).build();
+
         Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
                 .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
                         net.dv8tion.jda.api.components.label.Label.of("Number of Winners", winnersInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput))
+                        net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Coupon Expiry (Days)", expiryInput))
                 .build();
 
         event.replyModal(modal).queue();
@@ -262,6 +295,11 @@ public class GiveawayCommands extends ListenerAdapter {
         } catch (Exception e) {
         }
 
+        int rewardExpiry = 7;
+        try {
+            rewardExpiry = Integer.parseInt(event.getValue("reward_expiry").getAsString());
+        } catch (Exception e) {}
+
         String tempId = "setup_" + System.currentTimeMillis() + "_" + event.getUser().getId();
 
         JsonObject setupObj = new JsonObject();
@@ -269,6 +307,7 @@ public class GiveawayCommands extends ListenerAdapter {
         setupObj.addProperty("type", typeStr);
         setupObj.addProperty("winCount", winCount);
         setupObj.addProperty("duration", duration);
+        setupObj.addProperty("rewardExpiry", rewardExpiry);
         setupObj.addProperty("isDrop", isDrop);
 
         pendingGiveaways.put(tempId, setupObj);
@@ -331,7 +370,8 @@ public class GiveawayCommands extends ListenerAdapter {
                 "General",
                 "",
                 winCount,
-                endsAtIso);
+                endsAtIso,
+                setupObj.get("rewardExpiry").getAsInt());
 
         if (gw == null) {
             event.getHook().sendMessage("Failed to create giveaway in database.").setEphemeral(true).queue();
@@ -347,10 +387,10 @@ public class GiveawayCommands extends ListenerAdapter {
         String body;
         if (isDrop) {
             body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** "
-                    + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
+                    + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\u25AB\uFE0F **Validity:** " + setupObj.get("rewardExpiry").getAsInt() + " Days\n\nClick claim below to win!";
         } else {
             body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** "
-                    + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:"
+                    + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Validity:** " + setupObj.get("rewardExpiry").getAsInt() + " Days\n\u25AB\uFE0F **Ends In:** <t:"
                     + endsAt.getEpochSecond() + ":R>";
         }
 
@@ -358,10 +398,11 @@ public class GiveawayCommands extends ListenerAdapter {
                 .withEmoji(
                         net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
         Button countBtn = Button.secondary("gw_count_" + giveawayId, "0 entries");
+        String finalBanner = getBannerForPrize(prize);
 
         ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
         var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
-                EmbedUtil.BANNER_GIVEAWAY, gwRow);
+                finalBanner, gwRow);
 
         // Use a list of components including the mention as TextDisplay
         List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new ArrayList<>();
@@ -421,19 +462,18 @@ public class GiveawayCommands extends ListenerAdapter {
                 Button.danger("gw_end_early_" + giveawayId, "End Early"),
                 Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners"));
         var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
-                EmbedUtil.BANNER_GIVEAWAY, dashRow);
+                getBannerForPrize(prize), dashRow);
 
         ch.editMessageComponentsById(msgId, dashC).useComponentsV2(true).queue(null, ex -> {});
-        
-        // Also update the main giveaway message count button if possible
-        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
-        String mainChanId = g.has("channel_id") ? g.get("channel_id").getAsString() : null;
-        if (mainMsgId != null && mainChanId != null) {
-            TextChannel mainCh = guild.getTextChannelById(mainChanId);
-            if (mainCh != null) {
-                // This is a bit complex as we'd need to re-fetch the whole message structure
-                // For now, updating the dashboard is priority
-            }
-        }
+    }
+
+    private String getBannerForPrize(String prize) {
+        if (prize.contains("10%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899015575769188/Discount_10.jpg?ex=69e7ec05&is=69e69a85&hm=920f6c92fb3f885c9ecccebc78ead1c86e9724152a69c01a391b11edee36876f&=&format=webp&width=1752&height=657";
+        if (prize.contains("20%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899015252938843/Discount_20.jpg?ex=69e7ec05&is=69e69a85&hm=b11d7a0f403309000082cc121a3d27b8fd05b9c356fbb3f35a5a3c2fd5e60c0d&=&format=webp&width=1752&height=657";
+        if (prize.contains("30%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899014443438210/Discount_30.jpg?ex=69e7ec05&is=69e69a85&hm=7621ceeca5009ea30de07757d652a0c013a1b5a157f295044df734c348ae982a&=&format=webp&width=1752&height=657";
+        if (prize.contains("40%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899014774657084/Discount_40.jpg?ex=69e7ec05&is=69e69a85&hm=448c53cdc6eb0949811c8c75f450eb9c084ac987319cb29efc46fc37c21d59f7&=&format=webp&width=1752&height=657";
+        if (prize.contains("50%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899130965266512/Discount_50.jpg?ex=69e7ec21&is=69e69aa1&hm=81ee4ef761e94f5acf5b17e48b1dca0e3af188f17b42d01f513908dc0da3b8de&=&format=webp&width=1752&height=657";
+        if (prize.contains("60%")) return "https://media.discordapp.net/attachments/1488900668042510568/1495899131204603945/image.png?ex=69e7ec21&is=69e69aa1&hm=1020280e2e19fc0c66428f870cdf281df45051008ff8cbddd7e02a9aa7454c2f&=&format=webp&quality=lossless&width=1126&height=422";
+        return EmbedUtil.BANNER_GIVEAWAY;
     }
 }

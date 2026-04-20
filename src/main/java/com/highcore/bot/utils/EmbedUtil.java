@@ -33,12 +33,13 @@ public class EmbedUtil {
     public static final Color PRIMARY = Color.decode("#35423E");
 
     public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
-    public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1492305839736750230/IMG_20260411_023024.png?ex=69dcd3dd&is=69db825d&hm=bf6e99942b480089a2a5a7a4f69185d7908c67e40da313bbc51b4effb62ed8ba&=&format=webp&quality=lossless&width=1126&height=494";
+    public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1495898192905113725/Support.jpg?ex=69e7eb41&is=69e699c1&hm=cd5805db56a5bff16f165c1240f0fe9c8e55a1bedca236c304f4418f44beec26&=&format=webp&width=1752&height=373";
+    public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1495898193668477009/Complaint.jpg?ex=69e7eb41&is=69e699c1&hm=887f65f16a487fff4fd7a78ff4010b770bd6211c1e8f58cf194731083ef2fc15&=&format=webp&width=1752&height=373";
+    public static final String BANNER_TICKETS_MENU = "https://media.discordapp.net/attachments/1488900668042510568/1495898193399906474/Tickets.jpg?ex=69e7eb41&is=69e699c1&hm=820cdf3bbcb09161edc4e21b0d7785f2a71a456cf586c9df16e124743cccdc7b&=&format=webp&width=1752&height=373";
+    public static final String BANNER_ORDER_TICKET = "https://cdn.discordapp.com/attachments/1488900668042510568/1495900142510014534/Orders_.jpg?ex=69e7ed12&is=69e69b92&hm=e6449ae239468a94ddbee55a07ab4f105e0ad57fe5ab6bd3cb55fe7d6297d276&";
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1492648280926978148/invoice_discord_.jpg";
+    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
     public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
-    public static final String BANNER_ORDER_TICKET = "https://raw.githubusercontent.com/OmarAmr20/Img/main/ORDER.png";
 
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
@@ -244,7 +245,7 @@ public class EmbedUtil {
 
     public static Container ticketPanel(ActionRow... rows) {
         return containerBranded("LOGISTICS", "Terminal Access",
-                "Initialize project session via selection modules below.", BANNER_SUPPORT,
+                "Initialize project session via selection modules below.", BANNER_TICKETS_MENU,
                 Emoji.fromUnicode("📄"), rows);
     }
 

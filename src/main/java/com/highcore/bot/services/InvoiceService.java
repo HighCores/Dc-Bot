@@ -25,10 +25,10 @@ public class InvoiceService {
     private static final String BANNER_NEW = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
-        return generateInvoice(invoiceId, clientName, projectName, items, false, null, clientName, "Service Delivery", "Highcore Member", 0.0);
+        return generateInvoice(invoiceId, clientName, projectName, items, false, null, clientName, "Service Delivery", "Highcore Member", 0.0, null);
     }
 
-    public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items, boolean isPaid, String avatarUrl, String displayName, String category, String contact, double discount) {
+    public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items, boolean isPaid, String avatarUrl, String displayName, String category, String contact, double discount, String phone) {
         try {
             BufferedImage template = null;
             String templateUrl = BANNER_NEW;
@@ -104,7 +104,8 @@ public class InvoiceService {
             int clientBoxX = (int)(W * 0.675);
             g.drawString(truncate(displayName != null ? displayName : clientName, 25), clientBoxX, (int)(H * 0.375));
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(W * 0.014)));
-            g.drawString(truncate(contact != null ? contact : "No Contact Info", 35), clientBoxX, (int)(H * 0.395));
+            String contactInfo = (contact != null ? contact : "") + (phone != null && !phone.isEmpty() ? " (" + phone + ")" : "");
+            g.drawString(truncate(contactInfo.isEmpty() ? "No Contact Info" : contactInfo, 40), clientBoxX, (int)(H * 0.395));
             g.drawString(clientName, clientBoxX, (int)(H * 0.415)); // Discord ID
 
             // 5. PROJECT INFO (Left Side) - Adjusted to avoid overlaps

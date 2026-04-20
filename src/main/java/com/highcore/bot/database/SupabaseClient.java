@@ -205,7 +205,7 @@ public class SupabaseClient {
         delete("dc_order_sessions", "user_id=eq." + userId);
     }
 
-    public static JsonObject createGiveaway(String channelId, String guildId, String hostId, String hostName, String type, String details, String currency, String expiry, String service, String discount, int winners, String endsAt) {
+    public static JsonObject createGiveaway(String channelId, String guildId, String hostId, String hostName, String type, String details, String currency, String expiry, String service, String discount, int winners, String endsAt, int rewardExpiryDays) {
         JsonObject body = new JsonObject();
         body.addProperty("channel_id", channelId);
         body.addProperty("guild_id", guildId);
@@ -215,6 +215,7 @@ public class SupabaseClient {
         body.addProperty("prize_details", details);
         body.addProperty("winner_count", winners);
         body.addProperty("ends_at", endsAt);
+        body.addProperty("reward_expiry_days", rewardExpiryDays);
         return post("dc_giveaways", body);
     }
 
@@ -502,12 +503,13 @@ public class SupabaseClient {
     }
 
     // ===== Vouchers =====
-    public static void createVoucher(String userId, String code, int value, String type) {
+    public static void createVoucher(String userId, String code, int value, String type, String expiresAt) {
         JsonObject json = new JsonObject();
         json.addProperty("user_id", userId);
         json.addProperty("code", code);
-        json.addProperty("amount", value); // renamed for clarity
-        json.addProperty("type", type); // 'PERCENT' or 'AMOUNT'
+        json.addProperty("amount", value); 
+        json.addProperty("type", type); 
+        json.addProperty("expires_at", expiresAt);
         post("dc_vouchers", json);
     }
 
