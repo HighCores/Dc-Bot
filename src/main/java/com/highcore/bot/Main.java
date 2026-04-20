@@ -58,6 +58,7 @@ public class Main {
                         new UserLogListener(),
                         new WelcomeListener(), 
                         new GiveawayListener(),
+                        new DiscountListener(),
                         new CentralInteractionListener()
                 )
         .build().awaitReady();
@@ -92,6 +93,7 @@ public class Main {
                         .addOption(OptionType.ROLE, "role", "الــرتــبــة الــمــســتــهــدفــة", false)
                         .addOption(OptionType.ATTACHMENT, "attachment", "مــرفــق الــمــيــديــا", false)
                         .setDefaultPermissions(adminPerms),
+                Commands.slash("discounts", "إدارة نــظــام الــخــصــومــات والــمــجــدول").setDefaultPermissions(adminPerms),
 
                 // ===== Moderation (Administrative) =====
                 Commands.slash("setnick", "تــغــيــيــر لــقــب عــضــو")

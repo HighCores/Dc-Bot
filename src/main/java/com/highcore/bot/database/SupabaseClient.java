@@ -512,4 +512,27 @@ public class SupabaseClient {
     public static void removeForbiddenWord(String word) {
         delete("dc_word_filter", "word=eq." + word.toLowerCase());
     }
+
+    // ========== DISCOUNTS & SCHEDULING ==========
+
+    public static JsonArray getAllDiscounts() {
+        return get("dc_discounts", "order=schedule_date.asc");
+    }
+
+    public static JsonArray getDiscountsByMonth(String monthStr) {
+        // monthStr is like "2026-04"
+        return get("dc_discounts", "schedule_date=like." + monthStr + "*");
+    }
+
+    public static void createDiscount(String type, String date, String repeat) {
+        JsonObject body = new JsonObject();
+        body.addProperty("type", type);
+        body.addProperty("schedule_date", date); // Format: YYYY-MM-DD
+        body.addProperty("repeat_interval", repeat);
+        post("dc_discounts", body);
+    }
+
+    public static void deleteDiscount(int id) {
+        delete("dc_discounts", "id=eq." + id);
+    }
 }

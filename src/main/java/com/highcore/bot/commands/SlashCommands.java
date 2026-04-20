@@ -53,7 +53,7 @@ public class SlashCommands extends ListenerAdapter {
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
             "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
-            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title"
+            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title", "discounts"
         );
         if (dedicatedCmds.contains(name)) return;
 
@@ -67,6 +67,7 @@ public class SlashCommands extends ListenerAdapter {
                 case "boter" -> { handleBoter(event); }
                 case "rename" -> { handleRename(event); }
                 case "setchannel" -> { handleSetChannel(event); }
+                case "discounts" -> { DiscountService.sendDiscountPanel(event); }
                 default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {

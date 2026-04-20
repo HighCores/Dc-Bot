@@ -122,7 +122,7 @@ public class MessageListener extends ListenerAdapter {
                 if (embed.getFooter() != null && embed.getFooter().getText() != null) {
                     contentBuilder.append("\n\n_").append(embed.getFooter().getText()).append("_");
                 }
-            }
+            } 
         }
 
         // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)

@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.EmbedBuilder;
+import com.highcore.bot.services.VoucherService;
 import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.*;
@@ -90,6 +91,14 @@ public class GiveawayService {
 
         LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-end", "Operation: Asset Distribution Finalized\nID: #" + giveawayId + "\nPrize: " + prizeDetails + "\nWinners Picked: " + (winners.isEmpty() ? "None" : winners.size()), null, null, null, EmbedUtil.SUCCESS));
 
+        // 🎟️ Send Vouchers in DMs
+        for (String userId : winners) {
+            jda.retrieveUserById(userId).queue(user -> {
+                String code = VoucherService.generateRandomCode();
+                VoucherService.sendVoucherToWinner(user, code);
+            }, e -> {});
+        }
+
         // 🔗 Sync Dashboard (if exists)
         String dashMsgId = com.highcore.bot.commands.GiveawayCommands.dashboardMessages.get(giveawayId);
         String dashChId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
@@ -135,6 +144,14 @@ public class GiveawayService {
             
             SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
             LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-reroll", "Action: Operational Backup Triggered\nID: #" + giveawayId + "\nNew Winners Identified: " + winners.size(), null, null, null, EmbedUtil.WARNING));
+
+            // 🎟️ Send Vouchers in DMs
+            for (String userId : winners) {
+                jda.retrieveUserById(userId).queue(user -> {
+                    String code = VoucherService.generateRandomCode();
+                    VoucherService.sendVoucherToWinner(user, code);
+                }, e -> {});
+            }
         }
     }
 

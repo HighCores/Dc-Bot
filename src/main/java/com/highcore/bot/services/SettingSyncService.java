@@ -46,7 +46,7 @@ public class SettingSyncService {
             log.error("Global Settings Sync error: " + e.getMessage());
         }
     }
-
+        
     /**
      * Helper to get the Dashboard's configured log channel.
      * Use fallback if not set.
