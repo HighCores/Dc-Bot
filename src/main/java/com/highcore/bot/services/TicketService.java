@@ -23,28 +23,60 @@ import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
 import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.separator.Separator;
 import net.dv8tion.jda.api.components.separator.Separator.Spacing;
+import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.atomic.AtomicInteger;
+import java.time.Instant;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
     private static final String TICKET_CAT_ID = "1346083363328495676";
     private static final String ADMIN_ROLE_ID = "1488795130767736853";
-    private static final AtomicInteger TICKET_SEQ = new AtomicInteger(128); 
     public static final Map<String, JsonObject> ticketCache = new ConcurrentHashMap<>();
 
-    public static void createTicket(Object event, String subject, String priority, String type, String body) { }
+    public static void createTicket(IReplyCallback event, String subject, String priority, String type, String body) {
+        Guild guild = event.getGuild();
+        if (guild == null) return;
+        Category cat = guild.getCategoryById(TICKET_CAT_ID);
+        if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
+        
+        int num = SupabaseClient.getNextTicketNumber();
+        String tid = String.format("%04d", num);
+        String channelName = type.toLowerCase() + "-" + tid;
+        User user = event.getUser();
+        
+        guild.createTextChannel(channelName, cat)
+            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+            .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), null)
+            .queue(ch -> {
+                JsonObject ticket = new JsonObject();
+                ticket.addProperty("ticket_id", tid);
+                ticket.addProperty("user_id", user.getId());
+                ticket.addProperty("channel_id", ch.getId());
+                ticket.addProperty("type", type);
+                
+                JsonObject meta = new JsonObject();
+                meta.addProperty("category", type);
+                ticket.add("metadata", meta);
+                ticketCache.put(ch.getId(), ticket);
+
+                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
+                
+                ch.sendMessageComponents(Container.of(rebuildWelcomeComponents(ticket, false, (TextChannel)ch, null))).useComponentsV2(true).queue();
+                event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
+            });
+    }
 
     public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String category, List<InvoiceService.OrderItem> items, String voucherCode) {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         if (cat == null) return;
 
-        String ticketId = String.format("%04d", TICKET_SEQ.getAndIncrement());
-        String channelName = "order-" + ticketId;
+        int num = SupabaseClient.getNextTicketNumber();
+        String tid = String.format("%04d", num);
+        String channelName = "order-" + tid;
         Member member = guild.getMember(user);
         if (member == null) return;
         
@@ -79,7 +111,7 @@ public class TicketService {
                 meta.add("items", itemsArr);
                 
                 JsonObject ticket = new JsonObject();
-                ticket.addProperty("ticket_id", ticketId);
+                ticket.addProperty("ticket_id", tid);
                 ticket.addProperty("user_id", user.getId());
                 ticket.addProperty("channel_id", channel.getId());
                 ticket.addProperty("type", "ORDER");
@@ -87,15 +119,15 @@ public class TicketService {
                 ticketCache.put(channel.getId(), ticket);
 
                 channel.getManager().setTopic("||META:" + meta.toString()).queue();
-                SupabaseClient.createTicket(ticketId, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
+                SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
 
                 channel.sendMessageComponents(Container.of(rebuildWelcomeComponents(ticket, false, channel, null))).useComponentsV2(true).queue();
 
-                byte[] inv = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
+                byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
                 if (inv != null) {
                     List<ContainerChildComponent> invUI = new ArrayList<>();
                     invUI.add(MediaGallery.of(MediaGalleryItem.fromUrl("attachment://invoice.png")));
-                    invUI.add(ActionRow.of(Button.primary("ticket_pay_paypal_" + ticketId, "PayPal"), Button.secondary("ticket_pay_crypto_" + ticketId, "Crypto"), Button.success("ticket_mark_paid_" + ticketId, "Mark as Paid")));
+                    invUI.add(ActionRow.of(Button.primary("ticket_pay_paypal_" + tid, "PayPal"), Button.secondary("ticket_pay_crypto_" + tid, "Crypto"), Button.success("ticket_mark_paid_" + tid, "Mark as Paid")));
                     channel.sendMessageComponents(Container.of(invUI)).useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                 }
             });
@@ -115,10 +147,27 @@ public class TicketService {
         return comps;
     }
 
-    public static void claimTicket(TextChannel channel, Member member, ButtonInteractionEvent event) {}
-    public static void closeTicket(TextChannel channel, Member member) {}
-    public static void unclaimTicket(TextChannel channel, Member member, ButtonInteractionEvent event) {}
-    public static void markAsPaid(TextChannel channel, String tid, Member member) {}
-    public static void finalizeClose(TextChannel channel, Member member, String status) {}
-    public static void reopenTicket(TextChannel channel, Member member) {}
+    public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
+        JsonObject ticket = ticketCache.get(ch.getId());
+        if (ticket == null) return;
+        SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
+        ch.editMessageComponentsById(event.getMessageId(), Container.of(rebuildWelcomeComponents(ticket, true, ch, member))).useComponentsV2(true).queue();
+        event.reply("Operation Success: Sector claimed.").setEphemeral(true).queue();
+    }
+
+    public static void closeTicket(TextChannel ch, Member member) {
+        JsonObject ticket = ticketCache.get(ch.getId());
+        if (ticket == null) return;
+        SupabaseClient.updateTicketStatus(ticket.get("ticket_id").getAsString(), "closed", member.getEffectiveName());
+        ch.sendMessage("⚠️ Transmission ending. Archiving sector...").queue(m -> ch.delete().queueAfter(5, java.util.concurrent.TimeUnit.SECONDS));
+    }
+
+    public static void markAsPaid(TextChannel ch, String tid, Member member) {
+        ch.sendMessage("✅ Payment verified. Invoice status: **PAID**.").queue();
+        SupabaseClient.logStat("PAYMENT", member.getId(), "Ticket #" + tid + " marked paid");
+    }
+
+    public static void finalizeClose(TextChannel ch, Member m, String status) {
+        closeTicket(ch, m);
+    }
 }

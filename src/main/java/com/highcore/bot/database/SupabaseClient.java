@@ -213,9 +213,14 @@ public class SupabaseClient {
         body.addProperty("host_name", hostName);
         body.addProperty("prize_type", type);
         body.addProperty("prize_details", details);
+        body.addProperty("currency", currency != null ? currency : "Points");
+        body.addProperty("expiry", expiry != null ? expiry : "7");
+        body.addProperty("service", service != null ? service : "General");
+        body.addProperty("discount", discount != null ? discount : "");
         body.addProperty("winner_count", winners);
         body.addProperty("ends_at", endsAt);
         body.addProperty("reward_expiry_days", rewardExpiryDays);
+        body.addProperty("ended", false);
         return post("dc_giveaways", body);
     }
 
@@ -413,11 +418,14 @@ public class SupabaseClient {
         Request request = auth(new Request.Builder()).url(url(table)).post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "{}";
-            if (!response.isSuccessful()) return null;
+            if (!response.isSuccessful()) {
+                log.error("POST {} failed: {} - {}", table, response.code(), b);
+                return null;
+            }
             JsonElement el = JsonParser.parseString(b);
             if (el.isJsonArray() && el.getAsJsonArray().size() > 0) return el.getAsJsonArray().get(0).getAsJsonObject();
             return el.isJsonObject() ? el.getAsJsonObject() : new JsonObject();
-        } catch (IOException e) { return null; }
+        } catch (IOException e) { log.error("POST {} error: {}", table, e.getMessage()); return null; }
     }
 
     public static void patch(String table, String filter, JsonObject body) {
