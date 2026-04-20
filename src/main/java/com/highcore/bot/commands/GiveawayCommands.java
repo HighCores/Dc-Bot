@@ -274,6 +274,8 @@ public class GiveawayCommands extends ListenerAdapter {
 
     @Override
     public void onEntitySelectInteraction(EntitySelectInteractionEvent event) {
+        event.deferReply(true).queue();
+        
         String idStr = event.getComponentId();
         if (!idStr.startsWith("sel_gw_chan_"))
             return;
@@ -287,8 +289,12 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         TextChannel target = event.getMentions().getChannels(TextChannel.class).stream().findFirst().orElse(null);
+        if (target == null && !event.getMentions().getChannels().isEmpty()) {
+             target = (TextChannel) event.getMentions().getChannels().get(0);
+        }
+
         if (target == null) {
-            event.reply("Invalid channel selected.").setEphemeral(true).queue();
+            event.getHook().sendMessage("Selection Error: Unrecognized or invalid channel type selected.").setEphemeral(true).queue();
             return;
         }
 
@@ -316,7 +322,7 @@ public class GiveawayCommands extends ListenerAdapter {
                 endsAtIso);
 
         if (gw == null) {
-            event.reply("Failed to create giveaway in database.").setEphemeral(true).queue();
+            event.getHook().sendMessage("Failed to create giveaway in database.").setEphemeral(true).queue();
             return;
         }
 
@@ -368,7 +374,7 @@ public class GiveawayCommands extends ListenerAdapter {
         var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
                 EmbedUtil.BANNER_GIVEAWAY, dashRow);
 
-        event.reply("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(false).queue();
+        event.getHook().sendMessage("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(false).queue();
 
         event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {
             dashboardMessages.put(giveawayId, dashMsg.getId());
