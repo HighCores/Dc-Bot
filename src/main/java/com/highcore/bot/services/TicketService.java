@@ -140,24 +140,17 @@ public class TicketService {
                         SupabaseClient.markVoucherAsUsed(voucherCode);
                     }
                 }
-                                // Apply Percentage Discount (Highest of global vs voucher percent)
-                int finalPerc = Math.max(globalDiscount, voucherPercent);
-                if (finalPerc > 0) {
-                    double multiplier = (100.0 - finalPerc) / 100.0;
-                    for (var item : items) {
-                        item.price = item.price * multiplier;
-                    }
-                }
-
-                // Apply Fixed Amount Deduction (if any)
-                // We'll subtract it from the items proportionally or just from the first one?
-                // To keep it simple for the display, we'll just subtract it from the results in meta.
-                double totalAmountDeduction = voucherAmount;
+                                // Calculate Total Discount Amount
+                final double subTotalOrig = items.stream().mapToDouble(i -> i.price).sum();
+                final int finalPerc = Math.max(globalDiscount, voucherPercent);
+                final double discountFromPercent = subTotalOrig * (finalPerc / 100.0);
+                final double totalDiscountVal = discountFromPercent + voucherAmount;
+                final double finalVoucherAmount = voucherAmount;
                 
-                boolean voucherInvalid = (voucherCode != null && !voucherCode.isBlank() && appliedVoucher == null);
+                final boolean voucherInvalid = (voucherCode != null && !voucherCode.isBlank() && appliedVoucher == null);
 
-                String finalVCode = appliedVoucher;
-                String discSource = (voucherPercent >= globalDiscount && voucherPercent > 0) ? "Voucher %" : 
+                final String finalVCode = appliedVoucher;
+                final String discSource = (voucherPercent >= globalDiscount && voucherPercent > 0) ? "Voucher %" : 
                                    (voucherAmount > 0) ? "Voucher $" : "Global Event";
 
                 guild.createTextChannel(name, cat)
@@ -182,13 +175,10 @@ public class TicketService {
                         meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
                         meta.addProperty("display_name", user.getEffectiveName());
                         
-                        if (finalPerc > 0) {
-                            meta.addProperty("discount_percent", finalPerc + "%");
-                        }
-                        if (totalAmountDeduction > 0) {
-                            meta.addProperty("discount_fixed", "$" + totalAmountDeduction);
-                        }
-                        if (finalPerc > 0 || totalAmountDeduction > 0) {
+                        meta.addProperty("discount_percent", finalPerc + "%");
+                        meta.addProperty("discount_fixed_amount", finalVoucherAmount);
+                        meta.addProperty("total_discount_dollars", totalDiscountVal);
+                        if (finalPerc > 0 || finalVoucherAmount > 0) {
                             if (finalVCode != null) meta.addProperty("voucher_code", finalVCode);
                             meta.addProperty("discount_source", discSource);
                         }
@@ -214,7 +204,7 @@ public class TicketService {
                 List<ContainerChildComponent> children = rebuildWelcomeComponents(ticket, false, channel, null);
                 channel.sendMessageComponents(Container.of(children)).useComponentsV2(true).queue();
 
-                byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact);
+                byte[] invoiceData = InvoiceService.generateInvoice(ticketId, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDiscountVal);
                 
                 List<ContainerChildComponent> invChildren = new ArrayList<>();
                 invChildren.add(TextDisplay.of("## 🧾 Invoice — Payment Required\nReview your order and choose a payment method."));
@@ -270,9 +260,11 @@ public class TicketService {
             }
         }
 
+        double discount = meta.has("total_discount_dollars") ? meta.get("total_discount_dollars").getAsDouble() : 0.0;
+
         byte[] paidData = InvoiceService.generateInvoice(ticketId, cName, pName, items, true, 
                 meta.get("avatar_url").getAsString(), meta.get("display_name").getAsString(), 
-                meta.get("category").getAsString(), meta.get("contact").getAsString());
+                meta.get("category").getAsString(), meta.get("contact").getAsString(), discount);
 
         if (paidData != null && msgId != null) {
             channel.retrieveMessageById(msgId).queue(msg -> {
