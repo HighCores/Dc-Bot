@@ -135,10 +135,10 @@ public class OrderService {
             .addOption("Minecraft Developer","wiz_minecraft", "Plugins, Maps, Models, SysAdmin",     Emoji.fromUnicode("⛏️"))
             .build();
 
-        PanelService.replyEphemeral(event, List.of(EmbedUtil.containerBranded(
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
             "NEW ORDER", "Select Department",
             "Choose the service category that matches your project.",
-            EmbedUtil.BANNER_MAIN), ActionRow.of(menu)));
+            EmbedUtil.BANNER_MAIN, ActionRow.of(menu)));
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -193,10 +193,10 @@ public class OrderService {
         for (String[] item : items) b.addOption(item[1], item[0], item[2]);
         b.setMaxValues(items.size());
 
-        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
             "SELECT SERVICES", catLabel,
             "Choose one or more services.",
-            EmbedUtil.getCategoryBanner(cat)), ActionRow.of(b.build())));
+            EmbedUtil.getCategoryBanner(cat), ActionRow.of(b.build())));
     }
 
     public static void handleMultiSelection(StringSelectInteractionEvent event) {
@@ -234,19 +234,19 @@ public class OrderService {
         for (String[] item : items) b.addOption(item[1], item[0], item[2]);
         b.setMaxValues(items.size());
 
-        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
             "ADD-ONS", "Optional Enhancements",
             "Enhance your project with specialized delivery options.",
-            EmbedUtil.getCategoryBanner(session.category)),
+            EmbedUtil.getCategoryBanner(session.category),
             ActionRow.of(b.build()),
             ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("📝")))));
     }
 
     private static void sendConfirmView(Object event, OrderSession session) {
-        PanelService.reply(event, List.of(EmbedUtil.containerBranded(
+        PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
             "ORDER SUMMARY", "Review & Submit",
             "Click **Confirm Order** to provide your project details.",
-            EmbedUtil.getCategoryBanner(session.category)),
+            EmbedUtil.getCategoryBanner(session.category),
             ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("📝")))));
     }
 

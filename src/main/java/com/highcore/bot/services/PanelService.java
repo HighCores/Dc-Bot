@@ -474,13 +474,10 @@ public class PanelService {
 
         StringSelectMenu mainMenu = buildMainMenu(category);
 
-        List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-                "## " + catLabel + " — Select Services\n" +
-                        "Select one or more services. Prices are shown below each option."));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(mainMenu));
-        reply(event, Container.of(children));
+        replyEphemeral(event, EmbedUtil.containerBranded(category.toUpperCase(), "Select Services",
+                        "Select one or more services. Prices are shown below each option.",
+                        EmbedUtil.getCategoryBanner(category),
+                        ActionRow.of(mainMenu)));
     }
 
     public static void handleMainSelected(IReplyCallback event, String userId, List<String> selected) {
@@ -496,13 +493,13 @@ public class PanelService {
 
         StringSelectMenu addonMenu = buildAddonMenu(session.category);
 
-        reply(event,
+        replyEphemeral(event,
                 EmbedUtil.containerBranded("ADD-ONS", "Optional Enhancements",
                 "**Selected services:** " + summary + "\n\n" +
                 "Now choose any add-ons, or click **Confirm Order** to skip.",
-                EmbedUtil.BANNER_MAIN),
+                EmbedUtil.getCategoryBanner(session.category),
                 ActionRow.of(addonMenu),
-                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
+                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     public static void handleAddonsSelected(IReplyCallback event, String userId, List<String> selected) {
@@ -522,22 +519,22 @@ public class PanelService {
                 })
                 .collect(Collectors.joining(", "));
 
-        reply(event,
+        replyEphemeral(event,
                 EmbedUtil.containerBranded("ORDER SUMMARY", "Review & Submit",
                 "**Services:** " + mainSummary + "\n" +
                 "**Add-ons:** " + addonSummary + "\n\n" +
                 "Click **Confirm Order** to fill in your project details and open your ticket.",
-                EmbedUtil.BANNER_MAIN),
-                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
+                EmbedUtil.getCategoryBanner(session.category),
+                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     public static void handleOrderFinalModal(IReplyCallback event, String id) {
         if (id.equals("order_final")) {
             TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
             TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Ghabs - Enter your name").setRequired(true).build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("e.g. Discord Tag / Email / Platform Handle").setRequired(true).build();
+            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("e.g. Discord Tag / Email").setRequired(true).build();
             TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT).setPlaceholder("e.g. +966 50 000 0000").setRequired(true).build();
-            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).setPlaceholder("e.g. 3 days, 1 week").setRequired(true).build();
+            TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT).setPlaceholder("Voucher Code (Optional)").setRequired(false).build();
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
@@ -546,7 +543,7 @@ public class PanelService {
                                 net.dv8tion.jda.api.components.label.Label.of("Authorized Full Name", nameInput),
                                 net.dv8tion.jda.api.components.label.Label.of("Contact (Platform/Email)", contactInput),
                                 net.dv8tion.jda.api.components.label.Label.of("Phone Number", phoneInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput))
+                                net.dv8tion.jda.api.components.label.Label.of("Voucher Code (Optional)", voucherInput))
                         .build()).queue();
             }
         }
