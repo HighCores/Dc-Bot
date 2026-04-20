@@ -41,6 +41,22 @@ public class EmbedUtil {
     public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
     public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
 
+    public static final String BANNER_DESIGN = "https://media.discordapp.net/attachments/1488900668042510568/1495918003345162372/Design_Works.jpg?ex=69e7fdb4&is=69e6ac34&hm=7cea3931e6e62775e2f93253c0b5d5fa13e620a1ce5243441697390dc5765708&=&format=webp&width=1752&height=495";
+    public static final String BANNER_DEVELOPER = "https://media.discordapp.net/attachments/1488900668042510568/1495918003609669783/Development_Work.jpg?ex=69e7fdb4&is=69e6ac34&hm=03fdb8b3c6b438d2d62b04797916e0e8f30e99eecbd2f7b7901e8f7eec2d407a&=&format=webp&width=1752&height=495";
+    public static final String BANNER_MINECRAFT = "https://media.discordapp.net/attachments/1488900668042510568/1495918002808553572/Minecraft_Work_.jpg?ex=69e7fdb4&is=69e6ac34&hm=4b0dfa109e6ec47481bce479380b29f79088a2cb8de5e893dc0c2c55280efab7&=&format=webp&width=1752&height=495";
+    public static final String BANNER_EDITOR = "https://media.discordapp.net/attachments/1488900668042510568/1495918003873906930/Discord_Works.jpg?ex=69e7fdb4&is=69e6ac34&hm=f267d2d19cf9e4fea87f44ed17b6085ecaa6ba6a5435fd5e856effb06a9bc270&=&format=webp&width=1752&height=495";
+
+    public static String getCategoryBanner(String cat) {
+        if (cat == null) return BANNER_MAIN;
+        return switch (cat.toLowerCase()) {
+            case "designer"  -> BANNER_DESIGN;
+            case "developer" -> BANNER_DEVELOPER;
+            case "minecraft" -> BANNER_MINECRAFT;
+            case "editor"    -> BANNER_EDITOR;
+            default -> BANNER_MAIN;
+        };
+    }
+
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
     }

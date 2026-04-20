@@ -209,7 +209,7 @@ public class OrderService {
         PanelService.reply(event, List.of(EmbedUtil.containerBranded(
             "SELECT SERVICES", catLabel,
             "Choose one or more services. Prices are shown as descriptions.",
-            EmbedUtil.BANNER_MAIN), ActionRow.of(b.build())));
+            EmbedUtil.getCategoryBanner(cat)), ActionRow.of(b.build())));
     }
 
     // ═══════════════════════════════════════════════════════════
@@ -275,7 +275,7 @@ public class OrderService {
             "ADD-ONS", "Optional Enhancements",
             "**Selected:** " + mainSummary + "\n\n" +
             "Choose any add-ons, or click **Confirm Order** to skip.",
-            EmbedUtil.BANNER_MAIN),
+            EmbedUtil.getCategoryBanner(session.category)),
             ActionRow.of(b.build()),
             ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
@@ -293,7 +293,7 @@ public class OrderService {
             "**Services:** " + mainSummary + "\n" +
             "**Add-ons:** " + (addonSummary.isEmpty() ? "None" : addonSummary) + "\n\n" +
             "Click **Confirm Order** to fill in your project details.",
-            EmbedUtil.BANNER_MAIN),
+            EmbedUtil.getCategoryBanner(session.category)),
             ActionRow.of(Button.success("wiz_finish", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
