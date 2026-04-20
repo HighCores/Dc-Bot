@@ -139,6 +139,6 @@ public class DiscountService {
             Button.success("disc_deploy_manual", "New Manual Discount")
         );
 
-        event.editMessageComponents(EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow)).queue();
+        PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow));
     }
 }

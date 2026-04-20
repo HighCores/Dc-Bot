@@ -90,7 +90,7 @@ public class VoucherService {
                     "You won a voucher from **Highcore Agency**.\n" +
                     "> **Your Code:** `" + code + "`\n\n" +
                     "**Question:** هل تود استخدام كود الخصم الآن؟ (Do you want to use the discount code now?)")
-              .addFile(img, "voucher.jpg")
+              .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"))
               .queue();
         });
     }

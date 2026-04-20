@@ -547,7 +547,7 @@ public class PanelService {
             TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).build();
             TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).build();
             TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).build();
-            TextInput voucherInput = TextInput.create("o_voucher", "Voucher Code (Optional)", TextInputStyle.SHORT)
+            TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT)
                     .setPlaceholder("Insert code if available").setRequired(false).build();
 
             if (event instanceof IModalCallback modal) {
