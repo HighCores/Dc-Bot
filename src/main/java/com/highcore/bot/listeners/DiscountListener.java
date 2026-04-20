@@ -42,20 +42,20 @@ public class DiscountListener extends ListenerAdapter {
         if (id.startsWith("disc_deploy_")) {
             String type = id.endsWith("auto") ? "AUTO" : "MANUAL";
             
-            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT)
+            TextInput dateInput = TextInput.create("date", "Date (YYYY-MM-DD)", TextInputStyle.SHORT)
                     .setPlaceholder("e.g. 2026-04-25")
                     .setRequired(true)
                     .build();
 
-            TextInput repeatInput = TextInput.create("repeat", TextInputStyle.SHORT)
+            TextInput repeatInput = TextInput.create("repeat", "Repeat Interval (Optional for Auto)", TextInputStyle.SHORT)
                     .setPlaceholder("e.g. Monthly, Weekly, Yearly or None")
                     .setRequired(false)
                     .build();
 
             event.replyModal(Modal.create("modal_disc_save_" + type, "Deploy " + type + " Discount")
                     .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Repeat Interval (Optional for Auto)", repeatInput)
+                        ActionRow.of(dateInput),
+                        ActionRow.of(repeatInput)
                     )
                     .build()).queue();
         }

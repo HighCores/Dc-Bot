@@ -362,8 +362,8 @@ public class TicketService {
         String status = claimed ? "claimed" : "open";
         boolean isOrder = channel.getName().startsWith("order");
 
-        String bannerUrl = isOrder ? EmbedUtil.BANNER_ORDER_TICKET : (subject.toLowerCase().contains("complaint") ? EmbedUtil.BANNER_COMPLAINT : EmbedUtil.BANNER_SUPPORT);
-        String header = isOrder ? "Order Pipeline" : (subject.toLowerCase().contains("complaint") ? "Complaint Board" : "Support Center");
+        String bannerUrl = isOrder ? EmbedUtil.BANNER_ORDER_TICKET : (type.equalsIgnoreCase("COMPLAINT") ? EmbedUtil.BANNER_COMPLAINT : EmbedUtil.BANNER_SUPPORT);
+        String header = isOrder ? "Order Pipeline" : (type.equalsIgnoreCase("COMPLAINT") ? "Complaint Board" : "Support Center");
 
         comps.add(MediaGallery.of(MediaGalleryItem.fromUrl(bannerUrl)));
         comps.add(TextDisplay.of("## " + header + " | Case #" + ticketId + "\n<@&" + ADMIN_ROLE_ID + ">"));

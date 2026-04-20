@@ -381,7 +381,7 @@ public class PanelService {
     }
 
     public static void sendTicketPanel(IReplyCallback event) {
-        String imageUrl = "https://media.discordapp.net/attachments/1488900668042510568/1491873673357824121/70b9423fa5bc68a7.png?ex=69dc92e1&is=69db4161&hm=feb7a94f059ab34febeb9e1d8a48b1bde4a78c4f5936c6f70be8a48783ed482f&=&format=webp&quality=lossless&width=1845&height=807";
+        String imageUrl = EmbedUtil.BANNER_TICKETS_MENU;
 
         String rules = "\uD83D\uDCDC **RULES & GUIDELINES**\n\n" +
                 "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n"
@@ -408,17 +408,16 @@ public class PanelService {
 
     public static void handleSupportFlow(IReplyCallback event, String id) {
         if (id.equals("support_tech")) {
-            TextInput issueInput = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH)
+            TextInput issueInput = TextInput.create("issue_desc", "Technical problem description", TextInputStyle.PARAGRAPH)
                     .setPlaceholder("Describe your issue").build();
-            TextInput serviceInput = TextInput.create("service_type", TextInputStyle.SHORT)
+            TextInput serviceInput = TextInput.create("service_type", "Service to report", TextInputStyle.SHORT)
                     .setPlaceholder("Service Type").build();
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_support_init", "Technical Support")
                         .addComponents(
-                                net.dv8tion.jda.api.components.label.Label.of("Technical problem description",
-                                        issueInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Service to report", serviceInput))
+                                ActionRow.of(issueInput),
+                                ActionRow.of(serviceInput))
                         .build()).queue();
             }
         }
@@ -426,14 +425,14 @@ public class PanelService {
 
     public static void handleComplaintFlow(IReplyCallback event) {
         if (event instanceof IModalCallback modal) {
-            TextInput issueTypeInput = TextInput.create("comp_type", TextInputStyle.SHORT).build();
-            TextInput personInput = TextInput.create("comp_person", TextInputStyle.SHORT).build();
-            TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).build();
+            TextInput issueTypeInput = TextInput.create("comp_type", "Complaint Category", TextInputStyle.SHORT).build();
+            TextInput personInput = TextInput.create("comp_person", "Person Involved", TextInputStyle.SHORT).build();
+            TextInput descInput = TextInput.create("comp_desc", "Full Details", TextInputStyle.PARAGRAPH).build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
                     .addComponents(
-                            net.dv8tion.jda.api.components.label.Label.of("Complaint Category", issueTypeInput),
-                            net.dv8tion.jda.api.components.label.Label.of("Person Involved", personInput),
-                            net.dv8tion.jda.api.components.label.Label.of("Full Details", descInput))
+                            ActionRow.of(issueTypeInput),
+                            ActionRow.of(personInput),
+                            ActionRow.of(descInput))
                     .build()).queue();
         }
     }
@@ -497,18 +496,13 @@ public class PanelService {
 
         StringSelectMenu addonMenu = buildAddonMenu(session.category);
 
-        List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-                "## Add-ons (Optional)\n" +
-                        "**Selected services:** " + summary + "\n\n" +
-                        "Now choose any add-ons, or click **Confirm Order** to skip."));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(addonMenu));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(
-                Button.success("order_open_ticket", "Confirm Order \u2192")
-                        .withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
-        reply(event, Container.of(children));
+        reply(event, Container.of(
+                EmbedUtil.containerBranded("ADD-ONS", "Optional Enhancements",
+                "**Selected services:** " + summary + "\n\n" +
+                "Now choose any add-ons, or click **Confirm Order** to skip.",
+                EmbedUtil.BANNER_MAIN),
+                ActionRow.of(addonMenu),
+                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     public static void handleAddonsSelected(IReplyCallback event, String userId, List<String> selected) {
@@ -528,42 +522,31 @@ public class PanelService {
                 })
                 .collect(Collectors.joining(", "));
 
-        List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-                "## Order Summary\n" +
-                        "**Services:** " + mainSummary + "\n" +
-                        "**Add-ons:** " + addonSummary + "\n\n" +
-                        "Click **Confirm Order** to fill in your project details and open your ticket."));
-        children.add(Separator.createDivider(Spacing.SMALL));
-        children.add(ActionRow.of(
-                Button.success("order_final", "Confirm Order \u2192")
-                        .withEmoji(Emoji.fromUnicode("\uD83D\uDCDD"))));
-        reply(event, Container.of(children));
+        reply(event, Container.of(
+                EmbedUtil.containerBranded("ORDER SUMMARY", "Review & Submit",
+                "**Services:** " + mainSummary + "\n" +
+                "**Add-ons:** " + addonSummary + "\n\n" +
+                "Click **Confirm Order** to fill in your project details and open your ticket.",
+                EmbedUtil.BANNER_MAIN),
+                ActionRow.of(Button.success("order_final", "Confirm Order \u2192").withEmoji(Emoji.fromUnicode("\uD83D\uDCDD")))));
     }
 
     public static void handleOrderFinalModal(IReplyCallback event, String id) {
         if (id.equals("order_final")) {
-            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).build();
-            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. Discord Tag / Email / Platform Handle")
-                    .setRequired(true).build();
-            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).build();
-            TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. +966 50 000 0000")
-                    .setRequired(true).build();
-            TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT)
-                    .setPlaceholder("Insert code if available").setRequired(false).build();
+            TextInput projectInput = TextInput.create("o_project", "Project Description", TextInputStyle.SHORT).setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
+            TextInput nameInput = TextInput.create("o_name", "Authorized Full Name", TextInputStyle.SHORT).setPlaceholder("Ghabs - Enter your name").setRequired(true).build();
+            TextInput contactInput = TextInput.create("o_contact", "Contact (Platform/Email)", TextInputStyle.SHORT).setPlaceholder("e.g. Discord Tag / Email / Platform Handle").setRequired(true).build();
+            TextInput phoneInput = TextInput.create("o_phone", "Phone Number", TextInputStyle.SHORT).setPlaceholder("e.g. +966 50 000 0000").setRequired(true).build();
+            TextInput etaInput = TextInput.create("o_eta", "Delivery ETA", TextInputStyle.SHORT).setPlaceholder("e.g. 3 days, 1 week").setRequired(true).build();
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
                         .addComponents(
-                                net.dv8tion.jda.api.components.label.Label.of("Project Name", projectInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Authorized Full Name", nameInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Contact (Platform/Email)", contactInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Phone Number", phoneInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Delivery ETA", etaInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Voucher Applied", voucherInput))
+                                ActionRow.of(projectInput),
+                                ActionRow.of(nameInput),
+                                ActionRow.of(contactInput),
+                                ActionRow.of(phoneInput),
+                                ActionRow.of(etaInput))
                         .build()).queue();
             }
         }

@@ -50,23 +50,23 @@ public class CentralInteractionListener extends ListenerAdapter {
 
         try {
             if (id.equals("ticket_init_support")) {
-                TextInput serviceType = TextInput.create("service_type", TextInputStyle.SHORT).setPlaceholder("Which service/order?").setRequired(true).build();
-                TextInput issueDesc = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details of your request...").setRequired(true).build();
+                TextInput serviceType = TextInput.create("service_type", "Service Name", TextInputStyle.SHORT).setPlaceholder("Which service/order?").setRequired(true).build();
+                TextInput issueDesc = TextInput.create("issue_desc", "Issue Details", TextInputStyle.PARAGRAPH).setPlaceholder("Details of your request...").setRequired(true).build();
                 Modal m = Modal.create("modal_support_init", "Technical Support")
                         .addComponents(
-                            net.dv8tion.jda.api.components.label.Label.of("Service", serviceType),
-                            net.dv8tion.jda.api.components.label.Label.of("Issue", issueDesc))
+                            ActionRow.of(serviceType),
+                            ActionRow.of(issueDesc))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("ticket_init_complaint")) {
-                TextInput person = TextInput.create("comp_person", TextInputStyle.SHORT).setPlaceholder("Target persona").setRequired(false).build();
-                TextInput type = TextInput.create("comp_type", TextInputStyle.SHORT).setPlaceholder("Subject").setRequired(true).build();
-                TextInput desc = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details").setRequired(true).build();
+                TextInput person = TextInput.create("comp_person", "Person", TextInputStyle.SHORT).setPlaceholder("Target persona").setRequired(false).build();
+                TextInput type = TextInput.create("comp_type", "Subject", TextInputStyle.SHORT).setPlaceholder("Subject").setRequired(true).build();
+                TextInput desc = TextInput.create("comp_desc", "Details", TextInputStyle.PARAGRAPH).setPlaceholder("Details").setRequired(true).build();
                 Modal m = Modal.create("modal_complaint_init", "File Complaint")
                         .addComponents(
-                            net.dv8tion.jda.api.components.label.Label.of("Person", person),
-                            net.dv8tion.jda.api.components.label.Label.of("Type", type),
-                            net.dv8tion.jda.api.components.label.Label.of("Details", desc))
+                            ActionRow.of(person),
+                            ActionRow.of(type),
+                            ActionRow.of(desc))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("ticket_claim")) {
@@ -110,12 +110,12 @@ public class CentralInteractionListener extends ListenerAdapter {
                         .build();
                 PanelService.replyEphemeral(event, "### 🎟️ Communication Hub\nPlease designate the nature of your request.", ActionRow.of(menu));
             } else if (id.equals("ar_add")) {
-                TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Keyword...").setRequired(true).build();
-                TextInput resp = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("Reply...").setRequired(true).build();
+                TextInput kw = TextInput.create("ar_keyword", "Keyword", TextInputStyle.SHORT).setPlaceholder("Trigger phrase...").setRequired(true).build();
+                TextInput resp = TextInput.create("ar_response", "Response", TextInputStyle.PARAGRAPH).setPlaceholder("System reply...").setRequired(true).build();
                 Modal m = Modal.create("modal_ar_add", "New Auto-Reply")
                         .addComponents(
-                            net.dv8tion.jda.api.components.label.Label.of("Keyword", kw),
-                            net.dv8tion.jda.api.components.label.Label.of("Response", resp))
+                            ActionRow.of(kw),
+                            ActionRow.of(resp))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("ar_edit")) {
@@ -131,9 +131,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                 arr.forEach(el -> { String k = el.getAsJsonObject().get("keyword").getAsString(); menu.addOption(k, k); });
                 PanelService.replyEphemeral(event, "### 🗑️ Purge Response\nSelect keyword to delete:", ActionRow.of(menu.build()));
             } else if (id.equals("bw_add")) {
-                TextInput word = TextInput.create("bw_word", TextInputStyle.SHORT).setPlaceholder("Term...").setRequired(true).build();
+                TextInput word = TextInput.create("bw_word", "Blacklist Term", TextInputStyle.SHORT).setPlaceholder("Enter forbidden word...").setRequired(true).build();
                 Modal m = Modal.create("modal_bw_add", "Security Lexicon")
-                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Term", word))
+                        .addComponents(ActionRow.of(word))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("bw_remove")) {
@@ -149,6 +149,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("ticket_mark_paid_")) {
                 String tid = id.replace("ticket_mark_paid_", "");
                 TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
+            } else if (id.equals("wiz_finish")) {
+                com.highcore.bot.services.OrderService.finishWizard(event);
             } else if (id.startsWith("order_status_update_")) {
                 String status = id.replace("order_status_update_", "");
                 TicketService.finalizeClose(event.getChannel().asTextChannel(), member, status);
@@ -167,19 +169,25 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (choice.equals("purchase")) {
                 com.highcore.bot.services.OrderService.startWizard(event);
             } else if (choice.equals("tech_support")) {
-                TextInput input = TextInput.create("subject", TextInputStyle.SHORT).setPlaceholder("Topic").setRequired(true).build();
+                TextInput input = TextInput.create("subject", "Topic", TextInputStyle.SHORT).setPlaceholder("Topic").setRequired(true).build();
                 Modal m = Modal.create("modal_ticket_open", "Support Request")
-                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Topic", input))
+                        .addComponents(ActionRow.of(input))
                         .build();
                 event.replyModal(m).queue();
             } else if (choice.equals("complaint")) {
-                TextInput input = TextInput.create("reason", TextInputStyle.PARAGRAPH).setPlaceholder("Reason").setRequired(true).build();
+                TextInput input = TextInput.create("reason", "Reason for Complaint", TextInputStyle.PARAGRAPH).setPlaceholder("Detailed reason...").setRequired(true).build();
                 Modal m = Modal.create("modal_report_open", "Submit Report")
-                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Reason", input))
+                        .addComponents(ActionRow.of(input))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("about_category_select")) {
                 PanelService.sendServicePriceInfo(event, event.getValues().get(0).replace("about_", ""));
+                return;
+            } else if (id.equals("order_wiz_cat")) {
+                com.highcore.bot.services.OrderService.handleCategory(event);
+                return;
+            } else if (id.equals("wiz_sel_services") || id.equals("wiz_sel_addons")) {
+                com.highcore.bot.services.OrderService.handleMultiSelection(event);
                 return;
             }
         }
@@ -206,9 +214,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                 PanelService.handleAddonsSelected(event, userId, event.getValues());
             } else if (id.equals("ar_edit_select")) {
                 String val = event.getValues().get(0);
-                TextInput input = TextInput.create("ar_new_response", TextInputStyle.PARAGRAPH).setPlaceholder("New text...").setRequired(true).build();
+                TextInput input = TextInput.create("ar_new_response", "New Response Content", TextInputStyle.PARAGRAPH).setPlaceholder("Update auto-reply text...").setRequired(true).build();
                 Modal m = Modal.create("modal_ar_edit_submit:" + val, "Edit: " + val)
-                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("New Text", input))
+                        .addComponents(ActionRow.of(input))
                         .build();
                 event.replyModal(m).queue();
             } else if (id.equals("ar_del_select")) {
