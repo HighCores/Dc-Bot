@@ -187,12 +187,12 @@ public class SlashCommands extends ListenerAdapter {
 
         BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
-        TextInput bcMsg = TextInput.create("message", "Broadcast Content", TextInputStyle.PARAGRAPH)
+        TextInput bcMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Insert broadcast announcement here...")
                 .setRequired(true).build();
  
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
-                .addComponents(ActionRow.of(bcMsg))
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Broadcast Content", bcMsg))
                 .build()).queue();
     }
 
@@ -212,12 +212,12 @@ public class SlashCommands extends ListenerAdapter {
 
         BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
-        TextInput boterMsg = TextInput.create("message", "Message Content", TextInputStyle.PARAGRAPH)
+        TextInput boterMsg = TextInput.create("message", TextInputStyle.PARAGRAPH)
                 .setPlaceholder("Enter the transmission content (emojis & separators supported)...")
                 .setRequired(true)
                 .build();
         event.replyModal(Modal.create("modal_boter", "Highcore Transmission")
-                .addComponents(ActionRow.of(boterMsg))
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message Content", boterMsg))
                 .build()).queue();
     }
 
