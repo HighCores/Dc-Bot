@@ -25,6 +25,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.Instant;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -159,6 +160,17 @@ public class GiveawayCommands extends ListenerAdapter {
             long gwId = Long.parseLong(id.replace("gw_reroll_adm_", ""));
             com.highcore.bot.services.GiveawayService.rerollGiveaway(event.getJDA(), gwId);
             PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM", "Rerolled giveaway winner(s)!"));
+        } else if (id.startsWith("gw_enter_")) {
+            long gwId = Long.parseLong(id.replace("gw_enter_", ""));
+            if (SupabaseClient.hasEnteredGiveaway(gwId, event.getUser().getId())) {
+                event.reply("You have already entered this giveaway!").setEphemeral(true).queue();
+            } else {
+                SupabaseClient.addGiveawayEntry(gwId, event.getUser().getId());
+                event.reply("Success! Your entry has been registered.").setEphemeral(true).queue();
+                updateDashboard(event.getGuild(), gwId);
+            }
+        } else if (id.startsWith("gw_count_")) {
+             event.reply("This button shows the current entry count. Click **Join** to be part of it!").setEphemeral(true).queue();
         }
     }
 
@@ -351,8 +363,12 @@ public class GiveawayCommands extends ListenerAdapter {
         var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
                 EmbedUtil.BANNER_GIVEAWAY, gwRow);
 
-        target.sendMessageComponents(gwC)
-                .setContent("<@&1488916921687736421>")
+        // Use a list of components including the mention as TextDisplay
+        List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new ArrayList<>();
+        gwComps.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of("<@&1488916921687736421>"));
+        gwComps.add(gwC); // The branded container
+        
+        target.sendMessageComponents(gwComps)
                 .useComponentsV2(true)
                 .queue(msg -> {
             SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId());
@@ -380,5 +396,44 @@ public class GiveawayCommands extends ListenerAdapter {
             dashboardMessages.put(giveawayId, dashMsg.getId());
             dashboardChannels.put(giveawayId, dashMsg.getChannel().getId());
         });
+    }
+
+    private void updateDashboard(net.dv8tion.jda.api.entities.Guild guild, long giveawayId) {
+        String msgId = dashboardMessages.get(giveawayId);
+        String chanId = dashboardChannels.get(giveawayId);
+        if (msgId == null || chanId == null) return;
+
+        TextChannel ch = guild.getTextChannelById(chanId);
+        if (ch == null) return;
+
+        JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
+        if (g == null) return;
+
+        JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
+        int count = (entries != null) ? entries.size() : 0;
+        String prize = g.get("prize_details").getAsString();
+
+        String dashDesc = "### " + prize + " | Live Status\n" +
+                "\u25AB\uFE0F **Status:** Currently Active\n" +
+                "\u25AB\uFE0F **Users Joined:** " + count + " members";
+
+        var dashRow = ActionRow.of(
+                Button.danger("gw_end_early_" + giveawayId, "End Early"),
+                Button.success("gw_reroll_adm_" + giveawayId, "Reroll Winners"));
+        var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
+                EmbedUtil.BANNER_GIVEAWAY, dashRow);
+
+        ch.editMessageComponentsById(msgId, dashC).useComponentsV2(true).queue(null, ex -> {});
+        
+        // Also update the main giveaway message count button if possible
+        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
+        String mainChanId = g.has("channel_id") ? g.get("channel_id").getAsString() : null;
+        if (mainMsgId != null && mainChanId != null) {
+            TextChannel mainCh = guild.getTextChannelById(mainChanId);
+            if (mainCh != null) {
+                // This is a bit complex as we'd need to re-fetch the whole message structure
+                // For now, updating the dashboard is priority
+            }
+        }
     }
 }
