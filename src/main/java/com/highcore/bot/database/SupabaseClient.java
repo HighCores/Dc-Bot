@@ -532,7 +532,28 @@ public class SupabaseClient {
         post("dc_discounts", body);
     }
 
-    public static void deleteDiscount(int id) {
+    public static void deleteDiscount(long id) {
         delete("dc_discounts", "id=eq." + id);
+    }
+
+    // ===== Vouchers =====
+    public static void createVoucher(String userId, String code, int percentage) {
+        JsonObject json = new JsonObject();
+        json.addProperty("user_id", userId);
+        json.addProperty("code", code);
+        json.addProperty("percentage", percentage);
+        post("dc_vouchers", json);
+    }
+
+    public static JsonObject getVoucherByCode(String code) {
+        JsonArray arr = get("dc_vouchers", "code=eq." + code);
+        if (arr != null && !arr.isEmpty()) return arr.get(0).getAsJsonObject();
+        return null;
+    }
+
+    public static void markVoucherAsUsed(String code) {
+        JsonObject json = new JsonObject();
+        json.addProperty("is_used", true);
+        patch("dc_vouchers", "code=eq." + code, json);
     }
 }

@@ -14,15 +14,15 @@ public class VoucherService {
 
     private static final String BACKGROUND_URL = "https://cdn.discordapp.com/attachments/1488900668042510568/1495869713081700512/Voucher_Code.jpg?ex=69e7d0bb&is=69e67f3b&hm=a099ef3ba0136cb704eadd76293fc113af774951aba72b07bfc70452781f5931&";
 
-    public static String generateRandomCode() {
+    public static String generateRandomCode(int percentage) {
         Random r = new Random();
-        int n1 = r.nextInt(10);
-        int n2 = r.nextInt(10);
         char c1 = (char) ('A' + r.nextInt(26));
         char c2 = (char) ('A' + r.nextInt(26));
-        int n3 = r.nextInt(10);
-        int n4 = r.nextInt(10);
-        return "HC" + n1 + n2 + "-" + c1 + c2 + n3 + n4;
+        int n1 = r.nextInt(10);
+        int n2 = r.nextInt(10);
+        
+        String percStr = String.format("%02d", percentage);
+        return "HC" + percStr + "-" + c1 + c2 + n1 + n2;
     }
 
     public static byte[] drawVoucher(String code) {
@@ -81,7 +81,10 @@ public class VoucherService {
         }
     }
 
-    public static void sendVoucherToWinner(User user, String code) {
+    public static void issueVoucher(User user, int percentage) {
+        String code = generateRandomCode(percentage);
+        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, percentage);
+        
         byte[] img = drawVoucher(code);
         if (img == null) return;
 

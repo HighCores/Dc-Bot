@@ -115,31 +115,51 @@ public class TicketService {
         String ticketId = String.format("%04d", TICKET_SEQ.getAndIncrement());
         String name = "order-" + ticketId;
 
-        Member member = guild.getMember(user);
-        if (member == null) return;
-
-        guild.createTextChannel(name, cat)
-            .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
-            .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
-            .queue(channel -> {
-                JsonArray itemsArr = new JsonArray();
-                for (var i : items) {
-                    JsonObject iObj = new JsonObject();
-                    iObj.addProperty("name", i.name);
-                    iObj.addProperty("price", i.price);
-                    itemsArr.add(iObj);
+                Member member = guild.getMember(user);
+                if (member == null) return;
+                
+                // 🎫 Voucher Validation & Discount Application
+                double discountPercentage = 0;
+                if (voucherCode != null && !voucherCode.isBlank()) {
+                    JsonObject voucher = SupabaseClient.getVoucherByCode(voucherCode);
+                    if (voucher != null && voucher.get("user_id").getAsString().equals(user.getId()) && !voucher.get("is_used").getAsBoolean()) {
+                        discountPercentage = voucher.get("percentage").getAsInt();
+                        double multiplier = (100.0 - discountPercentage) / 100.0;
+                        for (var item : items) {
+                            item.price = item.price * multiplier;
+                        }
+                        SupabaseClient.markVoucherAsUsed(voucherCode);
+                    } else {
+                        // If invalid voucher was entered, we null it so it doesn't show up in meta as "applied"
+                        voucherCode = null;
+                    }
                 }
 
-                JsonObject meta = new JsonObject();
-                meta.addProperty("client_name", cName);
-                meta.addProperty("project_name", pName);
-                meta.addProperty("contact", contact);
-                meta.addProperty("eta", eta);
-                meta.addProperty("category", category);
-                meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
-                meta.addProperty("display_name", user.getEffectiveName());
-                if (voucherCode != null && !voucherCode.isBlank()) meta.addProperty("voucher_code", voucherCode);
-                meta.add("items", itemsArr);
+                guild.createTextChannel(name, cat)
+                    .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+                    .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), EnumSet.of(Permission.MESSAGE_SEND)) 
+                    .queue(channel -> {
+                        JsonArray itemsArr = new JsonArray();
+                        for (var i : items) {
+                            JsonObject iObj = new JsonObject();
+                            iObj.addProperty("name", i.name);
+                            iObj.addProperty("price", i.price);
+                            itemsArr.add(iObj);
+                        }
+        
+                        JsonObject meta = new JsonObject();
+                        meta.addProperty("client_name", cName);
+                        meta.addProperty("project_name", pName);
+                        meta.addProperty("contact", contact);
+                        meta.addProperty("eta", eta);
+                        meta.addProperty("category", category);
+                        meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
+                        meta.addProperty("display_name", user.getEffectiveName());
+                        if (voucherCode != null && !voucherCode.isBlank()) {
+                            meta.addProperty("voucher_code", voucherCode);
+                            meta.addProperty("discount_applied", discountPercentage + "%");
+                        }
+                        meta.add("items", itemsArr);
 
                 JsonObject ticket = new JsonObject();
                 ticket.addProperty("ticket_id", ticketId);
@@ -348,6 +368,7 @@ public class TicketService {
             
             if (metadata.has("voucher_code")) {
                 body.append("**Voucher Applied:** `").append(metadata.get("voucher_code").getAsString()).append("` \uD83C\uDFAB\n");
+                body.append("**Discount Benefit:** `").append(metadata.get("discount_applied").getAsString()).append(" OFF` \u2705\n");
             }
         }
 

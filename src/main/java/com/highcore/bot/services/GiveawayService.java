@@ -94,8 +94,7 @@ public class GiveawayService {
         // 🎟️ Send Vouchers in DMs
         for (String userId : winners) {
             jda.retrieveUserById(userId).queue(user -> {
-                String code = VoucherService.generateRandomCode();
-                VoucherService.sendVoucherToWinner(user, code);
+                VoucherService.issueVoucher(user, 15); // Default 15% Giveaway Discount
             }, e -> {});
         }
 
@@ -148,8 +147,7 @@ public class GiveawayService {
             // 🎟️ Send Vouchers in DMs
             for (String userId : winners) {
                 jda.retrieveUserById(userId).queue(user -> {
-                    String code = VoucherService.generateRandomCode();
-                    VoucherService.sendVoucherToWinner(user, code);
+                    VoucherService.issueVoucher(user, 15);
                 }, e -> {});
             }
         }
