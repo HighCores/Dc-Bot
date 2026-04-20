@@ -345,7 +345,10 @@ public class GiveawayCommands extends ListenerAdapter {
         var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
                 EmbedUtil.BANNER_GIVEAWAY, gwRow);
 
-        target.sendMessageComponents(gwC).useComponentsV2(true).queue(msg -> {
+        target.sendMessageComponents(gwC)
+                .setContent("<@&1488916921687736421>")
+                .useComponentsV2(true)
+                .queue(msg -> {
             SupabaseClient.setGiveawayMessageId(giveawayId, msg.getId());
         });
 
