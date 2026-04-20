@@ -106,7 +106,7 @@ public class TicketService {
         });
     }
 
-    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String eta, List<InvoiceService.OrderItem> items) {
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String eta, List<InvoiceService.OrderItem> items, String voucherCode) {
         String category = "Agency Projects";
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
@@ -138,6 +138,7 @@ public class TicketService {
                 meta.addProperty("category", category);
                 meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
                 meta.addProperty("display_name", user.getEffectiveName());
+                if (voucherCode != null && !voucherCode.isBlank()) meta.addProperty("voucher_code", voucherCode);
                 meta.add("items", itemsArr);
 
                 JsonObject ticket = new JsonObject();
@@ -339,10 +340,14 @@ public class TicketService {
             if (metadata.has("items")) {
                 body.append("**Services Requested:** ");
                 List<String> itemList = new ArrayList<>();
-                for (var e : metadata.getAsJsonArray("items")) {
+                for (com.google.gson.JsonElement e : metadata.getAsJsonArray("items")) {
                     itemList.add(e.getAsJsonObject().get("name").getAsString());
                 }
                 body.append(String.join(", ", itemList)).append("\n");
+            }
+            
+            if (metadata.has("voucher_code")) {
+                body.append("**Voucher Applied:** `").append(metadata.get("voucher_code").getAsString()).append("` \uD83C\uDFAB\n");
             }
         }
 

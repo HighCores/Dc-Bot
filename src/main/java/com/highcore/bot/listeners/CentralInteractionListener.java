@@ -266,7 +266,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             event.deferReply(true).queue();
             PanelService.OrderSession session = PanelService.SESSIONS.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (session != null) ? PanelService.resolveItems(new ArrayList<String>() {{ addAll(session.mainIds); addAll(session.addonIds); }}) : new ArrayList<>();
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_eta").getAsString(), items);
+            
+            String vCode = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : null;
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_eta").getAsString(), items, vCode);
+            
             event.getHook().sendMessage("✅ Order submitted.").setEphemeral(true).queue();
         } else if (id.equals("modal_bc")) {
             com.highcore.bot.commands.SlashCommands.BcSession s = com.highcore.bot.commands.SlashCommands.BC_SESSIONS.remove("bc_" + event.getUser().getId());
