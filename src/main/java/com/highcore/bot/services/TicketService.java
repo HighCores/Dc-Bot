@@ -118,22 +118,32 @@ public class TicketService {
                 Member member = guild.getMember(user);
                 if (member == null) return;
                 
-                // 🎫 Voucher Validation & Discount Application
-                double discountPercentage = 0;
+                int globalDiscount = SupabaseClient.getGlobalDiscountPercentage();
+                int voucherDiscount = 0;
+                String appliedVoucher = null;
+
+                // 🎫 Voucher Validation
                 if (voucherCode != null && !voucherCode.isBlank()) {
                     JsonObject voucher = SupabaseClient.getVoucherByCode(voucherCode);
                     if (voucher != null && voucher.get("user_id").getAsString().equals(user.getId()) && !voucher.get("is_used").getAsBoolean()) {
-                        discountPercentage = voucher.get("percentage").getAsInt();
-                        double multiplier = (100.0 - discountPercentage) / 100.0;
-                        for (var item : items) {
-                            item.price = item.price * multiplier;
-                        }
+                        voucherDiscount = voucher.get("percentage").getAsInt();
+                        appliedVoucher = voucherCode;
                         SupabaseClient.markVoucherAsUsed(voucherCode);
-                    } else {
-                        // If invalid voucher was entered, we null it so it doesn't show up in meta as "applied"
-                        voucherCode = null;
                     }
                 }
+
+                // Apply highest discount
+                int finalDiscountPerc = Math.max(globalDiscount, voucherDiscount);
+                if (finalDiscountPerc > 0) {
+                    double multiplier = (100.0 - finalDiscountPerc) / 100.0;
+                    for (var item : items) {
+                        item.price = item.price * multiplier;
+                    }
+                }
+
+                String finalVCode = appliedVoucher;
+                int finalPerc = finalDiscountPerc;
+                String discSource = (voucherDiscount >= globalDiscount && voucherDiscount > 0) ? "Voucher" : "Global Event";
 
                 guild.createTextChannel(name, cat)
                     .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
@@ -155,10 +165,12 @@ public class TicketService {
                         meta.addProperty("category", category);
                         meta.addProperty("avatar_url", user.getEffectiveAvatarUrl());
                         meta.addProperty("display_name", user.getEffectiveName());
-                        if (voucherCode != null && !voucherCode.isBlank()) {
-                            meta.addProperty("voucher_code", voucherCode);
-                            meta.addProperty("discount_applied", discountPercentage + "%");
+                        
+                        if (finalPerc > 0) {
+                            if (finalVCode != null) meta.addProperty("voucher_code", finalVCode);
+                            meta.addProperty("discount_applied", finalPerc + "% (" + discSource + ")");
                         }
+                        
                         meta.add("items", itemsArr);
 
                 JsonObject ticket = new JsonObject();

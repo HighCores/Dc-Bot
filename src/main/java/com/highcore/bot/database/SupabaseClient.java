@@ -78,7 +78,6 @@ public class SupabaseClient {
     public static JsonObject getTicketById(String id) {
         JsonArray arr = get("dc_tickets", "ticket_id=eq." + id + "&limit=1");
         if (arr == null || arr.size() == 0) {
-            // Try numeric fallback if id is all digits
             if (id.matches("\\d+")) {
                 int nid = Integer.parseInt(id);
                 arr = get("dc_tickets", "id=eq." + nid + "&limit=1");
@@ -89,16 +88,12 @@ public class SupabaseClient {
 
     public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
-        // Minimal set to ensure success
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
-        
-        // Add headers as extras
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
-        
         post("dc_tickets", body);
     }
 
@@ -129,34 +124,27 @@ public class SupabaseClient {
     }
 
     public static JsonArray getTicketMessages(String ticketId) {
-        // Simplest, most direct query possible. No complex fallbacks.
         return get("dc_ticket_messages", "ticket_id=eq." + ticketId + "&order=created_at.asc");
     }
 
     public static void saveTicketMessage(String ticketId, String userId, String userName, String content, String role, String messageId) {
-        // Run asynchronously to not block the bot
         new Thread(() -> {
             try {
-                // The ONLY reason it was failing before was speed. The message arrived before the ticket.
-                // Simple fix: just wait 1.5 seconds.
                 Thread.sleep(1500);
-
                 JsonObject body = new JsonObject();
-                // Directly use the exact string (e.g. "0096")
                 body.addProperty("ticket_id", ticketId); 
                 body.addProperty("user_id", userId);
                 body.addProperty("user_name", userName);
                 body.addProperty("content", content);
                 body.addProperty("message_id", messageId);
-                
                 post("dc_ticket_messages", body);
             } catch (Exception e) {
-                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("Save error: ", e);
+                log.error("Save error: ", e);
             }
         }).start();
     }
 
-    // ========== MENUS & COMMANDS (Dynamic) ==========
+    // ========== MENUS & COMMANDS ==========
 
     public static JsonObject getMenuByTrigger(String trigger) {
         JsonArray arr = get("dc_menus", "trigger_command=eq." + trigger + "&limit=1");
@@ -249,7 +237,7 @@ public class SupabaseClient {
         return get("dc_giveaways", "order=id.desc&limit=50");
     }
 
-    public static void setGiveawayEnded(long id, String[] winners) {
+    public static void endGiveaway(long id, String[] winners) {
         JsonObject body = new JsonObject();
         body.addProperty("ended", true);
         if (winners != null) {
@@ -258,10 +246,6 @@ public class SupabaseClient {
             body.add("winners", winArr);
         }
         patch("dc_giveaways", "id=eq." + id, body);
-    }
-
-    public static void endGiveaway(long id, String[] winners) {
-        setGiveawayEnded(id, winners);
     }
 
     public static void addGiveawayEntry(long giveawayId, String userId) {
@@ -280,9 +264,7 @@ public class SupabaseClient {
         return get("dc_giveaway_entries", "giveaway_id=eq." + giveawayId);
     }
 
-    // ========== WORD FILTER ==========
-
-    // ========== TITLES & COLORS & SUGGESTIONS ==========
+    // ========== TITLES & COLORS ==========
 
     public static String getTitle(String userId, String guildId) {
         JsonArray arr = get("dc_titles", "user_id=eq." + userId + "&guild_id=eq." + guildId + "&limit=1");
@@ -316,7 +298,6 @@ public class SupabaseClient {
         upsert("dc_color_roles", body, "role_id");
     }
 
-
     // ========== AUTO-REPLIES ==========
 
     public static JsonArray getAutoResponses() {
@@ -335,7 +316,7 @@ public class SupabaseClient {
         delete("dc_auto_responses", "keyword=eq." + keyword);
     }
 
-    // ========== MODERATION & WARNINGS & VIOLATIONS ==========
+    // ========== MODERATION & WARNINGS ==========
 
     public static void addWarning(String userId, String userName, String modId, String modName, String reason, String guildId) {
         JsonObject body = new JsonObject();
@@ -353,20 +334,16 @@ public class SupabaseClient {
         return arr != null ? arr.size() : 0;
     }
 
-    public static com.google.gson.JsonArray getUserWarnings(String userId, String guildId) {
+    public static JsonArray getUserWarnings(String userId, String guildId) {
         return get("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId + "&order=created_at.desc");
-    }
-
-    public static JsonArray getServerWarnings(String guildId, int limit) {
-        return get("dc_warnings", "guild_id=eq." + guildId + "&order=created_at.desc&limit=" + limit);
     }
 
     public static void clearUserWarnings(String userId, String guildId) {
         delete("dc_warnings", "user_id=eq." + userId + "&guild_id=eq." + guildId);
     }
 
-    public static void clearAllWarnings(String guildId) {
-        delete("dc_warnings", "guild_id=eq." + guildId);
+    public static JsonArray getServerWarnings(String guildId, int limit) {
+        return get("dc_warnings", "guild_id=eq." + guildId + "&order=created_at.desc&limit=" + limit);
     }
 
     public static void deleteWarningById(int id) {
@@ -432,75 +409,39 @@ public class SupabaseClient {
     }
 
     public static JsonObject post(String table, JsonObject body) {
-        // LOUD LOGGING for diagnosis
-        org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).info(">>> POSTing to {}: {}", table, body.toString());
         Request request = auth(new Request.Builder()).url(url(table)).post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "{}";
-            if (!response.isSuccessful()) { 
-                org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("POST {} failed ({}): {}", table, response.code(), b); 
-                return null; 
-            }
-            org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).info("POST {} success: {}", table, b);
+            if (!response.isSuccessful()) return null;
             JsonElement el = JsonParser.parseString(b);
             if (el.isJsonArray() && el.getAsJsonArray().size() > 0) return el.getAsJsonArray().get(0).getAsJsonObject();
             return el.isJsonObject() ? el.getAsJsonObject() : new JsonObject();
-        } catch (IOException e) { 
-            org.slf4j.LoggerFactory.getLogger(SupabaseClient.class).error("POST {} IO error: {}", table, e.getMessage()); 
-            return null; 
-        }
+        } catch (IOException e) { return null; }
     }
 
     public static void patch(String table, String filter, JsonObject body) {
         String fullUrl = url(table) + "?" + filter;
-        log.info(">>> PATCHING to {}: {} with {}", table, fullUrl, body.toString());
         Request request = auth(new Request.Builder()).url(fullUrl).patch(RequestBody.create(body.toString(), JSON)).build();
-        try (Response response = http.newCall(request).execute()) {
-            String b = response.body() != null ? response.body().string() : "No body";
-            if (!response.isSuccessful()) {
-                log.error("PATCH {} failed ({}): {}", table, response.code(), b);
-            } else {
-                log.info("PATCH {} success ({}): {}", table, response.code(), b);
-            }
-        } catch (IOException e) { log.error("PATCH {} error: {}", table, e.getMessage()); }
+        try (Response response = http.newCall(request).execute()) { } catch (IOException e) { }
     }
 
     public static void upsert(String table, JsonObject body, String onConflict) {
         Request.Builder rb = auth(new Request.Builder()).url(url(table) + (onConflict != null ? "?on_conflict=" + onConflict : ""));
         rb.header("Prefer", "resolution=merge-duplicates,return=representation");
         Request request = rb.post(RequestBody.create(body.toString(), JSON)).build();
-        try (Response response = http.newCall(request).execute()) {
-            String b = response.body() != null ? response.body().string() : "No body";
-            if (!response.isSuccessful()) {
-                log.error("UPSERT {} failed ({}): {}", table, response.code(), b);
-            } else {
-                log.info("UPSERT {} success: {}", table, b);
-            }
-        } catch (IOException e) { log.error("UPSERT {} error: {}", table, e.getMessage()); }
+        try (Response response = http.newCall(request).execute()) { } catch (IOException e) { }
     }
 
     public static void delete(String table, String filter) {
         String fullUrl = url(table) + "?" + filter;
-        log.info(">>> DELETING from {}: {}", table, fullUrl);
-        Request request = auth(new Request.Builder())
-                .url(fullUrl)
-                .delete()
-                .header("Prefer", "return=representation")
-                .build();
-        try (Response response = http.newCall(request).execute()) {
-            String b = response.body() != null ? response.body().string() : "No body";
-            if (!response.isSuccessful()) {
-                log.error("DELETE {} failed ({}): {}", table, response.code(), b);
-            } else {
-                log.info("DELETE {} success ({}) - Rows affected: {}", table, response.code(), b);
-            }
-        } catch (IOException e) { log.error("DELETE {} error: {}", table, e.getMessage()); }
+        Request request = auth(new Request.Builder()).url(fullUrl).delete().header("Prefer", "return=representation").build();
+        try (Response response = http.newCall(request).execute()) { } catch (IOException e) { }
     }
 
     // ========== WORD FILTER ==========
 
     public static JsonArray getWordFilter() {
-        return get("dc_word_filter", (String) null);
+        return get("dc_word_filter", null);
     }
 
     public static void addForbiddenWord(String word) {
@@ -520,14 +461,38 @@ public class SupabaseClient {
     }
 
     public static JsonArray getDiscountsByMonth(String monthStr) {
-        // monthStr is like "2026-04"
         return get("dc_discounts", "schedule_date=like." + monthStr + "*");
+    }
+
+    public static int getGlobalDiscountPercentage() {
+        JsonArray all = getAllDiscounts();
+        if (all == null) return 0;
+        java.time.LocalDate now = java.time.LocalDate.now();
+        for (var el : all) {
+            JsonObject d = el.getAsJsonObject();
+            String dateStr = d.get("schedule_date").getAsString();
+            String type = d.get("type").getAsString();
+            String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
+            java.time.LocalDate startDate = java.time.LocalDate.parse(dateStr);
+            boolean active = false;
+            if (repeat.equals("NONE") || type.equals("MANUAL")) {
+                if (startDate.equals(now)) active = true;
+            } else if (repeat.equals("MONTHLY")) {
+                if (startDate.getDayOfMonth() == now.getDayOfMonth() && !now.isBefore(startDate)) active = true;
+            } else if (repeat.equals("YEARLY")) {
+                if (startDate.getMonthValue() == now.getMonthValue() && startDate.getDayOfMonth() == now.getDayOfMonth() && !now.isBefore(startDate)) active = true;
+            } else if (repeat.equals("WEEKLY")) {
+                if (startDate.getDayOfWeek() == now.getDayOfWeek() && !now.isBefore(startDate)) active = true;
+            }
+            if (active) return d.has("percentage") ? d.get("percentage").getAsInt() : 15;
+        }
+        return 0;
     }
 
     public static void createDiscount(String type, String date, String repeat) {
         JsonObject body = new JsonObject();
         body.addProperty("type", type);
-        body.addProperty("schedule_date", date); // Format: YYYY-MM-DD
+        body.addProperty("schedule_date", date);
         body.addProperty("repeat_interval", repeat);
         post("dc_discounts", body);
     }
