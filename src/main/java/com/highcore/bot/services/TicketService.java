@@ -138,14 +138,14 @@ public class TicketService {
                 if (inv != null) {
                     channel.sendMessageComponents(EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "", "Review your order and choose a payment method.", "attachment://invoice.png",
                         ActionRow.of(
-                            Button.secondary("ticket_pay_binance_" + tid, "Binance").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
-                            Button.secondary("ticket_pay_patreon_" + tid, "Patreon").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
-                            Button.secondary("ticket_pay_cliq_" + tid, "CliQ").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
-                            Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
-                            Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay").withEmoji(Emoji.fromUnicode("\uD83D\uDCD8"))
+                            Button.secondary("ticket_pay_binance_" + tid, "Binance"),
+                            Button.secondary("ticket_pay_patreon_" + tid, "Patreon"),
+                            Button.secondary("ticket_pay_cliq_" + tid, "CliQ"),
+                            Button.secondary("ticket_pay_paypal_" + tid, "PayPal"),
+                            Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay")
                         ),
                         ActionRow.of(
-                            Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6"))
+                            Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi")
                         )))
                         .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                 }
@@ -182,13 +182,13 @@ public class TicketService {
         ActionRow row;
         if (!claimed) {
             row = ActionRow.of(
-                Button.primary("ticket_claim", "Claim").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
-                Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.secondary("ticket_claim", "Claim"),
+                Button.secondary("ticket_close", "Close")
             );
         } else {
             row = ActionRow.of(
-                Button.secondary("ticket_unclaim", "Unclaim").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
-                Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.secondary("ticket_unclaim", "Unclaim"),
+                Button.secondary("ticket_close", "Close")
             );
         }
 
@@ -233,15 +233,15 @@ public class TicketService {
         ActionRow row;
         if (!claimed) {
             row = ActionRow.of(
-                Button.success("ticket_verify", "Verify Payment").withEmoji(Emoji.fromUnicode("\u2705")),
-                Button.primary("ticket_claim", "Claim Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
-                Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.secondary("ticket_verify", "Verify Payment"),
+                Button.secondary("ticket_claim", "Claim Ticket"),
+                Button.secondary("ticket_close", "Close Ticket")
             );
         } else {
             row = ActionRow.of(
-                Button.success("ticket_verify", "Verify Payment").withEmoji(Emoji.fromUnicode("\u2705")),
-                Button.secondary("ticket_unclaim", "Unclaim Ticket").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
-                Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.secondary("ticket_verify", "Verify Payment"),
+                Button.secondary("ticket_unclaim", "Unclaim Ticket"),
+                Button.secondary("ticket_close", "Close Ticket")
             );
         }
 
@@ -308,9 +308,9 @@ public class TicketService {
         ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
             "### TICKET CLOSED\nAgent **" + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.", EmbedUtil.BANNER_SUPPORT,
             ActionRow.of(
-                Button.success("ticket_reopen", "Reopen").withEmoji(Emoji.fromUnicode("\uD83D\uDD13")),
-                Button.primary("ticket_transcript", "Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-                Button.danger("ticket_delete_init", "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1"))
+                Button.secondary("ticket_reopen", "Reopen"),
+                Button.secondary("ticket_transcript", "Transcript"),
+                Button.secondary("ticket_delete_init", "Delete")
             )))
             .useComponentsV2(true).queue();
     }
@@ -335,8 +335,8 @@ public class TicketService {
         event.replyComponents(EmbedUtil.containerBranded("DANGER", "Delete Channel",
             "### Are you sure?\nThis action will permanently delete this channel and cannot be undone.", EmbedUtil.BANNER_SUPPORT,
             ActionRow.of(
-                Button.danger("ticket_delete_final", "Confirm Delete").withEmoji(Emoji.fromUnicode("\u2705")),
-                Button.secondary("ticket_delete_cancel", "Cancel").withEmoji(Emoji.fromUnicode("\u274C"))
+                Button.secondary("ticket_delete_final", "Confirm Delete"),
+                Button.secondary("ticket_delete_cancel", "Cancel")
             ))).setEphemeral(true).useComponentsV2(true).queue();
     }
 
