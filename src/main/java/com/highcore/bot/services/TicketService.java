@@ -32,7 +32,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
-    private static final String TICKET_CAT_ID = "1346083363328495676";
+    private static final String TICKET_CAT_ID = "1488795130881249404";
     private static final String ADMIN_ROLE_ID = "1488795130767736853";
     public static final Map<String, JsonObject> ticketCache = new ConcurrentHashMap<>();
 
