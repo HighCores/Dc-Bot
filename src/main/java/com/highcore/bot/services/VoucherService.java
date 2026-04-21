@@ -11,6 +11,8 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
 import java.util.Random;
+import java.util.List;
+import java.util.ArrayList;
 
 public class VoucherService {
     private static final Logger log = LoggerFactory.getLogger(VoucherService.class);
@@ -94,14 +96,14 @@ public class VoucherService {
         }
     }
 
-    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails) {
+    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails, byte[] winnerImg) {
         boolean isPercent = type.equalsIgnoreCase("PERCENT");
         String code = generateRandomCode(value, isPercent);
         
         log.info("Issuing voucher for {}: {}", user.getName(), code);
         com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
-        byte[] img = drawVoucher(code);
+        byte[] voucherImg = drawVoucher(code);
 
         user.openPrivateChannel().queue(pc -> {
             long ts = 0;
@@ -117,18 +119,20 @@ public class VoucherService {
                     "● **Voucher Code:** `" + code + "`\n" +
                     "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)";
 
-            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, "attachment://voucher.png");
+            // If we have both, we use winnerImg as the primary banner in the container
+            String bannerRef = (winnerImg != null) ? "attachment://winner.png" : (voucherImg != null ? "attachment://voucher.png" : null);
+            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, bannerRef);
             
-            if (img != null) {
-                pc.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.png"))
-                  .setComponents(container)
-                  .useComponentsV2(true)
-                  .queue(null, err -> log.error("Failed to DM voucher: {}", err.getMessage()));
+            var action = pc.sendMessageComponents(container).useComponentsV2(true);
+            
+            List<net.dv8tion.jda.api.utils.FileUpload> files = new ArrayList<>();
+            if (winnerImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"));
+            if (voucherImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"));
+            
+            if (!files.isEmpty()) {
+                action.setFiles(files).queue(null, err -> log.error("Failed to DM voucher: {}", err.getMessage()));
             } else {
-                // Text fallback using container
-                pc.sendMessageComponents(EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, null))
-                  .useComponentsV2(true)
-                  .queue(null, err -> log.error("Failed to DM voucher fallback: {}", err.getMessage()));
+                action.queue(null, err -> log.error("Failed to DM voucher fallback: {}", err.getMessage()));
             }
         }, err -> log.warn("Closed DMs for {}: {}", user.getName(), err.getMessage()));
     }

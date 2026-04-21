@@ -120,10 +120,12 @@ public class GiveawayService {
         if (!winners.isEmpty()) {
             final String firstWinnerId = winners.get(0);
             jda.retrieveUserById(firstWinnerId).queue(user -> {
-                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
-                
-                // Construct final container with WINNER IMAGE
+                // Generate winner image first to pass it to DM
                 byte[] winnerImg = generateWinnerImage(user);
+                
+                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
+                
+                // Construct final announcement container
                 StringBuilder wb = new StringBuilder();
                 for (String w : winners) wb.append("<@").append(w).append("> ");
                 
@@ -144,10 +146,11 @@ public class GiveawayService {
                 log.error("Could not retrieve winner user: {}", e.getMessage());
             });
             
-            // Issue vouchers to remaining winners
+            // Issue vouchers to remaining winners (if any)
             for (int i = 1; i < winners.size(); i++) {
                 jda.retrieveUserById(winners.get(i)).queue(user -> {
-                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
+                    byte[] wImg = generateWinnerImage(user);
+                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, wImg);
                 }, e -> {});
             }
         }
@@ -206,7 +209,8 @@ public class GiveawayService {
 
             for (String userId : winners) {
                 jda.retrieveUserById(userId).queue(user -> {
-                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails);
+                    byte[] wImg = generateWinnerImage(user);
+                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, wImg);
                 }, e -> {});
             }
         }
