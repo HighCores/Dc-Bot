@@ -133,8 +133,21 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("order_modal")) {
             String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
             if (!vc.trim().isEmpty()) {
-                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim());
-                if (v == null || !v.get("user_id").getAsString().equals(event.getUser().getId()) || v.get("is_used").getAsBoolean() || java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) {
+                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim().toUpperCase());
+                boolean valid = true;
+                if (v == null) valid = false;
+                else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) valid = false;
+                else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) valid = false;
+                else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                    try {
+                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) valid = false;
+                    } catch (Exception e) {
+                        try {
+                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) valid = false;
+                        } catch (Exception e2) {}
+                    }
+                }
+                if (!valid) {
                     event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
                     return;
                 }
@@ -149,8 +162,21 @@ public class CentralInteractionListener extends ListenerAdapter {
         } else if (id.equals("modal_order_final")) {
             String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
             if (!vc.trim().isEmpty()) {
-                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim());
-                if (v == null || !v.get("user_id").getAsString().equals(event.getUser().getId()) || v.get("is_used").getAsBoolean() || java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) {
+                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim().toUpperCase());
+                boolean valid = true;
+                if (v == null) valid = false;
+                else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) valid = false;
+                else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) valid = false;
+                else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                    try {
+                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) valid = false;
+                    } catch (Exception e) {
+                        try {
+                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) valid = false;
+                        } catch (Exception e2) {}
+                    }
+                }
+                if (!valid) {
                     event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
                     return;
                 }

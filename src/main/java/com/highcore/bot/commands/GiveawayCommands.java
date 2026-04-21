@@ -67,7 +67,19 @@ public class GiveawayCommands extends ListenerAdapter {
                 event.reply("Entry already logged.").setEphemeral(true).queue();
             } else {
                 SupabaseClient.addGiveawayEntry(gwId, event.getUser().getId());
-                event.reply("Success: Entry secured.").setEphemeral(true).queue();
+                
+                JsonArray entries = SupabaseClient.getGiveawayEntries(gwId);
+                int count = (entries != null) ? entries.size() : 0;
+                
+                ActionRow newRow = ActionRow.of(
+                    Button.secondary("gw_enter_" + gwId, "Join Sweepstakes"),
+                    Button.secondary("gw_count_" + gwId, count + (count == 1 ? " entry" : " entries")).asDisabled()
+                );
+                
+                event.editComponents(newRow).queue(v -> {
+                    event.getHook().sendMessage("Success: Entry secured.").setEphemeral(true).queue();
+                });
+                
                 updateDashboard(event.getGuild(), gwId);
             }
             return;
@@ -235,10 +247,13 @@ public class GiveawayCommands extends ListenerAdapter {
         
         String dashDesc = "### " + prize + " | Logistics\n▫️ **Joins:** 0 members";
         ActionRow dashRow = ActionRow.of(Button.secondary("gw_end_early_" + gwId, "Close Early"));
-        event.getHook().sendMessageComponents(EmbedUtil.containerBranded("DASHBOARD", "Command Monitoring", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow)).useComponentsV2(true).queue(dm -> {
+        
+        event.getChannel().sendMessageComponents(EmbedUtil.containerBranded("DASHBOARD", "Command Monitoring", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow)).queue(dm -> {
             dashboardMessages.put(gwId, dm.getId());
             dashboardChannels.put(gwId, dm.getChannel().getId());
         });
+        
+        event.getHook().sendMessage("Giveaway successfully deployed to " + target.getAsMention()).setEphemeral(true).queue();
     }
 
     private void updateDashboard(net.dv8tion.jda.api.entities.Guild guild, long gwId) {

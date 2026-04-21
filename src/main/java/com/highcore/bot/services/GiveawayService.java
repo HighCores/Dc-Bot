@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class GiveawayService {
     private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final String BANNER_WINNER = "https://media.discordapp.net/attachments/1488900668042510568/1495899297814810654/Winner_.jpg?ex=69e7ec49&is=69e69ac9&hm=9351912b157d2f1d56cfbb5e49c450ce5009022e87f1717d119b7890364ee706&=&format=webp&width=1867&height=700";
+    private static final String BANNER_WINNER = "https://media.discordapp.net/attachments/1488900668042510568/1495899297814810654/Winner_.jpg?ex=69e89509&is=69e74389&hm=d112a6ce86efac94a4ec79a77c459b5679a8e5f2b41075afd0c04de354b0def0&=&format=webp&width=1867&height=700";
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {
@@ -86,19 +86,19 @@ public class GiveawayService {
 
         String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
         Container resultC;
+        ActionRow endedRow = ActionRow.of(Button.secondary("giveaway_ended", "Deployment Concluded").asDisabled());
         if (userIds.isEmpty()) {
             resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
-                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", EmbedUtil.BANNER_GIVEAWAY);
+                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", EmbedUtil.BANNER_GIVEAWAY, endedRow);
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
             resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "Winners Picked", 
-                    "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
+                    "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY, endedRow);
         }
 
         if (messageId != null) {
             ch.editMessageComponentsById(messageId, resultC)
-              .setComponents(ActionRow.of(Button.secondary("giveaway_ended", "Deployment Concluded").asDisabled()))
               .useComponentsV2(true)
               .queue(null, e -> {
                   // Fallback if edit fails
@@ -123,15 +123,17 @@ public class GiveawayService {
                 
                 // Construct final container with WINNER IMAGE
                 byte[] winnerImg = generateWinnerImage(user);
+                StringBuilder wb = new StringBuilder();
+                for (String w : winners) wb.append("<@").append(w).append("> ");
+                
                 if (winnerImg != null) {
-                    StringBuilder wb = new StringBuilder();
-                    for (String w : winners) wb.append("<@").append(w).append("> ");
-                    
                     // We modify the resultC with the new attachment image
                     // This is handled via sending a file
                     ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"))
                       .addContent("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!")
                       .queue();
+                } else {
+                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!").queue();
                 }
             }, e -> {});
             
