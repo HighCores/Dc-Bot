@@ -43,6 +43,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_unclaim")) {
                 TicketService.unclaimTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("ticket_verify")) {
+                String tid = event.getChannel().getName().substring(event.getChannel().getName().lastIndexOf("-") + 1);
+                TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
+                event.reply("✅ Payment verification initiated.").setEphemeral(true).queue();
             } else if (id.equals("ticket_close")) {
                 TicketService.closeTicket(event.getChannel().asTextChannel(), member);
             } else if (id.equals("wiz_finish")) {
@@ -60,6 +64,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TextInput tp = TextInput.create("comp_type", TextInputStyle.SHORT).setPlaceholder("Subject").setRequired(true).build();
                 TextInput ds = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details").setRequired(true).build();
                 event.replyModal(Modal.create("modal_complaint_init", "Complaint").addComponents(net.dv8tion.jda.api.components.label.Label.of("Person", pr), net.dv8tion.jda.api.components.label.Label.of("Subject", tp), net.dv8tion.jda.api.components.label.Label.of("Details", ds)).build()).queue();
+            } else if (id.startsWith("ticket_pay_")) {
+                String method = id.split("_")[2];
+                event.reply("✅ Method selected: **" + method.toUpperCase() + "**. Please provide proof of payment once finished.").setEphemeral(true).queue();
             } else if (id.startsWith("ticket_mark_paid_")) {
                 TicketService.markAsPaid(event.getChannel().asTextChannel(), id.replace("ticket_mark_paid_", ""), member);
             } else if (id.startsWith("order_status_update_")) {
@@ -106,14 +113,14 @@ public class CentralInteractionListener extends ListenerAdapter {
             OrderService.OrderSession s = OrderService.sessions.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (s != null) ? OrderService.resolveItems(new ArrayList<String>() {{ addAll(s.selectedServices); addAll(s.selectedAddons); }}) : new ArrayList<>();
             String cat = (s != null) ? (s.category.substring(0,1).toUpperCase() + s.category.substring(1).toLowerCase()) : "Projects";
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "");
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, "", event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_order_final")) {
             event.deferReply(true).queue();
             PanelService.OrderSession s = PanelService.SESSIONS.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (s != null) ? PanelService.resolveItems(new ArrayList<String>() {{ addAll(s.mainIds); addAll(s.addonIds); }}) : new ArrayList<>();
             String cat = (s != null) ? (s.category.substring(0,1).toUpperCase() + s.category.substring(1).toLowerCase()) : "Projects";
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "");
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, "", event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_support_init")) {
             TicketService.createTicket(event, event.getValue("issue_desc").getAsString(), "MEDIUM", "SUPPORT", "Service: "+event.getValue("service_type").getAsString());

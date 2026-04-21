@@ -530,20 +530,20 @@ public class PanelService {
 
     public static void handleOrderFinalModal(IReplyCallback event, String id) {
         if (id.equals("order_final")) {
-            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Brand Identity for XYZ Corp").setRequired(true).build();
-            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Ghabs - Enter your name").setRequired(true).build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("e.g. Discord Tag / Email").setRequired(true).build();
-            TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT).setPlaceholder("e.g. +966 50 000 0000").setRequired(true).build();
-            TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT).setPlaceholder("Voucher Code (Optional)").setRequired(false).build();
+            TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Logo Design").setRequired(true).build();
+            TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Your Name").setRequired(true).build();
+            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("Discord/Email").setRequired(true).build();
+            TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).setPlaceholder("e.g. 3 Days").setRequired(true).build();
+            TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT).setPlaceholder("+XXX...").setRequired(true).build();
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
                         .addComponents(
-                                net.dv8tion.jda.api.components.label.Label.of("Project Description", projectInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Authorized Full Name", nameInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Contact (Platform/Email)", contactInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Phone Number", phoneInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Voucher Code (Optional)", voucherInput))
+                                net.dv8tion.jda.api.components.label.Label.of("Project", projectInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Client", nameInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Contact", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("ETA", etaInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Phone", phoneInput))
                         .build()).queue();
             }
         }

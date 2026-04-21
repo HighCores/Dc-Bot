@@ -25,6 +25,7 @@ import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 import net.dv8tion.jda.api.interactions.callbacks.IReplyCallback;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
@@ -71,7 +72,7 @@ public class TicketService {
             });
     }
 
-    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String category, List<InvoiceService.OrderItem> items, String voucherCode) {
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String category, List<InvoiceService.OrderItem> items, String voucherCode, String eta) {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         if (cat == null) return;
@@ -109,6 +110,9 @@ public class TicketService {
                 meta.addProperty("client_name", cName);
                 meta.addProperty("project_name", pName);
                 meta.addProperty("category", category);
+                meta.addProperty("contact", contact);
+                meta.addProperty("phone", phone);
+                meta.addProperty("eta", eta);
                 meta.addProperty("total_discount", totalDisc);
                 meta.add("items", itemsArr);
                 
@@ -127,8 +131,14 @@ public class TicketService {
 
                 byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
                 if (inv != null) {
-                    channel.sendMessageComponents(EmbedUtil.containerBranded("PROJECT INVOICE", "Payment Required", "Please select a payment method below.", "attachment://invoice.png",
-                        ActionRow.of(Button.secondary("ticket_pay_paypal_" + tid, "PayPal"), Button.secondary("ticket_pay_crypto_" + tid, "Crypto"), Button.secondary("ticket_mark_paid_" + tid, "Mark as Paid"))))
+                    channel.sendMessageComponents(EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "", "Review your order and choose a payment method.", "attachment://invoice.png",
+                        ActionRow.of(
+                            Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+                            Button.secondary("ticket_pay_stripe_" + tid, "Stripe").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+                            Button.secondary("ticket_pay_bank_" + tid, "Bank Transfer").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
+                            Button.secondary("ticket_pay_usdt_" + tid, "USDT").withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
+                            Button.secondary("ticket_pay_stc_" + tid, "STC Pay").withEmoji(Emoji.fromUnicode("\uD83D\uDCD8"))
+                        )))
                         .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                 }
             });
@@ -137,8 +147,13 @@ public class TicketService {
     private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff) {
         JsonObject meta = ticket.getAsJsonObject("metadata");
         String tid = ticket.get("ticket_id").getAsString();
+        String type = ticket.get("type").getAsString();
         String cat = (meta != null && meta.has("category")) ? meta.get("category").getAsString() : "Support";
         
+        if ("ORDER".equalsIgnoreCase(type)) {
+            return buildOrderPipelineContainer(ticket, claimed, staff);
+        }
+
         StringBuilder desc = new StringBuilder();
         desc.append("### \uD83D\uDCE9 SESSION DETAILS\n");
         if (meta != null) {
@@ -155,17 +170,72 @@ public class TicketService {
         ActionRow row;
         if (!claimed) {
             row = ActionRow.of(
-                Button.secondary("ticket_claim", "Claim Project"),
-                Button.secondary("ticket_close", "Archive Session")
+                Button.primary("ticket_claim", "Claim Project").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+                Button.danger("ticket_close", "Archive Session").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
             );
         } else {
             row = ActionRow.of(
-                Button.secondary("ticket_unclaim", "Release Project"),
-                Button.secondary("ticket_close", "Archive Session")
+                Button.secondary("ticket_unclaim", "Release Project").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
+                Button.danger("ticket_close", "Archive Session").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
             );
         }
 
         return EmbedUtil.containerBranded(cat.toUpperCase(), "Case #" + tid, desc.toString(), EmbedUtil.getCategoryBanner(cat), row);
+    }
+
+    private static Container buildOrderPipelineContainer(JsonObject ticket, boolean claimed, Member staff) {
+        JsonObject meta = ticket.getAsJsonObject("metadata");
+        String tid = ticket.get("ticket_id").getAsString();
+        String userId = ticket.get("user_id").getAsString();
+        
+        StringBuilder b = new StringBuilder();
+        b.append("@Highcore Team\n\n");
+        b.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
+        
+        String prio = "HIGH";
+        if (meta != null && meta.has("priority")) prio = meta.get("priority").getAsString();
+        b.append("**Priority:** `").append(prio.toUpperCase()).append("`\n");
+        
+        String subject = "gh";
+        if (meta != null && meta.has("project_name")) subject = meta.get("project_name").getAsString();
+        b.append("**Subject:** `").append(subject).append("`\n\n");
+        
+        b.append("\uD83D\uDCCB **Questionnaire Data**\n");
+        if (meta != null) {
+            b.append("**Project:** `").append(meta.get("project_name").getAsString()).append("`\n");
+            b.append("**Client:** `").append(meta.get("client_name").getAsString()).append("`\n");
+            b.append("**Contact:** `").append(meta.has("contact") ? meta.get("contact").getAsString() : "N/A").append("`\n");
+            b.append("**ETA:** `").append(meta.has("eta") ? meta.get("eta").getAsString() : "N/A").append("`\n");
+            
+            if (meta.has("items")) {
+                StringBuilder svs = new StringBuilder();
+                JsonArray items = meta.getAsJsonArray("items");
+                for (int i=0; i<items.size(); i++) {
+                    svs.append(items.get(i).getAsJsonObject().get("name").getAsString());
+                    if (i < items.size()-1) svs.append(", ");
+                }
+                b.append("**Services Requested:** ").append(svs.toString()).append("\n");
+            }
+        }
+        b.append("\n---\n");
+        b.append("\u26A0\uFE0F **Your ticket is locked** \u2014 it will be unlocked once payment is confirmed.");
+
+        ActionRow row;
+        if (!claimed) {
+            row = ActionRow.of(
+                Button.success("ticket_verify", "Verify Payment").withEmoji(Emoji.fromUnicode("\u2705")),
+                Button.primary("ticket_claim", "Claim Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+                Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+            );
+        } else {
+            row = ActionRow.of(
+                Button.success("ticket_verify", "Verify Payment").withEmoji(Emoji.fromUnicode("\u2705")),
+                Button.secondary("ticket_unclaim", "Unclaim Ticket").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
+                Button.danger("ticket_close", "Close Ticket").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+            );
+        }
+
+        return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Order.jpg", row);
     }
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -176,7 +246,9 @@ public class TicketService {
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         event.deferEdit().queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
-        event.getHook().sendMessage("✅ **Sector Claimed.** Agent " + member.getAsMention() + " is now handling this session.").queue();
+        
+        Container notice = EmbedUtil.containerBranded("\u25B6\uFE0F NOTICE \u2022 Claimed", "", "\uD83D\uDCE1 **Ticket Handled By:** " + member.getAsMention(), null);
+        event.getHook().sendMessageComponents(notice).useComponentsV2(true).queue();
     }
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -187,7 +259,9 @@ public class TicketService {
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
         event.deferEdit().queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
-        event.getHook().sendMessage("🔓 **Sector Released.** Ticket is now available for other agents.").queue();
+        
+        Container notice = EmbedUtil.containerBranded("\u25B6\uFE0F NOTICE \u2022 Unclaimed", "", "\u2935\uFE0F **Ticket Unclaimed By:** " + member.getAsMention(), null);
+        event.getHook().sendMessageComponents(notice).useComponentsV2(true).queue();
     }
 
     private static JsonObject resolveFromTopic(TextChannel ch) {
@@ -212,7 +286,8 @@ public class TicketService {
     }
 
     public static void markAsPaid(TextChannel ch, String tid, Member member) {
-        ch.sendMessage("✅ Payment verified. Invoice status: **PAID**.").queue();
+        Container notice = EmbedUtil.containerBranded("\u2705 Payment Verified \u2022 Ticket Unlocked", "", "", null);
+        ch.sendMessageComponents(notice).useComponentsV2(true).queue();
         SupabaseClient.logStat("PAYMENT", member.getId(), "Ticket #" + tid + " marked paid");
     }
 
