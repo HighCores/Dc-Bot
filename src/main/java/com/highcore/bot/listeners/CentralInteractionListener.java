@@ -48,7 +48,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
                 event.reply("✅ Payment verification initiated.").setEphemeral(true).queue();
             } else if (id.equals("ticket_close")) {
-                TicketService.closeTicket(event.getChannel().asTextChannel(), member);
+                TicketService.closeTicket(event, member);
             } else if (id.equals("ticket_reopen")) {
                 TicketService.reopenTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_transcript")) {

@@ -43,7 +43,7 @@ public class TicketService {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         
-        int num = SupabaseClient.getNextTicketNumber();
+        int num = SupabaseClient.getNextTicketNumber(type);
         String tid = String.format("%04d", num);
         String channelName = type.toLowerCase() + "-" + tid;
         User user = event.getUser();
@@ -79,7 +79,7 @@ public class TicketService {
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         if (cat == null) return;
 
-        int num = SupabaseClient.getNextTicketNumber();
+        int num = SupabaseClient.getNextTicketNumber("ORDER");
         String tid = String.format("%04d", num);
         String channelName = "order-" + tid;
         Member member = guild.getMember(user);
@@ -172,9 +172,12 @@ public class TicketService {
 
         if (meta != null) {
             String prio = meta.has("priority") ? meta.get("priority").getAsString() : "HIGH";
-            b.append("**Priority:** `").append(prio.toUpperCase()).append("`\n");
+            b.append("**Priority:** `").append(prio.toUpperCase()).append("` \u2022 ");
             
-            if (meta.has("subject")) b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("`\n");
+            if (meta.has("subject")) b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("` \u2022 ");
+            
+            if (meta.has("type")) b.append("**Type:** `").append(meta.get("type").getAsString()).append("`\n\n");
+            else b.append("\n\n");
             
             String details = "N/A";
             if (meta.has("body")) details = meta.get("body").getAsString();
@@ -182,12 +185,9 @@ public class TicketService {
             else if (meta.has("target")) details = meta.get("target").getAsString();
             
             b.append("**Details:** `").append(details).append("`\n");
-            
-            if (meta.has("type")) b.append("**Type:** `").append(meta.get("type").getAsString()).append("`\n");
         }
         
-        b.append("\n---\n");
-        b.append("A staff member will be with you shortly \u2014 please describe your issue in full detail.");
+        b.append("\nA staff member will be with you shortly \u2014 please describe your issue in full detail.");
 
         ActionRow row;
         if (!claimed) {
@@ -299,7 +299,10 @@ public class TicketService {
 
     // Metadata is now managed via database lookups rather than channel topics.
 
-    public static void closeTicket(TextChannel ch, Member member) {
+    public static void closeTicket(ButtonInteractionEvent event, Member member) {
+        TextChannel ch = event.getChannel().asTextChannel();
+        event.deferEdit().queue();
+        
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) return;
