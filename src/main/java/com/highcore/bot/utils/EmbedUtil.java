@@ -104,6 +104,12 @@ public class EmbedUtil {
                 .build();
     }
 
+    public static Container brandedNotice(String title, String description) {
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        layout.add(TextDisplay.of("### " + title + "\n" + description));
+        return Container.of(layout);
+    }
+
     public static Container mainMenu(ActionRow... rows) {
         String body = """
                 Welcome Operative. Access restricted agency sectors via control modules.

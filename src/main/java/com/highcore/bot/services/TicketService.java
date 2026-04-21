@@ -250,7 +250,7 @@ public class TicketService {
         
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         event.deferEdit().queue();
-        event.getHook().sendMessageEmbeds(EmbedUtil.brandedEmbed("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention())).queue();
+        event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention())).useComponentsV2(true).queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
     }
 
@@ -261,7 +261,7 @@ public class TicketService {
 
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
         event.deferEdit().queue();
-        event.getHook().sendMessageEmbeds(EmbedUtil.brandedEmbed("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention())).queue();
+        event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention())).useComponentsV2(true).queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
     }
 
