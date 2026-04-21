@@ -253,12 +253,11 @@ public class SupabaseClient {
         body.addProperty("prize_type", type);
         body.addProperty("prize_details", details);
         body.addProperty("currency", currency != null ? currency : "Points");
-        body.addProperty("expiry", expiry != null ? expiry : "7");
-        body.addProperty("service", service != null ? service : "General");
-        body.addProperty("discount", discount != null ? discount : "");
+        body.addProperty("coupon_expiry", expiry != null ? expiry : "7");
+        body.addProperty("service_name", service != null ? service : "General");
+        body.addProperty("discount_info", discount != null ? discount : "");
         body.addProperty("winner_count", winners);
         body.addProperty("ends_at", endsAt);
-        body.addProperty("reward_expiry_days", rewardExpiryDays);
         body.addProperty("ended", false);
         return post("dc_giveaways", body);
     }

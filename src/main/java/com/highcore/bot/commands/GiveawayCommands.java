@@ -41,13 +41,21 @@ public class GiveawayCommands extends ListenerAdapter {
         if (!event.getName().equals("giveaway")) return;
         if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
 
-        String desc = "### Registry Node | Operational\nLaunch high-fidelity rewards or audit history.";
+        String desc = """
+                Welcome to the **Giveaway Management Hub**.
+
+                Easily create rewards, launch instant drops, or review history.
+
+                📝 **Create Giveaway** — Step-by-step setup.
+                💨 **Instant Drop** — Fast 'first-to-claim' prize.
+                🗒️ **View History** — Check active tasks.
+                """;
         ActionRow row = ActionRow.of(
-            Button.secondary("btn_gw_create", "Create Deployment"),
+            Button.secondary("btn_gw_create", "Create Giveaway"),
             Button.secondary("btn_gw_drop", "Instant Drop"),
-            Button.secondary("btn_gw_history", "View Records")
+            Button.secondary("btn_gw_history", "View History")
         );
-        PanelService.reply(event, EmbedUtil.containerBranded("LOGISTICS", "Registry Hub", desc, EmbedUtil.BANNER_GIVEAWAY, row));
+        PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc, EmbedUtil.BANNER_GIVEAWAY, row));
     }
 
     @Override
