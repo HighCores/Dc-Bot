@@ -10,6 +10,7 @@ import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.util.Random;
 import java.util.List;
 import java.util.ArrayList;
@@ -19,36 +20,44 @@ public class VoucherService {
 
     private static final String BACKGROUND_URL = "https://i.imgur.com/OXI22JW.png";
 
+    static {
+        // Disable disk cache for ImageIO to avoid permission/space issues
+        ImageIO.setUseCache(false);
+    }
+
     public static String generateRandomCode(int value, boolean isPercent) {
         Random r = new Random();
         char c1 = (char) ('A' + r.nextInt(26));
         char c2 = (char) ('A' + r.nextInt(26));
         int n1 = r.nextInt(10);
         int n2 = r.nextInt(10);
-        
         return "HC" + value + "-" + c1 + c2 + n1 + n2;
     }
 
     public static byte[] drawVoucher(String code) {
-        log.info("Attempting to generate voucher image for code: {}", code);
+        log.info("Voucher Generation: Starting for code {}", code);
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(BACKGROUND_URL).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.8 Safari/537.36");
-            conn.setConnectTimeout(15000);
-            conn.setReadTimeout(15000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(20000);
+            conn.setInstanceFollowRedirects(true);
             
-            BufferedImage base;
+            byte[] bytes;
             try (InputStream is = conn.getInputStream()) {
-                byte[] bytes = is.readAllBytes();
-                if (bytes.length < 500) {
-                     log.error("Possible error response from Imgur: {} bytes", bytes.length);
-                     log.debug("Imgur Response: {}", new String(bytes));
-                }
-                base = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+                bytes = is.readAllBytes();
             }
-            
+
+            if (bytes == null || bytes.length < 1000) {
+                log.error("Voucher Background: Empty or invalid stream (Size: {} bytes). Response: {}", 
+                    (bytes != null ? bytes.length : 0), conn.getResponseCode());
+                return null;
+            }
+
+            BufferedImage base = ImageIO.read(new ByteArrayInputStream(bytes));
             if (base == null) {
-                log.error("ImageIO failed to decode background from URL: {}.", BACKGROUND_URL);
+                log.error("Voucher Background: ImageIO failed to decode {} bytes from {}. Type: {}", 
+                    bytes.length, BACKGROUND_URL, conn.getContentType());
                 return null;
             }
 
@@ -88,10 +97,11 @@ public class VoucherService {
 
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(combined, "png", baos);
+            log.info("Voucher Generation: Success for code {}", code);
             return baos.toByteArray();
 
         } catch (Exception e) {
-            log.error("Voucher drawing failed: {}", e.getMessage());
+            log.error("Voucher Generation: Error - {}", e.getMessage());
             return null;
         }
     }
@@ -100,7 +110,7 @@ public class VoucherService {
         boolean isPercent = type.equalsIgnoreCase("PERCENT");
         String code = generateRandomCode(value, isPercent);
         
-        log.info("Issuing voucher for {}: {}", user.getName(), code);
+        log.info("Voucher Issuance: {} for {}", code, user.getName());
         com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
         byte[] voucherImg = drawVoucher(code);
@@ -119,7 +129,6 @@ public class VoucherService {
                     "● **Voucher Code:** `" + code + "`\n" +
                     "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)";
 
-            // If we have both, we use winnerImg as the primary banner in the container
             String bannerRef = (winnerImg != null) ? "attachment://winner.png" : (voucherImg != null ? "attachment://voucher.png" : null);
             net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, bannerRef);
             
@@ -130,10 +139,10 @@ public class VoucherService {
             if (voucherImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"));
             
             if (!files.isEmpty()) {
-                action.setFiles(files).queue(null, err -> log.error("Failed to DM voucher: {}", err.getMessage()));
+                action.setFiles(files).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
             } else {
-                action.queue(null, err -> log.error("Failed to DM voucher fallback: {}", err.getMessage()));
+                action.queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
             }
-        }, err -> log.warn("Closed DMs for {}: {}", user.getName(), err.getMessage()));
+        }, err -> log.warn("DM Access Failure for {}: {}", user.getName(), err.getMessage()));
     }
 }

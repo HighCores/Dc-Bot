@@ -231,50 +231,60 @@ public class GiveawayService {
     }
 
     public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user) {
+        log.info("Winner Image: Processing for {}", user.getName());
         try {
+            ImageIO.setUseCache(false);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(BANNER_WINNER).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            conn.setConnectTimeout(20000);
+            conn.setReadTimeout(20000);
+            conn.setInstanceFollowRedirects(true);
 
             BufferedImage template;
             try (InputStream is = conn.getInputStream()) {
                 byte[] bytes = is.readAllBytes();
+                if (bytes == null || bytes.length < 1000) {
+                     log.error("Winner Image: Banner stream invalid ({} bytes)", (bytes != null ? bytes.length : 0));
+                     return null;
+                }
                 template = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
             }
             if (template == null) {
-                log.error("Failed to decode winner banner from: {}", BANNER_WINNER);
+                log.error("Winner Image: Decode failed for banner {} (Type: {})", BANNER_WINNER, conn.getContentType());
                 return null;
             }
 
             int W = template.getWidth();
             int H = template.getHeight();
-            log.info("Winner Banner Template loaded: {}x{}", W, H);
-
             BufferedImage image = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = image.createGraphics();
-            g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g.drawImage(template, 0, 0, null);
 
             // 1. Draw Avatar in the box
             String avatarUrl = user.getEffectiveAvatarUrl();
             try {
                 java.net.HttpURLConnection avConn = (java.net.HttpURLConnection) new URL(avatarUrl).openConnection();
-                avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-                avConn.setConnectTimeout(8000);
+                avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                avConn.setConnectTimeout(10000);
+                avConn.setInstanceFollowRedirects(true);
+                
                 try (InputStream is = avConn.getInputStream()) {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new java.io.ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        // Coordinates for the glass box (left-aligned square)
                         int boxX = 175;
                         int boxY = 175;
                         int boxSize = 385;
                         g.drawImage(avatar, boxX, boxY, boxSize, boxSize, null);
+                    } else {
+                        log.warn("Winner Image: Avatar decode failed for {}", avatarUrl);
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception avE) {
+                log.error("Winner Image: Avatar load error - {}", avE.getMessage());
+            }
 
             // 2. Draw Name in the bar
             g.setFont(new Font("Source Code Pro", Font.BOLD, (int)(H * 0.08)));

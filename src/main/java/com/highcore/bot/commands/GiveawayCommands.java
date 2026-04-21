@@ -60,56 +60,10 @@ public class GiveawayCommands extends ListenerAdapter {
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
-        if (id.startsWith("gw_enter_")) {
-            long gwId = Long.parseLong(id.replace("gw_enter_", ""));
-            if (SupabaseClient.hasEnteredGiveaway(gwId, event.getUser().getId())) {
-                event.reply("Entry already logged.").setEphemeral(true).queue();
-            } else {
-                SupabaseClient.addGiveawayEntry(gwId, event.getUser().getId());
-                
-                JsonArray entries = SupabaseClient.getGiveawayEntries(gwId);
-                int count = (entries != null) ? entries.size() : 0;
-                
-                ActionRow newRow = ActionRow.of(
-                    Button.secondary("gw_enter_" + gwId, "Join Sweepstakes"),
-                    Button.secondary("gw_count_" + gwId, count + (count == 1 ? " entry" : " entries")).asDisabled()
-                );
-                
-                event.deferReply(true).queue();
-                
-                JsonObject g = SupabaseClient.getGiveawayById(gwId);
-                String prize = g != null ? g.get("prize_details").getAsString() : "Classified Item";
-                int win = g != null && g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
-                long endsTs = g != null ? java.time.Instant.parse(g.get("ends_at").getAsString()).getEpochSecond() : java.time.Instant.now().getEpochSecond();
-                
-                String bannerUrl = EmbedUtil.BANNER_GIVEAWAY;
-                if (g != null) {
-                    String typeStr = g.get("prize_type").getAsString().toLowerCase();
-                    if (typeStr.startsWith("discount-")) {
-                        switch(typeStr) {
-                            case "discount-10": bannerUrl = "https://i.imgur.com/QpboYHV.png"; break;
-                            case "discount-20": bannerUrl = "https://i.imgur.com/FnsAuqW.png"; break;
-                            case "discount-30": bannerUrl = "https://i.imgur.com/n503P4n.png"; break;
-                            case "discount-40": bannerUrl = "https://i.imgur.com/4swCqaO.png"; break;
-                            case "discount-50": bannerUrl = "https://i.imgur.com/p1W4MGn.png"; break;
-                            case "discount-60": bannerUrl = "https://i.imgur.com/ujRHuoi.png"; break;
-                        }
-                    } else if (typeStr.startsWith("voucher-")) {
-                        switch(typeStr) {
-                            case "voucher-50": bannerUrl = "https://i.imgur.com/gqEoG4z.png"; break;
-                            case "voucher-100": bannerUrl = "https://i.imgur.com/DdlMSHd.png"; break;
-                        }
-                    }
-                }
-                
-                String body = "### Active Sweepstakes\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + win + "\n▫️ **Ends:** <t:" + endsTs + ":R>\n\nInteract below to enter.";
-                
-                event.getChannel().editMessageComponentsById(event.getMessageId(), EmbedUtil.containerBranded("GIVEAWAY", "Active Reward", body, bannerUrl, newRow)).useComponentsV2(true).queue(v -> {
-                    event.getHook().sendMessage("Success: Entry secured.").queue();
-                });
-                
-                updateDashboard(event.getGuild(), gwId);
-            }
+        if (id.startsWith("gw_reroll_adm_")) {
+            long gwId = Long.parseLong(id.replace("gw_reroll_adm_", ""));
+            com.highcore.bot.services.GiveawayService.endGiveaway(event.getJDA(), gwId, 1);
+            event.reply("Recalibrating winners...").setEphemeral(true).queue();
             return;
         }
 
