@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class VoucherService {
 
-    private static final String BACKGROUND_URL = "https://i.imgur.com/VOUCHER_BACKGROUND.jpg";
+    private static final String BACKGROUND_URL = "https://i.imgur.com/OXI22JW.png";
 
     public static String generateRandomCode(int value, boolean isPercent) {
         Random r = new Random();

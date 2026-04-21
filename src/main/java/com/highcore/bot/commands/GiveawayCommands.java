@@ -87,17 +87,17 @@ public class GiveawayCommands extends ListenerAdapter {
                     String typeStr = g.get("prize_type").getAsString().toLowerCase();
                     if (typeStr.startsWith("discount-")) {
                         switch(typeStr) {
-                            case "discount-10": bannerUrl = "https://i.imgur.com/DISCOUNT_10.jpg"; break;
-                            case "discount-20": bannerUrl = "https://i.imgur.com/DISCOUNT_20.jpg"; break;
-                            case "discount-30": bannerUrl = "https://i.imgur.com/DISCOUNT_30.jpg"; break;
-                            case "discount-40": bannerUrl = "https://i.imgur.com/DISCOUNT_40.jpg"; break;
-                            case "discount-50": bannerUrl = "https://i.imgur.com/DISCOUNT_50.jpg"; break;
-                            case "discount-60": bannerUrl = "https://i.imgur.com/DISCOUNT_60.jpg"; break;
+                            case "discount-10": bannerUrl = "https://i.imgur.com/QpboYHV.png"; break;
+                            case "discount-20": bannerUrl = "https://i.imgur.com/FnsAuqW.png"; break;
+                            case "discount-30": bannerUrl = "https://i.imgur.com/n503P4n.png"; break;
+                            case "discount-40": bannerUrl = "https://i.imgur.com/4swCqaO.png"; break;
+                            case "discount-50": bannerUrl = "https://i.imgur.com/p1W4MGn.png"; break;
+                            case "discount-60": bannerUrl = "https://i.imgur.com/ujRHuoi.png"; break;
                         }
                     } else if (typeStr.startsWith("voucher-")) {
                         switch(typeStr) {
-                            case "voucher-50": bannerUrl = "https://i.imgur.com/VOUCHER_50.jpg"; break;
-                            case "voucher-100": bannerUrl = "https://i.imgur.com/VOUCHER_100.jpg"; break;
+                            case "voucher-50": bannerUrl = "https://i.imgur.com/gqEoG4z.png"; break;
+                            case "voucher-100": bannerUrl = "https://i.imgur.com/DdlMSHd.png"; break;
                         }
                     }
                 }
@@ -251,17 +251,17 @@ public class GiveawayCommands extends ListenerAdapter {
         String typeStr = s.get("type").getAsString().toLowerCase();
         if (typeStr.startsWith("discount-")) {
             switch(typeStr) {
-                case "discount-10": bannerUrl = "https://i.imgur.com/DISCOUNT_10.jpg"; break;
-                case "discount-20": bannerUrl = "https://i.imgur.com/DISCOUNT_20.jpg"; break;
-                case "discount-30": bannerUrl = "https://i.imgur.com/DISCOUNT_30.jpg"; break;
-                case "discount-40": bannerUrl = "https://i.imgur.com/DISCOUNT_40.jpg"; break;
-                case "discount-50": bannerUrl = "https://i.imgur.com/DISCOUNT_50.jpg"; break;
-                case "discount-60": bannerUrl = "https://i.imgur.com/DISCOUNT_60.jpg"; break;
+                case "discount-10": bannerUrl = "https://i.imgur.com/QpboYHV.png"; break;
+                case "discount-20": bannerUrl = "https://i.imgur.com/FnsAuqW.png"; break;
+                case "discount-30": bannerUrl = "https://i.imgur.com/n503P4n.png"; break;
+                case "discount-40": bannerUrl = "https://i.imgur.com/4swCqaO.png"; break;
+                case "discount-50": bannerUrl = "https://i.imgur.com/p1W4MGn.png"; break;
+                case "discount-60": bannerUrl = "https://i.imgur.com/ujRHuoi.png"; break;
             }
         } else if (typeStr.startsWith("voucher-")) {
             switch(typeStr) {
-                case "voucher-50": bannerUrl = "https://i.imgur.com/VOUCHER_50.jpg"; break;
-                case "voucher-100": bannerUrl = "https://i.imgur.com/VOUCHER_100.jpg"; break;
+                case "voucher-50": bannerUrl = "https://i.imgur.com/gqEoG4z.png"; break;
+                case "voucher-100": bannerUrl = "https://i.imgur.com/DdlMSHd.png"; break;
             }
         }
 

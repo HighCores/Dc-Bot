@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class GiveawayService {
     private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final String BANNER_WINNER = "https://i.imgur.com/BANNER_WINNER.jpg";
+    private static final String BANNER_WINNER = "https://i.imgur.com/HtHQ1vP.png";
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {

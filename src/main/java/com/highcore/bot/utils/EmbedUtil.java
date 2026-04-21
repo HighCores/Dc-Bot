@@ -34,22 +34,23 @@ public class EmbedUtil {
 
     // User requested to migrate to Imgur to avoid Discord CDN expiry links.
     // Replace the "PLACEHOLDER" parts below with real Imgur IDs.
-    public static final String BANNER_MAIN = "https://i.imgur.com/BANNER_MAIN.jpg";
-    public static final String BANNER_GIVEAWAY = "https://i.imgur.com/BANNER_GIVEAWAY.jpg";
+    public static final String BANNER_MAIN = "https://i.imgur.com/lOQt0gJ.png";
+    public static final String BANNER_WELCOME = "https://i.imgur.com/Lzun3rb.png";
+    public static final String BANNER_GIVEAWAY = BANNER_MAIN;
     
     // Support category banners
-    public static final String BANNER_SUPPORT = "https://i.imgur.com/BANNER_SUPPORT.jpg";
-    public static final String BANNER_COMPLAINT = "https://i.imgur.com/BANNER_COMPLAINT.jpg";
-    public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/BANNER_TICKETS_MENU.jpg";
-    public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/BANNER_ORDER_TICKET.jpg";
-    public static final String BANNER_INVOICE = "https://i.imgur.com/BANNER_INVOICE.jpg";
-    public static final String BANNER_INVOICE_PAID = "https://i.imgur.com/BANNER_INVOICE_PAID.jpg";
+    public static final String BANNER_SUPPORT = "https://i.imgur.com/MBU5wvl.png";
+    public static final String BANNER_COMPLAINT = "https://i.imgur.com/t7Prrsr.png";
+    public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/wllO63d.png";
+    public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/OHF6qJB.png";
+    public static final String BANNER_INVOICE = "https://i.imgur.com/OHF6qJB.png";
+    public static final String BANNER_INVOICE_PAID = "https://i.imgur.com/OHF6qJB.png";
     
     // Order category banners
-    public static final String BANNER_DESIGN = "https://i.imgur.com/BANNER_DESIGN.jpg";
-    public static final String BANNER_DEVELOPER = "https://i.imgur.com/BANNER_DEVELOPER.jpg";
-    public static final String BANNER_MINECRAFT = "https://i.imgur.com/BANNER_MINECRAFT.jpg";
-    public static final String BANNER_EDITOR = "https://i.imgur.com/BANNER_EDITOR.jpg";
+    public static final String BANNER_DESIGN = "https://i.imgur.com/sHZzmVi.png";
+    public static final String BANNER_DEVELOPER = "https://i.imgur.com/rX2oXzt.png";
+    public static final String BANNER_MINECRAFT = "https://i.imgur.com/1TKfy9i.png";
+    public static final String BANNER_EDITOR = "https://i.imgur.com/R4126YU.png";
 
     public static String getCategoryBanner(String cat) {
         if (cat == null) return BANNER_MAIN;
@@ -128,7 +129,7 @@ public class EmbedUtil {
 
     public static Container startupPanel(ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
-        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_MAIN)));
+        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_WELCOME)));
 
         layout.add(TextDisplay.of("**Highcore Agency**"));
         layout.add(Separator.createDivider(Spacing.SMALL));
