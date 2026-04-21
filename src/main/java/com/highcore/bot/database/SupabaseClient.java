@@ -88,7 +88,7 @@ public class SupabaseClient {
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
-    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
+    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority, JsonObject metadata) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
@@ -96,6 +96,9 @@ public class SupabaseClient {
         body.addProperty("status", "open");
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
+        body.addProperty("type", type);
+        body.addProperty("priority", priority);
+        if (metadata != null) body.add("metadata", metadata);
         post("dc_tickets", body);
     }
 

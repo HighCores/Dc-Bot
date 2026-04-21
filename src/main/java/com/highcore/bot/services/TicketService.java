@@ -65,7 +65,7 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(ch.getId(), ticket);
 
-                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
+                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority, meta);
                 
                 ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
                 event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
@@ -127,8 +127,7 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                channel.getManager().setTopic("||META:" + meta.toString()).queue();
-                SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
+                SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH", meta);
 
                 channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
 
@@ -136,11 +135,14 @@ public class TicketService {
                 if (inv != null) {
                     channel.sendMessageComponents(EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "", "Review your order and choose a payment method.", "attachment://invoice.png",
                         ActionRow.of(
-                            Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
-                            Button.secondary("ticket_pay_stripe_" + tid, "Stripe").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
-                            Button.secondary("ticket_pay_bank_" + tid, "Bank Transfer").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
-                            Button.secondary("ticket_pay_usdt_" + tid, "USDT").withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
-                            Button.secondary("ticket_pay_stc_" + tid, "STC Pay").withEmoji(Emoji.fromUnicode("\uD83D\uDCD8"))
+                            Button.secondary("ticket_pay_binance_" + tid, "Binance").withEmoji(Emoji.fromUnicode("\uD83D\uDCB3")),
+                            Button.secondary("ticket_pay_patreon_" + tid, "Patreon").withEmoji(Emoji.fromUnicode("\uD83C\uDF10")),
+                            Button.secondary("ticket_pay_cliq_" + tid, "CliQ").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6")),
+                            Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromUnicode("\uD83D\uDCB0")),
+                            Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay").withEmoji(Emoji.fromUnicode("\uD83D\uDCD8"))
+                        ),
+                        ActionRow.of(
+                            Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi").withEmoji(Emoji.fromUnicode("\uD83C\uDFE6"))
                         )))
                         .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                 }
@@ -241,7 +243,7 @@ public class TicketService {
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) ticket = resolveFromTopic(ch);
+        if (ticket == null) ticket = SupabaseClient.getTicketByChannel(ch.getId());
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
         
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
@@ -251,7 +253,7 @@ public class TicketService {
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) ticket = resolveFromTopic(ch);
+        if (ticket == null) ticket = SupabaseClient.getTicketByChannel(ch.getId());
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
 
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
@@ -259,20 +261,7 @@ public class TicketService {
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
     }
 
-    private static JsonObject resolveFromTopic(TextChannel ch) {
-        String topic = ch.getTopic();
-        if (topic != null && topic.startsWith("||META:")) {
-            JsonObject ticket = new JsonObject();
-            String name = ch.getName();
-            String tid = name.substring(name.lastIndexOf("-") + 1);
-            ticket.addProperty("ticket_id", tid);
-            try {
-                ticket.add("metadata", com.google.gson.JsonParser.parseString(topic.replace("||META:", "")));
-                return ticket;
-            } catch (Exception e) { return null; }
-        }
-        return null;
-    }
+    // Metadata is now managed via database lookups rather than channel topics.
 
     public static void closeTicket(TextChannel ch, Member member) {
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
