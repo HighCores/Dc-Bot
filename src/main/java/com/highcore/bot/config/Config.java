@@ -59,7 +59,7 @@ public class Config {
     public static final String LOG_JOIN_LEFT = "\u26D4\uFE0Fjoin\u30FBleft\u30FBlogs";
     public static final String LOG_MESSAGE = "\u26D4\uFE0Fmessage\u30FBlogs";
     public static final String LOG_VOICE = "\u26D4\uFE0Fvoice\u30FBlogs";
-    public static final String LOG_TICKETS = "1489543360610828358";
+    public static final String LOG_TICKETS = "1488795130008961040";
     public static final String LOG_CHANNELS = "\u26D4\uFE0Fchannels\u30FBlogs";
     public static final String LOG_UPDATES = "\u26D4\uFE0Fupdates\u30FBlogs";
     public static final String LOG_COMMANDS = "\u26D4\uFE0Fcommands\u30FBlogs";
