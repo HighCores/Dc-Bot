@@ -84,7 +84,7 @@ public class GiveawayCommands extends ListenerAdapter {
             if (id.equals("btn_gw_create")) {
                 StringSelectMenu menu = StringSelectMenu.create("sel_gw_type")
                         .setPlaceholder("Deployment Select...")
-                        .addOption("Voucher", "Voucher")
+                        .addOption("Voucher ($50, $100)", "Voucher_Select")
                         .addOption("Discount (10%-60%)", "Discount_Select")
                         .addOption("Custom", "Custom")
                         .build();
@@ -124,15 +124,25 @@ public class GiveawayCommands extends ListenerAdapter {
                         .addOption("10% Off", "10").addOption("20% Off", "20").addOption("30% Off", "30").addOption("40% Off", "40").addOption("50% Off", "50").addOption("60% Off", "60")
                         .build();
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT", "Configuration", "Select amount:", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(m)));
+            } else if (type.equals("Voucher_Select")) {
+                StringSelectMenu m = StringSelectMenu.create("sel_gw_vouch")
+                        .setPlaceholder("Voucher Amount...")
+                        .addOption("$50 Voucher", "50").addOption("$100 Voucher", "100")
+                        .build();
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("VOUCHER", "Configuration", "Select amount (Only $50 and $100 allowed):", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(m)));
             } else showGiveawayModal(event, type);
         } else if (event.getComponentId().equals("sel_gw_perc")) {
             showGiveawayModal(event, "Discount-" + event.getValues().get(0));
+        } else if (event.getComponentId().equals("sel_gw_vouch")) {
+            showGiveawayModal(event, "Voucher-" + event.getValues().get(0));
         }
     }
 
     private void showGiveawayModal(net.dv8tion.jda.api.interactions.callbacks.IModalCallback event, String type) {
         boolean isDrop = type.equals("Drop");
-        String defaultPrize = type.startsWith("Discount-") ? type.split("-")[1] + "% Discount" : "";
+        String defaultPrize = "";
+        if (type.startsWith("Discount-")) defaultPrize = type.split("-")[1] + "% Discount";
+        else if (type.startsWith("Voucher-")) defaultPrize = "$" + type.split("-")[1] + " Store Credit";
 
         TextInput.Builder pb = TextInput.create("prize", TextInputStyle.SHORT).setRequired(true)
                 .setPlaceholder(isDrop ? "e.g., $10 Store Credit" : "e.g., VIP Rank");
@@ -200,10 +210,28 @@ public class GiveawayCommands extends ListenerAdapter {
         dashboardMessages.put(gwId, ""); 
         dashboardChannels.put(gwId, target.getId());
 
+        String bannerUrl = EmbedUtil.BANNER_GIVEAWAY;
+        String typeStr = s.get("type").getAsString().toLowerCase();
+        if (typeStr.startsWith("discount-")) {
+            switch(typeStr) {
+                case "discount-10": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899015575769188/Discount_10.jpg?ex=69e894c5&is=69e74345&hm=70da8772e841e3c6b44e59a6625ea725dddac7ab09ff9879f170ba4ca547247d&=&format=webp&width=1752&height=657"; break;
+                case "discount-20": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899015252938843/Discount_20.jpg?ex=69e894c5&is=69e74345&hm=df7c3a1548e01462f09d2bbdddf0a6db73e0f8aa22ea041f94d5212828b8d718&=&format=webp&width=1752&height=657"; break;
+                case "discount-30": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899014443438210/Discount_30.jpg?ex=69e894c5&is=69e74345&hm=0da3d31cfab9f86f9cfcb180711852a29edf2b9458af53b4316a79cc455ec992&=&format=webp&width=1752&height=657"; break;
+                case "discount-40": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899014774657084/Discount_40.jpg?ex=69e894c5&is=69e74345&hm=738be9022b46e985a5b5c8f21222f2e4285a2fa4186206c27c062ed4983aef76&=&format=webp&width=1752&height=657"; break;
+                case "discount-50": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899130965266512/Discount_50.jpg?ex=69e894e1&is=69e74361&hm=c8a3de23990ace495a234aa1e8d7173f5283d8a73de70b57bc378582fc4a2ac5&=&format=webp&width=1752&height=657"; break;
+                case "discount-60": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899131204603945/image.png?ex=69e894e1&is=69e74361&hm=21dd4e802a4a2317af15323bd27e93d99235fa8584d34c9dfb9a571096be9e68&=&format=webp&quality=lossless&width=1126&height=422"; break;
+            }
+        } else if (typeStr.startsWith("voucher-")) {
+            switch(typeStr) {
+                case "voucher-50": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1496108309265252403/Pruchace_50.jpg?ex=69e8aef1&is=69e75d71&hm=a4c68f3de7be838403b46902fb9d6dd878611cb11041c7ae47308578dec15047&=&format=webp&width=1752&height=657"; break;
+                case "voucher-100": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1496108308681982085/pruchase_10_.jpg?ex=69e8aef1&is=69e75d71&hm=0799838ca32dde1a50496238550bde72b0f79de25e4074bb3fda8075d6ecbaa4&=&format=webp&width=1752&height=657"; break;
+            }
+        }
+
         String body = "### Active Sweepstakes\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + s.get("win").getAsInt() + "\n▫️ **Ends:** <t:" + ends.getEpochSecond() + ":R>\n\nInteract below to enter.";
         ActionRow row = ActionRow.of(Button.secondary("gw_enter_" + gwId, "Join Sweepstakes"), Button.secondary("gw_count_" + gwId, "0 entries").asDisabled());
         
-        target.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY", "Active Reward", body, EmbedUtil.BANNER_GIVEAWAY, row)).useComponentsV2(true).queue(m -> SupabaseClient.setGiveawayMessageId(gwId, m.getId()));
+        target.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY", "Active Reward", body, bannerUrl, row)).useComponentsV2(true).queue(m -> SupabaseClient.setGiveawayMessageId(gwId, m.getId()));
         
         String dashDesc = "### " + prize + " | Logistics\n▫️ **Joins:** 0 members";
         ActionRow dashRow = ActionRow.of(Button.secondary("gw_end_early_" + gwId, "Close Early"));

@@ -244,12 +244,11 @@ public class GiveawayService {
                 try (InputStream is = avConn.getInputStream()) {
                     BufferedImage avatar = ImageIO.read(is);
                     if (avatar != null) {
-                        // Coordinates for the glass box (approx 175, 175)
-                        int boxX = (int)(W * 0.093);
-                        int boxY = (int)(H * 0.25);
-                        int boxW = (int)(W * 0.21);
-                        int boxH = (int)(H * 0.54);
-                        g.drawImage(avatar, boxX, boxY, boxW, boxH, null);
+                        // Coordinates for the glass box
+                        int boxX = 175;
+                        int boxY = 175;
+                        int boxSize = 385;
+                        g.drawImage(avatar, boxX, boxY, boxSize, boxSize, null);
                     }
                 }
             } catch (Exception ignored) {}

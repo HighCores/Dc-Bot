@@ -6,6 +6,7 @@ import com.highcore.bot.utils.EmbedUtil;
 import com.highcore.bot.commands.AutoReplyCommands;
 import com.highcore.bot.commands.BannedWordCommands;
 import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
@@ -130,6 +131,14 @@ public class CentralInteractionListener extends ListenerAdapter {
     public void onModalInteraction(ModalInteractionEvent event) {
         String id = event.getModalId();
         if (id.equals("order_modal")) {
+            String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
+            if (!vc.trim().isEmpty()) {
+                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim());
+                if (v == null || !v.get("user_id").getAsString().equals(event.getUser().getId()) || v.get("is_used").getAsBoolean() || java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) {
+                    event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
+                    return;
+                }
+            }
             event.deferReply(true).queue();
             OrderService.OrderSession s = OrderService.sessions.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> main = (s != null) ? OrderService.resolveItems(s.selectedServices) : new ArrayList<>();
@@ -138,6 +147,14 @@ public class CentralInteractionListener extends ListenerAdapter {
             TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), "", cat, main, add, event.getValue("o_voucher").getAsString(), event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_order_final")) {
+            String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
+            if (!vc.trim().isEmpty()) {
+                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim());
+                if (v == null || !v.get("user_id").getAsString().equals(event.getUser().getId()) || v.get("is_used").getAsBoolean() || java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) {
+                    event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
+                    return;
+                }
+            }
             event.deferReply(true).queue();
             PanelService.OrderSession s = PanelService.SESSIONS.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> main = (s != null) ? PanelService.resolveItems(s.mainIds) : new ArrayList<>();
