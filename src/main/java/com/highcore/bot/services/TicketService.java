@@ -158,7 +158,9 @@ public class TicketService {
         String userId = ticket.get("user_id").getAsString();
         
         String name = ch.getName().toUpperCase();
-        String type = name.startsWith("ORDER") ? "ORDER" : "SUPPORT";
+        String type = "SUPPORT";
+        if (name.startsWith("ORDER")) type = "ORDER";
+        else if (name.startsWith("COMPLAINT")) type = "COMPLAINT";
         
         if ("ORDER".equalsIgnoreCase(type)) {
             return buildOrderPipelineContainer(ticket, claimed, staff);
@@ -172,19 +174,16 @@ public class TicketService {
             String prio = meta.has("priority") ? meta.get("priority").getAsString() : "HIGH";
             b.append("**Priority:** `").append(prio.toUpperCase()).append("`\n");
             
-            if (meta.has("subject")) {
-                b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("`\n");
-            }
+            if (meta.has("subject")) b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("`\n");
             
             String details = "N/A";
             if (meta.has("body")) details = meta.get("body").getAsString();
-            else if (meta.has("client_name")) details = meta.get("client_name").getAsString(); // Fallback if modal labels vary
+            else if (meta.has("client_name")) details = meta.get("client_name").getAsString();
+            else if (meta.has("target")) details = meta.get("target").getAsString();
             
             b.append("**Details:** `").append(details).append("`\n");
             
-            if (meta.has("type")) {
-                b.append("**Type:** `").append(meta.get("type").getAsString()).append("`\n");
-            }
+            if (meta.has("type")) b.append("**Type:** `").append(meta.get("type").getAsString()).append("`\n");
         }
         
         b.append("\n---\n");
@@ -203,7 +202,10 @@ public class TicketService {
             );
         }
 
-        return EmbedUtil.containerBranded("Support Center", "Case #" + tid, b.toString(), EmbedUtil.BANNER_SUPPORT, row);
+        String title = type.equalsIgnoreCase("COMPLAINT") ? "Complaint Board" : "Support Center";
+        String banner = type.equalsIgnoreCase("COMPLAINT") ? EmbedUtil.BANNER_COMPLAINT : EmbedUtil.BANNER_SUPPORT;
+
+        return EmbedUtil.containerBranded(title, "Case #" + tid, b.toString(), banner, row);
     }
 
     private static Container buildOrderPipelineContainer(JsonObject ticket, boolean claimed, Member staff) {
