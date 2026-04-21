@@ -253,9 +253,13 @@ public class TicketService {
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
         
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
-        event.deferEdit().queue();
-        event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention())).useComponentsV2(true).queue();
-        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member, ch)).build()).queue();
+        
+        // Update the original message buttons immediately
+        event.editComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch))).queue();
+        
+        // Send separate notification
+        ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention()))
+          .useComponentsV2(true).queue();
     }
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -264,9 +268,13 @@ public class TicketService {
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
 
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
-        event.deferEdit().queue();
-        event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention())).useComponentsV2(true).queue();
-        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null, ch)).build()).queue();
+
+        // Update the original message buttons immediately
+        event.editComponents(List.of(rebuildWelcomeContainer(ticket, false, null, ch))).queue();
+
+        // Send separate notification
+        ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention()))
+          .useComponentsV2(true).queue();
     }
 
     // Metadata is now managed via database lookups rather than channel topics.
