@@ -21,7 +21,6 @@ public class VoucherService {
     private static final String BACKGROUND_URL = "https://i.imgur.com/OXI22JW.png";
 
     static {
-        // Disable disk cache for ImageIO to avoid permission/space issues
         ImageIO.setUseCache(false);
     }
 
@@ -39,6 +38,7 @@ public class VoucherService {
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(BACKGROUND_URL).openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            conn.setRequestProperty("Accept", "image/png,image/jpeg,image/*;q=0.8");
             conn.setConnectTimeout(20000);
             conn.setReadTimeout(20000);
             conn.setInstanceFollowRedirects(true);
@@ -49,17 +49,13 @@ public class VoucherService {
             }
 
             if (bytes == null || bytes.length < 1000) {
-                log.error("Voucher Background: Empty or invalid stream (Size: {} bytes). Response: {}", 
-                    (bytes != null ? bytes.length : 0), conn.getResponseCode());
+                log.error("Voucher Background: Empty or invalid stream (Size: {} bytes) from {}. Response: {}", 
+                    (bytes != null ? bytes.length : 0), BACKGROUND_URL, conn.getResponseCode());
                 return null;
             }
 
             BufferedImage base = ImageIO.read(new ByteArrayInputStream(bytes));
-            if (base == null) {
-                log.error("Voucher Background: ImageIO failed to decode {} bytes from {}. Type: {}", 
-                    bytes.length, BACKGROUND_URL, conn.getContentType());
-                return null;
-            }
+            if (base == null) return null;
 
             int w = base.getWidth();
             int h = base.getHeight();

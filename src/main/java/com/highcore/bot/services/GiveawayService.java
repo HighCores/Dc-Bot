@@ -11,37 +11,35 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import net.dv8tion.jda.api.components.container.Container;
-import net.dv8tion.jda.api.EmbedBuilder;
-import com.highcore.bot.services.VoucherService;
+import net.dv8tion.jda.api.utils.FileUpload;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.imageio.ImageIO;
-import java.awt.Color;
-import java.awt.Font;
-import java.awt.Graphics2D;
-import java.awt.RenderingHints;
-import java.awt.Shape;
-import java.awt.geom.Ellipse2D;
+import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.InputStream;
+import java.io.ByteArrayInputStream;
 import java.net.URL;
 import java.time.Instant;
-import java.util.Collections;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.concurrent.Executors;
-import java.util.concurrent.ScheduledExecutorService;
-import java.util.concurrent.TimeUnit;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import java.util.concurrent.*;
 
 public class GiveawayService {
     private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final String BANNER_WINNER = "https://i.imgur.com/HtHQ1vP.png";
+
+    public static final String BANNER_WINNER = "https://i.imgur.com/HtHQ1vP.png";
+
+    static {
+        ImageIO.setUseCache(false);
+    }
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {
-            try { checkEndingGiveaways(jda); } catch (Exception e) { }
+            try { checkEndingGiveaways(jda); } catch (Exception ignored) {}
         }, 30, 30, TimeUnit.SECONDS);
     }
 
@@ -58,7 +56,7 @@ public class GiveawayService {
                     int winners = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
                     endGiveaway(jda, g.get("id").getAsLong(), winners);
                 }
-            } catch (Exception e) { /* skip */ }
+            } catch (Exception ignored) {}
         }
     }
 
@@ -68,8 +66,7 @@ public class GiveawayService {
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild == null) return;
-        String channelId = g.get("channel_id").getAsString();
-        TextChannel ch = guild.getTextChannelById(channelId);
+        TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
         if (ch == null) return;
 
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
@@ -79,163 +76,68 @@ public class GiveawayService {
         }
 
         List<String> winners = pickWinners(userIds, Math.min(winnerCount, userIds.size()));
-        String[] winnersArr = winners.toArray(new String[0]);
-        SupabaseClient.endGiveaway(giveawayId, winnersArr);
+        SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
 
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
+        int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
+        String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
+        String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
+        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(7)).toString();
 
-        String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
-        String bannerUrl = getGiveawayBanner(g);
-        Container resultC;
-        ActionRow endedRow = ActionRow.of(Button.secondary("giveaway_ended", "Deployment Concluded").asDisabled());
-        if (userIds.isEmpty()) {
-            resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
-                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", bannerUrl, endedRow);
+        if (winners.isEmpty()) {
+            ch.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
+                "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.", EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
         } else {
-            StringBuilder wb = new StringBuilder();
-            for (String w : winners) wb.append("<@").append(w).append("> ");
-            resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "Winners Picked", 
-                    "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", bannerUrl, endedRow);
-        }
-
-        if (messageId != null) {
-            ch.editMessageComponentsById(messageId, resultC)
-              .useComponentsV2(true)
-              .queue(null, e -> {
-                  // Fallback if edit fails
-                  ch.sendMessageComponents(resultC).useComponentsV2(true).queue();
-              });
-        } else {
-            ch.sendMessageComponents(resultC).useComponentsV2(true).queue();
-        }
-
-        LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-end", "Operation: Asset Distribution Finalized\nID: #" + giveawayId + "\nPrize: " + prizeDetails + "\nWinners Picked: " + (winners.isEmpty() ? "None" : winners.size()), null, null, null, EmbedUtil.SUCCESS));
-
-        // 🎟️ Send Vouchers in DMs and send final message with IMAGE
-        int value = extractValue(prizeDetails);
-        String type = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Discount") ? "PERCENT" : "AMOUNT";
-        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
-        String expiresAt = Instant.now().plus(java.time.Duration.ofDays(expiryDays)).toString();
-
-        if (!winners.isEmpty()) {
-            final String firstWinnerId = winners.get(0);
-            jda.retrieveUserById(firstWinnerId).queue(user -> {
-                // Generate winner image first to pass it to DM
+            final String firstId = winners.get(0);
+            jda.retrieveUserById(firstId).queue(user -> {
                 byte[] winnerImg = generateWinnerImage(user);
-                
                 VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
                 
-                // Construct final announcement container
                 StringBuilder wb = new StringBuilder();
                 for (String w : winners) wb.append("<@").append(w).append("> ");
                 
                 if (winnerImg != null) {
                     net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
                         .setTitle("\uD83C\uDF8A CONGRATULATIONS \u2014 Winner Identified")
-                        .setDescription(wb.toString() + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance through precision selection. Highcore operations are now finalized.")
+                        .setDescription(wb + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance. Highcore operations finalized.")
                         .setImage("attachment://winner.png")
-                        .setColor(com.highcore.bot.utils.EmbedUtil.ACCENT);
+                        .setColor(EmbedUtil.ACCENT);
                     
-                    ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"))
-                      .setEmbeds(eb.build())
-                      .queue(null, err -> log.error("Failed to send winner announcement: {}", err.getMessage()));
+                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setEmbeds(eb.build()).queue();
                 } else {
-                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!").queue();
+                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!").queue();
                 }
-            }, e -> {
-                log.error("Could not retrieve winner user: {}", e.getMessage());
-            });
-            
-            // Issue vouchers to remaining winners (if any)
-            for (int i = 1; i < winners.size(); i++) {
-                jda.retrieveUserById(winners.get(i)).queue(user -> {
-                    byte[] wImg = generateWinnerImage(user);
-                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, wImg);
-                }, e -> {});
-            }
+
+                // Others
+                for (int i = 1; i < winners.size(); i++) {
+                    jda.retrieveUserById(winners.get(i)).queue(u -> {
+                        byte[] wImg = generateWinnerImage(u);
+                        VoucherService.issueVoucher(u, value, type, expiresAt, prizeDetails, wImg);
+                    }, e -> {});
+                }
+            }, e -> log.error("Failed to retrieve winner: {}", e.getMessage()));
         }
 
-        // 🔗 Sync Dashboard (if exists)
+        // Sync Dashboard
         String dashMsgId = com.highcore.bot.commands.GiveawayCommands.dashboardMessages.get(giveawayId);
         String dashChId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
-        
         if (dashMsgId != null && dashChId != null) {
             TextChannel dashCh = guild.getTextChannelById(dashChId);
             if (dashCh != null) {
-                String dashDesc = "### " + prizeDetails + " | Final Report\n" +
-                        "\u25AB\uFE0F **Status:** Deployment Concluded\n" +
-                        "\u25AB\uFE0F **Outcome:** " + (userIds.isEmpty() ? "No participants" : winners.size() + " winners identified") + "\n" +
-                        "\u25AB\uFE0F **Total Joined:** " + userIds.size() + " members";
-                
+                String dashDesc = "### " + prizeDetails + " | Final Report\n▫️ **Status:** Deployment Concluded\n▫️ **Outcome:** " + winners.size() + " winners identified";
                 var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Operation Complete", dashDesc, EmbedUtil.BANNER_GIVEAWAY, 
-                        ActionRow.of(Button.secondary("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
-                
+                        ActionRow.of(Button.success("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
                 dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
             }
         }
     }
 
-    public static void rerollGiveaway(JDA jda, long giveawayId) {
-        JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
-        if (g == null) return;
-        Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) return;
-        TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
-        if (ch == null) return;
-
-        JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
-        List<String> userIds = new ArrayList<>();
-        if (entries != null) for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
-
-        int winnersNeeded = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
-        List<String> winners = pickWinners(userIds, winnersNeeded);
-        if (winners.isEmpty()) {
-            PanelService.reply(ch, EmbedUtil.error("REROLL FAILED", "No users found to pick a new winner from."));
-        } else {
-            StringBuilder wb = new StringBuilder();
-            for (String w : winners) wb.append("<@").append(w).append("> ");
-            Container c = EmbedUtil.containerBranded("GIVEAWAY REROLLED", "New Winners", 
-                    "New winners have been selected!\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY);
-            ch.sendMessageComponents(c).useComponentsV2(true).queue();
-            
-            SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
-            LogManager.logEmbed(guild, Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-reroll", "Action: Operational Backup Triggered\nID: #" + giveawayId + "\nNew Winners Identified: " + winners.size(), null, null, null, EmbedUtil.WARNING));
-
-            String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Gift";
-            int value = extractValue(prizeDetails);
-            String type = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Discount") ? "PERCENT" : "AMOUNT";
-            int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
-            String expiresAt = Instant.now().plus(java.time.Duration.ofDays(expiryDays)).toString();
-
-            for (String userId : winners) {
-                jda.retrieveUserById(userId).queue(user -> {
-                    byte[] wImg = generateWinnerImage(user);
-                    VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, wImg);
-                }, e -> {});
-            }
-        }
-    }
-
-    private static int extractValue(String text) {
-        if (text == null) return 15;
-        java.util.regex.Matcher m = java.util.regex.Pattern.compile("(\\d+)").matcher(text);
-        if (m.find()) return Integer.parseInt(m.group(1));
-        return 15;
-    }
-
-    private static List<String> pickWinners(List<String> pool, int count) {
-        if (pool.isEmpty() || count <= 0) return List.of();
-        List<String> shuffled = new ArrayList<>(pool);
-        Collections.shuffle(shuffled);
-        return shuffled.subList(0, Math.min(count, shuffled.size()));
-    }
-
     public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user) {
         log.info("Winner Image: Processing for {}", user.getName());
         try {
-            ImageIO.setUseCache(false);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(BANNER_WINNER).openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            conn.setRequestProperty("Accept", "image/png,image/jpeg,image/*;q=0.8");
             conn.setConnectTimeout(20000);
             conn.setReadTimeout(20000);
             conn.setInstanceFollowRedirects(true);
@@ -243,16 +145,10 @@ public class GiveawayService {
             BufferedImage template;
             try (InputStream is = conn.getInputStream()) {
                 byte[] bytes = is.readAllBytes();
-                if (bytes == null || bytes.length < 1000) {
-                     log.error("Winner Image: Banner stream invalid ({} bytes)", (bytes != null ? bytes.length : 0));
-                     return null;
-                }
-                template = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
+                if (bytes == null || bytes.length < 1000) return null;
+                template = ImageIO.read(new ByteArrayInputStream(bytes));
             }
-            if (template == null) {
-                log.error("Winner Image: Decode failed for banner {} (Type: {})", BANNER_WINNER, conn.getContentType());
-                return null;
-            }
+            if (template == null) return null;
 
             int W = template.getWidth();
             int H = template.getHeight();
@@ -262,72 +158,74 @@ public class GiveawayService {
             g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
             g.drawImage(template, 0, 0, null);
 
-            // 1. Draw Avatar in the box
             String avatarUrl = user.getEffectiveAvatarUrl();
             try {
                 java.net.HttpURLConnection avConn = (java.net.HttpURLConnection) new URL(avatarUrl).openConnection();
                 avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
                 avConn.setConnectTimeout(10000);
-                avConn.setInstanceFollowRedirects(true);
-                
                 try (InputStream is = avConn.getInputStream()) {
                     byte[] avBytes = is.readAllBytes();
-                    BufferedImage avatar = ImageIO.read(new java.io.ByteArrayInputStream(avBytes));
+                    BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        int boxX = 175;
-                        int boxY = 175;
-                        int boxSize = 385;
-                        g.drawImage(avatar, boxX, boxY, boxSize, boxSize, null);
-                    } else {
-                        log.warn("Winner Image: Avatar decode failed for {}", avatarUrl);
+                        g.drawImage(avatar, 175, 175, 385, 385, null);
                     }
                 }
-            } catch (Exception avE) {
-                log.error("Winner Image: Avatar load error - {}", avE.getMessage());
-            }
-
-            // 2. Draw Name in the bar
-            g.setFont(new Font("Source Code Pro", Font.BOLD, (int)(H * 0.08)));
-            g.setColor(Color.WHITE);
-            String name = user.getName().toUpperCase();
-            int nameBarX = (int)(W * 0.49);
-            int nameBarY = (int)(H * 0.675);
-            int barWidth = (int)(W * 0.35);
-            
-            // Center the name in the bar area
-            int textW = g.getFontMetrics().stringWidth(name);
-            g.drawString(name, nameBarX + (barWidth - textW)/2, nameBarY);
+            } catch (Exception ignored) {}
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(image, "png", baos);
             return baos.toByteArray();
         } catch (Exception e) {
-            log.error("Winner image generation failed: {}", e.getMessage());
+            log.error("Winner Image Error: {}", e.getMessage());
             return null;
         }
     }
 
-    private static String getGiveawayBanner(JsonObject g) {
-        if (g == null || !g.has("prize_type")) return EmbedUtil.BANNER_GIVEAWAY;
-        String type = g.get("prize_type").getAsString().toLowerCase();
-        if (type.startsWith("discount-")) {
-            return switch(type) {
-                case "discount-10" -> "https://i.imgur.com/QpboYHV.png";
-                case "discount-20" -> "https://i.imgur.com/FnsAuqW.png";
-                case "discount-30" -> "https://i.imgur.com/n503P4n.png";
-                case "discount-40" -> "https://i.imgur.com/4swCqaO.png";
-                case "discount-50" -> "https://i.imgur.com/p1W4MGn.png";
-                case "discount-60" -> "https://i.imgur.com/ujRHuoi.png";
-                default -> EmbedUtil.BANNER_GIVEAWAY;
-            };
-        } else if (type.startsWith("voucher-")) {
-            return switch(type) {
-                case "voucher-50" -> "https://i.imgur.com/gqEoG4z.png";
-                case "voucher-100" -> "https://i.imgur.com/DdlMSHd.png";
-                default -> EmbedUtil.BANNER_GIVEAWAY;
-            };
+    public static void rerollGiveaway(JDA jda, long giveawayId) {
+        JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
+        if (g == null) return;
+
+        JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
+        List<String> userIds = new ArrayList<>();
+        if (entries != null) {
+            for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
         }
-        return EmbedUtil.BANNER_GIVEAWAY;
+
+        if (userIds.isEmpty()) return;
+        List<String> winners = pickWinners(userIds, 1);
+        
+        String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
+        int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
+        String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
+        String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
+        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(7)).toString();
+
+        Guild guild = jda.getGuildById(Config.GUILD_ID);
+        if (guild == null) return;
+        TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
+        if (ch == null) return;
+
+        jda.retrieveUserById(winners.get(0)).queue(user -> {
+            byte[] winnerImg = generateWinnerImage(user);
+            VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
+            
+            if (winnerImg != null) {
+                net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
+                    .setTitle("\uD83C\uDF8A REROLL SUCCESSFUL \u2014 New Winner Identified")
+                    .setDescription("<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!")
+                    .setImage("attachment://winner.png")
+                    .setColor(EmbedUtil.ACCENT);
+                ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setEmbeds(eb.build()).queue();
+            } else {
+                ch.sendMessage("### \uD83C\uDF8A REROLL SUCCESSFUL\n<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!").queue();
+            }
+        });
+    }
+
+    private static List<String> pickWinners(List<String> users, int count) {
+        if (users == null || users.isEmpty()) return new ArrayList<>();
+        Collections.shuffle(users);
+        return users.subList(0, Math.min(count, users.size()));
     }
 }
