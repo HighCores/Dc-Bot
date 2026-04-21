@@ -53,8 +53,12 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TicketService.reopenTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_transcript")) {
                 TicketService.transcriptTicket(event.getChannel().asTextChannel(), member, event);
+            } else if (id.equals("ticket_delete_init")) {
+                TicketService.requestDeleteConfirmation(event);
             } else if (id.equals("ticket_delete_final")) {
                 TicketService.deleteTicket(event.getChannel().asTextChannel());
+            } else if (id.equals("ticket_delete_cancel")) {
+                event.reply("Deletion cancelled.").setEphemeral(true).queue();
             } else if (id.equals("wiz_finish")) {
                 OrderService.finishWizard(event);
             } else if (id.equals("order_final")) {

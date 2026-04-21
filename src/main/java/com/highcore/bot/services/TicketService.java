@@ -182,13 +182,13 @@ public class TicketService {
         ActionRow row;
         if (!claimed) {
             row = ActionRow.of(
-                Button.primary("ticket_claim", "Claim Project").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
-                Button.danger("ticket_close", "Archive Session").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.primary("ticket_claim", "Claim").withEmoji(Emoji.fromUnicode("\uD83D\uDCE1")),
+                Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
             );
         } else {
             row = ActionRow.of(
-                Button.secondary("ticket_unclaim", "Release Project").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
-                Button.danger("ticket_close", "Archive Session").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
+                Button.secondary("ticket_unclaim", "Unclaim").withEmoji(Emoji.fromUnicode("\u2935\uFE0F")),
+                Button.danger("ticket_close", "Close").withEmoji(Emoji.fromUnicode("\uD83D\uDD12"))
             );
         }
 
@@ -305,12 +305,12 @@ public class TicketService {
         SupabaseClient.updateTicketStatus(tid, "closed", member.getEffectiveName());
 
         // 3. Send Control Panel
-        ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Archive Control",
-            "### SESSION LOCKED\nOperative **" + member.getEffectiveName() + "** has terminated the session protocol.\n\nSelect a recovery or archival procedure below.", EmbedUtil.BANNER_SUPPORT,
+        ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
+            "### TICKET CLOSED\nAgent **" + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.", EmbedUtil.BANNER_SUPPORT,
             ActionRow.of(
-                Button.success("ticket_reopen", "Reopen Session").withEmoji(Emoji.fromUnicode("\u21BB")),
-                Button.primary("ticket_transcript", "Save Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
-                Button.danger("ticket_delete_final", "Delete Sector").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1"))
+                Button.success("ticket_reopen", "Reopen").withEmoji(Emoji.fromUnicode("\u21BB")),
+                Button.primary("ticket_transcript", "Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
+                Button.danger("ticket_delete_init", "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1"))
             )))
             .useComponentsV2(true).queue();
     }
@@ -328,7 +328,16 @@ public class TicketService {
         // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "open", null);
 
-        event.reply("✅ Session reopened. Access protocols restored.").queue();
+        event.reply("✅ Ticket reopened. Access restored.").queue();
+    }
+
+    public static void requestDeleteConfirmation(ButtonInteractionEvent event) {
+        event.replyComponents(EmbedUtil.containerBranded("DANGER", "Delete Channel",
+            "### Are you sure?\nThis action will permanently delete this channel and cannot be undone.", EmbedUtil.BANNER_SUPPORT,
+            ActionRow.of(
+                Button.danger("ticket_delete_final", "Confirm Delete").withEmoji(Emoji.fromUnicode("\u2705")),
+                Button.secondary("ticket_delete_cancel", "Cancel").withEmoji(Emoji.fromUnicode("\u274C"))
+            ))).setEphemeral(true).useComponentsV2(true).queue();
     }
 
     public static void transcriptTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
