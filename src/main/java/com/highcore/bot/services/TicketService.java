@@ -308,7 +308,7 @@ public class TicketService {
         ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
             "### TICKET CLOSED\nAgent **" + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.", EmbedUtil.BANNER_SUPPORT,
             ActionRow.of(
-                Button.success("ticket_reopen", "Reopen").withEmoji(Emoji.fromUnicode("\u21BB")),
+                Button.success("ticket_reopen", "Reopen").withEmoji(Emoji.fromUnicode("\uD83D\uDD13")),
                 Button.primary("ticket_transcript", "Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
                 Button.danger("ticket_delete_init", "Delete").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1"))
             )))
