@@ -52,21 +52,21 @@ public class InvoiceService {
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.drawImage(template, 0, 0, null);
 
-            // 1. Invoice ID
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.02)));
+            // 1. Invoice ID - Center on the gold section
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.024)));
             g.setColor(COL_GOLD);
-            String idTag = "#" + invoiceId;
-            g.drawString(idTag, (int)(W * 0.706 - g.getFontMetrics().stringWidth(idTag)/2), (int)(H * 0.145));
+            String idTag = invoiceId; // Template might have #
+            g.drawString(idTag, (int)(W * 0.774 - g.getFontMetrics().stringWidth(idTag)/2), (int)(H * 0.138));
 
-            // 2. Avatar
+            // 2. Avatar - Alignment with Name box
             if (avatarUrl != null && !avatarUrl.isEmpty()) {
                 try {
                     java.net.URLConnection conn = new URL(avatarUrl).openConnection();
                     try (InputStream is = conn.getInputStream()) {
                         BufferedImage avatar = ImageIO.read(is);
                         if (avatar != null) {
-                            int r = (int)(W * 0.05); 
-                            int x = (int)(W * 0.686); 
+                            int r = (int)(W * 0.06); 
+                            int x = (int)(W * 0.679); 
                             int y = (int)(H * 0.176); 
                             Shape oldClip = g.getClip();
                             g.setClip(new Ellipse2D.Double(x, y, r, r));
@@ -77,44 +77,44 @@ public class InvoiceService {
                 } catch (Exception ignored) {}
             }
             
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.015)));
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.016)));
             g.setColor(COL_WHITE);
-            String uName = truncate(displayName != null ? displayName : clientName, 15);
-            g.drawString(uName, (int)(W * 0.711 - g.getFontMetrics().stringWidth(uName)/2), (int)(H * 0.252));
+            String uName = truncate(displayName != null ? displayName : clientName, 18);
+            g.drawString(uName, (int)(W * 0.709 - g.getFontMetrics().stringWidth(uName)/2), (int)(H * 0.246));
 
             // 3. Status
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.018)));
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.016)));
             g.setColor(isPaid ? Color.GREEN : COL_GOLD);
             String statusText = isPaid ? "AUTHORIZED" : "PENDING";
-            g.drawString(statusText, (int)(W * 0.710 - g.getFontMetrics().stringWidth(statusText)/2), (int)(H * 0.335));
+            g.drawString(statusText, (int)(W * 0.710 - g.getFontMetrics().stringWidth(statusText)/2), (int)(H * 0.328));
 
-            // 4. Client Details
+            // 4. Client Details - Lower to avoid status overlap
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.018)));
             g.setColor(COL_WHITE);
             int clientBoxX = (int)(W * 0.675);
-            g.drawString(truncate(displayName != null ? displayName : clientName, 25), clientBoxX, (int)(H * 0.360));
+            g.drawString(truncate(displayName != null ? displayName : clientName, 25), clientBoxX, (int)(H * 0.354));
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(W * 0.014)));
             String contactInfo = (contact != null ? contact : "") + (phone != null && !phone.isEmpty() ? " (" + phone + ")" : "");
-            g.drawString(truncate(contactInfo.isEmpty() ? "No Contact" : contactInfo, 40), clientBoxX, (int)(H * 0.385));
-            g.drawString(truncate(clientName, 30), clientBoxX, (int)(H * 0.410));
+            g.drawString(truncate(contactInfo.isEmpty() ? "No Contact" : contactInfo, 40), clientBoxX, (int)(H * 0.378));
+            g.drawString(truncate(clientName, 30), clientBoxX, (int)(H * 0.402));
 
-            // 5. Project Info - SHIFTED TO AVOID OVERLAP
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.018)));
+            // 5. Project Info
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.020)));
             g.setColor(COL_WHITE);
-            g.drawString(truncate(projectName, 30), (int)(W * 0.44), (int)(H * 0.235));
+            g.drawString(truncate(projectName, 25), (int)(W * 0.44), (int)(H * 0.231));
             
-            g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(W * 0.016)));
+            g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(W * 0.017)));
             g.setColor(COL_CREAM);
             String catLabel = category != null ? category : "Software Services";
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
-            g.drawString(catLabel, (int)(W * 0.44), (int)(H * 0.265));
+            g.drawString(catLabel, (int)(W * 0.44), (int)(H * 0.261));
 
             // 6. Add-ons
-            g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(H * 0.017)));
+            g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(H * 0.018)));
             g.setColor(COL_CREAM);
-            int addOnStartY = (int)(H * 0.362);
+            int addOnStartY = (int)(H * 0.358);
             for (int i = 0; i < Math.min(items.size(), 6); i++) {
-                g.drawString("\u2022 " + truncate(items.get(i).name, 45), (int)(W * 0.142), addOnStartY + (i * (int)(H * 0.026)));
+                g.drawString("\u2022 " + truncate(items.get(i).name, 45), (int)(W * 0.142), addOnStartY + (i * (int)(H * 0.027)));
             }
 
             // 7. Table
@@ -122,8 +122,8 @@ public class InvoiceService {
             int col_PriceX    = (int)(W * 0.672);
             int col_QtyX      = (int)(W * 0.758);
             int col_TotalX    = (int)(W * 0.84);
-            int tableStartY = (int)(H * 0.652);
-            int tableRowGap = (int)(H * 0.046); 
+            int tableStartY = (int)(H * 0.648);
+            int tableRowGap = (int)(H * 0.048); 
 
             double subtotalVal = 0;
             for (int i = 0; i < Math.min(items.size(), 5); i++) {
@@ -140,18 +140,18 @@ public class InvoiceService {
                 subtotalVal += item.price;
             }
 
-            // 8. Financials
+            // 8. Financials - Fixed numeric positions
             double taxVal = (subtotalVal - discount) * 0.05;
             double finalTotal = Math.max(0, (subtotalVal - discount) + taxVal);
 
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.019)));
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.022)));
             g.setColor(COL_GOLD);
-            g.drawString("$" + fmt(subtotalVal), (int)(W * 0.38), (int)(H * 0.849)); 
-            g.drawString("-$" + fmt(discount),    (int)(W * 0.38), (int)(H * 0.880)); 
+            g.drawString("$" + fmt(subtotalVal), (int)(W * 0.38), (int)(H * 0.842)); 
+            g.drawString("-$" + fmt(discount),    (int)(W * 0.38), (int)(H * 0.875)); 
 
-            g.drawString("$" + fmt(taxVal),      (int)(W * 0.88), (int)(H * 0.841)); 
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.024)));
-            g.drawString("$" + fmt(finalTotal),  (int)(W * 0.88), (int)(H * 0.890));
+            g.drawString("$" + fmt(taxVal),      (int)(W * 0.90), (int)(H * 0.835)); 
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(W * 0.026)));
+            g.drawString("$" + fmt(finalTotal),  (int)(W * 0.90), (int)(H * 0.886));
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
