@@ -27,6 +27,7 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 
+import java.time.Instant;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
@@ -287,8 +288,78 @@ public class TicketService {
 
     public static void closeTicket(TextChannel ch, Member member) {
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
+        JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
+        if (ticket == null) return;
+        
+        String userId = ticket.get("user_id").getAsString();
+        Member client = ch.getGuild().getMemberById(userId);
+
+        // 1. Remove client access
+        if (client != null) {
+            ch.getManager().putMemberPermissionOverride(client.getIdLong(), null, EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)).queue();
+        } else {
+            ch.getManager().putPermissionOverride(ch.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL)).queue();
+        }
+
+        // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "closed", member.getEffectiveName());
-        ch.sendMessage("⚠️ Transmission ending. Archiving sector...").queue(m -> ch.delete().queueAfter(5, java.util.concurrent.TimeUnit.SECONDS));
+
+        // 3. Send Control Panel
+        ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Archive Control",
+            "### SESSION LOCKED\nOperative **" + member.getEffectiveName() + "** has terminated the session protocol.\n\nSelect a recovery or archival procedure below.", EmbedUtil.BANNER_SUPPORT,
+            ActionRow.of(
+                Button.success("ticket_reopen", "Reopen Session").withEmoji(Emoji.fromUnicode("\u21BB")),
+                Button.primary("ticket_transcript", "Save Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCC4")),
+                Button.danger("ticket_delete_final", "Delete Sector").withEmoji(Emoji.fromUnicode("\uD83D\uDDD1"))
+            )))
+            .useComponentsV2(true).queue();
+    }
+
+    public static void reopenTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
+        String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
+        JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
+        if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
+
+        String userId = ticket.get("user_id").getAsString();
+
+        // 1. Restore client access
+        ch.getManager().putMemberPermissionOverride(Long.parseLong(userId), EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null).queue();
+
+        // 2. Update DB status
+        SupabaseClient.updateTicketStatus(tid, "open", null);
+
+        event.reply("✅ Session reopened. Access protocols restored.").queue();
+    }
+
+    public static void transcriptTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
+        String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
+        JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
+        if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
+        
+        JsonArray msgs = SupabaseClient.getTicketMessages(tid);
+        
+        // Try to find opened_at or fallback
+        String openedAt = ticket.has("created_at") ? ticket.get("created_at").getAsString() : Instant.now().toString();
+        String opener = ticket.has("user_name") ? ticket.get("user_name").getAsString() : "Unknown";
+        String type = ch.getName().toUpperCase().split("-")[0];
+        
+        byte[] html = TranscriptService.buildHtml(tid, ch.getName(), type, "closed", openedAt, opener, 
+            ticket.has("claimed_by") && !ticket.get("claimed_by").isJsonNull() ? ticket.get("claimed_by").getAsString() : "None",
+            member.getEffectiveName(), msgs);
+            
+        TextChannel logCh = ch.getGuild().getTextChannelById("1488795131019526147");
+        if (logCh != null) {
+            logCh.sendMessage("📄 Transcript for **#" + ch.getName() + "**")
+                .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
+                .queue();
+            event.reply("✅ Transcript sent to management sector.").setEphemeral(true).queue();
+        } else {
+            event.reply("❌ Management sector not found.").setEphemeral(true).queue();
+        }
+    }
+
+    public static void deleteTicket(TextChannel ch) {
+        ch.delete().queue();
     }
 
     public static void markAsPaid(TextChannel ch, String tid, Member member) {
