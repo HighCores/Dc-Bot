@@ -358,7 +358,12 @@ public class TicketService {
             
         TextChannel logCh = ch.getGuild().getTextChannelById("1488795131019526147");
         if (logCh != null) {
-            logCh.sendMessage("📄 Transcript for **#" + ch.getName() + "**")
+            String userId = ticket.get("user_id").getAsString();
+            String logBody = "▶ **TRANSCRIPT • Archive \u2014 Case #" + tid + "**\n\n" +
+                             "**Opener:** <@" + userId + "> (" + opener + ")\n" +
+                             "**Closed By:** " + member.getAsMention();
+            
+            logCh.sendMessage(logBody)
                 .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                 .queue();
             event.reply("✅ Transcript sent to management sector.").setEphemeral(true).queue();

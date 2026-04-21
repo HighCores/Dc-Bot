@@ -128,18 +128,24 @@ public class MessageListener extends ListenerAdapter {
         // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
         // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
         for (var layout : event.getMessage().getComponents()) {
-            if (layout instanceof net.dv8tion.jda.api.components.actionrow.ActionRow row) {
+            if (layout instanceof net.dv8tion.jda.api.components.container.Container container) {
+                for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
+                    if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
+                        contentBuilder.append("\n").append(textDisplay.getContent());
+                    } else if (child instanceof net.dv8tion.jda.api.components.mediagallery.MediaGallery gallery) {
+                        for (net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem item : gallery.getItems()) {
+                            if (item.getUrl() != null) {
+                                contentBuilder.append("\n[ATTACHMENT: ").append(item.getUrl()).append("]");
+                            }
+                        }
+                    }
+                }
+            } else if (layout instanceof net.dv8tion.jda.api.components.actionrow.ActionRow row) {
                 for (var component : row.getComponents()) {
                     if (component instanceof net.dv8tion.jda.api.components.container.Container container) {
                         for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
                             if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
                                 contentBuilder.append("\n").append(textDisplay.getContent());
-                            } else if (child instanceof net.dv8tion.jda.api.components.mediagallery.MediaGallery gallery) {
-                                for (net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem item : gallery.getItems()) {
-                                    if (item.getUrl() != null) {
-                                        contentBuilder.append("\n[ATTACHMENT: ").append(item.getUrl()).append("]");
-                                    }
-                                }
                             }
                         }
                     }
