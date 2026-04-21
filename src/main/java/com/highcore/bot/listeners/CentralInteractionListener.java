@@ -113,14 +113,14 @@ public class CentralInteractionListener extends ListenerAdapter {
             OrderService.OrderSession s = OrderService.sessions.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (s != null) ? OrderService.resolveItems(new ArrayList<String>() {{ addAll(s.selectedServices); addAll(s.selectedAddons); }}) : new ArrayList<>();
             String cat = (s != null) ? (s.category.substring(0,1).toUpperCase() + s.category.substring(1).toLowerCase()) : "Projects";
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, "", event.getValue("o_eta").getAsString());
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), "", cat, items, event.getValue("o_voucher").getAsString(), event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_order_final")) {
             event.deferReply(true).queue();
             PanelService.OrderSession s = PanelService.SESSIONS.remove(event.getUser().getId());
             List<InvoiceService.OrderItem> items = (s != null) ? PanelService.resolveItems(new ArrayList<String>() {{ addAll(s.mainIds); addAll(s.addonIds); }}) : new ArrayList<>();
             String cat = (s != null) ? (s.category.substring(0,1).toUpperCase() + s.category.substring(1).toLowerCase()) : "Projects";
-            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), event.getValue("o_phone").getAsString(), cat, items, "", event.getValue("o_eta").getAsString());
+            TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), "", cat, items, event.getValue("o_voucher").getAsString(), event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_support_init")) {
             TicketService.createTicket(event, event.getValue("issue_desc").getAsString(), "MEDIUM", "SUPPORT", "Service: "+event.getValue("service_type").getAsString());

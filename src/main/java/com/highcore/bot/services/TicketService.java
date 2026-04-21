@@ -189,12 +189,11 @@ public class TicketService {
         String userId = ticket.get("user_id").getAsString();
         
         StringBuilder b = new StringBuilder();
-        b.append("@Highcore Team\n\n");
         b.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
         
         String prio = "HIGH";
         if (meta != null && meta.has("priority")) prio = meta.get("priority").getAsString();
-        b.append("**Priority:** `").append(prio.toUpperCase()).append("`\n");
+        b.append("**Priority:** `").append(prio.toUpperCase()).append("` \u2022 ");
         
         String subject = "gh";
         if (meta != null && meta.has("project_name")) subject = meta.get("project_name").getAsString();
@@ -202,9 +201,9 @@ public class TicketService {
         
         b.append("\uD83D\uDCCB **Questionnaire Data**\n");
         if (meta != null) {
-            b.append("**Project:** `").append(meta.get("project_name").getAsString()).append("`\n");
-            b.append("**Client:** `").append(meta.get("client_name").getAsString()).append("`\n");
-            b.append("**Contact:** `").append(meta.has("contact") ? meta.get("contact").getAsString() : "N/A").append("`\n");
+            b.append("**Project:** `").append(meta.get("project_name").getAsString()).append("` \u2022 ");
+            b.append("**Client:** `").append(meta.get("client_name").getAsString()).append("` \u2022 ");
+            b.append("**Contact:** `").append(meta.has("contact") ? meta.get("contact").getAsString() : "N/A").append("` \u2022 ");
             b.append("**ETA:** `").append(meta.has("eta") ? meta.get("eta").getAsString() : "N/A").append("`\n");
             
             if (meta.has("items")) {
@@ -217,7 +216,6 @@ public class TicketService {
                 b.append("**Services Requested:** ").append(svs.toString()).append("\n");
             }
         }
-        b.append("\n---\n");
         b.append("\u26A0\uFE0F **Your ticket is locked** \u2014 it will be unlocked once payment is confirmed.");
 
         ActionRow row;
@@ -235,7 +233,7 @@ public class TicketService {
             );
         }
 
-        return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Order.jpg", row);
+        return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), "https://media.discordapp.net/attachments/1488900668042510568/1495900142510014534/Orders_.jpg?ex=69e7ed12&is=69e69b92&hm=e6449ae239468a94ddbee55a07ab4f105e0ad57fe5ab6bd3cb55fe7d6297d276&", row);
     }
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -246,9 +244,6 @@ public class TicketService {
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         event.deferEdit().queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
-        
-        Container notice = EmbedUtil.containerBranded("\u25B6\uFE0F NOTICE \u2022 Claimed", "", "\uD83D\uDCE1 **Ticket Handled By:** " + member.getAsMention(), null);
-        event.getHook().sendMessageComponents(notice).useComponentsV2(true).queue();
     }
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -259,9 +254,6 @@ public class TicketService {
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
         event.deferEdit().queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
-        
-        Container notice = EmbedUtil.containerBranded("\u25B6\uFE0F NOTICE \u2022 Unclaimed", "", "\u2935\uFE0F **Ticket Unclaimed By:** " + member.getAsMention(), null);
-        event.getHook().sendMessageComponents(notice).useComponentsV2(true).queue();
     }
 
     private static JsonObject resolveFromTopic(TextChannel ch) {
@@ -286,8 +278,6 @@ public class TicketService {
     }
 
     public static void markAsPaid(TextChannel ch, String tid, Member member) {
-        Container notice = EmbedUtil.containerBranded("\u2705 Payment Verified \u2022 Ticket Unlocked", "", "", null);
-        ch.sendMessageComponents(notice).useComponentsV2(true).queue();
         SupabaseClient.logStat("PAYMENT", member.getId(), "Ticket #" + tid + " marked paid");
     }
 

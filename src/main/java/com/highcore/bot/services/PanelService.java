@@ -532,18 +532,18 @@ public class PanelService {
         if (id.equals("order_final")) {
             TextInput projectInput = TextInput.create("o_project", TextInputStyle.SHORT).setPlaceholder("e.g. Logo Design").setRequired(true).build();
             TextInput nameInput = TextInput.create("o_name", TextInputStyle.SHORT).setPlaceholder("Your Name").setRequired(true).build();
-            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("Discord/Email").setRequired(true).build();
+            TextInput contactInput = TextInput.create("o_contact", TextInputStyle.SHORT).setPlaceholder("Discord/Email/Phone").setRequired(true).build();
             TextInput etaInput = TextInput.create("o_eta", TextInputStyle.SHORT).setPlaceholder("e.g. 3 Days").setRequired(true).build();
-            TextInput phoneInput = TextInput.create("o_phone", TextInputStyle.SHORT).setPlaceholder("+XXX...").setRequired(true).build();
+            TextInput voucherInput = TextInput.create("o_voucher", TextInputStyle.SHORT).setPlaceholder("Optional code...").setRequired(false).build();
 
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
                         .addComponents(
                                 net.dv8tion.jda.api.components.label.Label.of("Project", projectInput),
                                 net.dv8tion.jda.api.components.label.Label.of("Client", nameInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Contact", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Communication", contactInput),
                                 net.dv8tion.jda.api.components.label.Label.of("ETA", etaInput),
-                                net.dv8tion.jda.api.components.label.Label.of("Phone", phoneInput))
+                                net.dv8tion.jda.api.components.label.Label.of("Voucher", voucherInput))
                         .build()).queue();
             }
         }
