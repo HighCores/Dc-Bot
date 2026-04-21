@@ -69,6 +69,12 @@ public class SupabaseClient {
         if (nextStr != null) {
             try { next = Integer.parseInt(nextStr); } catch (Exception e) {}
         }
+        
+        // Prevent 409 collisions by checking if the ID already exists
+        while (getTicketById(String.format("%04d", next)) != null) {
+            next++;
+        }
+
         setSetting(key, String.valueOf(next + 1));
         return next;
     }

@@ -25,11 +25,8 @@ import java.util.ArrayList;
 
 public class CentralInteractionListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(CentralInteractionListener.class);
-    private static final String STAFF_ROLE_ID = "1488795130008961040";
-
     private boolean isStaff(net.dv8tion.jda.api.entities.Member member) {
-        return member != null && (member.hasPermission(net.dv8tion.jda.api.Permission.ADMINISTRATOR) || member.isOwner() || member.getRoles().stream()
-                .anyMatch(r -> r.getId().equals(STAFF_ROLE_ID)));
+        return Config.isStaff(member);
     }
 
     @Override
