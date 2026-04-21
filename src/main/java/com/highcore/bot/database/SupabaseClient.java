@@ -97,7 +97,7 @@ public class SupabaseClient {
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
-    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority, JsonObject metadata) {
+    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
@@ -105,10 +105,27 @@ public class SupabaseClient {
         body.addProperty("status", "open");
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
-        body.addProperty("type", type);
-        body.addProperty("priority", priority);
-        if (metadata != null) body.add("metadata", metadata);
         post("dc_tickets", body);
+    }
+
+    public static void saveTicketMeta(String ticketId, JsonObject meta) {
+        if (meta == null) return;
+        setSetting("ticket_meta_" + ticketId, meta.toString());
+    }
+
+    public static JsonObject getTicketMeta(String ticketId) {
+        String val = getSettingValue("ticket_meta_" + ticketId);
+        if (val == null) return null;
+        try { return JsonParser.parseString(val).getAsJsonObject(); } catch (Exception e) { return null; }
+    }
+    
+    public static JsonObject getTicketAndMetaByChannel(String channelId) {
+        JsonObject ticket = getTicketByChannel(channelId);
+        if (ticket == null) return null;
+        String tid = ticket.get("ticket_id").getAsString();
+        JsonObject meta = getTicketMeta(tid);
+        if (meta != null) ticket.add("metadata", meta);
+        return ticket;
     }
 
     public static void updateTicketStatus(String id, String status, String closedBy) {

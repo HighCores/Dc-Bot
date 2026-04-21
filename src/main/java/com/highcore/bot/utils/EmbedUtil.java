@@ -96,6 +96,14 @@ public class EmbedUtil {
         return Container.of(layout);
     }
 
+    public static MessageEmbed brandedEmbed(String title, String description) {
+        return new EmbedBuilder()
+                .setTitle(title)
+                .setDescription(description)
+                .setColor(ACCENT)
+                .build();
+    }
+
     public static Container mainMenu(ActionRow... rows) {
         String body = """
                 Welcome Operative. Access restricted agency sectors via control modules.

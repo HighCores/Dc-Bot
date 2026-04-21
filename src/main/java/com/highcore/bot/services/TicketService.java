@@ -65,7 +65,8 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(ch.getId(), ticket);
 
-                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority, meta);
+                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
+                SupabaseClient.saveTicketMeta(tid, meta);
                 
                 ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
                 event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
@@ -127,7 +128,8 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(channel.getId(), ticket);
 
-                SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH", meta);
+                SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
+                SupabaseClient.saveTicketMeta(tid, meta);
 
                 channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
 
@@ -243,21 +245,23 @@ public class TicketService {
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) ticket = SupabaseClient.getTicketByChannel(ch.getId());
+        if (ticket == null) ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
         
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         event.deferEdit().queue();
+        event.getHook().sendMessageEmbeds(EmbedUtil.brandedEmbed("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention())).queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
     }
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = ticketCache.get(ch.getId());
-        if (ticket == null) ticket = SupabaseClient.getTicketByChannel(ch.getId());
+        if (ticket == null) ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
 
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
         event.deferEdit().queue();
+        event.getHook().sendMessageEmbeds(EmbedUtil.brandedEmbed("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention())).queue();
         event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
     }
 
