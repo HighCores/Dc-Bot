@@ -359,14 +359,16 @@ public class TicketService {
         TextChannel logCh = ch.getGuild().getTextChannelById("1488795131019526147");
         if (logCh != null) {
             String userId = ticket.get("user_id").getAsString();
+            String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + tid;
             String logBody = "▶ **TRANSCRIPT • Archive \u2014 Case #" + tid + "**\n\n" +
                              "**Opener:** <@" + userId + "> (" + opener + ")\n" +
-                             "**Closed By:** " + member.getAsMention();
+                             "**Closed By:** " + member.getAsMention() + "\n\n" +
+                             "\uD83D\uDD17 **View Transcript:** " + url;
             
             logCh.sendMessage(logBody)
                 .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                 .queue();
-            event.reply("✅ Transcript sent to management sector.").setEphemeral(true).queue();
+            event.reply("✅ Transcript has been uploaded to the management sector.").setEphemeral(true).queue();
         } else {
             event.reply("❌ Management sector not found.").setEphemeral(true).queue();
         }
