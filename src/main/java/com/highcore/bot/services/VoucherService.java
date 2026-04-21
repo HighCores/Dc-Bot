@@ -1,16 +1,17 @@
 package com.highcore.bot.services;
 
-import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.User;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
-import java.io.InputStream;
-import java.net.URL;
 import java.util.Random;
 
 public class VoucherService {
+    private static final Logger log = LoggerFactory.getLogger(VoucherService.class);
 
     private static final String BACKGROUND_URL = "https://i.imgur.com/OXI22JW.png";
 
@@ -46,22 +47,19 @@ public class VoucherService {
             g.drawImage(base, 0, 0, null);
 
             // Draw Code
-            // User requested "Source Code Pro". Fallback to Monospaced if not found.
             Font font = new Font("Source Code Pro", Font.BOLD, 60);
-            // Check if font exists, if not use Monospaced
             if (font.getFamily().equals("Dialog") || font.getFamily().equals("SansSerif")) {
                 font = new Font("Monospaced", Font.BOLD, 60);
             }
             
             g.setFont(font);
-            g.setColor(Color.WHITE); // User requested white
+            g.setColor(Color.WHITE); 
 
             FontMetrics fm = g.getFontMetrics();
             int textW = fm.stringWidth(code);
             int textH = fm.getAscent();
 
-            // Golden Rectangle Coordinates (Natural Pixels from inspection)
-            // X: 974, Y: 302, Width: 612, Height: 120
+            // Golden Rectangle Coordinates
             int rectX = 974;
             int rectY = 302;
             int rectW = 612;
@@ -86,24 +84,39 @@ public class VoucherService {
     public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails) {
         boolean isPercent = type.equalsIgnoreCase("PERCENT");
         String code = generateRandomCode(value, isPercent);
+        
+        log.info("Issuing voucher for {}: Code={}, Value={}, Type={}", user.getName(), code, value, type);
+        
         com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
         byte[] img = drawVoucher(code);
-        if (img == null) return;
+        if (img == null) {
+            log.warn("Voucher image generation failed for {}, sending text fallback.", user.getName());
+        }
 
         user.openPrivateChannel().queue(pc -> {
             long ts = 0;
             try {
                 ts = java.time.Instant.parse(expiresAt).getEpochSecond();
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+                ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
+            }
 
-            pc.sendMessage("### Congratulations! \uD83C\uDF8A\n" +
+            var msg = pc.sendMessage("### Congratulations! \uD83C\uDF8A\n" +
                     "You won a reward from **Highcore Agency**.\n" +
                     "> **Reward:** `" + prizeDetails + "`\n" +
                     "> **Your Code:** `" + code + "`\n" +
-                    "> **Valid Until:** <t:" + ts + ":D> (<t:" + ts + ":R>)")
-              .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"))
-              .queue();
+                    "> **Valid Until:** <t:" + ts + ":D> (<t:" + ts + ":R>)");
+            
+            if (img != null) {
+                msg.setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"));
+            }
+            
+            msg.queue(null, err -> {
+                log.error("Failed to deliver voucher DM to {}: {}", user.getName(), err.getMessage());
+            });
+        }, err -> {
+            log.warn("Cannot open DM for {}: {}", user.getName(), err.getMessage());
         });
     }
 }
