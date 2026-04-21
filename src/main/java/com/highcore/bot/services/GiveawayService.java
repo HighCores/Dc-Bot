@@ -128,17 +128,21 @@ public class GiveawayService {
                 for (String w : winners) wb.append("<@").append(w).append("> ");
                 
                 if (winnerImg != null) {
-                    String announceBody = wb.toString() + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance through precision selection. Highcore operations are now finalized.";
-                    net.dv8tion.jda.api.components.container.Container announceC = EmbedUtil.containerBranded("CONGRATULATIONS", "Winner Identified", announceBody, "attachment://winner.png");
+                    net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
+                        .setTitle("\uD83C\uDF8A CONGRATULATIONS \u2014 Winner Identified")
+                        .setDescription(wb.toString() + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance through precision selection. Highcore operations are now finalized.")
+                        .setImage("attachment://winner.png")
+                        .setColor(com.highcore.bot.utils.EmbedUtil.ACCENT);
                     
                     ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"))
-                      .setComponents(announceC)
-                      .useComponentsV2(true)
-                      .queue();
+                      .setEmbeds(eb.build())
+                      .queue(null, err -> log.error("Failed to send winner announcement: {}", err.getMessage()));
                 } else {
                     ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!").queue();
                 }
-            }, e -> {});
+            }, e -> {
+                log.error("Could not retrieve winner user: {}", e.getMessage());
+            });
             
             // Issue vouchers to remaining winners
             for (int i = 1; i < winners.size(); i++) {
@@ -224,13 +228,19 @@ public class GiveawayService {
 
     public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user) {
         try {
-            java.net.URLConnection conn = new URL(BANNER_WINNER).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(BANNER_WINNER).openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+
             BufferedImage template;
             try (InputStream is = conn.getInputStream()) {
                 template = ImageIO.read(is);
             }
-            if (template == null) return null;
+            if (template == null) {
+                log.error("Failed to decode winner banner from: {}", BANNER_WINNER);
+                return null;
+            }
 
             int W = template.getWidth();
             int H = template.getHeight();
@@ -244,8 +254,9 @@ public class GiveawayService {
             // 1. Draw Avatar in the box
             String avatarUrl = user.getEffectiveAvatarUrl();
             try {
-                java.net.URLConnection avConn = new URL(avatarUrl).openConnection();
-                avConn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                java.net.HttpURLConnection avConn = (java.net.HttpURLConnection) new URL(avatarUrl).openConnection();
+                avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+                avConn.setConnectTimeout(8000);
                 try (InputStream is = avConn.getInputStream()) {
                     BufferedImage avatar = ImageIO.read(is);
                     if (avatar != null) {

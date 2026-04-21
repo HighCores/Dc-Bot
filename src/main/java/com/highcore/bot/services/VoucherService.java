@@ -27,26 +27,35 @@ public class VoucherService {
     }
 
     public static byte[] drawVoucher(String code) {
+        log.info("Generating voucher image for code: {}", code);
         try {
-            java.net.URLConnection conn = new java.net.URL(BACKGROUND_URL).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            conn.setConnectTimeout(8000);
-            BufferedImage base = ImageIO.read(conn.getInputStream());
-            if (base == null) throw new Exception("Failed to load background image");
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(BACKGROUND_URL).openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+            conn.setConnectTimeout(10000);
+            conn.setReadTimeout(10000);
+            
+            BufferedImage base;
+            try (java.io.InputStream is = conn.getInputStream()) {
+                base = ImageIO.read(is);
+            }
+            
+            if (base == null) {
+                log.error("ImageIO failed to decode background from URL: {}. Response Code: {}", BACKGROUND_URL, conn.getResponseCode());
+                throw new Exception("Failed to load background image (decode failure)");
+            }
 
             int w = base.getWidth();
             int h = base.getHeight();
-            BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_RGB);
+            // Use ARGB to preserve quality
+            BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = combined.createGraphics();
 
-            // Quality
             g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
             g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
+            g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-            // Draw background
             g.drawImage(base, 0, 0, null);
 
-            // Draw Code
             Font font = new Font("Source Code Pro", Font.BOLD, 60);
             if (font.getFamily().equals("Dialog") || font.getFamily().equals("SansSerif")) {
                 font = new Font("Monospaced", Font.BOLD, 60);
@@ -72,11 +81,12 @@ public class VoucherService {
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ImageIO.write(combined, "jpg", baos);
+            ImageIO.write(combined, "png", baos);
+            log.info("Voucher image generated successfully for code: {}", code);
             return baos.toByteArray();
 
         } catch (Exception e) {
-            e.printStackTrace();
+            log.error("Critical failure during voucher image generation: {}", e.getMessage());
             return null;
         }
     }
@@ -102,19 +112,23 @@ public class VoucherService {
                 ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
             }
 
-            var msg = pc.sendMessage("### Congratulations! \uD83C\uDF8A\n" +
-                    "You won a reward from **Highcore Agency**.\n" +
-                    "> **Reward:** `" + prizeDetails + "`\n" +
-                    "> **Your Code:** `" + code + "`\n" +
-                    "> **Valid Until:** <t:" + ts + ":D> (<t:" + ts + ":R>)");
+            net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
+                .setTitle("\uD83C\uDF8A Congratulations! \u2014 Voucher Awarded")
+                .setDescription("You have successfully secured an elite reward from **Highcore Agency**.\n\n" +
+                        "● **Reward:** `" + prizeDetails + "`\n" +
+                        "● **Voucher Code:** `" + code + "`\n" +
+                        "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)")
+                .setColor(com.highcore.bot.utils.EmbedUtil.ACCENT)
+                .setFooter("Highcore Agency \u30FB Authorized Deployment", null);
             
             if (img != null) {
-                msg.setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.jpg"));
+                eb.setImage("attachment://voucher.png");
+                pc.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.png"))
+                  .setEmbeds(eb.build())
+                  .queue(null, err -> log.error("Failed to deliver voucher DM to {}: {}", user.getName(), err.getMessage()));
+            } else {
+                pc.sendMessageEmbeds(eb.build()).queue(null, err -> log.error("Failed to deliver voucher DM (fallback) to {}: {}", user.getName(), err.getMessage()));
             }
-            
-            msg.queue(null, err -> {
-                log.error("Failed to deliver voucher DM to {}: {}", user.getName(), err.getMessage());
-            });
         }, err -> {
             log.warn("Cannot open DM for {}: {}", user.getName(), err.getMessage());
         });
