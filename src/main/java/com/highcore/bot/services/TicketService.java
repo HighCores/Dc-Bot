@@ -155,44 +155,55 @@ public class TicketService {
     private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff, TextChannel ch) {
         JsonObject meta = ticket.getAsJsonObject("metadata");
         String tid = ticket.get("ticket_id").getAsString();
+        String userId = ticket.get("user_id").getAsString();
         
-        // Derive type from channel name if not in ticket object or mismatch
         String name = ch.getName().toUpperCase();
         String type = name.startsWith("ORDER") ? "ORDER" : "SUPPORT";
-        
-        String cat = (meta != null && meta.has("category")) ? meta.get("category").getAsString() : "Support";
         
         if ("ORDER".equalsIgnoreCase(type)) {
             return buildOrderPipelineContainer(ticket, claimed, staff);
         }
 
-        StringBuilder desc = new StringBuilder();
-        desc.append("### \uD83D\uDCE9 SESSION DETAILS\n");
+        StringBuilder b = new StringBuilder();
+        b.append("<@&").append(com.highcore.bot.config.Config.ROLE_STAFF).append(">\n\n");
+        b.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
+
         if (meta != null) {
-            if (meta.has("project_name")) desc.append("**Project:** ").append(meta.get("project_name").getAsString()).append("\n");
-            if (meta.has("subject")) desc.append("**Subject:** ").append(meta.get("subject").getAsString()).append("\n");
-            if (meta.has("client_name")) desc.append("**Client:** ").append(meta.get("client_name").getAsString()).append("\n");
-            if (meta.has("body")) desc.append("**Details:** ").append(meta.get("body").getAsString()).append("\n");
-            if (meta.has("priority")) desc.append("**Priority:** ").append(meta.get("priority").getAsString()).append("\n");
+            String prio = meta.has("priority") ? meta.get("priority").getAsString() : "HIGH";
+            b.append("**Priority:** `").append(prio.toUpperCase()).append("`\n");
+            
+            if (meta.has("subject")) {
+                b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("`\n");
+            }
+            
+            String details = "N/A";
+            if (meta.has("body")) details = meta.get("body").getAsString();
+            else if (meta.has("client_name")) details = meta.get("client_name").getAsString(); // Fallback if modal labels vary
+            
+            b.append("**Details:** `").append(details).append("`\n");
+            
+            if (meta.has("type")) {
+                b.append("**Type:** `").append(meta.get("type").getAsString()).append("`\n");
+            }
         }
-        desc.append("\n---\n\n");
-        desc.append("\uD83D\uDCC1 **Status:** ").append(claimed ? "Active / In Progress" : "Awaiting Response").append("\n");
-        desc.append("\uD83D\uDC82 **Agent:** ").append(claimed && staff != null ? staff.getAsMention() : "Unassigned / <@&" + ADMIN_ROLE_ID + ">");
+        
+        b.append("\n---\n");
+        b.append("A staff member will be with you shortly \u2014 please describe your issue in full detail.");
 
         ActionRow row;
         if (!claimed) {
             row = ActionRow.of(
-                Button.secondary("ticket_claim", "Claim"),
-                Button.secondary("ticket_close", "Close")
+                Button.secondary("ticket_claim", "Claim Ticket"),
+                Button.secondary("ticket_close", "Close Ticket")
             );
         } else {
             row = ActionRow.of(
-                Button.secondary("ticket_unclaim", "Unclaim"),
-                Button.secondary("ticket_close", "Close")
+                Button.secondary("ticket_unclaim", "Unclaim Ticket"),
+                Button.secondary("ticket_close", "Close Ticket")
             );
         }
 
-        return EmbedUtil.containerBranded(cat.toUpperCase(), "Case #" + tid, desc.toString(), EmbedUtil.getCategoryBanner(cat), row);
+        return EmbedUtil.containerBranded("Support Center", "Case #" + tid, b.toString(), EmbedUtil.BANNER_SUPPORT, row);
     }
 
     private static Container buildOrderPipelineContainer(JsonObject ticket, boolean claimed, Member staff) {
