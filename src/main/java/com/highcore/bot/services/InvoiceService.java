@@ -56,10 +56,10 @@ public class InvoiceService {
             double sY = H / 1000.0;
 
             // 1. Invoice ID (#)
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(44 * sX)));
             g.setColor(COL_GOLD);
-            // Positioned exactly after the #
-            g.drawString(invoiceId, (int)(695 * sX), (int)(148 * sY));
+            // Positioned exactly after the # at top left
+            g.drawString(invoiceId, (int)(115 * sX), (int)(135 * sY));
 
             // 2. Avatar
             if (avatarUrl != null && !avatarUrl.isEmpty()) {
@@ -90,27 +90,23 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(isPaid ? Color.GREEN : COL_GOLD);
             String statusText = isPaid ? "AUTHORIZED" : "PENDING";
-            g.drawString(statusText, (int)(820 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(284 * sY));
+            g.drawString(statusText, (int)(800 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(284 * sY));
 
-            // 4. Client Details
+            // 4. Client Details - Cleaning up by removing description/contact per request
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(COL_WHITE);
             g.drawString(truncate(displayName != null ? displayName : clientName, 25), (int)(675 * sX), (int)(355 * sY));
-            g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(14 * sX)));
-            String contactInfo = (contact != null ? contact : "") + (phone != null && !phone.isEmpty() ? " (" + phone + ")" : "");
-            g.drawString(truncate(contactInfo.isEmpty() ? "No Contact" : contactInfo, 40), (int)(675 * sX), (int)(375 * sY));
-            g.drawString(truncate(clientName, 30), (int)(675 * sX), (int)(395 * sY));
 
             // 5. Project Info
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(20 * sX)));
             g.setColor(COL_WHITE);
-            g.drawString(truncate(projectName, 25), (int)(280 * sX), (int)(255 * sY));
+            g.drawString(truncate(projectName, 25), (int)(300 * sX), (int)(252 * sY));
             
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(17 * sX)));
             g.setColor(COL_CREAM);
             String catLabel = category != null ? category : "Software Services";
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
-            g.drawString(catLabel, (int)(280 * sX), (int)(285 * sY));
+            g.drawString(catLabel, (int)(240 * sX), (int)(285 * sY));
 
             // 6. Add-ons (Excluding the main service at index 0)
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
@@ -155,8 +151,8 @@ public class InvoiceService {
 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
             g.setColor(COL_GOLD);
-            g.drawString("$" + fmt(subtotalVal), (int)(280 * sX), (int)(858 * sY)); 
-            g.drawString("-$" + fmt(discount),    (int)(280 * sX), (int)(888 * sY)); 
+            g.drawString("$" + fmt(subtotalVal), (int)(260 * sX), (int)(862 * sY)); 
+            g.drawString("-$" + fmt(discount),    (int)(260 * sX), (int)(888 * sY)); 
 
             g.drawString("$" + fmt(taxVal),      (int)(750 * sX), (int)(848 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
