@@ -362,10 +362,10 @@ public class TicketService {
             String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + tid;
             String logBody = "▶ **TRANSCRIPT • Archive \u2014 Case #" + tid + "**\n\n" +
                              "**Opener:** <@" + userId + "> (" + opener + ")\n" +
-                             "**Closed By:** " + member.getAsMention() + "\n\n" +
-                             "\uD83D\uDD17 **View Transcript:** " + url;
+                             "**Closed By:** " + member.getAsMention();
             
             logCh.sendMessage(logBody)
+                .setComponents(ActionRow.of(Button.link(url, "View Web Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))))
                 .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                 .queue();
             event.reply("✅ Transcript has been uploaded to the management sector.").setEphemeral(true).queue();
