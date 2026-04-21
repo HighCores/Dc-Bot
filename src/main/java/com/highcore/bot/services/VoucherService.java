@@ -27,8 +27,10 @@ public class VoucherService {
 
     public static byte[] drawVoucher(String code) {
         try {
-            URL url = new URL(BACKGROUND_URL);
-            BufferedImage base = ImageIO.read(url);
+            java.net.URLConnection conn = new java.net.URL(BACKGROUND_URL).openConnection();
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setConnectTimeout(8000);
+            BufferedImage base = ImageIO.read(conn.getInputStream());
             if (base == null) throw new Exception("Failed to load background image");
 
             int w = base.getWidth();

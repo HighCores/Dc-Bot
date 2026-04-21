@@ -570,7 +570,7 @@ public class SupabaseClient {
         JsonObject json = new JsonObject();
         json.addProperty("user_id", userId);
         json.addProperty("code", code);
-        json.addProperty("amount", value); 
+        json.addProperty("discount", value); 
         json.addProperty("type", type); 
         json.addProperty("expires_at", expiresAt);
         post("dc_vouchers", json);
