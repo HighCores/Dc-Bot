@@ -68,7 +68,7 @@ public class TicketService {
                 SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
                 SupabaseClient.saveTicketMeta(tid, meta);
                 
-                ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
+                ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, ch)).useComponentsV2(true).queue();
                 event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
             });
     }
@@ -131,7 +131,7 @@ public class TicketService {
                 SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
                 SupabaseClient.saveTicketMeta(tid, meta);
 
-                channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
+                channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel)).useComponentsV2(true).queue();
 
                 byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
                 if (inv != null) {
@@ -151,10 +151,14 @@ public class TicketService {
             });
     }
 
-    private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff) {
+    private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff, TextChannel ch) {
         JsonObject meta = ticket.getAsJsonObject("metadata");
         String tid = ticket.get("ticket_id").getAsString();
-        String type = ticket.get("type").getAsString();
+        
+        // Derive type from channel name if not in ticket object or mismatch
+        String name = ch.getName().toUpperCase();
+        String type = name.startsWith("ORDER") ? "ORDER" : "SUPPORT";
+        
         String cat = (meta != null && meta.has("category")) ? meta.get("category").getAsString() : "Support";
         
         if ("ORDER".equalsIgnoreCase(type)) {
@@ -251,7 +255,7 @@ public class TicketService {
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         event.deferEdit().queue();
         event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention())).useComponentsV2(true).queue();
-        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member)).build()).queue();
+        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, true, member, ch)).build()).queue();
     }
 
     public static void unclaimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
@@ -262,7 +266,7 @@ public class TicketService {
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
         event.deferEdit().queue();
         event.getHook().sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention())).useComponentsV2(true).queue();
-        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null)).build()).queue();
+        event.getHook().editOriginal(new MessageEditBuilder().setComponents(rebuildWelcomeContainer(ticket, false, null, ch)).build()).queue();
     }
 
     // Metadata is now managed via database lookups rather than channel topics.
