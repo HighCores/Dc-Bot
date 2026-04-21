@@ -1,5 +1,6 @@
 package com.highcore.bot.services;
 
+import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.entities.User;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -8,6 +9,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
+import java.io.InputStream;
 import java.util.Random;
 
 public class VoucherService {
@@ -22,31 +24,34 @@ public class VoucherService {
         int n1 = r.nextInt(10);
         int n2 = r.nextInt(10);
         
-        // Format: HC[Value]-[A-Z][A-Z][0-9][0-9]
         return "HC" + value + "-" + c1 + c2 + n1 + n2;
     }
 
     public static byte[] drawVoucher(String code) {
-        log.info("Generating voucher image for code: {}", code);
+        log.info("Attempting to generate voucher image for code: {}", code);
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new java.net.URL(BACKGROUND_URL).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-            conn.setConnectTimeout(10000);
-            conn.setReadTimeout(10000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.8 Safari/537.36");
+            conn.setConnectTimeout(15000);
+            conn.setReadTimeout(15000);
             
             BufferedImage base;
-            try (java.io.InputStream is = conn.getInputStream()) {
-                base = ImageIO.read(is);
+            try (InputStream is = conn.getInputStream()) {
+                byte[] bytes = is.readAllBytes();
+                if (bytes.length < 500) {
+                     log.error("Possible error response from Imgur: {} bytes", bytes.length);
+                     log.debug("Imgur Response: {}", new String(bytes));
+                }
+                base = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
             }
             
             if (base == null) {
-                log.error("ImageIO failed to decode background from URL: {}. Response Code: {}", BACKGROUND_URL, conn.getResponseCode());
-                throw new Exception("Failed to load background image (decode failure)");
+                log.error("ImageIO failed to decode background from URL: {}.", BACKGROUND_URL);
+                return null;
             }
 
             int w = base.getWidth();
             int h = base.getHeight();
-            // Use ARGB to preserve quality
             BufferedImage combined = new BufferedImage(w, h, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = combined.createGraphics();
 
@@ -68,7 +73,6 @@ public class VoucherService {
             int textW = fm.stringWidth(code);
             int textH = fm.getAscent();
 
-            // Golden Rectangle Coordinates
             int rectX = 974;
             int rectY = 302;
             int rectW = 612;
@@ -78,15 +82,14 @@ public class VoucherService {
             int y = rectY + (rectH + textH) / 2 - 5;
 
             g.drawString(code, x, y);
-
             g.dispose();
+
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
             ImageIO.write(combined, "png", baos);
-            log.info("Voucher image generated successfully for code: {}", code);
             return baos.toByteArray();
 
         } catch (Exception e) {
-            log.error("Critical failure during voucher image generation: {}", e.getMessage());
+            log.error("Voucher drawing failed: {}", e.getMessage());
             return null;
         }
     }
@@ -95,14 +98,10 @@ public class VoucherService {
         boolean isPercent = type.equalsIgnoreCase("PERCENT");
         String code = generateRandomCode(value, isPercent);
         
-        log.info("Issuing voucher for {}: Code={}, Value={}, Type={}", user.getName(), code, value, type);
-        
+        log.info("Issuing voucher for {}: {}", user.getName(), code);
         com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
         byte[] img = drawVoucher(code);
-        if (img == null) {
-            log.warn("Voucher image generation failed for {}, sending text fallback.", user.getName());
-        }
 
         user.openPrivateChannel().queue(pc -> {
             long ts = 0;
@@ -112,25 +111,25 @@ public class VoucherService {
                 ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
             }
 
-            net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
-                .setTitle("\uD83C\uDF8A Congratulations! \u2014 Voucher Awarded")
-                .setDescription("You have successfully secured an elite reward from **Highcore Agency**.\n\n" +
-                        "● **Reward:** `" + prizeDetails + "`\n" +
-                        "● **Voucher Code:** `" + code + "`\n" +
-                        "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)")
-                .setColor(com.highcore.bot.utils.EmbedUtil.ACCENT)
-                .setFooter("Highcore Agency \u30FB Authorized Deployment", null);
+            String body = "### Congratulations! \uD83C\uDF8A\n" +
+                    "You have successfully secured an elite reward from **Highcore Agency**.\n\n" +
+                    "● **Reward:** `" + prizeDetails + "`\n" +
+                    "● **Voucher Code:** `" + code + "`\n" +
+                    "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)";
+
+            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, "attachment://voucher.png");
             
             if (img != null) {
-                eb.setImage("attachment://voucher.png");
                 pc.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(img, "voucher.png"))
-                  .setEmbeds(eb.build())
-                  .queue(null, err -> log.error("Failed to deliver voucher DM to {}: {}", user.getName(), err.getMessage()));
+                  .setComponents(container)
+                  .useComponentsV2(true)
+                  .queue(null, err -> log.error("Failed to DM voucher: {}", err.getMessage()));
             } else {
-                pc.sendMessageEmbeds(eb.build()).queue(null, err -> log.error("Failed to deliver voucher DM (fallback) to {}: {}", user.getName(), err.getMessage()));
+                // Text fallback using container
+                pc.sendMessageComponents(EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, null))
+                  .useComponentsV2(true)
+                  .queue(null, err -> log.error("Failed to DM voucher fallback: {}", err.getMessage()));
             }
-        }, err -> {
-            log.warn("Cannot open DM for {}: {}", user.getName(), err.getMessage());
-        });
+        }, err -> log.warn("Closed DMs for {}: {}", user.getName(), err.getMessage()));
     }
 }

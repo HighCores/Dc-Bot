@@ -235,7 +235,8 @@ public class GiveawayService {
 
             BufferedImage template;
             try (InputStream is = conn.getInputStream()) {
-                template = ImageIO.read(is);
+                byte[] bytes = is.readAllBytes();
+                template = ImageIO.read(new java.io.ByteArrayInputStream(bytes));
             }
             if (template == null) {
                 log.error("Failed to decode winner banner from: {}", BANNER_WINNER);
@@ -244,6 +245,7 @@ public class GiveawayService {
 
             int W = template.getWidth();
             int H = template.getHeight();
+            log.info("Winner Banner Template loaded: {}x{}", W, H);
 
             BufferedImage image = new BufferedImage(W, H, BufferedImage.TYPE_INT_ARGB);
             Graphics2D g = image.createGraphics();
@@ -258,9 +260,10 @@ public class GiveawayService {
                 avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
                 avConn.setConnectTimeout(8000);
                 try (InputStream is = avConn.getInputStream()) {
-                    BufferedImage avatar = ImageIO.read(is);
+                    byte[] avBytes = is.readAllBytes();
+                    BufferedImage avatar = ImageIO.read(new java.io.ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        // Coordinates for the glass box
+                        // Coordinates for the glass box (left-aligned square)
                         int boxX = 175;
                         int boxY = 175;
                         int boxSize = 385;

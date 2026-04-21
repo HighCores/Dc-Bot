@@ -141,7 +141,10 @@ public class GiveawayCommands extends ListenerAdapter {
                     JsonObject g = active.get(i).getAsJsonObject();
                     sb.append("▫️ **Prize:** ").append(g.get("prize_details").getAsString()).append("\n");
                 }
-                event.getHook().sendMessageComponents(EmbedUtil.containerBranded("REWARDS", "Records", sb.toString(), EmbedUtil.BANNER_GIVEAWAY)).setEphemeral(true).queue();
+                event.getHook().sendMessageComponents(EmbedUtil.containerBranded("REWARDS", "Records", sb.toString(), EmbedUtil.BANNER_GIVEAWAY))
+                     .useComponentsV2(true)
+                     .setEphemeral(true)
+                     .queue();
             } else if (id.startsWith("gw_end_early_")) {
                 long gwId = Long.parseLong(id.replace("gw_end_early_", ""));
                 com.highcore.bot.services.GiveawayService.endGiveaway(event.getJDA(), gwId, 1);
