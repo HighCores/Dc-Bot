@@ -1,6 +1,7 @@
 package com.highcore.bot.services;
 
 import com.highcore.bot.config.Config;
+import com.highcore.bot.database.SupabaseClient;
 import net.dv8tion.jda.api.Permission;
 import com.highcore.bot.services.PanelService;
 import net.dv8tion.jda.api.entities.Guild;
@@ -42,6 +43,11 @@ public class LogManager {
             log.warn("LOG_CATEGORY_ID not set, skipping log channel init");
             return;
         }
+
+        // Temporary reset: can be removed after one run
+        SupabaseClient.setSetting("ticket_next_id_ORDER", "1");
+        SupabaseClient.setSetting("ticket_next_id_SUPPORT", "1");
+        SupabaseClient.setSetting("ticket_next_id_COMPLAINT", "1");
 
         Category category = guild.getCategoryById(Config.LOG_CATEGORY_ID);
         if (category == null) {
