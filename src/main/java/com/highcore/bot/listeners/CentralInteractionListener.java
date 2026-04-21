@@ -136,6 +136,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_support_init")) {
             TicketService.createTicket(event, event.getValue("issue_desc").getAsString(), "MEDIUM", "SUPPORT", "Service: "+event.getValue("service_type").getAsString());
+        } else if (id.equals("modal_complaint_init")) {
+            TicketService.createTicket(event, event.getValue("comp_desc").getAsString(), "HIGH", "COMPLAINT", "Target: " + event.getValue("comp_person").getAsString() + " | Subject: " + event.getValue("comp_type").getAsString());
         } else if (id.equals("modal_ar_add")) {
             AutoReplyService.addResponse(event.getValue("ar_keyword").getAsString(), event.getValue("ar_response").getAsString(), event.getUser().getId());
             event.reply("Auto-reply added.").setEphemeral(true).queue();
