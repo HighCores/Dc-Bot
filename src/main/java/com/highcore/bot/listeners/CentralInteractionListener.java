@@ -38,6 +38,20 @@ public class CentralInteractionListener extends ListenerAdapter {
         Member member = event.getMember();
         if (member == null) return;
 
+        // Secure administrative actions to STAFF only
+        List<String> restricted = List.of(
+            "ticket_claim", "ticket_unclaim", "ticket_close", 
+            "ticket_reopen", "ticket_transcript", 
+            "ticket_delete_init", "ticket_delete_final", "ticket_verify"
+        );
+
+        if (restricted.contains(id) || id.startsWith("order_status_update_")) {
+            if (!isStaff(member)) {
+                event.reply("### ❌ ACCESS DENIED\nThis module is restricted to authorized Highcore Operatives only.").setEphemeral(true).queue();
+                return;
+            }
+        }
+
         try {
             if (id.equals("ticket_claim")) {
                 TicketService.claimTicket(event.getChannel().asTextChannel(), member, event);

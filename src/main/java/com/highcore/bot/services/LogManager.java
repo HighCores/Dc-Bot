@@ -146,6 +146,12 @@ public class LogManager {
      * falls back to category-based auto-creation.
      */
     public static TextChannel getDashboardLogChannel(Guild guild, String channelKey) {
+        // Try ID first if it looks like one
+        if (channelKey.matches("\\d+")) {
+            TextChannel ch = guild.getTextChannelById(channelKey);
+            if (ch != null) return ch;
+        }
+
         // Only use the global dashboard 'Moderation Log Channel' override FOR core moderation actions
         // (Bans, Kicks, Mutes). Other logs (Commands, Tickets) should stay in their specific channels.
         if (channelKey.equals(Config.LOG_MODS_CMD)) {

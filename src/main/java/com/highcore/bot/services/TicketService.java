@@ -2,6 +2,7 @@ package com.highcore.bot.services;
 
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
+import com.highcore.bot.config.Config;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.utils.EmbedUtil;
 import net.dv8tion.jda.api.Permission;
@@ -69,6 +70,11 @@ public class TicketService {
                 SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
                 SupabaseClient.saveTicketMeta(tid, meta);
                 
+                LogManager.logEmbed(guild, Config.LOG_TICKETS, 
+                    EmbedUtil.createOldLogEmbed("ticket-create", 
+                        "Action: Session Established\nCase: #" + tid + "\nType: " + type + "\nClient: " + user.getAsMention() + "\nChannel: " + ch.getAsMention(), 
+                        guild.getMember(user), null, null, EmbedUtil.GOLD));
+
                 ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, ch)).useComponentsV2(true).queue();
                 event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
             });
@@ -268,6 +274,11 @@ public class TicketService {
         
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         
+        LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS, 
+            EmbedUtil.createOldLogEmbed("ticket-claim", 
+                "Action: Agent Assignment\nCase: #" + ticket.get("ticket_id").getAsString() + "\nAgent: " + member.getAsMention() + "\nChannel: " + ch.getAsMention(), 
+                member, null, null, EmbedUtil.SUCCESS));
+
         // Update the original message buttons immediately
         event.editMessage(new MessageEditBuilder()
             .setComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch)))
@@ -285,6 +296,11 @@ public class TicketService {
         if (ticket == null) { event.reply("Session data missing.").setEphemeral(true).queue(); return; }
 
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
+
+        LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS, 
+            EmbedUtil.createOldLogEmbed("ticket-unclaim", 
+                "Action: Agent Withdrawal\nCase: #" + ticket.get("ticket_id").getAsString() + "\nAgent: " + member.getAsMention() + "\nChannel: " + ch.getAsMention(), 
+                member, null, null, EmbedUtil.WARNING));
 
         // Update the original message buttons immediately
         event.editMessage(new MessageEditBuilder()
@@ -322,6 +338,11 @@ public class TicketService {
         // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "closed", member.getEffectiveName());
 
+        LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS, 
+            EmbedUtil.createOldLogEmbed("ticket-close", 
+                "Action: Session Termination\nCase: #" + tid + "\nAgent: " + member.getAsMention() + "\nChannel: " + ch.getAsMention(), 
+                member, null, null, EmbedUtil.DANGER));
+
         // 3. Send Control Panel
         ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
             "### TICKET CLOSED\nAgent **" + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.", EmbedUtil.BANNER_SUPPORT,
@@ -345,6 +366,11 @@ public class TicketService {
 
         // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "open", null);
+
+        LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS, 
+            EmbedUtil.createOldLogEmbed("ticket-reopen", 
+                "Action: Session Restoration\nCase: #" + tid + "\nAgent: " + member.getAsMention() + "\nChannel: " + ch.getAsMention(), 
+                member, null, null, EmbedUtil.INFO));
 
         event.reply("✅ Ticket reopened. Access restored.").queue();
     }
