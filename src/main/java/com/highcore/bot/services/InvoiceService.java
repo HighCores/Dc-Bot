@@ -84,7 +84,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(16 * sX)));
             g.setColor(COL_WHITE);
             String uName = truncate(displayName != null ? displayName : clientName, 20);
-            g.drawString(uName, (int)(775 * sX) - g.getFontMetrics().stringWidth(uName)/2, (int)(237 * sY));
+            g.drawString(uName, (int)(765 * sX) - g.getFontMetrics().stringWidth(uName)/2, (int)(237 * sY));
 
             // 3. Status
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
@@ -104,18 +104,18 @@ public class InvoiceService {
             // 5. Project Info
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(20 * sX)));
             g.setColor(COL_WHITE);
-            g.drawString(truncate(projectName, 25), (int)(425 * sX), (int)(255 * sY));
+            g.drawString(truncate(projectName, 25), (int)(380 * sX), (int)(255 * sY));
             
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(17 * sX)));
             g.setColor(COL_CREAM);
             String catLabel = category != null ? category : "Software Services";
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
-            g.drawString(catLabel, (int)(425 * sX), (int)(285 * sY));
+            g.drawString(catLabel, (int)(380 * sX), (int)(285 * sY));
 
             // 6. Add-ons
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
             g.setColor(COL_CREAM);
-            int addOnStartY = (int)(395 * sY);
+            int addOnStartY = (int)(385 * sY);
             for (int i = 0; i < Math.min(items.size(), 6); i++) {
                 g.drawString("\u2022 " + truncate(items.get(i).name, 45), (int)(145 * sX), addOnStartY + (i * (int)(26 * sY)));
             }
@@ -149,12 +149,12 @@ public class InvoiceService {
 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
             g.setColor(COL_GOLD);
-            g.drawString("$" + fmt(subtotalVal), (int)(390 * sX), (int)(858 * sY)); 
-            g.drawString("-$" + fmt(discount),    (int)(390 * sX), (int)(888 * sY)); 
+            g.drawString("$" + fmt(subtotalVal), (int)(340 * sX), (int)(858 * sY)); 
+            g.drawString("-$" + fmt(discount),    (int)(340 * sX), (int)(888 * sY)); 
 
-            g.drawString("$" + fmt(taxVal),      (int)(860 * sX), (int)(848 * sY)); 
+            g.drawString("$" + fmt(taxVal),      (int)(810 * sX), (int)(848 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
-            g.drawString("$" + fmt(finalTotal),  (int)(860 * sX), (int)(890 * sY));
+            g.drawString("$" + fmt(finalTotal),  (int)(810 * sX), (int)(890 * sY));
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
