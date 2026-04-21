@@ -85,16 +85,17 @@ public class GiveawayService {
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
 
         String messageId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
+        String bannerUrl = getGiveawayBanner(g);
         Container resultC;
         ActionRow endedRow = ActionRow.of(Button.secondary("giveaway_ended", "Deployment Concluded").asDisabled());
         if (userIds.isEmpty()) {
             resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
-                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", EmbedUtil.BANNER_GIVEAWAY, endedRow);
+                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants to pick a winner.", bannerUrl, endedRow);
         } else {
             StringBuilder wb = new StringBuilder();
             for (String w : winners) wb.append("<@").append(w).append("> ");
             resultC = EmbedUtil.containerBranded("GIVEAWAY ENDED", "Winners Picked", 
-                    "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", EmbedUtil.BANNER_GIVEAWAY, endedRow);
+                    "The selection is complete!\n> **Item:** " + prizeDetails + "\n\n**Winner(s):** " + wb + "\n\nCongratulations! \uD83C\uDF8A", bannerUrl, endedRow);
         }
 
         if (messageId != null) {
@@ -127,10 +128,12 @@ public class GiveawayService {
                 for (String w : winners) wb.append("<@").append(w).append("> ");
                 
                 if (winnerImg != null) {
-                    // We modify the resultC with the new attachment image
-                    // This is handled via sending a file
+                    String announceBody = wb.toString() + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance through precision selection. Highcore operations are now finalized.";
+                    net.dv8tion.jda.api.components.container.Container announceC = EmbedUtil.containerBranded("CONGRATULATIONS", "Winner Identified", announceBody, "attachment://winner.png");
+                    
                     ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"))
-                      .addContent("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!")
+                      .setComponents(announceC)
+                      .useComponentsV2(true)
                       .queue();
                 } else {
                     ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb.toString() + " won **" + prizeDetails + "**!").queue();
@@ -275,5 +278,28 @@ public class GiveawayService {
             log.error("Winner image generation failed: {}", e.getMessage());
             return null;
         }
+    }
+
+    private static String getGiveawayBanner(JsonObject g) {
+        if (g == null || !g.has("prize_type")) return EmbedUtil.BANNER_GIVEAWAY;
+        String type = g.get("prize_type").getAsString().toLowerCase();
+        if (type.startsWith("discount-")) {
+            return switch(type) {
+                case "discount-10" -> "https://i.imgur.com/QpboYHV.png";
+                case "discount-20" -> "https://i.imgur.com/FnsAuqW.png";
+                case "discount-30" -> "https://i.imgur.com/n503P4n.png";
+                case "discount-40" -> "https://i.imgur.com/4swCqaO.png";
+                case "discount-50" -> "https://i.imgur.com/p1W4MGn.png";
+                case "discount-60" -> "https://i.imgur.com/ujRHuoi.png";
+                default -> EmbedUtil.BANNER_GIVEAWAY;
+            };
+        } else if (type.startsWith("voucher-")) {
+            return switch(type) {
+                case "voucher-50" -> "https://i.imgur.com/gqEoG4z.png";
+                case "voucher-100" -> "https://i.imgur.com/DdlMSHd.png";
+                default -> EmbedUtil.BANNER_GIVEAWAY;
+            };
+        }
+        return EmbedUtil.BANNER_GIVEAWAY;
     }
 }
