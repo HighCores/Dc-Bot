@@ -56,13 +56,23 @@ public class LogManager {
         int created = 0;
 
         for (String name : LOG_CHANNELS) {
-            // Try exact match first, then normalized match
-            TextChannel existing = findChannel(existingChannels, name);
+            // Priority: Try ID lookup if the name string is numeric
+            if (name.matches("\\d+")) {
+                TextChannel ch = guild.getTextChannelById(name);
+                if (ch != null) {
+                    channelCache.put(name, ch);
+                    found++;
+                    log.debug("Attached to existing ID-based log channel: {} (id: {})", ch.getName(), ch.getId());
+                    continue; // Skip creation
+                }
+            }
 
+            // Try exact match first, then normalized match from the category
+            TextChannel existing = findChannel(existingChannels, name);
             if (existing != null) {
                 channelCache.put(name, existing);
                 found++;
-                log.debug("Found existing log channel: {} (id: {})", existing.getName(), existing.getId());
+                log.debug("Found existing log channel by name: {} (id: {})", existing.getName(), existing.getId());
             } else {
                 try {
                     TextChannel ch = category.createTextChannel(name)
