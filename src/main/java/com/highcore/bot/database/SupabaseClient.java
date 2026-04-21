@@ -100,6 +100,11 @@ public class SupabaseClient {
         return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject() : null;
     }
 
+    public static void clearTicketHistory() {
+        delete("dc_tickets", "id=gt.0");
+        delete("dc_ticket_meta", "id=gt.0");
+    }
+
     public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);

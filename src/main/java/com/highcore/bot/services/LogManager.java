@@ -45,6 +45,7 @@ public class LogManager {
         }
 
         // Temporary reset: can be removed after one run
+        SupabaseClient.clearTicketHistory();
         SupabaseClient.setSetting("ticket_next_id_ORDER", "1");
         SupabaseClient.setSetting("ticket_next_id_SUPPORT", "1");
         SupabaseClient.setSetting("ticket_next_id_COMPLAINT", "1");
