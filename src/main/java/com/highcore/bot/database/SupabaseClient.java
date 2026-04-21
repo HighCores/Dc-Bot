@@ -63,8 +63,17 @@ public class SupabaseClient {
     // ========== TICKETS ==========
 
     public static int getNextTicketNumber() {
-        JsonArray arr = get("dc_tickets", "order=id.desc&limit=1");
-        return arr != null && arr.size() > 0 ? arr.get(0).getAsJsonObject().get("id").getAsInt() + 1 : 1;
+        String nextStr = getSettingValue("ticket_next_id");
+        int next = 1;
+        if (nextStr != null) {
+            try { next = Integer.parseInt(nextStr); } catch (Exception e) {}
+        } else {
+            // Initial setup: find highest ID and use that as starting point if no setting exists
+            JsonArray arr = get("dc_tickets", "order=id.desc&limit=1");
+            if (arr != null && arr.size() > 0) next = arr.get(0).getAsJsonObject().get("id").getAsInt() + 1;
+        }
+        setSetting("ticket_next_id", String.valueOf(next + 1));
+        return next;
     }
 
     public static JsonObject getTicketByChannel(String channelId) {
