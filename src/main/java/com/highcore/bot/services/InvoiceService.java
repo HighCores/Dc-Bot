@@ -154,9 +154,9 @@ public class InvoiceService {
             g.drawString("$" + fmt(subtotalVal), (int)(260 * sX), (int)(862 * sY)); 
             g.drawString("-$" + fmt(discount),    (int)(260 * sX), (int)(888 * sY)); 
 
-            g.drawString("$" + fmt(taxVal),      (int)(750 * sX), (int)(848 * sY)); 
+            g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
-            g.drawString("$" + fmt(finalTotal),  (int)(750 * sX), (int)(890 * sY));
+            g.drawString("$" + fmt(finalTotal),  (int)(780 * sX), (int)(890 * sY));
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
