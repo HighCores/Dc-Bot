@@ -12,7 +12,7 @@ import java.util.Random;
 
 public class VoucherService {
 
-    private static final String BACKGROUND_URL = "https://cdn.discordapp.com/attachments/1488900668042510568/1495869713081700512/Voucher_Code.jpg?ex=69e7d0bb&is=69e67f3b&hm=a099ef3ba0136cb704eadd76293fc113af774951aba72b07bfc70452781f5931&";
+    private static final String BACKGROUND_URL = "https://i.imgur.com/VOUCHER_BACKGROUND.jpg";
 
     public static String generateRandomCode(int value, boolean isPercent) {
         Random r = new Random();

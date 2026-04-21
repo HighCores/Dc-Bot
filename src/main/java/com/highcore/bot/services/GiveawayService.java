@@ -37,7 +37,7 @@ import org.slf4j.LoggerFactory;
 public class GiveawayService {
     private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
-    private static final String BANNER_WINNER = "https://media.discordapp.net/attachments/1488900668042510568/1495899297814810654/Winner_.jpg?ex=69e89509&is=69e74389&hm=d112a6ce86efac94a4ec79a77c459b5679a8e5f2b41075afd0c04de354b0def0&=&format=webp&width=1867&height=700";
+    private static final String BANNER_WINNER = "https://i.imgur.com/BANNER_WINNER.jpg";
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {

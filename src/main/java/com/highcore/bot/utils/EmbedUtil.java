@@ -32,19 +32,24 @@ public class EmbedUtil {
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
     public static final Color PRIMARY = Color.decode("#35423E");
 
-    public static final String BANNER_MAIN = "https://media.discordapp.net/attachments/1488795131296354460/1491194673048457399/banner.png?ex=69dcbd83&is=69db6c03&hm=c54c9900fb02b225dc85d732c45d04d6bd0c16a29973f2027557f1494e8d21fe&=&format=webp&quality=lossless&width=1572&height=884";
-    public static final String BANNER_SUPPORT = "https://media.discordapp.net/attachments/1488900668042510568/1495898192905113725/Support.jpg?ex=69e7eb41&is=69e699c1&hm=cd5805db56a5bff16f165c1240f0fe9c8e55a1bedca236c304f4418f44beec26&=&format=webp&width=1752&height=373";
-    public static final String BANNER_COMPLAINT = "https://media.discordapp.net/attachments/1488900668042510568/1495898193668477009/Complaint.jpg?ex=69e7eb41&is=69e699c1&hm=887f65f16a487fff4fd7a78ff4010b770bd6211c1e8f58cf194731083ef2fc15&=&format=webp&width=1752&height=373";
-    public static final String BANNER_TICKETS_MENU = "https://media.discordapp.net/attachments/1488900668042510568/1495898193399906474/Tickets.jpg?ex=69e7eb41&is=69e699c1&hm=820cdf3bbcb09161edc4e21b0d7785f2a71a456cf586c9df16e124743cccdc7b&=&format=webp&width=1752&height=373";
-    public static final String BANNER_ORDER_TICKET = "https://cdn.discordapp.com/attachments/1488900668042510568/1495900142510014534/Orders_.jpg?ex=69e7ed12&is=69e69b92&hm=e6449ae239468a94ddbee55a07ab4f105e0ad57fe5ab6bd3cb55fe7d6297d276&";
-    public static final String BANNER_GIVEAWAY = BANNER_MAIN;
-    public static final String BANNER_INVOICE = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
-    public static final String BANNER_INVOICE_PAID = "https://raw.githubusercontent.com/OmarAmr20/Img/main/invoice_site.png";
-
-    public static final String BANNER_DESIGN = "https://media.discordapp.net/attachments/1488900668042510568/1495918003345162372/Design_Works.jpg?ex=69e7fdb4&is=69e6ac34&hm=7cea3931e6e62775e2f93253c0b5d5fa13e620a1ce5243441697390dc5765708&=&format=webp&width=1752&height=495";
-    public static final String BANNER_DEVELOPER = "https://media.discordapp.net/attachments/1488900668042510568/1495918003609669783/Development_Work.jpg?ex=69e7fdb4&is=69e6ac34&hm=03fdb8b3c6b438d2d62b04797916e0e8f30e99eecbd2f7b7901e8f7eec2d407a&=&format=webp&width=1752&height=495";
-    public static final String BANNER_MINECRAFT = "https://media.discordapp.net/attachments/1488900668042510568/1495918002808553572/Minecraft_Work_.jpg?ex=69e7fdb4&is=69e6ac34&hm=4b0dfa109e6ec47481bce479380b29f79088a2cb8de5e893dc0c2c55280efab7&=&format=webp&width=1752&height=495";
-    public static final String BANNER_EDITOR = "https://media.discordapp.net/attachments/1488900668042510568/1495918003873906930/Discord_Works.jpg?ex=69e7fdb4&is=69e6ac34&hm=f267d2d19cf9e4fea87f44ed17b6085ecaa6ba6a5435fd5e856effb06a9bc270&=&format=webp&width=1752&height=495";
+    // User requested to migrate to Imgur to avoid Discord CDN expiry links.
+    // Replace the "PLACEHOLDER" parts below with real Imgur IDs.
+    public static final String BANNER_MAIN = "https://i.imgur.com/BANNER_MAIN.jpg";
+    public static final String BANNER_GIVEAWAY = "https://i.imgur.com/BANNER_GIVEAWAY.jpg";
+    
+    // Support category banners
+    public static final String BANNER_SUPPORT = "https://i.imgur.com/BANNER_SUPPORT.jpg";
+    public static final String BANNER_COMPLAINT = "https://i.imgur.com/BANNER_COMPLAINT.jpg";
+    public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/BANNER_TICKETS_MENU.jpg";
+    public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/BANNER_ORDER_TICKET.jpg";
+    public static final String BANNER_INVOICE = "https://i.imgur.com/BANNER_INVOICE.jpg";
+    public static final String BANNER_INVOICE_PAID = "https://i.imgur.com/BANNER_INVOICE_PAID.jpg";
+    
+    // Order category banners
+    public static final String BANNER_DESIGN = "https://i.imgur.com/BANNER_DESIGN.jpg";
+    public static final String BANNER_DEVELOPER = "https://i.imgur.com/BANNER_DEVELOPER.jpg";
+    public static final String BANNER_MINECRAFT = "https://i.imgur.com/BANNER_MINECRAFT.jpg";
+    public static final String BANNER_EDITOR = "https://i.imgur.com/BANNER_EDITOR.jpg";
 
     public static String getCategoryBanner(String cat) {
         if (cat == null) return BANNER_MAIN;

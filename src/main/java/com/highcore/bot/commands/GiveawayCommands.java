@@ -52,7 +52,6 @@ public class GiveawayCommands extends ListenerAdapter {
                 """;
         ActionRow row = ActionRow.of(
             Button.secondary("btn_gw_create", "Create Giveaway"),
-            Button.secondary("btn_gw_drop", "Instant Drop"),
             Button.secondary("btn_gw_history", "View History")
         );
         PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc, EmbedUtil.BANNER_GIVEAWAY, row));
@@ -76,8 +75,37 @@ public class GiveawayCommands extends ListenerAdapter {
                     Button.secondary("gw_count_" + gwId, count + (count == 1 ? " entry" : " entries")).asDisabled()
                 );
                 
-                event.editComponents(newRow).queue(v -> {
-                    event.getHook().sendMessage("Success: Entry secured.").setEphemeral(true).queue();
+                event.deferReply(true).queue();
+                
+                JsonObject g = SupabaseClient.getGiveawayById(gwId);
+                String prize = g != null ? g.get("prize_details").getAsString() : "Classified Item";
+                int win = g != null && g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
+                long endsTs = g != null ? java.time.Instant.parse(g.get("ends_at").getAsString()).getEpochSecond() : java.time.Instant.now().getEpochSecond();
+                
+                String bannerUrl = EmbedUtil.BANNER_GIVEAWAY;
+                if (g != null) {
+                    String typeStr = g.get("prize_type").getAsString().toLowerCase();
+                    if (typeStr.startsWith("discount-")) {
+                        switch(typeStr) {
+                            case "discount-10": bannerUrl = "https://i.imgur.com/DISCOUNT_10.jpg"; break;
+                            case "discount-20": bannerUrl = "https://i.imgur.com/DISCOUNT_20.jpg"; break;
+                            case "discount-30": bannerUrl = "https://i.imgur.com/DISCOUNT_30.jpg"; break;
+                            case "discount-40": bannerUrl = "https://i.imgur.com/DISCOUNT_40.jpg"; break;
+                            case "discount-50": bannerUrl = "https://i.imgur.com/DISCOUNT_50.jpg"; break;
+                            case "discount-60": bannerUrl = "https://i.imgur.com/DISCOUNT_60.jpg"; break;
+                        }
+                    } else if (typeStr.startsWith("voucher-")) {
+                        switch(typeStr) {
+                            case "voucher-50": bannerUrl = "https://i.imgur.com/VOUCHER_50.jpg"; break;
+                            case "voucher-100": bannerUrl = "https://i.imgur.com/VOUCHER_100.jpg"; break;
+                        }
+                    }
+                }
+                
+                String body = "### Active Sweepstakes\n\n▫️ **Prize:** " + prize + "\n▫️ **Winners:** " + win + "\n▫️ **Ends:** <t:" + endsTs + ":R>\n\nInteract below to enter.";
+                
+                event.getChannel().editMessageComponentsById(event.getMessageId(), EmbedUtil.containerBranded("GIVEAWAY", "Active Reward", body, bannerUrl, newRow)).useComponentsV2(true).queue(v -> {
+                    event.getHook().sendMessage("Success: Entry secured.").queue();
                 });
                 
                 updateDashboard(event.getGuild(), gwId);
@@ -86,7 +114,7 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         if (!Config.isAdmin(event.getMember())) {
-             if (id.equals("btn_gw_create") || id.equals("btn_gw_drop") || id.equals("btn_gw_history")) {
+             if (id.equals("btn_gw_create") || id.equals("btn_gw_history")) {
                  PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
              }
              return;
@@ -101,8 +129,6 @@ public class GiveawayCommands extends ListenerAdapter {
                         .addOption("Custom", "Custom")
                         .build();
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY", "Selection", "Select reward type:", EmbedUtil.BANNER_GIVEAWAY, ActionRow.of(menu)));
-            } else if (id.equals("btn_gw_drop")) {
-                showGiveawayModal(event, "Drop");
             } else if (id.equals("btn_gw_history")) {
                 event.deferReply(true).queue();
                 JsonArray active = SupabaseClient.getAllGiveaways();
@@ -161,10 +187,10 @@ public class GiveawayCommands extends ListenerAdapter {
         if (!defaultPrize.isBlank()) pb.setValue(defaultPrize);
         
         TextInput winners = TextInput.create("winners", TextInputStyle.SHORT).setRequired(true).setValue("1").build();
-        TextInput duration = TextInput.create("duration", TextInputStyle.SHORT).setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
+        TextInput duration = TextInput.create("duration", TextInputStyle.SHORT).setRequired(true).setValue("60").build();
         TextInput expiry = TextInput.create("reward_expiry", TextInputStyle.SHORT).setRequired(true).setValue("7").build();
 
-        Modal modal = Modal.create("modal_gw_" + type.toLowerCase(), isDrop ? "DROP SETUP" : "GIVEAWAY CONFIG")
+        Modal modal = Modal.create("modal_gw_" + type.toLowerCase(), "GIVEAWAY CONFIG")
                 .addComponents(
                     net.dv8tion.jda.api.components.label.Label.of("Prize", pb.build()),
                     net.dv8tion.jda.api.components.label.Label.of("Winners", winners),
@@ -192,7 +218,6 @@ public class GiveawayCommands extends ListenerAdapter {
         setup.addProperty("win", win);
         setup.addProperty("dur", dur);
         setup.addProperty("exp", exp);
-        setup.addProperty("isDrop", idStr.equals("drop"));
 
         String tid = "setup_" + System.currentTimeMillis();
         pendingGiveaways.put(tid, setup);
@@ -226,17 +251,17 @@ public class GiveawayCommands extends ListenerAdapter {
         String typeStr = s.get("type").getAsString().toLowerCase();
         if (typeStr.startsWith("discount-")) {
             switch(typeStr) {
-                case "discount-10": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899015575769188/Discount_10.jpg?ex=69e894c5&is=69e74345&hm=70da8772e841e3c6b44e59a6625ea725dddac7ab09ff9879f170ba4ca547247d&=&format=webp&width=1752&height=657"; break;
-                case "discount-20": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899015252938843/Discount_20.jpg?ex=69e894c5&is=69e74345&hm=df7c3a1548e01462f09d2bbdddf0a6db73e0f8aa22ea041f94d5212828b8d718&=&format=webp&width=1752&height=657"; break;
-                case "discount-30": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899014443438210/Discount_30.jpg?ex=69e894c5&is=69e74345&hm=0da3d31cfab9f86f9cfcb180711852a29edf2b9458af53b4316a79cc455ec992&=&format=webp&width=1752&height=657"; break;
-                case "discount-40": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899014774657084/Discount_40.jpg?ex=69e894c5&is=69e74345&hm=738be9022b46e985a5b5c8f21222f2e4285a2fa4186206c27c062ed4983aef76&=&format=webp&width=1752&height=657"; break;
-                case "discount-50": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899130965266512/Discount_50.jpg?ex=69e894e1&is=69e74361&hm=c8a3de23990ace495a234aa1e8d7173f5283d8a73de70b57bc378582fc4a2ac5&=&format=webp&width=1752&height=657"; break;
-                case "discount-60": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1495899131204603945/image.png?ex=69e894e1&is=69e74361&hm=21dd4e802a4a2317af15323bd27e93d99235fa8584d34c9dfb9a571096be9e68&=&format=webp&quality=lossless&width=1126&height=422"; break;
+                case "discount-10": bannerUrl = "https://i.imgur.com/DISCOUNT_10.jpg"; break;
+                case "discount-20": bannerUrl = "https://i.imgur.com/DISCOUNT_20.jpg"; break;
+                case "discount-30": bannerUrl = "https://i.imgur.com/DISCOUNT_30.jpg"; break;
+                case "discount-40": bannerUrl = "https://i.imgur.com/DISCOUNT_40.jpg"; break;
+                case "discount-50": bannerUrl = "https://i.imgur.com/DISCOUNT_50.jpg"; break;
+                case "discount-60": bannerUrl = "https://i.imgur.com/DISCOUNT_60.jpg"; break;
             }
         } else if (typeStr.startsWith("voucher-")) {
             switch(typeStr) {
-                case "voucher-50": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1496108309265252403/Pruchace_50.jpg?ex=69e8aef1&is=69e75d71&hm=a4c68f3de7be838403b46902fb9d6dd878611cb11041c7ae47308578dec15047&=&format=webp&width=1752&height=657"; break;
-                case "voucher-100": bannerUrl = "https://media.discordapp.net/attachments/1488900668042510568/1496108308681982085/pruchase_10_.jpg?ex=69e8aef1&is=69e75d71&hm=0799838ca32dde1a50496238550bde72b0f79de25e4074bb3fda8075d6ecbaa4&=&format=webp&width=1752&height=657"; break;
+                case "voucher-50": bannerUrl = "https://i.imgur.com/VOUCHER_50.jpg"; break;
+                case "voucher-100": bannerUrl = "https://i.imgur.com/VOUCHER_100.jpg"; break;
             }
         }
 
@@ -248,7 +273,7 @@ public class GiveawayCommands extends ListenerAdapter {
         String dashDesc = "### " + prize + " | Logistics\n▫️ **Joins:** 0 members";
         ActionRow dashRow = ActionRow.of(Button.secondary("gw_end_early_" + gwId, "Close Early"));
         
-        event.getChannel().sendMessageComponents(EmbedUtil.containerBranded("DASHBOARD", "Command Monitoring", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow)).queue(dm -> {
+        event.getChannel().sendMessageComponents(EmbedUtil.containerBranded("DASHBOARD", "Command Monitoring", dashDesc, EmbedUtil.BANNER_GIVEAWAY, dashRow)).useComponentsV2(true).queue(dm -> {
             dashboardMessages.put(gwId, dm.getId());
             dashboardChannels.put(gwId, dm.getChannel().getId());
         });

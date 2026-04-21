@@ -264,7 +264,7 @@ public class TicketService {
             );
         }
 
-        return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), "https://media.discordapp.net/attachments/1488900668042510568/1495900142510014534/Orders_.jpg?ex=69e7ed12&is=69e69b92&hm=e6449ae239468a94ddbee55a07ab4f105e0ad57fe5ab6bd3cb55fe7d6297d276&", row);
+        return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), EmbedUtil.BANNER_ORDER_TICKET, row);
     }
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
