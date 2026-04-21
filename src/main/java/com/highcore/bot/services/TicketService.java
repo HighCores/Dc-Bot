@@ -72,7 +72,7 @@ public class TicketService {
             });
     }
 
-    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String category, List<InvoiceService.OrderItem> items, String voucherCode, String eta) {
+    public static void createHighEndOrderTicket(Guild guild, User user, String pName, String cName, String contact, String phone, String category, List<InvoiceService.OrderItem> mainItems, List<InvoiceService.OrderItem> addOnItems, String voucherCode, String eta) {
         Category cat = guild.getCategoryById(TICKET_CAT_ID);
         if (cat == null) cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
         if (cat == null) return;
@@ -83,6 +83,9 @@ public class TicketService {
         Member member = guild.getMember(user);
         if (member == null) return;
         
+        List<InvoiceService.OrderItem> allItems = new ArrayList<>(mainItems);
+        allItems.addAll(addOnItems);
+
         int globalDiscount = SupabaseClient.getGlobalDiscountPercentage();
         int vPercent = 0, vAmount = 0;
         if (voucherCode != null && !voucherCode.isBlank()) {
@@ -95,7 +98,7 @@ public class TicketService {
             }
         }
 
-        final double subTotal = items.stream().mapToDouble(i -> i.price).sum();
+        final double subTotal = allItems.stream().mapToDouble(i -> i.price).sum();
         final int fPerc = Math.max(globalDiscount, vPercent);
         final double totalDisc = (subTotal * (fPerc/100.0)) + vAmount;
 
@@ -104,7 +107,7 @@ public class TicketService {
             .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), null)
             .queue(channel -> {
                 JsonArray itemsArr = new JsonArray();
-                for (var i : items) { JsonObject o = new JsonObject(); o.addProperty("name", i.name); o.addProperty("price", i.price); itemsArr.add(o); }
+                for (var i : allItems) { JsonObject o = new JsonObject(); o.addProperty("name", i.name); o.addProperty("price", i.price); itemsArr.add(o); }
 
                 JsonObject meta = new JsonObject();
                 meta.addProperty("client_name", cName);
@@ -129,7 +132,7 @@ public class TicketService {
 
                 channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null)).useComponentsV2(true).queue();
 
-                byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, items, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
+                byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false, user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
                 if (inv != null) {
                     channel.sendMessageComponents(EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "", "Review your order and choose a payment method.", "attachment://invoice.png",
                         ActionRow.of(

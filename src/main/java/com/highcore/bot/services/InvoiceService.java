@@ -25,10 +25,10 @@ public class InvoiceService {
     private static final String BANNER_NEW = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
-        return generateInvoice(invoiceId, clientName, projectName, items, false, null, clientName, "Service", "Member", 0.0, null);
+        return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, null);
     }
 
-    public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items, boolean isPaid, String avatarUrl, String displayName, String category, String contact, double discount, String phone) {
+    public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items, List<OrderItem> addOnItems, boolean isPaid, String avatarUrl, String displayName, String category, String contact, double discount, String phone) {
         try {
             BufferedImage template = null;
             String templateUrl = BANNER_NEW;
@@ -59,7 +59,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
             g.setColor(COL_GOLD);
             // Positioned exactly after the # on the right
-            g.drawString(invoiceId, (int)(715 * sX), (int)(148 * sY));
+            g.drawString(invoiceId, (int)(685 * sX), (int)(148 * sY));
 
             // 2. Avatar
             if (avatarUrl != null && !avatarUrl.isEmpty()) {
@@ -90,7 +90,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(isPaid ? Color.GREEN : COL_GOLD);
             String statusText = isPaid ? "AUTHORIZED" : "PENDING";
-            g.drawString(statusText, (int)(810 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(289 * sY));
+            g.drawString(statusText, (int)(810 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(284 * sY));
 
             // 4. Client Details - Restoring contact but keeping description removed per request
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
@@ -114,12 +114,13 @@ public class InvoiceService {
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
             g.drawString(catLabel, (int)(260 * sX), (int)(282 * sY));
 
-            // 6. Add-ons (Excluding the main service at index 0)
+            // 6. Add-ons Checklist (Top-left section)
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
             g.setColor(COL_CREAM);
             int addOnStartY = (int)(385 * sY);
-            for (int i = 1; i < Math.min(items.size(), 7); i++) {
-                g.drawString("\u2022 " + truncate(items.get(i).name, 45), (int)(145 * sX), addOnStartY + ((i - 1) * (int)(26 * sY)));
+            List<OrderItem> listToDraw = (addOnItems != null && !addOnItems.isEmpty()) ? addOnItems : new ArrayList<>();
+            for (int i = 0; i < Math.min(listToDraw.size(), 6); i++) {
+                g.drawString("\u2022 " + truncate(listToDraw.get(i).name, 45), (int)(145 * sX), addOnStartY + (i * (int)(26 * sY)));
             }
 
             // 7. Table
@@ -162,7 +163,7 @@ public class InvoiceService {
 
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
-            g.drawString("$" + fmt(finalTotal),  (int)(760 * sX), (int)(888 * sY));
+            g.drawString("$" + fmt(finalTotal),  (int)(775 * sX), (int)(888 * sY));
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
