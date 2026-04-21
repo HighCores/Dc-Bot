@@ -59,7 +59,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
             g.setColor(COL_GOLD);
             // Positioned exactly after the # on the right
-            g.drawString(invoiceId, (int)(745 * sX), (int)(148 * sY));
+            g.drawString(invoiceId, (int)(715 * sX), (int)(148 * sY));
 
             // 2. Avatar
             if (avatarUrl != null && !avatarUrl.isEmpty()) {
@@ -90,7 +90,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(isPaid ? Color.GREEN : COL_GOLD);
             String statusText = isPaid ? "AUTHORIZED" : "PENDING";
-            g.drawString(statusText, (int)(815 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(284 * sY));
+            g.drawString(statusText, (int)(810 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(289 * sY));
 
             // 4. Client Details - Restoring contact but keeping description removed per request
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
@@ -112,7 +112,7 @@ public class InvoiceService {
             g.setColor(COL_CREAM);
             String catLabel = category != null ? category : "Software Services";
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
-            g.drawString(catLabel, (int)(280 * sX), (int)(282 * sY));
+            g.drawString(catLabel, (int)(260 * sX), (int)(282 * sY));
 
             // 6. Add-ons (Excluding the main service at index 0)
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
@@ -162,7 +162,7 @@ public class InvoiceService {
 
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
-            g.drawString("$" + fmt(finalTotal),  (int)(775 * sX), (int)(888 * sY));
+            g.drawString("$" + fmt(finalTotal),  (int)(760 * sX), (int)(888 * sY));
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
