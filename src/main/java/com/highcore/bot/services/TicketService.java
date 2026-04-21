@@ -300,9 +300,11 @@ public class TicketService {
     // Metadata is now managed via database lookups rather than channel topics.
 
     public static void closeTicket(ButtonInteractionEvent event, Member member) {
-        TextChannel ch = event.getChannel().asTextChannel();
         event.deferEdit().queue();
-        
+        closeTicketInternal(event.getChannel().asTextChannel(), member);
+    }
+
+    private static void closeTicketInternal(TextChannel ch, Member member) {
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) return;
@@ -399,6 +401,6 @@ public class TicketService {
     }
 
     public static void finalizeClose(TextChannel ch, Member m, String status) {
-        closeTicket(ch, m);
+        closeTicketInternal(ch, m);
     }
 }
