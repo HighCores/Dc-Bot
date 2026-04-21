@@ -59,7 +59,7 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
             g.setColor(COL_GOLD);
             // Positioned exactly after the # on the right
-            g.drawString(invoiceId, (int)(685 * sX), (int)(148 * sY));
+            g.drawString(invoiceId, (int)(685 * sX), (int)(152 * sY));
 
             // 2. Avatar
             if (avatarUrl != null && !avatarUrl.isEmpty()) {
@@ -106,13 +106,13 @@ public class InvoiceService {
             // 5. Project Info
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(20 * sX)));
             g.setColor(COL_WHITE);
-            g.drawString(truncate(projectName, 25), (int)(300 * sX), (int)(252 * sY));
+            g.drawString(truncate(projectName, 25), (int)(300 * sX), (int)(248 * sY));
             
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(17 * sX)));
             g.setColor(COL_CREAM);
             String catLabel = category != null ? category : "Software Services";
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
-            g.drawString(catLabel, (int)(260 * sX), (int)(282 * sY));
+            g.drawString(catLabel, (int)(260 * sX), (int)(278 * sY));
 
             // 6. Add-ons Checklist (Top-left section)
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
@@ -162,7 +162,7 @@ public class InvoiceService {
             g.drawString("-$" + fmt(discount),    (int)(245 * sX), (int)(888 * sY)); 
 
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
-            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(26 * sX)));
+            g.setFont(new Font("Segoe UI", Font.BOLD, (int)(23 * sX)));
             g.drawString("$" + fmt(finalTotal),  (int)(775 * sX), (int)(888 * sY));
 
             g.dispose();
