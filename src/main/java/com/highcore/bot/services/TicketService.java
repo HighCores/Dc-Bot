@@ -255,7 +255,10 @@ public class TicketService {
         SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
         
         // Update the original message buttons immediately
-        event.editComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch))).queue();
+        event.editMessage(new MessageEditBuilder()
+            .setComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch)))
+            .useComponentsV2(true)
+            .build()).queue();
         
         // Send separate notification
         ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed", "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention()))
@@ -270,7 +273,10 @@ public class TicketService {
         SupabaseClient.unclaimTicket(ticket.get("ticket_id").getAsString());
 
         // Update the original message buttons immediately
-        event.editComponents(List.of(rebuildWelcomeContainer(ticket, false, null, ch))).queue();
+        event.editMessage(new MessageEditBuilder()
+            .setComponents(List.of(rebuildWelcomeContainer(ticket, false, null, ch)))
+            .useComponentsV2(true)
+            .build()).queue();
 
         // Send separate notification
         ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed", "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention()))
