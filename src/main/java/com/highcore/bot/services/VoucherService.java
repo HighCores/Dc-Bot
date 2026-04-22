@@ -119,26 +119,27 @@ public class VoucherService {
                 ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
             }
 
-            String body = "### Congratulations! \uD83C\uDF8A\n" +
-                    "You have successfully secured an elite reward from **Highcore Agency**.\n\n" +
-                    "● **Reward:** `" + prizeDetails + "`\n" +
-                    "● **Voucher Code:** `" + code + "`\n" +
-                    "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)";
+            // Embed 1: The personalized winner banner
+            String body1 = "### You have been selected! \uD83C\uDF8A\n" +
+                    "Congratulations on winning the latest **Highcore Agency** deployment. Your dedication to the agency has been rewarded.";
+            
+            var eb1 = EmbedUtil.containerBranded("CONGRATULATIONS", "Winner Identified", body1, 
+                    (winnerImg != null ? "attachment://winner.png" : null));
 
-            String bannerRef = (winnerImg != null) ? "attachment://winner.png" : (voucherImg != null ? "attachment://voucher.png" : null);
-            net.dv8tion.jda.api.components.container.Container container = EmbedUtil.containerBranded("CONGRATULATIONS", "Voucher Awarded", body, bannerRef);
+            // Embed 2: The actual prize details & Voucher banner
+            String body2 = "● **Item:** `" + prizeDetails + "`\n" +
+                    "● **Code:** `" + code + "`\n" +
+                    "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)\n\n" +
+                    "Claim this voucher through the agency terminal or support desk.";
             
-            var action = pc.sendMessageComponents(container).useComponentsV2(true);
-            
+            var eb2 = EmbedUtil.containerBranded("PRIZE ACQUIRED", "Voucher Deployment", body2,
+                    (voucherImg != null ? "attachment://voucher.png" : null));
+
             List<net.dv8tion.jda.api.utils.FileUpload> files = new ArrayList<>();
             if (winnerImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"));
             if (voucherImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"));
             
-            if (!files.isEmpty()) {
-                action.setFiles(files).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
-            } else {
-                action.queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
-            }
+            pc.sendMessageEmbeds(eb1, eb2).setFiles(files).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
         }, err -> log.warn("DM Access Failure for {}: {}", user.getName(), err.getMessage()));
     }
 }

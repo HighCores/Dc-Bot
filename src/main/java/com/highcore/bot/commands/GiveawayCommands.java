@@ -175,9 +175,39 @@ public class GiveawayCommands extends ListenerAdapter {
 
     @Override
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
-        if (event.getComponentId().equals("sel_gw_type")) {
-            String type = event.getValues().get(0);
-            showGiveawayModal(event, type);
+        String id = event.getComponentId();
+        String value = event.getValues().get(0);
+
+        if (id.equals("sel_gw_type")) {
+            if (value.equals("Discount")) {
+                StringSelectMenu menu = StringSelectMenu.create("sel_gw_sub_discount")
+                        .setPlaceholder("Select Percentage...")
+                        .addOption("10% Off", "10")
+                        .addOption("20% Off", "20")
+                        .addOption("30% Off", "30")
+                        .addOption("40% Off", "40")
+                        .addOption("50% Off", "50")
+                        .addOption("60% Off", "60")
+                        .build();
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT SETUP", "Step 2: Percentage",
+                        "Select the fixed **percentage** for this deployment.", EmbedUtil.BANNER_GIVEAWAY,
+                        ActionRow.of(menu)));
+            } else if (value.equals("Voucher")) {
+                StringSelectMenu menu = StringSelectMenu.create("sel_gw_sub_voucher")
+                        .setPlaceholder("Select Amount...")
+                        .addOption("50 Credits", "50")
+                        .addOption("100 Credits", "100")
+                        .build();
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("VOUCHER SETUP", "Step 2: Value",
+                        "Select the **credit amount** for this voucher.", EmbedUtil.BANNER_GIVEAWAY,
+                        ActionRow.of(menu)));
+            } else {
+                showGiveawayModal(event, value);
+            }
+        } else if (id.equals("sel_gw_sub_discount")) {
+            showGiveawayModal(event, "Discount-" + value);
+        } else if (id.equals("sel_gw_sub_voucher")) {
+            showGiveawayModal(event, "Voucher-" + value);
         }
     }
 
