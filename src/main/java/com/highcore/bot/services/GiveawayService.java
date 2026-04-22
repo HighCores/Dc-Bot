@@ -132,7 +132,7 @@ public class GiveawayService {
 
     public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user, String prize) {
         log.info("Winner Image: Processing for {} with prize {}", user.getName(), prize);
-        String bannerUrl = getDynamicBanner(prize);
+        String bannerUrl = EmbedUtil.getDynamicBanner(prize);
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(bannerUrl).openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
@@ -179,17 +179,6 @@ public class GiveawayService {
             log.error("Winner Image Error: {}", e.getMessage());
             return null;
         }
-    }
-
-    private static String getDynamicBanner(String prize) {
-        String lower = prize.toLowerCase();
-        if (lower.contains("10%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        if (lower.contains("20%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        if (lower.contains("30%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        if (lower.contains("40%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        if (lower.contains("50%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        if (lower.contains("60%")) return "https://i.imgur.com/HtHQ1vP.png"; // Placeholder
-        return BANNER_WINNER;
     }
 
     public static void rerollGiveaway(JDA jda, long giveawayId) {

@@ -398,7 +398,7 @@ public class GiveawayCommands extends ListenerAdapter {
 
         ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
         var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
-                EmbedUtil.BANNER_GIVEAWAY, gwRow);
+                EmbedUtil.getDynamicBanner(prize), gwRow);
 
         // Use a list of components including the mention as TextDisplay
         List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new ArrayList<>();

@@ -63,6 +63,22 @@ public class EmbedUtil {
         };
     }
 
+    public static String getDynamicBanner(String prize) {
+        if (prize == null) return BANNER_GIVEAWAY;
+        String lower = prize.toLowerCase();
+        if (lower.contains("10%")) return "https://i.imgur.com/HtHQ1vP.png";
+        if (lower.contains("20%")) return "https://i.imgur.com/HtHQ1vP.png";
+        if (lower.contains("30%")) return "https://i.imgur.com/HtHQ1vP.png";
+        if (lower.contains("40%")) return "https://i.imgur.com/HtHQ1vP.png";
+        if (lower.contains("50%")) return "https://i.imgur.com/HtHQ1vP.png";
+        if (lower.contains("60%")) return "https://i.imgur.com/HtHQ1vP.png";
+        // Vouchers
+        if (lower.contains("50") && lower.contains("voucher")) return BANNER_MAIN; // Placeholder
+        if (lower.contains("100") && lower.contains("voucher")) return BANNER_MAIN; // Placeholder
+        
+        return BANNER_GIVEAWAY;
+    }
+
     public static Container eliteContainer(String title, String description, String imageUrl, ActionRow... rows) {
         return containerBranded("", title, description, imageUrl, rows);
     }
