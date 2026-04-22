@@ -167,7 +167,7 @@ public class GiveawayService {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        g.drawImage(avatar, 175, 175, 385, 385, null);
+                        g.drawImage(avatar, 470, 275, 620, 620, null);
                     }
                 }
             } catch (Exception ignored) {}
