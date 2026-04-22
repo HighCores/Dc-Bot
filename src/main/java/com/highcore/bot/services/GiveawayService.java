@@ -97,13 +97,11 @@ public class GiveawayService {
                 for (String w : winners) wb.append("<@").append(w).append("> ");
                 
                 if (winnerImg != null) {
-                    net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
-                        .setTitle("\uD83C\uDF8A CONGRATULATIONS \u2014 Winner Identified")
-                        .setDescription(wb + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance. Highcore operations finalized.")
-                        .setImage("attachment://winner.png")
-                        .setColor(EmbedUtil.ACCENT);
+                    var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified", 
+                        wb + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance. Highcore operations finalized.", 
+                        "attachment://winner.png");
                     
-                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setEmbeds(eb.build()).queue();
+                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb).useComponentsV2(true).queue();
                 } else {
                     ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!").queue();
                 }
@@ -223,12 +221,10 @@ public class GiveawayService {
             VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
             
             if (winnerImg != null) {
-                net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder()
-                    .setTitle("\uD83C\uDF8A REROLL SUCCESSFUL \u2014 New Winner Identified")
-                    .setDescription("<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!")
-                    .setImage("attachment://winner.png")
-                    .setColor(EmbedUtil.ACCENT);
-                ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setEmbeds(eb.build()).queue();
+                var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified", 
+                    "<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!", 
+                    "attachment://winner.png");
+                ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb).useComponentsV2(true).queue();
             } else {
                 ch.sendMessage("### \uD83C\uDF8A REROLL SUCCESSFUL\n<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!").queue();
             }

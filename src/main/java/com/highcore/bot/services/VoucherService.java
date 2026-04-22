@@ -139,7 +139,7 @@ public class VoucherService {
             if (winnerImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"));
             if (voucherImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"));
             
-            pc.sendMessageEmbeds(eb1, eb2).setFiles(files).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
+            pc.sendMessageComponents(eb1, eb2).setFiles(files).useComponentsV2(true).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
         }, err -> log.warn("DM Access Failure for {}: {}", user.getName(), err.getMessage()));
     }
 }
