@@ -39,10 +39,10 @@ public class EmbedUtil {
     public static final String BANNER_GIVEAWAY = BANNER_MAIN;
     
     // Support category banners
-    public static final String BANNER_SUPPORT = "https://i.imgur.com/MBU5wvl.png";
-    public static final String BANNER_COMPLAINT = "https://i.imgur.com/t7Prrsr.png";
+    public static final String BANNER_SUPPORT = "https://i.imgur.com/llP8itV.png";
+    public static final String BANNER_COMPLAINT = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/wllO63d.png";
-    public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/OHF6qJB.png";
+    public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_INVOICE = "https://i.imgur.com/OHF6qJB.png";
     public static final String BANNER_INVOICE_PAID = "https://i.imgur.com/OHF6qJB.png";
     

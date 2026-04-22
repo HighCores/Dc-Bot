@@ -22,7 +22,7 @@ public class InvoiceService {
     private static final Color COL_GOLD  = Color.decode("#C5A059");
     private static final Color COL_WHITE = Color.decode("#FFFFFF");
     private static final Color COL_CREAM = Color.decode("#EAEAEA");
-    private static final String BANNER_NEW = "https://cdn.discordapp.com/attachments/1488900668042510568/1495893318217764884/Invoice.jpg?ex=69e7e6b7&is=69e69537&hm=83960d6e0495f3dc32222dee7309429ed39097fa09b0008683b85e42a58cccd3&";
+    private static final String BANNER_NEW = "https://i.imgur.com/OHF6qJB.png";
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
         return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, null);

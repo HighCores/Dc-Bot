@@ -109,8 +109,8 @@ public class GiveawayListener extends ListenerAdapter {
             return;
         }
 
-        event.deferEdit().queue();
+        event.deferReply(true).queue();
         GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
-        event.getHook().sendMessage("Manual termination successful. Winners are being processed.").setEphemeral(true).queue();
+        event.getHook().sendMessage("Manual termination successful. Winners are being processed.").queue();
     }
 }
