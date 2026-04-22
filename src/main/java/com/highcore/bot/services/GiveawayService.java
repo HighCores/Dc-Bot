@@ -39,40 +39,50 @@ public class GiveawayService {
 
     public static void start(JDA jda) {
         scheduler.scheduleAtFixedRate(() -> {
-            try { checkEndingGiveaways(jda); } catch (Exception ignored) {}
+            try {
+                checkEndingGiveaways(jda);
+            } catch (Exception ignored) {
+            }
         }, 30, 30, TimeUnit.SECONDS);
     }
 
     private static void checkEndingGiveaways(JDA jda) {
         JsonArray active = SupabaseClient.getActiveGiveaways();
-        if (active == null) return;
+        if (active == null)
+            return;
         Instant now = Instant.now();
         for (var el : active) {
             JsonObject g = el.getAsJsonObject();
             String endsAt = g.has("ends_at") ? g.get("ends_at").getAsString() : null;
-            if (endsAt == null) continue;
+            if (endsAt == null)
+                continue;
             try {
                 if (Instant.parse(endsAt).isBefore(now)) {
                     int winners = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
                     endGiveaway(jda, g.get("id").getAsLong(), winners);
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
         }
     }
 
     public static void endGiveaway(JDA jda, long giveawayId, int winnerCount) {
         JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
-        if (g == null || g.get("ended").getAsBoolean()) return;
+        if (g == null || g.get("ended").getAsBoolean())
+            return;
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) return;
+        if (guild == null)
+            return;
         TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
-        if (ch == null) return;
+        if (ch == null)
+            return;
 
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         List<String> userIds = new ArrayList<>();
         if (entries != null) {
-            for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
+            for (var e : entries)
+                userIds.add(e.getAsJsonObject().get("user_id").getAsString());
         }
 
         List<String> winners = pickWinners(userIds, Math.min(winnerCount, userIds.size()));
@@ -81,37 +91,61 @@ public class GiveawayService {
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
         int value = 0;
         if (g.has("prize_value") && !g.get("prize_value").isJsonNull()) {
-            try { value = g.get("prize_value").getAsInt(); } catch(Exception e) {}
-        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull() && !g.get("discount_info").getAsString().isEmpty()) {
-            try { value = Integer.parseInt(g.get("discount_info").getAsString()); } catch(Exception e) {}
+            try {
+                value = g.get("prize_value").getAsInt();
+            } catch (Exception e) {
+            }
+        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull()
+                && !g.get("discount_info").getAsString().isEmpty()) {
+            try {
+                value = Integer.parseInt(g.get("discount_info").getAsString());
+            } catch (Exception e) {
+            }
         }
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
-        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+        int expiryDays = 7;
+        if (g.has("coupon_expiry") && !g.get("coupon_expiry").isJsonNull()
+                && !g.get("coupon_expiry").getAsString().isEmpty()) {
+            try {
+                expiryDays = Integer.parseInt(g.get("coupon_expiry").getAsString());
+            } catch (Exception e) {
+            }
+        } else if (g.has("reward_expiry_days") && !g.get("reward_expiry_days").isJsonNull()) {
+            try {
+                expiryDays = g.get("reward_expiry_days").getAsInt();
+            } catch (Exception e) {
+            }
+        }
         String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
         final int finalValue = value;
 
         if (winners.isEmpty()) {
-            ch.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
-                "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.", EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
+            ch.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners",
+                    "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.",
+                    EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
         } else {
             final String firstId = winners.get(0);
             jda.retrieveUserById(firstId).queue(user -> {
                 byte[] winnerImg = generateWinnerImage(user, prizeDetails);
                 VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
-                
+
                 StringBuilder wb = new StringBuilder();
-                for (String w : winners) wb.append("<@").append(w).append("> ");
-                
+                for (String w : winners)
+                    wb.append("<@").append(w).append("> ");
+
                 if (winnerImg != null) {
-                    var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified", 
-                        wb + " won **" + prizeDetails + "**!\n\nEstablishing agency dominance. Highcore operations finalized.", 
-                        "attachment://winner.png");
-                    
-                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb).useComponentsV2(true).queue();
+                    var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified",
+                            wb + " won **" + prizeDetails
+                                    + "**!\n\nEstablishing agency dominance. Highcore operations finalized.",
+                            "attachment://winner.png");
+
+                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb)
+                            .useComponentsV2(true).queue();
                 } else {
-                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!").queue();
+                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!")
+                            .queue();
                 }
 
                 // Others
@@ -119,7 +153,8 @@ public class GiveawayService {
                     jda.retrieveUserById(winners.get(i)).queue(u -> {
                         byte[] wImg = generateWinnerImage(u, prizeDetails);
                         VoucherService.issueVoucher(u, finalValue, type, expiresAt, prizeDetails, ch);
-                    }, e -> {});
+                    }, e -> {
+                    });
                 }
             }, e -> log.error("Failed to retrieve winner: {}", e.getMessage()));
         }
@@ -130,10 +165,14 @@ public class GiveawayService {
         if (dashMsgId != null && dashChId != null) {
             TextChannel dashCh = guild.getTextChannelById(dashChId);
             if (dashCh != null) {
-                String dashDesc = "### " + prizeDetails + " | Final Report\n▫️ **Status:** Deployment Concluded\n▫️ **Outcome:** " + winners.size() + " winners identified";
-                var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Operation Complete", dashDesc, EmbedUtil.BANNER_GIVEAWAY, 
+                String dashDesc = "### " + prizeDetails
+                        + " | Final Report\n▫️ **Status:** Deployment Concluded\n▫️ **Outcome:** " + winners.size()
+                        + " winners identified";
+                var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Operation Complete", dashDesc,
+                        EmbedUtil.BANNER_GIVEAWAY,
                         ActionRow.of(Button.success("gw_reroll_adm_" + giveawayId, "Reroll New Winner")));
-                dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {});
+                dashCh.editMessageComponentsById(dashMsgId, dashC).useComponentsV2(true).queue(null, ex -> {
+                });
             }
         }
     }
@@ -143,7 +182,8 @@ public class GiveawayService {
         String bannerUrl = BANNER_WINNER;
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(bannerUrl).openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+            conn.setRequestProperty("User-Agent",
+                    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
             conn.setRequestProperty("Accept", "image/png,image/jpeg,image/*;q=0.8");
             conn.setConnectTimeout(20000);
             conn.setReadTimeout(20000);
@@ -152,10 +192,12 @@ public class GiveawayService {
             BufferedImage template;
             try (InputStream is = conn.getInputStream()) {
                 byte[] bytes = is.readAllBytes();
-                if (bytes == null || bytes.length < 1000) return null;
+                if (bytes == null || bytes.length < 1000)
+                    return null;
                 template = ImageIO.read(new ByteArrayInputStream(bytes));
             }
-            if (template == null) return null;
+            if (template == null)
+                return null;
 
             int W = template.getWidth();
             int H = template.getHeight();
@@ -168,7 +210,8 @@ public class GiveawayService {
             String avatarUrl = user.getEffectiveAvatarUrl();
             try {
                 java.net.HttpURLConnection avConn = (java.net.HttpURLConnection) new URL(avatarUrl).openConnection();
-                avConn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
+                avConn.setRequestProperty("User-Agent",
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
                 avConn.setConnectTimeout(10000);
                 try (InputStream is = avConn.getInputStream()) {
                     byte[] avBytes = is.readAllBytes();
@@ -177,7 +220,8 @@ public class GiveawayService {
                         g.drawImage(avatar, 512, 224, 512, 512, null);
                     }
                 }
-            } catch (Exception ignored) {}
+            } catch (Exception ignored) {
+            }
 
             g.dispose();
             ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -191,53 +235,80 @@ public class GiveawayService {
 
     public static void rerollGiveaway(JDA jda, long giveawayId) {
         JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
-        if (g == null) return;
+        if (g == null)
+            return;
 
         JsonArray entries = SupabaseClient.getGiveawayEntries(giveawayId);
         List<String> userIds = new ArrayList<>();
         if (entries != null) {
-            for (var e : entries) userIds.add(e.getAsJsonObject().get("user_id").getAsString());
+            for (var e : entries)
+                userIds.add(e.getAsJsonObject().get("user_id").getAsString());
         }
 
-        if (userIds.isEmpty()) return;
+        if (userIds.isEmpty())
+            return;
         List<String> winners = pickWinners(userIds, 1);
-        
+
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
         int value = 0;
         if (g.has("prize_value") && !g.get("prize_value").isJsonNull()) {
-            try { value = g.get("prize_value").getAsInt(); } catch(Exception e) {}
-        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull() && !g.get("discount_info").getAsString().isEmpty()) {
-            try { value = Integer.parseInt(g.get("discount_info").getAsString()); } catch(Exception e) {}
+            try {
+                value = g.get("prize_value").getAsInt();
+            } catch (Exception e) {
+            }
+        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull()
+                && !g.get("discount_info").getAsString().isEmpty()) {
+            try {
+                value = Integer.parseInt(g.get("discount_info").getAsString());
+            } catch (Exception e) {
+            }
         }
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
-        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+        int expiryDays = 7;
+        if (g.has("coupon_expiry") && !g.get("coupon_expiry").isJsonNull()
+                && !g.get("coupon_expiry").getAsString().isEmpty()) {
+            try {
+                expiryDays = Integer.parseInt(g.get("coupon_expiry").getAsString());
+            } catch (Exception e) {
+            }
+        } else if (g.has("reward_expiry_days") && !g.get("reward_expiry_days").isJsonNull()) {
+            try {
+                expiryDays = g.get("reward_expiry_days").getAsInt();
+            } catch (Exception e) {
+            }
+        }
         String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
         final int finalValue = value;
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
-        if (guild == null) return;
+        if (guild == null)
+            return;
         TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
-        if (ch == null) return;
+        if (ch == null)
+            return;
 
         jda.retrieveUserById(winners.get(0)).queue(user -> {
             byte[] winnerImg = generateWinnerImage(user, prizeDetails);
             VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
-            
+
             if (winnerImg != null) {
-                var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified", 
-                    "<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!", 
-                    "attachment://winner.png");
-                ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb).useComponentsV2(true).queue();
+                var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified",
+                        "<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!",
+                        "attachment://winner.png");
+                ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb)
+                        .useComponentsV2(true).queue();
             } else {
-                ch.sendMessage("### \uD83C\uDF8A REROLL SUCCESSFUL\n<@" + user.getId() + "> won the reroll for **" + prizeDetails + "**!").queue();
+                ch.sendMessage("### \uD83C\uDF8A REROLL SUCCESSFUL\n<@" + user.getId() + "> won the reroll for **"
+                        + prizeDetails + "**!").queue();
             }
         });
     }
 
     private static List<String> pickWinners(List<String> users, int count) {
-        if (users == null || users.isEmpty()) return new ArrayList<>();
+        if (users == null || users.isEmpty())
+            return new ArrayList<>();
         Collections.shuffle(users);
         return users.subList(0, Math.min(count, users.size()));
     }
