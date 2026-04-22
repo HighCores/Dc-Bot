@@ -63,10 +63,26 @@ public class GiveawayListener extends ListenerAdapter {
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
         long endsTs = !endsStr.isEmpty() ? java.time.Instant.parse(endsStr).getEpochSecond() : 0;
 
-        Button joinBtn = Button.secondary("gw_enter_" + giveawayId, "Join Sweepstakes");
+        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+            .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
         Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries")).asDisabled();
 
-        event.getHook().editOriginalComponents(ActionRow.of(joinBtn, countBtn)).queue(null, err -> {});
+        String body;
+        if (isDrop) {
+            body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** "
+                    + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
+        } else {
+            body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** "
+                    + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:"
+                    + endsTs + ":R>";
+        }
+
+        var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body, EmbedUtil.getDynamicBanner(prize), ActionRow.of(joinBtn, countBtn));
+        java.util.List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new java.util.ArrayList<>();
+        gwComps.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of("<@&1488916921687736421>"));
+        gwComps.add(gwC);
+
+        event.getMessage().editMessageComponents(gwComps).useComponentsV2(true).queue(null, err -> {});
         event.getHook().sendMessage("Registry updated. You have successfully entered the giveaway!").setEphemeral(true).queue();
         
         // Sync Dashboard

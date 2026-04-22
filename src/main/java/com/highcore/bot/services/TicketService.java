@@ -101,7 +101,7 @@ public class TicketService {
             if (v != null && v.get("user_id").getAsString().equals(user.getId()) && !v.get("is_used").getAsBoolean()) {
                 String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
                 int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
-                if (vt.equalsIgnoreCase("PERCENT")) vPercent = va; else vAmount = va;
+                if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) vPercent = va; else vAmount = va;
                 SupabaseClient.markVoucherAsUsed(voucherCode);
             }
         }

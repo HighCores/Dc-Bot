@@ -244,13 +244,14 @@ public class SupabaseClient {
         delete("dc_order_sessions", "user_id=eq." + userId);
     }
 
-    public static JsonObject createGiveaway(String channelId, String guildId, String hostId, String hostName, String type, String details, String currency, String expiry, String service, String discount, int winners, String endsAt, int rewardExpiryDays) {
+    public static JsonObject createGiveaway(String channelId, String guildId, String hostId, String hostName, String type, int prizeValue, String details, String currency, String expiry, String service, String discount, int winners, String endsAt, int rewardExpiryDays) {
         JsonObject body = new JsonObject();
         body.addProperty("channel_id", channelId);
         body.addProperty("guild_id", guildId);
         body.addProperty("host_id", hostId);
         body.addProperty("host_name", hostName);
         body.addProperty("prize_type", type);
+        body.addProperty("prize_value", prizeValue);
         body.addProperty("prize_details", details);
         body.addProperty("currency", currency != null ? currency : "Points");
         body.addProperty("coupon_expiry", expiry != null ? expiry : "7");
@@ -258,6 +259,7 @@ public class SupabaseClient {
         body.addProperty("discount_info", discount != null ? discount : "");
         body.addProperty("winner_count", winners);
         body.addProperty("ends_at", endsAt);
+        body.addProperty("reward_expiry_days", rewardExpiryDays);
         body.addProperty("ended", false);
         return post("dc_giveaways", body);
     }

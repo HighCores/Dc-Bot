@@ -102,8 +102,8 @@ public class VoucherService {
         }
     }
 
-    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails, byte[] winnerImg) {
-        boolean isPercent = type.equalsIgnoreCase("PERCENT");
+    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails, net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch) {
+        boolean isPercent = type.equalsIgnoreCase("PERCENT") || type.toLowerCase().contains("discount");
         String code = generateRandomCode(value, isPercent);
         
         log.info("Voucher Issuance: {} for {}", code, user.getName());
@@ -111,35 +111,29 @@ public class VoucherService {
         
         byte[] voucherImg = drawVoucher(code);
 
-        user.openPrivateChannel().queue(pc -> {
-            long ts = 0;
-            try {
-                ts = java.time.Instant.parse(expiresAt).getEpochSecond();
-            } catch (Exception ignored) {
-                ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
-            }
+        long ts = 0;
+        try {
+            ts = java.time.Instant.parse(expiresAt).getEpochSecond();
+        } catch (Exception ignored) {
+            ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
+        }
 
-            // Embed 1: The personalized winner banner
-            String body1 = "### You have been selected! \uD83C\uDF8A\n" +
-                    "Congratulations on winning the latest **Highcore Agency** deployment. Your dedication to the agency has been rewarded.";
-            
-            var eb1 = EmbedUtil.containerBranded("CONGRATULATIONS", "Winner Identified", body1, 
-                    (winnerImg != null ? "attachment://winner.png" : null));
+        String body2 = "### \uD83C\uDFAB VOUCHER ISSUED\n" +
+                "**Congratulations <@" + user.getId() + ">!**\n" +
+                "● **Item:** `" + prizeDetails + "`\n" +
+                "● **Code:** `" + code + "`\n" +
+                "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)\n\n" +
+                "Claim this voucher through the agency terminal or support desk.";
+        
+        var eb2 = EmbedUtil.containerBranded("PRIZE ACQUIRED", "Voucher Deployment", body2,
+                (voucherImg != null ? "attachment://voucher.png" : null));
 
-            // Embed 2: The actual prize details & Voucher banner
-            String body2 = "● **Item:** `" + prizeDetails + "`\n" +
-                    "● **Code:** `" + code + "`\n" +
-                    "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)\n\n" +
-                    "Claim this voucher through the agency terminal or support desk.";
-            
-            var eb2 = EmbedUtil.containerBranded("PRIZE ACQUIRED", "Voucher Deployment", body2,
-                    (voucherImg != null ? "attachment://voucher.png" : null));
-
-            List<net.dv8tion.jda.api.utils.FileUpload> files = new ArrayList<>();
-            if (winnerImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(winnerImg, "winner.png"));
-            if (voucherImg != null) files.add(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"));
-            
-            pc.sendMessageComponents(eb1, eb2).setFiles(files).useComponentsV2(true).queue(null, err -> log.error("DM Delivery Failure: {}", err.getMessage()));
-        }, err -> log.warn("DM Access Failure for {}: {}", user.getName(), err.getMessage()));
+        if (voucherImg != null) {
+            ch.sendMessageComponents(eb2)
+              .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"))
+              .useComponentsV2(true).queue();
+        } else {
+            ch.sendMessageComponents(eb2).useComponentsV2(true).queue();
+        }
     }
 }

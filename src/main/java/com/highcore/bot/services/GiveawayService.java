@@ -82,7 +82,8 @@ public class GiveawayService {
         int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
-        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(7)).toString();
+        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
         if (winners.isEmpty()) {
             ch.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
@@ -91,7 +92,7 @@ public class GiveawayService {
             final String firstId = winners.get(0);
             jda.retrieveUserById(firstId).queue(user -> {
                 byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
+                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, ch);
                 
                 StringBuilder wb = new StringBuilder();
                 for (String w : winners) wb.append("<@").append(w).append("> ");
@@ -110,7 +111,7 @@ public class GiveawayService {
                 for (int i = 1; i < winners.size(); i++) {
                     jda.retrieveUserById(winners.get(i)).queue(u -> {
                         byte[] wImg = generateWinnerImage(u, prizeDetails);
-                        VoucherService.issueVoucher(u, value, type, expiresAt, prizeDetails, wImg);
+                        VoucherService.issueVoucher(u, value, type, expiresAt, prizeDetails, ch);
                     }, e -> {});
                 }
             }, e -> log.error("Failed to retrieve winner: {}", e.getMessage()));
@@ -166,7 +167,7 @@ public class GiveawayService {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        g.drawImage(avatar, 528, 240, 480, 480, null);
+                        g.drawImage(avatar, 512, 224, 512, 512, null);
                     }
                 }
             } catch (Exception ignored) {}
@@ -198,7 +199,8 @@ public class GiveawayService {
         int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
-        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(7)).toString();
+        int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
+        String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild == null) return;
@@ -207,7 +209,7 @@ public class GiveawayService {
 
         jda.retrieveUserById(winners.get(0)).queue(user -> {
             byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-            VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, winnerImg);
+            VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, ch);
             
             if (winnerImg != null) {
                 var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified", 

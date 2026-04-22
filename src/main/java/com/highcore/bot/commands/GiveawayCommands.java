@@ -211,9 +211,11 @@ public class GiveawayCommands extends ListenerAdapter {
         String cleanType = type.contains("-") ? type.split("-")[0] : type;
         String modalId = "modal_gw_" + type.toLowerCase();
 
-        String defaultPrize = "";
+        String defaultPrize = null;
         if (type.startsWith("Discount-")) {
             defaultPrize = type.split("-")[1] + "% Discount";
+        } else if (type.startsWith("Voucher-")) {
+            defaultPrize = "$" + type.split("-")[1] + " Voucher";
         }
 
         TextInput prizeInput = TextInput.create("prize", TextInputStyle.SHORT)
@@ -359,6 +361,12 @@ public class GiveawayCommands extends ListenerAdapter {
         int expireDays = setupObj.has("expire") ? setupObj.get("expire").getAsInt() : 7;
         boolean isDrop = setupObj.get("isDrop").getAsBoolean();
 
+        int prizeValue = 0;
+        if (type.contains("-")) {
+            try { prizeValue = Integer.parseInt(type.split("-")[1]); } catch(Exception e) {}
+        }
+        String cleanType = type.contains("-") ? type.split("-")[0] : type;
+
         Instant endsAt = Instant.now().plusSeconds(duration * 60L);
         String endsAtIso = isDrop ? Instant.now().plusSeconds(60).toString() : endsAt.toString();
 
@@ -367,7 +375,8 @@ public class GiveawayCommands extends ListenerAdapter {
                 target.getGuild().getId(),
                 event.getUser().getId(),
                 event.getUser().getName(),
-                type,
+                cleanType,
+                prizeValue,
                 prize,
                 "Points",
                 "",
@@ -485,15 +494,29 @@ public class GiveawayCommands extends ListenerAdapter {
         if (mainMsgId != null && mainChanId != null) {
             TextChannel mainCh = guild.getTextChannelById(mainChanId);
             if (mainCh != null) {
-                boolean isDrop = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Drop");
-                Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
-                    .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
-                Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries"));
-                
-                ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
-                
-                // Only edit components to keep the container/embed static
-                mainCh.editMessageComponentsById(mainMsgId, gwRow).queue(null, ex -> {});
+                mainCh.retrieveMessageById(mainMsgId).queue(msg -> {
+                    boolean isDrop = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Drop");
+                    Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
+                    Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries"));
+                    
+                    ActionRow newGwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
+
+                    java.util.List<net.dv8tion.jda.api.components.MessageTopLevelComponent> currentComps = new java.util.ArrayList<>(msg.getComponents());
+                    for (int i = 0; i < currentComps.size(); i++) {
+                        if (currentComps.get(i) instanceof net.dv8tion.jda.api.components.container.Container) {
+                            net.dv8tion.jda.api.components.container.Container currentContainer = (net.dv8tion.jda.api.components.container.Container) currentComps.get(i);
+                            java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> children = new java.util.ArrayList<>(currentContainer.getComponents());
+                            for (int j = 0; j < children.size(); j++) {
+                                if (children.get(j) instanceof ActionRow) {
+                                    children.set(j, newGwRow);
+                                }
+                            }
+                            currentComps.set(i, net.dv8tion.jda.api.components.container.Container.of(children));
+                        }
+                    }
+                    mainCh.editMessageComponentsById(mainMsgId, currentComps).useComponentsV2(true).queue(null, ex -> {});
+                }, ex -> {});
             }
         }
     }
