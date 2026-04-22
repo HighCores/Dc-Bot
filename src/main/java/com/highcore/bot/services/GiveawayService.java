@@ -31,7 +31,7 @@ public class GiveawayService {
     private static final Logger log = LoggerFactory.getLogger(GiveawayService.class);
     private static final ScheduledExecutorService scheduler = Executors.newSingleThreadScheduledExecutor();
 
-    public static final String BANNER_WINNER = "https://i.imgur.com/HtHQ1vP.png";
+    public static final String BANNER_WINNER = "https://imgur.com/lpsAlRe.png";
 
     static {
         ImageIO.setUseCache(false);
@@ -217,7 +217,7 @@ public class GiveawayService {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        g.drawImage(avatar, 512, 224, 512, 512, null);
+                        g.drawImage(avatar, 242, 68, 240, 240, null);
                     }
                 }
             } catch (Exception ignored) {
