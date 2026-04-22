@@ -577,7 +577,7 @@ public class SupabaseClient {
     }
 
     public static JsonObject getVoucherByCode(String code) {
-        JsonArray arr = get("dc_vouchers", "code=eq." + code);
+        JsonArray arr = get("dc_vouchers", "code=ilike." + code);
         if (arr != null && !arr.isEmpty()) return arr.get(0).getAsJsonObject();
         return null;
     }
