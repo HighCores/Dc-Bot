@@ -50,21 +50,23 @@ public class GiveawayCommands extends ListenerAdapter {
             return;
         }
 
-        String desc = "Welcome to the **Registry Hub**.\n\n" +
-                "Easily create rewards, launch instant drops, or review history.\n\n" +
-                "\uD83D\uDCDD **Create Reward** — Step-by-step setup.\n" +
-                "\uD83D\uDCA8 **Instant Drop** — Fast 'first-to-claim' prize.\n" +
-                "\uD83D\uDDD2 **View History** — Review all active deployments.";
+    @Override
+    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
+        if (!event.getName().equalsIgnoreCase("giveaway"))
+            return;
 
         ActionRow row = ActionRow.of(
-                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID
-                        + "/1490334823565365308", "Rewards Feed"),
-                Button.secondary("btn_gw_create", "Create Deployment"),
-                Button.secondary("btn_gw_drop", "Instant Drop"),
-                Button.secondary("btn_gw_history", "View Records"));
+                Button.secondary("btn_gw_create", "Create Giveaway"),
+                Button.secondary("btn_gw_history", "View History"));
 
-        PanelService.reply(event,
-                EmbedUtil.containerBranded("LOGISTICS", "Registry Node", desc, EmbedUtil.BANNER_GIVEAWAY, row));
+        String desc = "Welcome to the **Giveaway Management Hub**.\n" +
+                "Easily create rewards, launch instant drops, or review history.\n\n" +
+                "\uD83D\uDCDD **Create Giveaway** \u2014 Step-by-step setup.\n" +
+                "\uD83D\uDCA8 **Instant Drop** \u2014 Fast 'first-to-claim' prize.\n" +
+                "\uD83D\uDDD2 **View History** \u2014 Check active tasks.";
+
+        PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc,
+                EmbedUtil.BANNER_GIVEAWAY, row));
     }
 
     @Override
@@ -84,27 +86,21 @@ public class GiveawayCommands extends ListenerAdapter {
                 return;
             }
 
-            boolean isDrop = id.equals("btn_gw_drop");
-
-            if (isDrop) {
-                // Drop skips type selection
+            if (id.equals("btn_gw_drop")) {
                 showGiveawayModal(event, "Drop");
             } else {
                 StringSelectMenu menu = StringSelectMenu.create("sel_gw_type")
-                        .setPlaceholder("Select the type of giveaway...")
-                        .addOption("Voucher", "Voucher", "Prize of a specific amount")
-                        .addOption("Discount (10%-60%)", "Discount_Select", "Select a fixed percentage discount")
-                        .addOption("Custom", "Custom", "Anything else")
+                        .setPlaceholder("Select Reward Category...")
+                        .addOption("Digital Voucher", "Voucher")
+                        .addOption("Discount Coupon", "Discount")
+                        .addOption("Custom Reward", "Custom")
                         .build();
 
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("GIVEAWAY CONFIG", "Step 1: Selection",
                         "Please select the **reward type** you wish to distribute.", EmbedUtil.BANNER_GIVEAWAY,
                         ActionRow.of(menu)));
             }
-        } else if (id.startsWith("btn_gw_perc_")) {
-            // New intermediate step for discount percentages
-            String perc = id.replace("btn_gw_perc_", "");
-            showGiveawayModal(event, "Discount_" + perc);
+        } else if (id.equals("btn_gw_history")) {
             if (!Config.isAdmin(event.getMember()))
                 return;
             JsonArray active = SupabaseClient.getAllGiveaways();
@@ -181,25 +177,7 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onStringSelectInteraction(StringSelectInteractionEvent event) {
         if (event.getComponentId().equals("sel_gw_type")) {
             String type = event.getValues().get(0);
-            if (type.equals("Discount_Select")) {
-                StringSelectMenu menu = StringSelectMenu.create("sel_gw_perc")
-                        .setPlaceholder("Select Discount Percentage...")
-                        .addOption("10% Off", "10")
-                        .addOption("20% Off", "20")
-                        .addOption("30% Off", "30")
-                        .addOption("40% Off", "40")
-                        .addOption("50% Off", "50")
-                        .addOption("60% Off", "60")
-                        .build();
-                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT SETUP", "Step 2: Percentage",
-                        "Select the fixed percentage for this deployment.", EmbedUtil.BANNER_GIVEAWAY,
-                        ActionRow.of(menu)));
-            } else {
-                showGiveawayModal(event, type);
-            }
-        } else if (event.getComponentId().equals("sel_gw_perc")) {
-            String perc = event.getValues().get(0);
-            showGiveawayModal(event, "Discount-" + perc);
+            showGiveawayModal(event, type);
         }
     }
 
