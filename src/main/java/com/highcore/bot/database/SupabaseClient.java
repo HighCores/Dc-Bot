@@ -111,6 +111,8 @@ public class SupabaseClient {
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
+        body.addProperty("type", type);
+        body.addProperty("priority", priority);
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
         post("dc_tickets", body);
