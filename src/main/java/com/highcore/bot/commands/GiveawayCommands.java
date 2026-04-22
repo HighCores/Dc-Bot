@@ -42,18 +42,13 @@ public class GiveawayCommands extends ListenerAdapter {
 
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("giveaway"))
+        if (!event.getName().equalsIgnoreCase("giveaway"))
             return;
 
         if (!Config.isAdmin(event.getMember())) {
             PanelService.reply(event, EmbedUtil.accessDenied());
             return;
         }
-
-    @Override
-    public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equalsIgnoreCase("giveaway"))
-            return;
 
         ActionRow row = ActionRow.of(
                 Button.secondary("btn_gw_create", "Create Giveaway"),
@@ -238,11 +233,11 @@ public class GiveawayCommands extends ListenerAdapter {
         String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount"
                 : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
 
-        Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "GIVEAWAY: " + type.toUpperCase())
+        Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "REWARD CONFIG")
                 .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Number of Winners", winnersInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Duration (Minutes)", timeInput))
+                        ActionRow.of(prizeInput),
+                        ActionRow.of(winnersInput),
+                        ActionRow.of(timeInput))
                 .build();
 
         event.replyModal(modal).queue();
