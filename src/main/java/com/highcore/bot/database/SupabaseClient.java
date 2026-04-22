@@ -251,12 +251,11 @@ public class SupabaseClient {
         body.addProperty("host_id", hostId);
         body.addProperty("host_name", hostName);
         body.addProperty("prize_type", type);
-        body.addProperty("prize_value", prizeValue);
         body.addProperty("prize_details", details);
         body.addProperty("currency", currency != null ? currency : "Points");
         body.addProperty("coupon_expiry", expiry != null ? expiry : "7");
         body.addProperty("service_name", service != null ? service : "General");
-        body.addProperty("discount_info", discount != null ? discount : "");
+        body.addProperty("discount_info", String.valueOf(prizeValue));
         body.addProperty("winner_count", winners);
         body.addProperty("ends_at", endsAt);
         body.addProperty("reward_expiry_days", rewardExpiryDays);

@@ -79,7 +79,12 @@ public class GiveawayService {
         SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
 
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
-        int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
+        int value = 0;
+        if (g.has("prize_value") && !g.get("prize_value").isJsonNull()) {
+            try { value = g.get("prize_value").getAsInt(); } catch(Exception e) {}
+        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull() && !g.get("discount_info").getAsString().isEmpty()) {
+            try { value = Integer.parseInt(g.get("discount_info").getAsString()); } catch(Exception e) {}
+        }
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
         int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
@@ -196,7 +201,12 @@ public class GiveawayService {
         List<String> winners = pickWinners(userIds, 1);
         
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
-        int value = g.has("prize_value") ? g.get("prize_value").getAsInt() : 0;
+        int value = 0;
+        if (g.has("prize_value") && !g.get("prize_value").isJsonNull()) {
+            try { value = g.get("prize_value").getAsInt(); } catch(Exception e) {}
+        } else if (g.has("discount_info") && !g.get("discount_info").isJsonNull() && !g.get("discount_info").getAsString().isEmpty()) {
+            try { value = Integer.parseInt(g.get("discount_info").getAsString()); } catch(Exception e) {}
+        }
         String type = g.has("prize_type") ? g.get("prize_type").getAsString() : "PERCENT";
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : Instant.now().toString();
         int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
