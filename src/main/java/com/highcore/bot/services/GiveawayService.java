@@ -138,13 +138,13 @@ public class GiveawayService {
                 if (winnerImg != null) {
                     var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified",
                             wb + " won **" + prizeDetails
-                                    + "**!\n\nEstablishing agency dominance. Highcore operations finalized.",
+                                    + "**!\n\n> Voucher Sent In Dm",
                             "attachment://winner.png");
 
                     ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb)
                             .useComponentsV2(true).queue();
                 } else {
-                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!")
+                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!\n> Voucher Sent In Dm")
                             .queue();
                 }
 
@@ -217,7 +217,7 @@ public class GiveawayService {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        g.drawImage(avatar, 242, 68, 240, 240, null);
+                        g.drawImage(avatar, 181, 274, 685, 685, null);
                     }
                 }
             } catch (Exception ignored) {

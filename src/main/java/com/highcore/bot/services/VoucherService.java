@@ -146,7 +146,5 @@ public class VoucherService {
             });
         }
 
-        // Public Notification
-        ch.sendMessage("### \uD83D\uDCE9 VOUCHER SENT In DM\n<@" + user.getId() + ">, your prize voucher has been delivered to your Direct Messages.").queue();
     }
 }
