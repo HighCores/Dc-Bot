@@ -107,7 +107,7 @@ public class VoucherService {
         String code = generateRandomCode(value, isPercent);
         
         log.info("Voucher Issuance: {} for {}", code, user.getName());
-        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value);
+        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
         
         byte[] voucherImg = drawVoucher(code);
 
