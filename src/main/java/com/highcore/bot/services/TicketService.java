@@ -103,7 +103,8 @@ public class TicketService {
                 String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
                 int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
                 if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) vPercent = va; else vAmount = va;
-
+            }
+        }
 
         final double subTotal = allItems.stream().mapToDouble(i -> i.price).sum();
         final int fPerc = Math.max(globalDiscount, vPercent);
