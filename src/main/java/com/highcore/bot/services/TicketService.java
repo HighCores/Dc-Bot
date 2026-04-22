@@ -107,7 +107,8 @@ public class TicketService {
         int globalDiscount = SupabaseClient.getGlobalDiscountPercentage();
         int vPercent = 0, vAmount = 0;
         if (voucherCode != null && !voucherCode.isBlank()) {
-            JsonObject v = SupabaseClient.getVoucherByCode(voucherCode);
+            String cleanV = voucherCode.trim().toUpperCase();
+            JsonObject v = SupabaseClient.getVoucherByCode(cleanV);
             if (v != null && v.get("user_id").getAsString().equals(user.getId()) && !v.get("is_used").getAsBoolean()) {
                 String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
                 int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
@@ -153,10 +154,13 @@ public class TicketService {
                     ticketCache.put(channel.getId(), ticket);
 
                     SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
-                    if (voucherCode != null && !voucherCode.isBlank())
-                        SupabaseClient.markVoucherAsUsed(voucherCode);
-
                     SupabaseClient.saveTicketMeta(tid, meta);
+
+                    if (voucherCode != null && !voucherCode.isBlank()) {
+                        String cleanCode = voucherCode.trim().toUpperCase();
+                        log.info("Marking voucher as used: {}", cleanCode);
+                        SupabaseClient.markVoucherAsUsed(cleanCode);
+                    }
 
                     channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel))
                             .useComponentsV2(true).queue();
