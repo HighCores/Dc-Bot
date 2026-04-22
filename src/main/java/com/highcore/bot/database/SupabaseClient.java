@@ -115,6 +115,7 @@ public class SupabaseClient {
         body.addProperty("priority", priority);
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
+        log.info("[DB DEBUG] Creating ticket: {}", body.toString());
         post("dc_tickets", body);
     }
 
@@ -476,7 +477,7 @@ public class SupabaseClient {
         try (Response response = http.newCall(request).execute()) {
             String b = response.body() != null ? response.body().string() : "{}";
             if (!response.isSuccessful()) {
-                log.error("POST {} failed: {} - {}", table, response.code(), b);
+                log.error("POST {} failed: {} - {} | Body: {}", table, response.code(), b, body.toString());
                 return null;
             }
             JsonElement el = JsonParser.parseString(b);
