@@ -129,11 +129,24 @@ public class VoucherService {
                 (voucherImg != null ? "attachment://voucher.png" : null));
 
         if (voucherImg != null) {
-            ch.sendMessageComponents(eb2)
-              .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"))
-              .useComponentsV2(true).queue();
+            user.openPrivateChannel().queue(dm -> {
+                dm.sendMessageComponents(eb2)
+                  .setFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"))
+                  .useComponentsV2(true).queue(null, ex -> {
+                      log.error("Failed to DM voucher to {}: {}", user.getName(), ex.getMessage());
+                      ch.sendMessage("### \u26A0\uFE0F ENCRYPTION ERROR\n<@" + user.getId() + ">, I couldn't DM your voucher. Please enable DMs and contact staff.").queue();
+                  });
+            });
         } else {
-            ch.sendMessageComponents(eb2).useComponentsV2(true).queue();
+            user.openPrivateChannel().queue(dm -> {
+                dm.sendMessageComponents(eb2).useComponentsV2(true).queue(null, ex -> {
+                    log.error("Failed to DM voucher to {}: {}", user.getName(), ex.getMessage());
+                    ch.sendMessage("### \u26A0\uFE0F ENCRYPTION ERROR\n<@" + user.getId() + ">, I couldn't DM your voucher. Please enable DMs and contact staff.").queue();
+                });
+            });
         }
+
+        // Public Notification
+        ch.sendMessage("### \uD83D\uDCE9 VOUCHER SENT\n<@" + user.getId() + ">, your prize voucher has been delivered to your Direct Messages.").queue();
     }
 }
