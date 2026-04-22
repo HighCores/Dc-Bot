@@ -235,9 +235,9 @@ public class GiveawayCommands extends ListenerAdapter {
 
         Modal modal = Modal.create(modalId, isDrop ? "QUICK DROP SETUP" : "REWARD CONFIG")
                 .addComponents(
-                        ActionRow.of(prizeInput),
-                        ActionRow.of(winnersInput),
-                        ActionRow.of(timeInput))
+                        net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Winner Count", winnersInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Duration (Min)", timeInput))
                 .build();
 
         event.replyModal(modal).queue();
