@@ -53,6 +53,8 @@ public class TicketService {
             .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
             .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), null)
             .queue(ch -> {
+                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
+                
                 JsonObject ticket = new JsonObject();
                 ticket.addProperty("ticket_id", tid);
                 ticket.addProperty("user_id", user.getId());
@@ -67,7 +69,6 @@ public class TicketService {
                 ticket.add("metadata", meta);
                 ticketCache.put(ch.getId(), ticket);
 
-                SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
                 SupabaseClient.saveTicketMeta(tid, meta);
                 
                 LogManager.logEmbed(guild, Config.LOG_TICKETS, 
@@ -102,9 +103,7 @@ public class TicketService {
                 String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
                 int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
                 if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) vPercent = va; else vAmount = va;
-                SupabaseClient.markVoucherAsUsed(voucherCode);
-            }
-        }
+
 
         final double subTotal = allItems.stream().mapToDouble(i -> i.price).sum();
         final int fPerc = Math.max(globalDiscount, vPercent);
@@ -136,6 +135,8 @@ public class TicketService {
                 ticketCache.put(channel.getId(), ticket);
 
                 SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
+                if (voucherCode != null && !voucherCode.isBlank()) SupabaseClient.markVoucherAsUsed(voucherCode);
+                
                 SupabaseClient.saveTicketMeta(tid, meta);
 
                 channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel)).useComponentsV2(true).queue();
