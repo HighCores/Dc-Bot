@@ -132,7 +132,7 @@ public class GiveawayService {
 
     public static byte[] generateWinnerImage(net.dv8tion.jda.api.entities.User user, String prize) {
         log.info("Winner Image: Processing for {} with prize {}", user.getName(), prize);
-        String bannerUrl = EmbedUtil.getDynamicBanner(prize);
+        String bannerUrl = BANNER_WINNER;
         try {
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(bannerUrl).openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36");
@@ -166,7 +166,7 @@ public class GiveawayService {
                     byte[] avBytes = is.readAllBytes();
                     BufferedImage avatar = ImageIO.read(new ByteArrayInputStream(avBytes));
                     if (avatar != null) {
-                        g.drawImage(avatar, 470, 275, 620, 620, null);
+                        g.drawImage(avatar, 528, 240, 480, 480, null);
                     }
                 }
             } catch (Exception ignored) {}

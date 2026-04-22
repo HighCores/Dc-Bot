@@ -230,6 +230,10 @@ public class GiveawayCommands extends ListenerAdapter {
                 .setPlaceholder("Duration in minutes (e.g. 60)")
                 .setRequired(!isDrop).setValue(isDrop ? "0" : "60").build();
 
+        TextInput expireInput = TextInput.create("expire", TextInputStyle.SHORT)
+                .setPlaceholder("Expiry in days (e.g. 7)")
+                .setRequired(true).setValue("7").build();
+
         String prizeLabelText = (type.equals("Voucher") ? "Voucher Amount"
                 : type.equals("Discount") ? "Discount Percentage" : "Reward Details");
 
@@ -237,7 +241,8 @@ public class GiveawayCommands extends ListenerAdapter {
                 .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of(prizeLabelText, prizeInput),
                         net.dv8tion.jda.api.components.label.Label.of("Winner Count", winnersInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Duration (Min)", timeInput))
+                        net.dv8tion.jda.api.components.label.Label.of("Duration (Min)", timeInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Expiry (Days)", expireInput))
                 .build();
 
         event.replyModal(modal).queue();
@@ -283,15 +288,19 @@ public class GiveawayCommands extends ListenerAdapter {
 
         int winCount = 1;
         int duration = 0;
+        int expireDays = 7;
 
         try {
             winCount = Integer.parseInt(event.getValue("winners").getAsString());
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
         try {
             duration = Integer.parseInt(event.getValue("duration").getAsString());
-        } catch (Exception e) {
-        }
+        } catch (Exception e) {}
+        try {
+            if (event.getValue("expire") != null) {
+                expireDays = Integer.parseInt(event.getValue("expire").getAsString());
+            }
+        } catch (Exception e) {}
 
         String tempId = "setup_" + System.currentTimeMillis() + "_" + event.getUser().getId();
 
@@ -300,6 +309,7 @@ public class GiveawayCommands extends ListenerAdapter {
         setupObj.addProperty("type", typeStr);
         setupObj.addProperty("winCount", winCount);
         setupObj.addProperty("duration", duration);
+        setupObj.addProperty("expire", expireDays);
         setupObj.addProperty("isDrop", isDrop);
 
         pendingGiveaways.put(tempId, setupObj);
@@ -346,6 +356,7 @@ public class GiveawayCommands extends ListenerAdapter {
         String type = setupObj.get("type").getAsString();
         int winCount = setupObj.get("winCount").getAsInt();
         int duration = setupObj.get("duration").getAsInt();
+        int expireDays = setupObj.has("expire") ? setupObj.get("expire").getAsInt() : 7;
         boolean isDrop = setupObj.get("isDrop").getAsBoolean();
 
         Instant endsAt = Instant.now().plusSeconds(duration * 60L);
@@ -364,7 +375,7 @@ public class GiveawayCommands extends ListenerAdapter {
                 "",
                 winCount,
                 endsAtIso,
-                7);
+                expireDays);
 
         if (gw == null) {
             event.getHook().sendMessage("Failed to create giveaway in database.").setEphemeral(true).queue();
@@ -467,15 +478,22 @@ public class GiveawayCommands extends ListenerAdapter {
         ch.editMessageComponentsById(msgId, dashC).useComponentsV2(true).queue(null, ex -> {
         });
 
-        // Also update the main giveaway message count button if possible
-        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString()
-                : null;
+        // Also update the main giveaway message count button
+        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
         String mainChanId = g.has("channel_id") ? g.get("channel_id").getAsString() : null;
+        
         if (mainMsgId != null && mainChanId != null) {
             TextChannel mainCh = guild.getTextChannelById(mainChanId);
             if (mainCh != null) {
-                // This is a bit complex as we'd need to re-fetch the whole message structure
-                // For now, updating the dashboard is priority
+                boolean isDrop = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Drop");
+                Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+                    .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
+                Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries"));
+                
+                ActionRow gwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
+                
+                // Only edit components to keep the container/embed static
+                mainCh.editMessageComponentsById(mainMsgId, gwRow).queue(null, ex -> {});
             }
         }
     }

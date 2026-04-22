@@ -134,21 +134,27 @@ public class CentralInteractionListener extends ListenerAdapter {
             String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
             if (!vc.trim().isEmpty()) {
                 JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim().toUpperCase());
-                boolean valid = true;
-                if (v == null) valid = false;
-                else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) valid = false;
-                else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) valid = false;
-                else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                String errorMsg = null;
+                if (v == null) {
+                    errorMsg = "Code is not registered in the database.";
+                } else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) {
+                    errorMsg = "This code belongs to another user.";
+                } else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) {
+                    errorMsg = "This voucher has already been used and claimed.";
+                } else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                    boolean expired = false;
                     try {
-                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) valid = false;
+                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) expired = true;
                     } catch (Exception e) {
                         try {
-                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) valid = false;
+                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) expired = true;
                         } catch (Exception e2) {}
                     }
+                    if (expired) errorMsg = "This voucher is expired and cannot be used.";
                 }
-                if (!valid) {
-                    event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
+                
+                if (errorMsg != null) {
+                    event.reply("❌ **Invalid Voucher** \u2014 " + errorMsg).setEphemeral(true).queue();
                     return;
                 }
             }
@@ -163,21 +169,27 @@ public class CentralInteractionListener extends ListenerAdapter {
             String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
             if (!vc.trim().isEmpty()) {
                 JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim().toUpperCase());
-                boolean valid = true;
-                if (v == null) valid = false;
-                else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) valid = false;
-                else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) valid = false;
-                else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                String errorMsg = null;
+                if (v == null) {
+                    errorMsg = "Code is not registered in the database.";
+                } else if (!v.get("user_id").getAsString().equals(event.getUser().getId())) {
+                    errorMsg = "This code belongs to another user.";
+                } else if (v.has("is_used") && !v.get("is_used").isJsonNull() && v.get("is_used").getAsBoolean()) {
+                    errorMsg = "This voucher has already been used and claimed.";
+                } else if (v.has("expires_at") && !v.get("expires_at").isJsonNull()) {
+                    boolean expired = false;
                     try {
-                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) valid = false;
+                        if (java.time.OffsetDateTime.parse(v.get("expires_at").getAsString()).toInstant().isBefore(java.time.Instant.now())) expired = true;
                     } catch (Exception e) {
                         try {
-                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) valid = false;
+                            if (java.time.Instant.parse(v.get("expires_at").getAsString()).isBefore(java.time.Instant.now())) expired = true;
                         } catch (Exception e2) {}
                     }
+                    if (expired) errorMsg = "This voucher is expired and cannot be used.";
                 }
-                if (!valid) {
-                    event.reply("❌ **Invalid Voucher** \u2014 The code provides is either expired, already used, or not assigned to your account.").setEphemeral(true).queue();
+                
+                if (errorMsg != null) {
+                    event.reply("❌ **Invalid Voucher** \u2014 " + errorMsg).setEphemeral(true).queue();
                     return;
                 }
             }
