@@ -133,7 +133,9 @@ public class CentralInteractionListener extends ListenerAdapter {
         if (id.equals("order_modal")) {
             String vc = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
             if (!vc.trim().isEmpty()) {
-                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(vc.trim().toUpperCase());
+                String cleanCode = vc.trim().toUpperCase();
+                JsonObject v = com.highcore.bot.database.SupabaseClient.getVoucherByCode(cleanCode);
+                log.info("[VOUCHER DEBUG] Code: {}, Found: {}, State: {}", cleanCode, (v != null), (v != null ? v.get("is_used") : "N/A"));
                 String errorMsg = null;
                 if (v == null) {
                     errorMsg = "Code is not registered in the database.";
