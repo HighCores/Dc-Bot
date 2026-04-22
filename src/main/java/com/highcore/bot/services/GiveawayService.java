@@ -90,6 +90,8 @@ public class GiveawayService {
         int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
         String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
+        final int finalValue = value;
+
         if (winners.isEmpty()) {
             ch.sendMessageComponents(EmbedUtil.containerBranded("GIVEAWAY ENDED", "No Winners", 
                 "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.", EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
@@ -97,7 +99,7 @@ public class GiveawayService {
             final String firstId = winners.get(0);
             jda.retrieveUserById(firstId).queue(user -> {
                 byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-                VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, ch);
+                VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
                 
                 StringBuilder wb = new StringBuilder();
                 for (String w : winners) wb.append("<@").append(w).append("> ");
@@ -116,7 +118,7 @@ public class GiveawayService {
                 for (int i = 1; i < winners.size(); i++) {
                     jda.retrieveUserById(winners.get(i)).queue(u -> {
                         byte[] wImg = generateWinnerImage(u, prizeDetails);
-                        VoucherService.issueVoucher(u, value, type, expiresAt, prizeDetails, ch);
+                        VoucherService.issueVoucher(u, finalValue, type, expiresAt, prizeDetails, ch);
                     }, e -> {});
                 }
             }, e -> log.error("Failed to retrieve winner: {}", e.getMessage()));
@@ -212,6 +214,8 @@ public class GiveawayService {
         int expiryDays = g.has("reward_expiry_days") ? g.get("reward_expiry_days").getAsInt() : 7;
         String expiresAt = Instant.parse(endsStr).plus(java.time.Duration.ofDays(expiryDays)).toString();
 
+        final int finalValue = value;
+
         Guild guild = jda.getGuildById(Config.GUILD_ID);
         if (guild == null) return;
         TextChannel ch = guild.getTextChannelById(g.get("channel_id").getAsString());
@@ -219,7 +223,7 @@ public class GiveawayService {
 
         jda.retrieveUserById(winners.get(0)).queue(user -> {
             byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-            VoucherService.issueVoucher(user, value, type, expiresAt, prizeDetails, ch);
+            VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
             
             if (winnerImg != null) {
                 var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified", 
