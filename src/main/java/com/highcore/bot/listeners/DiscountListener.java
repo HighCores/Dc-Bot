@@ -52,8 +52,14 @@ public class DiscountListener extends ListenerAdapter {
                     .setRequired(true)
                     .build();
 
+            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT)
+                    .setPlaceholder("e.g. Summer Sale")
+                    .setRequired(true)
+                    .build();
+
             event.replyModal(Modal.create("modal_disc_save_MANUAL_NONE", "Deploy MANUAL Discount")
                     .addComponents(
+                        net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
                         net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
                         net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput)
                     )
@@ -85,9 +91,11 @@ public class DiscountListener extends ListenerAdapter {
                 String type = d.get("type").getAsString();
                 String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString() : "NONE";
                 int percent = d.has("percentage") ? d.get("percentage").getAsInt() : 15;
+                String name = d.has("name") ? d.get("name").getAsString() : "Discount Event";
 
                 sb.append("\u25AB\uFE0F **").append(date).append("** \u2014 **").append(percent).append("%** ")
-                  .append("(`").append(type).append("` | `").append(repeat).append("`)\n");
+                  .append("(_").append(name).append("_)\n")
+                  .append("      (`").append(type).append("` | `").append(repeat).append("`)\n");
             }
 
             PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null, 
@@ -146,9 +154,16 @@ public class DiscountListener extends ListenerAdapter {
         if (id.equals("sel_disc_interval")) {
             // ... (existing auto deploy logic)
             String interval = event.getValues().get(0);
+            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("e.g. Monthly Bonus").setRequired(true).build();
             TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder("e.g. 2026-04-25").setRequired(true).build();
             TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT).setPlaceholder("e.g. 15").setRequired(true).build();
-            event.replyModal(Modal.create("modal_disc_save_AUTO_" + interval, "Configure AUTO Discount").addComponents(net.dv8tion.jda.api.components.label.Label.of("Start Date", dateInput), net.dv8tion.jda.api.components.label.Label.of("Percentage", percentInput)).build()).queue();
+            
+            event.replyModal(Modal.create("modal_disc_save_AUTO_" + interval, "Configure AUTO Discount")
+                    .addComponents(
+                        net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Start Date", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Percentage", percentInput)
+                    ).build()).queue();
         } else if (id.equals("sel_disc_edit_pick")) {
             String dbIdStr = event.getValues().get(0);
             event.reply("How would you like to proceed with this discount?")
@@ -169,6 +184,7 @@ public class DiscountListener extends ListenerAdapter {
             String[] parts = id.split("_");
             String type = parts[3];
             String repeat = parts[4];
+            String name = event.getValue("name").getAsString().trim();
             String dateRaw = event.getValue("date").getAsString().trim();
             String percentStr = event.getValue("percent").getAsString();
 
@@ -176,9 +192,9 @@ public class DiscountListener extends ListenerAdapter {
             String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error.").setEphemeral(true).queue(); return; }
             int percent; try { percent = Integer.parseInt(percentStr.replace("%", "").trim()); } catch (Exception e) { event.reply("Invalid percentage.").setEphemeral(true).queue(); return; }
 
-            SupabaseClient.createDiscount(type, date, repeat, percent);
+            SupabaseClient.createDiscount(type, date, repeat, percent, name);
             try { if (event.getMessage() != null) DiscountService.updateDiscountPanel(event, LocalDate.now().getYear(), LocalDate.now().getMonthValue()); } catch (Exception e) {}
-            event.reply("### \u2705 Success\nDiscount scheduled for **" + date + "**.").setEphemeral(true).queue();
+            event.reply("### \u2705 Success\nDiscount **" + name + "** scheduled for **" + date + "**.").setEphemeral(true).queue();
         } else if (id.startsWith("modal_disc_edit_save_")) {
             long dbId = Long.parseLong(id.replace("modal_disc_edit_save_", ""));
             String dateRaw = event.getValue("date").getAsString().trim();
