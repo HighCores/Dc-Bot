@@ -200,7 +200,11 @@ public class PanelService {
                     }
                     
                     createBuilder.setComponents(allComps).useComponentsV2(true); // Flag on builder
-                    event.reply(createBuilder.build()).setEphemeral(ephemeral).useComponentsV2(true).queue();
+                    event.reply(createBuilder.build())
+                        .setEphemeral(ephemeral)
+                        .setAllowedMentions(java.util.Collections.emptyList())
+                        .useComponentsV2(true)
+                        .queue();
                 }
             } catch (Exception ex) {
                 log.error("PanelService handleReply failure", ex);
@@ -220,7 +224,10 @@ public class PanelService {
             List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
             if (contentRaw != null && !contentRaw.isEmpty()) allComps.add(0, TextDisplay.of(contentRaw));
             builder.setComponents(allComps).useComponentsV2(true);
-            channel.sendMessage(builder.build()).useComponentsV2(true).queue();
+            channel.sendMessage(builder.build())
+                .setAllowedMentions(java.util.Collections.emptyList())
+                .useComponentsV2(true)
+                .queue();
         }
     }
 
