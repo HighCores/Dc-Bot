@@ -164,20 +164,19 @@ public class InvoiceService {
             double finalTotal = Math.max(0, (subtotalVal + taxVal) - discount);
 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
-            g.setColor(COL_GOLD);
+            
+            // Subtotal & Discount in #ffd570
+            g.setColor(Color.decode("#ffd570"));
             g.drawString("$" + fmt(subtotalVal), (int)(245 * sX), (int)(862 * sY)); 
             
-            // Format deduction: -$Amount (Percentage%)
             String discStr = "-$" + fmt(discount);
             if (discountPercent > 0) discStr += " (" + discountPercent + "%)";
             g.drawString(discStr, (int)(245 * sX), (int)(888 * sY)); 
+            
+            // Removed redundant coupon deduction display branch
 
-            // Draw Coupon Deduction in the field below DISCOUNT
-            if (couponDiscount > 0) {
-                String coupStr = "-$" + fmt(couponDiscount);
-                g.drawString(coupStr, (int)(245 * sX), (int)(914 * sY));
-            }
-
+            // Tax & Total Price in WHITE
+            g.setColor(Color.WHITE);
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(23 * sX)));
             g.drawString("$" + fmt(finalTotal),  (int)(775 * sX), (int)(888 * sY));
