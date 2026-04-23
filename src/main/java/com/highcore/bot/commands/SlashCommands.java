@@ -19,9 +19,9 @@ import net.dv8tion.jda.api.modals.Modal;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import net.dv8tion.jda.api.utils.FileUpload;
-import java.net.URI;
-import java.io.InputStream;
+import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
+import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -237,13 +237,8 @@ public class SlashCommands extends ListenerAdapter {
             "https://i.imgur.com/KTPxBfL.png"
         };
 
-        for (int i = 0; i < imgs.length; i++) {
-            try {
-                InputStream is = URI.create(imgs[i]).toURL().openStream();
-                event.getChannel().sendFiles(FileUpload.fromData(is, "term_" + (i+1) + ".png")).queue();
-            } catch (Exception e) {
-                event.getChannel().sendMessage(imgs[i]).queue();
-            }
+        for (String img : imgs) {
+            PanelService.reply(event.getChannel(), Container.of(MediaGallery.of(MediaGalleryItem.fromUrl(img))));
         }
         event.getHook().sendMessage("✅ Terms sent to channel.").setEphemeral(true).queue();
     }
