@@ -108,6 +108,7 @@ public class SupabaseClient {
     }
 
     public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
+        log.info("[TRACE] createTicket called for ID: {}", ticketId);
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
@@ -117,8 +118,10 @@ public class SupabaseClient {
         body.addProperty("priority", priority);
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
-        log.info("[DB DEBUG] Creating ticket: {}", body.toString());
+        
+        log.info("[TRACE] Attempting POST to dc_tickets: {}", body.toString());
         post("dc_tickets", body);
+        log.info("[TRACE] createTicket finished for ID: {}", ticketId);
     }
 
     public static void saveTicketMeta(String ticketId, JsonObject meta) {
@@ -475,11 +478,14 @@ public class SupabaseClient {
     }
 
     public static JsonObject post(String table, JsonObject body) {
+        log.info("[HTTP TRACE] POST to {} with body: {}", table, body.toString());
         Request request = auth(new Request.Builder()).url(url(table)).post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
+            int code = response.code();
             String b = response.body() != null ? response.body().string() : "{}";
+            log.info("[HTTP TRACE] POST to {} returned code: {} | Response: {}", table, code, b);
             if (!response.isSuccessful()) {
-                log.error("POST {} failed: {} - {} | Body: {}", table, response.code(), b, body.toString());
+                log.error("POST {} failed: {} - {} | Body: {}", table, code, b, body.toString());
                 return null;
             }
             JsonElement el = JsonParser.parseString(b);

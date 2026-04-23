@@ -39,9 +39,14 @@ public class InvoiceService {
                 try (InputStream is = conn.getInputStream()) {
                     template = ImageIO.read(is);
                 }
-            } catch (Exception e) {}
+            } catch (Exception e) {
+                log.error("[INVOICE ERROR] Failed to read template from url: " + templateUrl, e);
+            }
 
-            if (template == null) return null;
+            if (template == null) {
+                log.error("[INVOICE ERROR] Template image is null (failed to load). URL: " + templateUrl);
+                return null;
+            }
 
             int W = template.getWidth();
             int H = template.getHeight();
