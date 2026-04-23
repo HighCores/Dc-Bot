@@ -228,7 +228,7 @@ public class GiveawayService {
             g.setFont(new Font("Segoe UI", Font.BOLD, 75));
             // Center roughly within the rect (1292,638 to 2093,718)
             // Width is ~800px, Height is ~80px.
-            String name = user.getName().toUpperCase();
+            String name = user.getEffectiveName().toUpperCase();
             FontMetrics metrics = g.getFontMetrics();
             int nameX = 1292 + (801 - metrics.stringWidth(name)) / 2;
             int nameY = 638 + ((80 - metrics.getHeight()) / 2) + metrics.getAscent();
