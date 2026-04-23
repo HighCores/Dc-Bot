@@ -36,7 +36,7 @@ public class SafetyListener extends ListenerAdapter {
     private void handleViolation(MessageReceivedEvent event, String word) {
         event.getMessage().delete().queue(v -> {
             String logMsg = "### 🚨 FIREWALL BREACH DETECTED\n" +
-                    "\u25AB\uFE0F **Subject:** " + event.getAuthor().getAsMention() + " (" + event.getAuthor().getName() + ")\n" +
+                    "\u25AB\uFE0F **Subject:** " + event.getAuthor().getAsMention() + "\n" +
                     "\u25AB\uFE0F **Channel:** " + event.getChannel().getAsMention() + "\n" +
                     "\u25AB\uFE0F **Detected Term:** `" + word + "`\n" +
                     "\u25AB\uFE0F **Action:** `Message Purged & Violation Recorded`";

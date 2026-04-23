@@ -57,7 +57,7 @@ public class MessageListener extends ListenerAdapter {
                 String now = java.time.LocalDateTime.now().format(dtf);
                 
                 String logBody = "### 🛡️ RESTRICTED WORD DETECTED\n" +
-                        "**Under surveillance:** <@" + event.getAuthor().getId() + "> ( `" + event.getAuthor().getId() + "` )\n" +
+                        "**Under surveillance:** <@" + event.getAuthor().getId() + ">\n" +
                         "**Channel:** " + event.getChannel().getAsMention() + "\n" +
                         "**Timestamp:** `" + now + "`\n" +
                         "**Forbidden term:** `" + forbidden + "`\n" +
