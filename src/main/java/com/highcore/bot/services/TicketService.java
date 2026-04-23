@@ -116,7 +116,10 @@ public class TicketService {
 
                 if (userMatches && !isUsed) {
                     String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
-                    int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
+                    int va = 0;
+                    if (v.has("percentage")) va = v.get("percentage").getAsInt();
+                    else if (v.has("amount")) va = v.get("amount").getAsInt();
+
                     if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) {
                         vPercent = va;
                     } else {
