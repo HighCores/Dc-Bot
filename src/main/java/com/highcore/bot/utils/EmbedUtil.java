@@ -36,6 +36,7 @@ public class EmbedUtil {
     // Replace the "PLACEHOLDER" parts below with real Imgur IDs.
     public static final String BANNER_MAIN = "https://i.imgur.com/lOQt0gJ.png";
     public static final String BANNER_WELCOME = "https://i.imgur.com/QF8QFQm.png";
+    public static final String BANNER_STARTUP_HEADER = "https://i.imgur.com/RDb9nSh.png";
     public static final String BANNER_GIVEAWAY = "https://i.imgur.com/iKKg1BG.png";
     
     // Support category banners
@@ -147,7 +148,10 @@ public class EmbedUtil {
 
     public static Container startupPanel(ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
-        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_WELCOME)));
+        layout.add(MediaGallery.of(
+            MediaGalleryItem.fromUrl(BANNER_STARTUP_HEADER),
+            MediaGalleryItem.fromUrl(BANNER_WELCOME)
+        ));
 
         layout.add(TextDisplay.of("**Highcore Agency**"));
         layout.add(Separator.createDivider(Spacing.SMALL));
