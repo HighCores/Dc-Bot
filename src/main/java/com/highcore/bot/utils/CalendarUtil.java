@@ -17,48 +17,43 @@ public class CalendarUtil {
         StringBuilder sb = new StringBuilder();
         String monthName = ym.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
 
-        sb.append("`|-------------------------------------------|`\n");
-        sb.append("`|` **").append(String.format("%-39s", monthName + " " + year)).append("** `|`\n");
-        sb.append("`|-------------------------------------------|`\n");
-        sb.append("`|  Su |  Mo |  Tu |  We |  Th |  Fr |  Sa  |`\n");
-        sb.append("`|-------------------------------------------|`\n");
+        sb.append("**").append(monthName).append(" ").append(year).append("**\n");
+        sb.append("` Su  Mo  Tu  We  Th  Fr  Sa `\n");
 
         int currentDay = 1;
-        sb.append("`|` ");
+        sb.append("` ");
         
         // Initial padding
         for (int i = 0; i < startOffset; i++) {
-            sb.append("    | ");
+            sb.append("    ");
         }
 
         for (int i = startOffset; i < 7; i++) {
             appendDay(sb, currentDay++, scheduledDates);
         }
-        sb.append("`\n");
+        sb.append("` \n");
 
         while (currentDay <= length) {
-            sb.append("`|` ");
+            sb.append("` ");
             for (int i = 0; i < 7; i++) {
                 if (currentDay <= length) {
                     appendDay(sb, currentDay++, scheduledDates);
                 } else {
-                    sb.append("    | ");
+                    sb.append("    ");
                 }
             }
-            sb.append("`\n");
+            sb.append("` \n");
         }
         
-        sb.append("`|-------------------------------------------|`\n");
-
         return sb.toString();
     }
 
     private static void appendDay(StringBuilder sb, int day, Set<Integer> scheduledDates) {
         String dayStr = String.format("%02d", day);
         if (scheduledDates.contains(day)) {
-            sb.append(" [").append(dayStr).append("] |"); // Higher fidelity symbol
+            sb.append("[").append(dayStr).append("] "); // Using brackets for scheduled
         } else {
-            sb.append("  ").append(dayStr).append("  |");
+            sb.append(" ").append(dayStr).append("  ");
         }
     }
 }

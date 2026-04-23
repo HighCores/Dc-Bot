@@ -66,7 +66,7 @@ public class DiscountService {
         String desc = "### Discount Infrastructure\n" +
                 "Manage scheduled discount events.\n\n" +
                 calendar + "\n" +
-                "*Dates marked with `*` indicate scheduled events.*";
+                "*Dates marked with `[]` indicate scheduled events.*";
 
         ActionRow navRow = ActionRow.of(
             Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
@@ -125,7 +125,7 @@ public class DiscountService {
         String desc = "### Discount Infrastructure\n" +
                 "Manage scheduled discount events.\n\n" +
                 calendar + "\n" +
-                "*Dates marked with `*` indicate scheduled events.*";
+                "*Dates marked with `[]` indicate scheduled events.*";
 
         ActionRow navRow = ActionRow.of(
             Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
