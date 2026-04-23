@@ -76,8 +76,9 @@ public class BannedWordCommands extends ListenerAdapter {
         );
         var c = EmbedUtil.containerBranded("MODERATION", "Filter Hub", sb.toString(), null, row);
         if (edit) {
-            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editComponents(c).queue();
-            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editComponents(c).queue();
+            net.dv8tion.jda.api.utils.messages.MessageEditData editData = net.dv8tion.jda.api.utils.messages.MessageEditBuilder.fromV2Components(c).build();
+            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editMessage(editData).queue();
+            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editMessage(editData).queue();
         } else if (event instanceof SlashCommandInteractionEvent) {
             PanelService.reply((SlashCommandInteractionEvent)event, c);
         }
