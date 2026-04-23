@@ -23,46 +23,9 @@ public class DiscountService {
 
     public static void sendDiscountPanel(SlashCommandInteractionEvent event, int year, int month) {
         JsonArray allDiscounts = SupabaseClient.getAllDiscounts();
+        Set<Integer> days = calculateActiveDays(allDiscounts, year, month);
         
-        Set<Integer> days = new HashSet<>();
-        if (allDiscounts != null) {
-            LocalDate viewMonthStart = LocalDate.of(year, month, 1);
-            LocalDate viewMonthEnd = viewMonthStart.plusMonths(1).minusDays(1);
-
-            for (var dev : allDiscounts) {
-                JsonObject d = dev.getAsJsonObject();
-                String dateStr = d.get("schedule_date").getAsString();
-                String type = d.get("type").getAsString();
-                String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
-                
-                LocalDate startDate = LocalDate.parse(dateStr);
-                
-                if (repeat.equals("NONE") || type.equals("MANUAL")) {
-                    if (startDate.getYear() == year && startDate.getMonthValue() == month) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("MONTHLY")) {
-                    if (!startDate.isAfter(viewMonthEnd)) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("YEARLY")) {
-                    if (!startDate.isAfter(viewMonthEnd) && startDate.getMonthValue() == month) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("WEEKLY")) {
-                    LocalDate current = startDate;
-                    while (!current.isAfter(viewMonthEnd)) {
-                        if (current.getYear() == year && current.getMonthValue() == month) {
-                            days.add(current.getDayOfMonth());
-                        }
-                        current = current.plusWeeks(1);
-                    }
-                }
-            }
-        }
-
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
-        
         String desc = "### Discount Management\n" +
                 "View and manage active discount events.\n\n" +
                 calendar + "\n" +
@@ -72,7 +35,6 @@ public class DiscountService {
             Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
             Button.secondary("disc_next_" + year + "_" + month, "Next")
         );
-        
         ActionRow actionRow = ActionRow.of(
             Button.secondary("disc_deploy_auto", "New Auto Discount"),
             Button.secondary("disc_deploy_manual", "New Manual Discount"),
@@ -84,43 +46,7 @@ public class DiscountService {
 
     public static void updateDiscountPanel(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, int year, int month) {
         JsonArray allDiscounts = SupabaseClient.getAllDiscounts();
-        
-        Set<Integer> days = new HashSet<>();
-        if (allDiscounts != null) {
-            LocalDate viewMonthStart = LocalDate.of(year, month, 1);
-            LocalDate viewMonthEnd = viewMonthStart.plusMonths(1).minusDays(1);
-
-            for (var dev : allDiscounts) {
-                JsonObject d = dev.getAsJsonObject();
-                String dateStr = d.get("schedule_date").getAsString();
-                String type = d.get("type").getAsString();
-                String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
-                
-                LocalDate startDate = LocalDate.parse(dateStr);
-                
-                if (repeat.equals("NONE") || type.equals("MANUAL")) {
-                    if (startDate.getYear() == year && startDate.getMonthValue() == month) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("MONTHLY")) {
-                    if (!startDate.isAfter(viewMonthEnd)) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("YEARLY")) {
-                    if (!startDate.isAfter(viewMonthEnd) && startDate.getMonthValue() == month) {
-                        days.add(startDate.getDayOfMonth());
-                    }
-                } else if (repeat.equals("WEEKLY")) {
-                    LocalDate current = startDate;
-                    while (!current.isAfter(viewMonthEnd)) {
-                        if (current.getYear() == year && current.getMonthValue() == month) {
-                            days.add(current.getDayOfMonth());
-                        }
-                        current = current.plusWeeks(1);
-                    }
-                }
-            }
-        }
+        Set<Integer> days = calculateActiveDays(allDiscounts, year, month);
 
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
         String desc = "### Discount Management\n" +
@@ -132,7 +58,6 @@ public class DiscountService {
             Button.secondary("disc_prev_" + year + "_" + month, "Previous"),
             Button.secondary("disc_next_" + year + "_" + month, "Next")
         );
-        
         ActionRow actionRow = ActionRow.of(
             Button.secondary("disc_deploy_auto", "New Auto Discount"),
             Button.secondary("disc_deploy_manual", "New Manual Discount"),
@@ -140,5 +65,73 @@ public class DiscountService {
         );
 
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
+    }
+
+    private static Set<Integer> calculateActiveDays(JsonArray allDiscounts, int year, int month) {
+        Set<Integer> days = new HashSet<>();
+        if (allDiscounts == null) return days;
+        
+        LocalDate viewMonthStart = LocalDate.of(year, month, 1);
+        LocalDate viewMonthEnd = viewMonthStart.plusMonths(1).minusDays(1);
+
+        for (var dev : allDiscounts) {
+            JsonObject d = dev.getAsJsonObject();
+            String dateStr = d.get("schedule_date").getAsString();
+            String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
+            
+            LocalDate startDate = LocalDate.parse(dateStr);
+            LocalDate endDate = d.has("end_date") && !d.get("end_date").isJsonNull() ? 
+                LocalDate.parse(d.get("end_date").getAsString()) : startDate;
+
+            if (repeat.equals("NONE")) {
+                LocalDate current = startDate;
+                while (!current.isAfter(endDate)) {
+                    if (current.getYear() == year && current.getMonthValue() == month) {
+                        days.add(current.getDayOfMonth());
+                    }
+                    current = current.plusDays(1);
+                }
+            } else if (repeat.equals("MONTHLY")) {
+                int startD = startDate.getDayOfMonth();
+                int endD = endDate.getDayOfMonth();
+                if (endD < startD) { // Wrap
+                    for (int i = 1; i <= viewMonthEnd.getDayOfMonth(); i++) {
+                        if (i >= startD || i <= endD) days.add(i);
+                    }
+                } else {
+                    for (int i = startD; i <= endD && i <= viewMonthEnd.getDayOfMonth(); i++) {
+                        days.add(i);
+                    }
+                }
+            } else if (repeat.equals("YEARLY")) {
+                if (startDate.getMonthValue() == month || endDate.getMonthValue() == month) {
+                    java.time.MonthDay startMD = java.time.MonthDay.from(startDate);
+                    java.time.MonthDay endMD = java.time.MonthDay.from(endDate);
+                    for (int i = 1; i <= viewMonthEnd.getDayOfMonth(); i++) {
+                        try {
+                            java.time.MonthDay currentMD = java.time.MonthDay.of(month, i);
+                            if (endMD.isBefore(startMD)) {
+                                if (!currentMD.isBefore(startMD) || !currentMD.isAfter(endMD)) days.add(i);
+                            } else {
+                                if (!currentMD.isBefore(startMD) && !currentMD.isAfter(endMD)) days.add(i);
+                            }
+                        } catch (Exception ignored) {}
+                    }
+                }
+            } else if (repeat.equals("WEEKLY")) {
+                long duration = java.time.temporal.ChronoUnit.DAYS.between(startDate, endDate);
+                LocalDate currentBase = startDate;
+                while (!currentBase.isAfter(viewMonthEnd)) {
+                    for (int i = 0; i <= duration; i++) {
+                        LocalDate activeDay = currentBase.plusDays(i);
+                        if (activeDay.getYear() == year && activeDay.getMonthValue() == month) {
+                            days.add(activeDay.getDayOfMonth());
+                        }
+                    }
+                    currentBase = currentBase.plusWeeks(1);
+                }
+            }
+        }
+        return days;
     }
 }
