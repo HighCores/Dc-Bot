@@ -436,15 +436,15 @@ public class PanelService {
         children.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(TextDisplay.of(
-                "## 🛍️ New Project Initialization\n" +
-                "Select a specialized module below to examine our creative service protocols and price scales. Once selected, please provide the required project parameters."));
+                "## 🛍️ Start New Project\n" +
+                "Choose a category below to see our services and prices. After that, you can fill in your project details."));
         children.add(Separator.createDivider(Spacing.SMALL));
         
         children.add(ActionRow.of(
-                Button.secondary("order_cat_designer", "Designer").withEmoji(Emoji.fromUnicode("🎨")),
-                Button.secondary("order_cat_developer", "Developer").withEmoji(Emoji.fromUnicode("💻")),
-                Button.secondary("order_cat_editor", "Editor & Animation").withEmoji(Emoji.fromUnicode("🎬")),
-                Button.secondary("order_cat_minecraft", "Minecraft Developer").withEmoji(Emoji.fromUnicode("⛏️"))
+                Button.secondary("order_cat_designer", "🎨 Designer"),
+                Button.secondary("order_cat_developer", "💻 Developer"),
+                Button.secondary("order_cat_editor", "🎬 Editor"),
+                Button.secondary("order_cat_minecraft", "⛏️ Minecraft")
         ));
 
         replyEphemeral(event, Container.of(children));
