@@ -48,7 +48,7 @@ public class SlashCommands extends ListenerAdapter {
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
         if (!event.isAcknowledged() && !usesModal) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts");
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts") && !name.equals("order");
             event.deferReply(ephemeral).queue();
         }
 
@@ -67,6 +67,7 @@ public class SlashCommands extends ListenerAdapter {
             switch (name) {
                 case "startup" -> { if (isAdmin(event.getMember())) { PanelService.sendStartupHub(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "tickets" -> { if (isAdmin(event.getMember())) { PanelService.sendTicketPanel(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
+                case "order" -> PanelService.handleOrderFlow(event);
                 case "bc" -> { if (isAdmin(event.getMember())) { handleBroadcast(event); } else PanelService.replyEphemeral(event, "Unauthorized Access Detected."); }
                 case "autoreply" -> handleAutoReply(event);
                 case "embed" -> { handleEmbed(event); }

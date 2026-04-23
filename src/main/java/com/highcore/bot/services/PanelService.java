@@ -395,7 +395,6 @@ public class PanelService {
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
                 Button.secondary("ticket_init_support", "Technical Support"),
-                Button.secondary("ticket_init_order", "New Order"),
                 Button.secondary("ticket_init_complaint", "File Complaint")));
 
         reply(event, Container.of(children));

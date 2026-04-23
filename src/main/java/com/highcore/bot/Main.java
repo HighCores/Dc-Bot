@@ -229,6 +229,7 @@ public class Main {
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
                 Commands.slash("roll", "رمــي الــنــرد"),
+                Commands.slash("order", "بــدء طــلــب مــشــروع جــديــد"),
                 Commands.slash("terms", "عــرض شــروط وقــوانــيــن الــوكــالــة")
         ).queue();
     }
