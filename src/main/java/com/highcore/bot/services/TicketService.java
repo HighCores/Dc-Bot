@@ -196,13 +196,13 @@ public class TicketService {
                                 EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "",
                                         "Review your order and choose a payment method.", "attachment://invoice.png",
                                         ActionRow.of(
-                                                Button.secondary("ticket_pay_binance_" + tid, "Binance"),
-                                                Button.secondary("ticket_pay_patreon_" + tid, "Patreon"),
-                                                Button.secondary("ticket_pay_cliq_" + tid, "CliQ"),
-                                                Button.secondary("ticket_pay_paypal_" + tid, "PayPal"),
-                                                Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay")),
+                                                Button.secondary("ticket_pay_binance_" + tid, "Binance").withEmoji(Emoji.fromCustom("Binance", 1496974881030541533L, false)),
+                                                Button.secondary("ticket_pay_payoneer_" + tid, "Payoneer").withEmoji(Emoji.fromCustom("Payoneer", 1496974382172733490L, false)),
+                                                Button.secondary("ticket_pay_cliq_" + tid, "CliQ").withEmoji(Emoji.fromCustom("Cliq", 1496974857118679162L, false)),
+                                                Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromCustom("Paypal", 1496974360286593134L, false)),
+                                                Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay").withEmoji(Emoji.fromCustom("friendipay", 1496974547969376479L, false))),
                                         ActionRow.of(
-                                                Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi"))))
+                                                Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi").withEmoji(Emoji.fromCustom("BankTransfer", 1496974903490904278L, false)))))
                                 .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                     }
                 });

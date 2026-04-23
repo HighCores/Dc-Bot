@@ -54,7 +54,7 @@ public class AutoReplyCommands extends ListenerAdapter {
             sendPanel(event, true);
         } else if (id.equals("modal_ar_remove")) {
             String t = event.getValue("trigger").getAsString();
-            SupabaseClient.removeAutoResponse(t);
+            SupabaseClient.deleteAutoResponse(t);
             sendPanel(event, true);
         }
     }
