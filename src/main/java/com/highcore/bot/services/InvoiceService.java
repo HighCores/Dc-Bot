@@ -35,7 +35,8 @@ public class InvoiceService {
             
             try {
                 java.net.URLConnection conn = new URL(templateUrl).openConnection();
-                conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+                conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+                conn.setRequestProperty("Accept", "image/avif,image/webp,image/apng,image/svg+xml,image/*,*/*;q=0.8");
                 try (InputStream is = conn.getInputStream()) {
                     template = ImageIO.read(is);
                 }
