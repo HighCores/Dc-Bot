@@ -356,7 +356,7 @@ public class PanelService {
     public static void sendPartnersPanel(IReplyCallback event) {
         String body = "### 🤝 Strategic Alliances\nHighCore Hub is connected with industry leaders to provide elite-scale solutions.";
         replyEphemeral(event,
-                EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", body, EmbedUtil.BANNER_MAIN));
+                EmbedUtil.containerBranded("PARTNERS", "Strategic Collaborations", body, EmbedUtil.BANNER_PARTNERS));
     }
 
     public static void sendPingsPanel(IReplyCallback event) {

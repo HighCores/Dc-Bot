@@ -107,6 +107,20 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Keyword").setRequired(true).build();
                 TextInput rs = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("Response").setRequired(true).build();
                 event.replyModal(Modal.create("modal_ar_add", "New AR").addComponents(net.dv8tion.jda.api.components.label.Label.of("Keyword", kw), net.dv8tion.jda.api.components.label.Label.of("Response", rs)).build()).queue();
+            } else if (id.startsWith("ping_")) {
+                String roleId = id.replace("ping_", "");
+                net.dv8tion.jda.api.entities.Role role = event.getGuild().getRoleById(roleId);
+                if (role == null) {
+                    event.reply("### ❌ Role Not Found\nThe requested notification layer is currently unavailable.").setEphemeral(true).queue();
+                    return;
+                }
+                if (member.getRoles().contains(role)) {
+                    event.getGuild().removeRoleFromMember(member, role).queue();
+                    event.reply("### 🔔 Notifications Disabled\nYou will no longer receive alerts for: " + role.getAsMention()).setEphemeral(true).queue();
+                } else {
+                    event.getGuild().addRoleToMember(member, role).queue();
+                    event.reply("### 🔔 Notifications Enabled\nYou have subscribed to: " + role.getAsMention()).setEphemeral(true).queue();
+                }
             }
         } catch (Exception e) { log.error("Button handling error", e); }
     }

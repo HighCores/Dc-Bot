@@ -37,15 +37,16 @@ public class EmbedUtil {
     public static final String BANNER_MAIN = "https://i.imgur.com/lOQt0gJ.png";
     public static final String BANNER_WELCOME = "https://i.imgur.com/QF8QFQm.png";
     public static final String BANNER_STARTUP_HEADER = "https://i.imgur.com/RDb9nSh.png";
+    public static final String BANNER_PARTNERS = "https://i.imgur.com/owRgdCD.png";
     public static final String BANNER_GIVEAWAY = "https://i.imgur.com/iKKg1BG.png";
-    
+
     // Support category banners
     public static final String BANNER_SUPPORT = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_COMPLAINT = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/wllO63d.png";
     public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_INVOICE = "https://i.imgur.com/OHF6qJB.png";
-    
+
     // Order category banners
     public static final String BANNER_DESIGN = "https://i.imgur.com/sHZzmVi.png";
     public static final String BANNER_DEVELOPER = "https://i.imgur.com/rX2oXzt.png";
@@ -53,32 +54,42 @@ public class EmbedUtil {
     public static final String BANNER_EDITOR = "https://i.imgur.com/R4126YU.png";
 
     public static String getCategoryBanner(String cat) {
-        if (cat == null) return BANNER_MAIN;
+        if (cat == null)
+            return BANNER_MAIN;
         return switch (cat.toLowerCase()) {
-            case "designer"  -> BANNER_DESIGN;
+            case "designer" -> BANNER_DESIGN;
             case "developer" -> BANNER_DEVELOPER;
             case "minecraft" -> BANNER_MINECRAFT;
-            case "editor"    -> BANNER_EDITOR;
+            case "editor" -> BANNER_EDITOR;
             default -> BANNER_MAIN;
         };
     }
 
     public static String getDynamicBanner(String prize) {
-        if (prize == null) return BANNER_GIVEAWAY;
+        if (prize == null)
+            return BANNER_GIVEAWAY;
         String lower = prize.toLowerCase();
-        
+
         // Discounts
-        if (lower.contains("10%")) return "https://i.imgur.com/QpboYHV.png";
-        if (lower.contains("20%")) return "https://i.imgur.com/FnsAuqW.png";
-        if (lower.contains("30%")) return "https://i.imgur.com/n503P4n.png";
-        if (lower.contains("40%")) return "https://i.imgur.com/4swCqaO.png";
-        if (lower.contains("50%")) return "https://i.imgur.com/p1W4MGn.png";
-        if (lower.contains("60%")) return "https://i.imgur.com/ujRHuoi.png";
-        
+        if (lower.contains("10%"))
+            return "https://i.imgur.com/QpboYHV.png";
+        if (lower.contains("20%"))
+            return "https://i.imgur.com/FnsAuqW.png";
+        if (lower.contains("30%"))
+            return "https://i.imgur.com/n503P4n.png";
+        if (lower.contains("40%"))
+            return "https://i.imgur.com/4swCqaO.png";
+        if (lower.contains("50%"))
+            return "https://i.imgur.com/p1W4MGn.png";
+        if (lower.contains("60%"))
+            return "https://i.imgur.com/ujRHuoi.png";
+
         // Vouchers
-        if (lower.contains("50") && lower.contains("$")) return "https://i.imgur.com/gqEoG4z.png";
-        if (lower.contains("100") && lower.contains("$")) return "https://i.imgur.com/DdlMSHd.png";
-        
+        if (lower.contains("50") && lower.contains("$"))
+            return "https://i.imgur.com/gqEoG4z.png";
+        if (lower.contains("100") && lower.contains("$"))
+            return "https://i.imgur.com/DdlMSHd.png";
+
         return BANNER_GIVEAWAY;
     }
 
@@ -235,9 +246,10 @@ public class EmbedUtil {
         return containerBranded("activity", type, details, BANNER_MAIN).withAccentColor(color.getRGB() & 0xFFFFFF);
     }
 
-    public static MessageEmbed createOldLogEmbed(String command, String details, Member moderator, UserSnowflake targetUser, Member targetMember, Color color) {
+    public static MessageEmbed createOldLogEmbed(String command, String details, Member moderator,
+            UserSnowflake targetUser, Member targetMember, Color color) {
         EmbedBuilder eb = new EmbedBuilder();
-        
+
         // Match the screenshot: Banner + Activity Sector Header
         eb.setImage(BANNER_MAIN);
         eb.setTitle("► Highcore Agency ・ Activity Log");
@@ -256,20 +268,22 @@ public class EmbedUtil {
 
         // Add context for the channel if available
         if (moderator != null && moderator.getGuild() != null) {
-             // We'll try to guess if we can get the interaction channel in a better way later, 
-             // but for now we rely on the command handling pass-through or generic tag.
-             // Usually, logs provide channel info in 'details'.
+            // We'll try to guess if we can get the interaction channel in a better way
+            // later,
+            // but for now we rely on the command handling pass-through or generic tag.
+            // Usually, logs provide channel info in 'details'.
         }
 
         if (targetUser != null || targetMember != null) {
             String targetId = targetMember != null ? targetMember.getId() : targetUser.getId();
             eb.addField("Target:", "<@" + targetId + "> (`" + targetId + "`)", true);
-            
+
             if (targetMember != null) {
                 String roles = targetMember.getRoles().stream()
                         .map(Role::getAsMention)
                         .collect(Collectors.joining(" "));
-                if (roles.isEmpty()) roles = "None";
+                if (roles.isEmpty())
+                    roles = "None";
                 eb.addField("Roles:", roles, false);
             }
         }
