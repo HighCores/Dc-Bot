@@ -123,6 +123,9 @@ public class TicketService {
         final int fPerc = Math.max(globalDiscount, vPercent);
         final double totalDisc = (subTotal * (fPerc / 100.0)) + vAmount;
 
+        final double finalVAmount = vAmount;
+        final int finalVPercent = vPercent;
+
         guild.createTextChannel(channelName, cat)
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                 .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), null)
@@ -169,9 +172,6 @@ public class TicketService {
                     } catch (Exception e) {
                         log.error("[FATAL TICKET ERROR] Error in ticket creation callback", e);
                     }
-
-                    final double finalVAmount = vAmount;
-                    final int finalVPercent = vPercent;
 
                     double voucherDeduction = finalVAmount + (subTotal * (finalVPercent / 100.0));
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
