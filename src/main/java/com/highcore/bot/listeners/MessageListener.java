@@ -12,6 +12,9 @@ import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.message.MessageReceivedEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.Permission;
+import net.dv8tion.jda.api.utils.FileUpload;
+import java.net.URI;
+import java.io.InputStream;
 
 public class MessageListener extends ListenerAdapter {
     @Override
@@ -90,8 +93,14 @@ public class MessageListener extends ListenerAdapter {
                 "https://i.imgur.com/KTPxBfL.png"
             };
 
-            for (String img : imgs) {
-                event.getChannel().sendMessage(img).queue();
+            for (int i = 0; i < imgs.length; i++) {
+                try {
+                    InputStream is = URI.create(imgs[i]).toURL().openStream();
+                    event.getChannel().sendFiles(FileUpload.fromData(is, "term_" + (i+1) + ".png")).queue();
+                } catch (Exception e) {
+                    // Fallback to link if stream fails
+                    event.getChannel().sendMessage(imgs[i]).queue();
+                }
             }
             return;
         }
