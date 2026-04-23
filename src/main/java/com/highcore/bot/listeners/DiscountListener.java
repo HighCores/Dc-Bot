@@ -39,8 +39,43 @@ public class DiscountListener extends ListenerAdapter {
             return;
         }
 
-        if (id.startsWith("disc_deploy_")) {
-            String type = id.endsWith("auto") ? "AUTO" : "MANUAL";
+        if (id.equals("disc_deploy_manual")) {
+            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT)
+                    .setPlaceholder("e.g. 2026-04-25")
+                    .setRequired(true)
+                    .build();
+
+            TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT)
+                    .setPlaceholder("e.g. 15")
+                    .setRequired(true)
+                    .build();
+
+            event.replyModal(Modal.create("modal_disc_save_MANUAL_NONE", "Deploy MANUAL Discount")
+                    .addComponents(
+                        net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput)
+                    )
+                    .build()).queue();
+        } else if (id.equals("disc_deploy_auto")) {
+            net.dv8tion.jda.api.components.selections.StringSelectMenu menu = net.dv8tion.jda.api.components.selections.StringSelectMenu.create("sel_disc_interval")
+                    .setPlaceholder("Select Repeat Interval...")
+                    .addOption("Weekly Interval", "WEEKLY")
+                    .addOption("Monthly Interval", "MONTHLY")
+                    .addOption("Yearly Interval", "YEARLY")
+                    .build();
+            
+            event.reply("Please select the **Recurrence Interval** for this automated deployment:")
+                 .setComponents(ActionRow.of(menu))
+                 .setEphemeral(true)
+                 .queue();
+        }
+    }
+
+    @Override
+    public void onStringSelectInteraction(@NotNull net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event) {
+        String id = event.getComponentId();
+        if (id.equals("sel_disc_interval")) {
+            String interval = event.getValues().get(0);
             
             TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT)
                     .setPlaceholder("e.g. 2026-04-25")
@@ -52,16 +87,10 @@ public class DiscountListener extends ListenerAdapter {
                     .setRequired(true)
                     .build();
 
-            TextInput repeatInput = TextInput.create("repeat", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. Monthly, Weekly, Yearly or None")
-                    .setRequired(false)
-                    .build();
-
-            event.replyModal(Modal.create("modal_disc_save_" + type, "Deploy " + type + " Discount")
+            event.replyModal(Modal.create("modal_disc_save_AUTO_" + interval, "Configure AUTO Discount")
                     .addComponents(
-                        net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Repeat Interval (Optional for Auto)", repeatInput)
+                        net.dv8tion.jda.api.components.label.Label.of("Start Date (YYYY-MM-DD)", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput)
                     )
                     .build()).queue();
         }
@@ -71,10 +100,11 @@ public class DiscountListener extends ListenerAdapter {
     public void onModalInteraction(@NotNull ModalInteractionEvent event) {
         String id = event.getModalId();
         if (id.startsWith("modal_disc_save_")) {
-            String type = id.split("_")[3];
+            String[] parts = id.split("_");
+            String type = parts[3];
+            String repeat = parts[4];
             String dateRaw = event.getValue("date").getAsString().trim();
             String percentStr = event.getValue("percent").getAsString();
-            String repeat = event.getValue("repeat") != null ? event.getValue("repeat").getAsString() : "NONE";
 
             // Flexible validation: accepts 2026-4-2 or 2026-04-02
             if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) {
