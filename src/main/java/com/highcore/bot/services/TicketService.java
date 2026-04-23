@@ -170,7 +170,10 @@ public class TicketService {
                         log.error("[FATAL TICKET ERROR] Error in ticket creation callback", e);
                     }
 
-                    double voucherDeduction = vAmount + (subTotal * (vPercent / 100.0));
+                    final double finalVAmount = vAmount;
+                    final int finalVPercent = vPercent;
+
+                    double voucherDeduction = finalVAmount + (subTotal * (finalVPercent / 100.0));
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
                             user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc, voucherDeduction, phone);
                     if (inv != null) {
