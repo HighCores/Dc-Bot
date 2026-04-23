@@ -23,6 +23,8 @@ import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
 import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
+import net.dv8tion.jda.api.components.separator.Separator;
+import net.dv8tion.jda.api.components.separator.Separator.Spacing;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -239,8 +241,11 @@ public class SlashCommands extends ListenerAdapter {
         };
 
         List<ContainerChildComponent> layout = new ArrayList<>();
-        for (String img : imgs) {
-            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(img)));
+        for (int i = 0; i < imgs.length; i++) {
+            layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(imgs[i])));
+            if (i < imgs.length - 1) {
+                layout.add(Separator.createDivider(Spacing.SMALL));
+            }
         }
         PanelService.reply(event.getChannel(), Container.of(layout));
         event.getHook().sendMessage("✅ Terms sent to channel.").setEphemeral(true).queue();
