@@ -63,6 +63,7 @@ public class SupabaseClient {
     // ========== TICKETS ==========
 
     public static int getNextTicketNumber(String type) {
+        log.info("[DB DEBUG] Fetching next ticket number for: {}", type);
         String key = "ticket_next_id_" + type.toUpperCase();
         String nextStr = getSettingValue(key);
         int next = 1;
@@ -76,6 +77,7 @@ public class SupabaseClient {
         }
 
         setSetting(key, String.valueOf(next + 1));
+        log.info("[DB DEBUG] Resulting ticket number: {}", next);
         return next;
     }
 

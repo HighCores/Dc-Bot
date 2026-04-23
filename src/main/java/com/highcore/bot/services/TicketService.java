@@ -127,7 +127,9 @@ public class TicketService {
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                 .addPermissionOverride(member, EnumSet.of(Permission.VIEW_CHANNEL), null)
                 .queue(channel -> {
-                    JsonArray itemsArr = new JsonArray();
+                    log.info("[TICKET DEBUG] Channel queue callback started for: {}", channel.getName());
+                    try {
+                        JsonArray itemsArr = new JsonArray();
                     for (var i : allItems) {
                         JsonObject o = new JsonObject();
                         o.addProperty("name", i.name);
@@ -164,6 +166,9 @@ public class TicketService {
 
                     channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel))
                             .useComponentsV2(true).queue();
+                    } catch (Exception e) {
+                        log.error("[FATAL TICKET ERROR] Error in ticket creation callback", e);
+                    }
 
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
                             user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
