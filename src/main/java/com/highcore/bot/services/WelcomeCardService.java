@@ -91,18 +91,15 @@ public class WelcomeCardService {
         // --- THE DESIGNER'S BLUEPRINT (PIXEL-PERFECT ARCHITECTURE) ---
         
         // 1. Digital Avatar Container (Surgically Calibrated)
-        int avatarSize = 640; 
-        int avatarX = 410; 
+        int avatarSize = 642; 
+        int avatarX = 409; 
         int avatarY = 198;
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // 2. Welcome Headline Layer (Fixed)
-        int headlineY = 145;
-
-        // 3. Member Identity Engine (Sleek Font)
+        // 2. Member Identity Engine (Sleek Font)
         String name = member.getEffectiveName().toUpperCase(); 
         if (name.length() > 25) name = name.substring(0, 23) + "..";
 
