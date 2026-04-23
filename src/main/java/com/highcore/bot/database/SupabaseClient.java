@@ -562,11 +562,12 @@ public class SupabaseClient {
         return 0;
     }
 
-    public static void createDiscount(String type, String date, String repeat) {
+    public static void createDiscount(String type, String date, String repeat, int percentage) {
         JsonObject body = new JsonObject();
         body.addProperty("type", type);
         body.addProperty("schedule_date", date);
         body.addProperty("repeat_interval", repeat);
+        body.addProperty("percentage", percentage);
         post("dc_discounts", body);
     }
 

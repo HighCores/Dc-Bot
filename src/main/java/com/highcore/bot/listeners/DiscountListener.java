@@ -47,6 +47,11 @@ public class DiscountListener extends ListenerAdapter {
                     .setRequired(true)
                     .build();
 
+            TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT)
+                    .setPlaceholder("e.g. 15")
+                    .setRequired(true)
+                    .build();
+
             TextInput repeatInput = TextInput.create("repeat", TextInputStyle.SHORT)
                     .setPlaceholder("e.g. Monthly, Weekly, Yearly or None")
                     .setRequired(false)
@@ -55,6 +60,7 @@ public class DiscountListener extends ListenerAdapter {
             event.replyModal(Modal.create("modal_disc_save_" + type, "Deploy " + type + " Discount")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput),
                         net.dv8tion.jda.api.components.label.Label.of("Repeat Interval (Optional for Auto)", repeatInput)
                     )
                     .build()).queue();
@@ -67,6 +73,7 @@ public class DiscountListener extends ListenerAdapter {
         if (id.startsWith("modal_disc_save_")) {
             String type = id.split("_")[3];
             String date = event.getValue("date").getAsString();
+            String percentStr = event.getValue("percent").getAsString();
             String repeat = event.getValue("repeat") != null ? event.getValue("repeat").getAsString() : "NONE";
 
             // Basic validation
@@ -75,9 +82,17 @@ public class DiscountListener extends ListenerAdapter {
                 return;
             }
 
-            SupabaseClient.createDiscount(type, date, repeat);
+            int percent;
+            try {
+                percent = Integer.parseInt(percentStr.replace("%", "").trim());
+            } catch (Exception e) {
+                event.reply("Invalid percentage value. Use a number (e.g. 15).").setEphemeral(true).queue();
+                return;
+            }
+
+            SupabaseClient.createDiscount(type, date, repeat, percent);
             
-            event.reply("### \u2705 Deployment Successful\n" + type + " Discount scheduled for **" + date + "**.")
+            event.reply("### \u2705 Deployment Successful\n" + type + " Discount of **" + percent + "%** scheduled for **" + date + "**.")
                  .setEphemeral(true)
                  .queue();
         }
