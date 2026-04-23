@@ -394,8 +394,8 @@ public class PanelService {
         children.add(TextDisplay.of(rules));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-                Button.secondary("ticket_init_support", "Technical Support"),
-                Button.secondary("ticket_init_complaint", "File Complaint")));
+                Button.secondary("ticket_init_support", "Technical Support").withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
+                Button.secondary("ticket_init_complaint", "File Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))));
 
         reply(event, Container.of(children));
     }
@@ -441,10 +441,10 @@ public class PanelService {
         children.add(Separator.createDivider(Spacing.SMALL));
         
         children.add(ActionRow.of(
-                Button.secondary("order_cat_designer", "🎨 Designer"),
-                Button.secondary("order_cat_developer", "💻 Developer"),
-                Button.secondary("order_cat_editor", "🎬 Editor"),
-                Button.secondary("order_cat_minecraft", "⛏️ Minecraft")
+                Button.secondary("order_cat_designer", "Designer").withEmoji(Emoji.fromCustom("Design", 1496974725258285157L, false)),
+                Button.secondary("order_cat_developer", "Developer").withEmoji(Emoji.fromCustom("Developer", 1496974704005611633L, false)),
+                Button.secondary("order_cat_editor", "Editor").withEmoji(Emoji.fromCustom("Editor", 1496974685030715503L, false)),
+                Button.secondary("order_cat_minecraft", "Minecraft").withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false))
         ));
 
         replyEphemeral(event, Container.of(children));
@@ -490,7 +490,7 @@ public class PanelService {
                 "Now choose any add-ons, or click **Confirm Order** to skip.",
                 EmbedUtil.getCategoryBanner(session.category),
                 ActionRow.of(addonMenu),
-                ActionRow.of(Button.secondary("order_final", "Confirm Order"))));
+                ActionRow.of(Button.secondary("order_final", "Confirm Order").withEmoji(Emoji.fromCustom("ConfirmOrder", 1496974749199241326L, false)))));
     }
 
     public static void handleAddonsSelected(IReplyCallback event, String userId, List<String> selected) {
@@ -516,7 +516,7 @@ public class PanelService {
                 "**Add-ons:** " + addonSummary + "\n\n" +
                 "Click **Confirm Order** to fill in your project details and open your ticket.",
                 EmbedUtil.getCategoryBanner(session.category),
-                ActionRow.of(Button.secondary("order_final", "Confirm Order"))));
+                ActionRow.of(Button.secondary("order_final", "Confirm Order").withEmoji(Emoji.fromCustom("ConfirmOrder", 1496974749199241326L, false)))));
     }
 
     public static void handleOrderFinalModal(IReplyCallback event, String id) {

@@ -426,8 +426,8 @@ public class TicketService {
                 EmbedUtil.BANNER_SUPPORT,
                 ActionRow.of(
                         Button.secondary("ticket_reopen", "Reopen"),
-                        Button.secondary("ticket_transcript", "Transcript"),
-                        Button.secondary("ticket_delete_init", "Delete"))))
+                        Button.secondary("ticket_transcript", "Transcript").withEmoji(Emoji.fromCustom("Transcript", 1496974091318722561L, false)),
+                        Button.secondary("ticket_delete_init", "Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false)))))
                 .useComponentsV2(true).queue();
     }
 
@@ -462,7 +462,7 @@ public class TicketService {
                 "### Are you sure?\nThis action will permanently delete this channel and cannot be undone.",
                 EmbedUtil.BANNER_SUPPORT,
                 ActionRow.of(
-                        Button.secondary("ticket_delete_final", "Confirm Delete"),
+                        Button.secondary("ticket_delete_final", "Confirm Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false)),
                         Button.secondary("ticket_delete_cancel", "Cancel"))))
                 .setEphemeral(true).useComponentsV2(true).queue();
     }
