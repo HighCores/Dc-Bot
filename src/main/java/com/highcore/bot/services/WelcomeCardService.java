@@ -107,7 +107,9 @@ public class WelcomeCardService {
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
-        int nameX = 1204; 
+        int nameWidth = metrics.stringWidth(name);
+        int nameBoxWidth = 2045 - 1204;
+        int nameX = 1204 + (nameBoxWidth - nameWidth) / 2; 
         int nameY = 652 + ((725 - 652) / 2) + (metrics.getAscent() / 2) - 5;
 
         // A. Drop Shadow Case
@@ -126,7 +128,7 @@ public class WelcomeCardService {
         g.setColor(new Color(255, 255, 255, 60));
         g.drawString(name, nameX, nameY - 1);
 
-        // C. Subtle Highlight (Overlaying slightly shifted for gloss)
+        // D. Subtle Highlight (Overlaying slightly shifted for gloss)
         g.setColor(new Color(240, 230, 140, 100)); // #F0E68C with alpha
         g.drawString(name, nameX, nameY - 1); 
 
