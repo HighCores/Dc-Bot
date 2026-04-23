@@ -77,7 +77,8 @@ public class AutoReplyCommands extends ListenerAdapter {
         );
         var c = EmbedUtil.containerBranded("AUTOMATION", "Logic Hub", sb.toString(), null, row);
         if (edit) {
-            net.dv8tion.jda.api.utils.messages.MessageEditData editData = net.dv8tion.jda.api.utils.messages.MessageEditBuilder.fromV2Components(c).build();
+            net.dv8tion.jda.api.utils.messages.MessageCreateData createData = net.dv8tion.jda.api.utils.messages.MessageCreateBuilder.fromV2Components(c).build();
+            net.dv8tion.jda.api.utils.messages.MessageEditData editData = net.dv8tion.jda.api.utils.messages.MessageEditData.fromCreateData(createData);
             if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editMessage(editData).queue();
             else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editMessage(editData).queue();
         } else if (event instanceof SlashCommandInteractionEvent) {
