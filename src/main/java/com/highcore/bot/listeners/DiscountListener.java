@@ -72,13 +72,23 @@ public class DiscountListener extends ListenerAdapter {
         String id = event.getModalId();
         if (id.startsWith("modal_disc_save_")) {
             String type = id.split("_")[3];
-            String date = event.getValue("date").getAsString();
+            String dateRaw = event.getValue("date").getAsString().trim();
             String percentStr = event.getValue("percent").getAsString();
             String repeat = event.getValue("repeat") != null ? event.getValue("repeat").getAsString() : "NONE";
 
-            // Basic validation
-            if (!date.matches("\\d{4}-\\d{2}-\\d{2}")) {
-                event.reply("Invalid date format. Use YYYY-MM-DD.").setEphemeral(true).queue();
+            // Flexible validation: accepts 2026-4-2 or 2026-04-02
+            if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) {
+                event.reply("Invalid date format. Use YYYY-MM-DD (e.g. 2026-04-25).").setEphemeral(true).queue();
+                return;
+            }
+
+            // Standardize format to YYYY-MM-DD (auto-pad zeros)
+            String date;
+            try {
+                String[] parts = dateRaw.split("-");
+                date = String.format("%s-%02d-%02d", parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+            } catch (Exception e) {
+                event.reply("Internal parsing error. Check date format.").setEphemeral(true).queue();
                 return;
             }
 
