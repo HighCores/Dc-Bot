@@ -114,10 +114,10 @@ public class SupabaseClient {
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
-        body.addProperty("type", type);
         body.addProperty("priority", priority);
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
+        body.addProperty("platform", "Discord");
         
         log.info("[TRACE] Attempting POST to dc_tickets: {}", body.toString());
         post("dc_tickets", body);
@@ -478,12 +478,10 @@ public class SupabaseClient {
     }
 
     public static JsonObject post(String table, JsonObject body) {
-        log.info("[HTTP TRACE] POST to {} with body: {}", table, body.toString());
         Request request = auth(new Request.Builder()).url(url(table)).post(RequestBody.create(body.toString(), JSON)).build();
         try (Response response = http.newCall(request).execute()) {
             int code = response.code();
             String b = response.body() != null ? response.body().string() : "{}";
-            log.info("[HTTP TRACE] POST to {} returned code: {} | Response: {}", table, code, b);
             if (!response.isSuccessful()) {
                 log.error("POST {} failed: {} - {} | Body: {}", table, code, b, body.toString());
                 return null;

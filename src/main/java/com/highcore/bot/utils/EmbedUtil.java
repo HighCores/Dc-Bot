@@ -44,7 +44,6 @@ public class EmbedUtil {
     public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/wllO63d.png";
     public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_INVOICE = "https://i.imgur.com/OHF6qJB.png";
-    public static final String BANNER_INVOICE_PAID = "https://i.imgur.com/OHF6qJB.png";
     
     // Order category banners
     public static final String BANNER_DESIGN = "https://i.imgur.com/sHZzmVi.png";

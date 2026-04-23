@@ -57,8 +57,7 @@ public class MessageListener extends ListenerAdapter {
                 
                 var logEmbed = EmbedUtil.activityLog("LANGUAGE MONITOR", logBody, EmbedUtil.SUCCESS);
                 var messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                    .setComponents(logEmbed)
-                    .useComponentsV2(true)
+                    .addEmbeds(logEmbed)
                     .setAllowedMentions(java.util.Collections.emptyList())
                     .build();
                 
@@ -82,54 +81,65 @@ public class MessageListener extends ListenerAdapter {
     }
 
     private void saveTicketMessage(MessageReceivedEvent event) {
-        if (!(event.getChannel() instanceof TextChannel channel)) return;
+        if (!(event.getChannel() instanceof TextChannel channel))
+            return;
         String name = channel.getName().toLowerCase();
-        // Support all prefixes: ticket, order, case, complaint, support, or any channel ending in decimals
-        boolean isTicket = name.contains("ticket") || name.contains("order") || name.contains("case") || 
-                           name.contains("complaint") || name.contains("support") || name.matches(".*\\d{3,}");
-        
-        if (!isTicket) return;
-        
+        // Support all prefixes: ticket, order, case, complaint, support, or any channel
+        // ending in decimals
+        boolean isTicket = name.contains("ticket") || name.contains("order") || name.contains("case") ||
+                name.contains("complaint") || name.contains("support") || name.matches(".*\\d{3,}");
+
+        if (!isTicket)
+            return;
+
         JsonObject ticket = SupabaseClient.getTicketByChannel(channel.getId());
         String ticketId = null;
-        
+
         if (ticket != null) {
             ticketId = ticket.get("ticket_id").getAsString();
         } else {
             // Fallback: extract from name (support-0078 -> 0078)
             String[] parts = name.split("-");
-            if (parts.length >= 2) ticketId = parts[1];
+            if (parts.length >= 2)
+                ticketId = parts[1];
         }
-        
-        if (ticketId == null) return;
-        
+
+        if (ticketId == null)
+            return;
+
         StringBuilder contentBuilder = new StringBuilder(event.getMessage().getContentRaw());
-        
+
         // Comprehensive Embed Extraction (Legacy Embeds)
         if (!event.getMessage().getEmbeds().isEmpty()) {
             for (net.dv8tion.jda.api.entities.MessageEmbed embed : event.getMessage().getEmbeds()) {
-                if (embed.getAuthor() != null && embed.getAuthor().getName() != null) contentBuilder.append("**").append(embed.getAuthor().getName()).append("**\n");
-                if (embed.getTitle() != null) contentBuilder.append("**").append(embed.getTitle()).append("**\n");
-                if (embed.getDescription() != null) contentBuilder.append(embed.getDescription()).append("\n");
-                
+                if (embed.getAuthor() != null && embed.getAuthor().getName() != null)
+                    contentBuilder.append("**").append(embed.getAuthor().getName()).append("**\n");
+                if (embed.getTitle() != null)
+                    contentBuilder.append("**").append(embed.getTitle()).append("**\n");
+                if (embed.getDescription() != null)
+                    contentBuilder.append(embed.getDescription()).append("\n");
+
                 for (net.dv8tion.jda.api.entities.MessageEmbed.Field field : embed.getFields()) {
                     contentBuilder.append("\n**").append(field.getName()).append("**\n").append(field.getValue());
                 }
-                
+
                 if (embed.getImage() != null && embed.getImage().getUrl() != null) {
                     contentBuilder.append("\n[ATTACHMENT: ").append(embed.getImage().getUrl()).append("]");
                 }
                 if (embed.getFooter() != null && embed.getFooter().getText() != null) {
                     contentBuilder.append("\n\n_").append(embed.getFooter().getText()).append("_");
                 }
-            } 
+            }
         }
 
-        // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
-        // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays, MediaGalleries)
+        // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays,
+        // MediaGalleries)
+        // Deep UI V2 Extraction (Modern Highcore Panels: Containers, TextDisplays,
+        // MediaGalleries)
         for (var layout : event.getMessage().getComponents()) {
             if (layout instanceof net.dv8tion.jda.api.components.container.Container container) {
-                for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
+                for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container
+                        .getComponents()) {
                     if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
                         contentBuilder.append("\n").append(textDisplay.getContent());
                     } else if (child instanceof net.dv8tion.jda.api.components.mediagallery.MediaGallery gallery) {
@@ -143,7 +153,8 @@ public class MessageListener extends ListenerAdapter {
             } else if (layout instanceof net.dv8tion.jda.api.components.actionrow.ActionRow row) {
                 for (var component : row.getComponents()) {
                     if (component instanceof net.dv8tion.jda.api.components.container.Container container) {
-                        for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container.getComponents()) {
+                        for (net.dv8tion.jda.api.components.container.ContainerChildComponent child : container
+                                .getComponents()) {
                             if (child instanceof net.dv8tion.jda.api.components.textdisplay.TextDisplay textDisplay) {
                                 contentBuilder.append("\n").append(textDisplay.getContent());
                             }
@@ -156,13 +167,15 @@ public class MessageListener extends ListenerAdapter {
         for (net.dv8tion.jda.api.entities.Message.Attachment att : event.getMessage().getAttachments()) {
             contentBuilder.append("\n[ATTACHMENT: ").append(att.getUrl()).append("]");
         }
-    
+
         String role = event.getAuthor().isBot() ? "BOT" : "USER";
         org.slf4j.Logger logger = org.slf4j.LoggerFactory.getLogger(MessageListener.class);
-        logger.info("[DEBUG] ATTEMPTING TO SAVE MESSAGE - Ticket: {}, User: {}, Content: {}", ticketId, event.getAuthor().getName(), contentBuilder.toString());
-        
+        logger.info("[DEBUG] ATTEMPTING TO SAVE MESSAGE - Ticket: {}, User: {}, Content: {}", ticketId,
+                event.getAuthor().getName(), contentBuilder.toString());
+
         try {
-            SupabaseClient.saveTicketMessage(ticketId, event.getAuthor().getId(), event.getAuthor().getName(), contentBuilder.toString(), role, event.getMessageId());
+            SupabaseClient.saveTicketMessage(ticketId, event.getAuthor().getId(), event.getAuthor().getName(),
+                    contentBuilder.toString(), role, event.getMessageId());
             logger.info("[DEBUG] SAVE CALL EXECUTED FOR {}", ticketId);
         } catch (Exception e) {
             logger.error("[DEBUG] CRITICAL ERROR SAVING MESSAGE: {}", e.getMessage(), e);

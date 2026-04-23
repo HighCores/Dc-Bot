@@ -22,7 +22,7 @@ public class InvoiceService {
     private static final Color COL_GOLD  = Color.decode("#C5A059");
     private static final Color COL_WHITE = Color.decode("#FFFFFF");
     private static final Color COL_CREAM = Color.decode("#EAEAEA");
-    private static final String BANNER_NEW = "https://i.imgur.com/OHF6qJB.png";
+    private static final String BANNER_NEW = EmbedUtil.BANNER_INVOICE;
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
         return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, null);
@@ -40,12 +40,16 @@ public class InvoiceService {
                     template = ImageIO.read(is);
                 }
             } catch (Exception e) {
-                log.error("[INVOICE ERROR] Failed to read template from url: " + templateUrl, e);
+                log.error("[INVOICE ERROR] Failed to read template from url: " + templateUrl + ". Falling back to blank template.", e);
             }
-
+            
             if (template == null) {
-                log.error("[INVOICE ERROR] Template image is null (failed to load). URL: " + templateUrl);
-                return null;
+                // Emergency Fallback: Create a dark-themed blank template (1000x1400)
+                template = new BufferedImage(1000, 1400, BufferedImage.TYPE_INT_ARGB);
+                Graphics2D g2 = template.createGraphics();
+                g2.setColor(new Color(25, 25, 25)); // Dark background
+                g2.fillRect(0, 0, 1000, 1400);
+                g2.dispose();
             }
 
             int W = template.getWidth();

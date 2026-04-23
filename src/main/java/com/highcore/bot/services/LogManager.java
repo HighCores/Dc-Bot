@@ -44,11 +44,11 @@ public class LogManager {
             return;
         }
 
-        // Temporary reset: can be removed after one run
-        SupabaseClient.clearTicketHistory();
-        SupabaseClient.setSetting("ticket_next_id_ORDER", "1");
-        SupabaseClient.setSetting("ticket_next_id_SUPPORT", "1");
-        SupabaseClient.setSetting("ticket_next_id_COMPLAINT", "1");
+        // Status: Log channels active. Resets disabled to preserve DB integrity.
+        // SupabaseClient.clearTicketHistory();
+        // SupabaseClient.setSetting("ticket_next_id_ORDER", "1");
+        // SupabaseClient.setSetting("ticket_next_id_SUPPORT", "1");
+        // SupabaseClient.setSetting("ticket_next_id_COMPLAINT", "1");
 
         Category category = guild.getCategoryById(Config.LOG_CATEGORY_ID);
         if (category == null) {
