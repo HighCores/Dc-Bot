@@ -50,8 +50,8 @@ public class DiscountListener extends ListenerAdapter {
             event.replyModal(Modal.create("modal_disc_save_MANUAL_NONE", "Deploy MANUAL Discount")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Start Date", dateInput),
-                        net.dv8tion.jda.api.components.label.Label.of("End Date (Opt)", endInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Start Event (YYYY-MM-DD)", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("End Event (YYYY-MM-DD - Opt)", endInput),
                         net.dv8tion.jda.api.components.label.Label.of("Discount (%)", percentInput)
                     )
                     .build()).queue();
@@ -149,16 +149,17 @@ public class DiscountListener extends ListenerAdapter {
             String interval = event.getValues().get(0);
             TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("Holiday Name").setRequired(true).build();
             
-            String datePlaceholder = interval.equals("YEARLY") ? "MM-DD (e.g. 12-25)" : "YYYY-MM-DD";
+            String datePlaceholder = interval.equals("YEARLY") ? "MM-DD (e.g. 11-20)" : "YYYY-MM-DD";
+            String endPlaceholder = interval.equals("YEARLY") ? "MM-DD (e.g. 11-30)" : "YYYY-MM-DD (Optional)";
             TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder(datePlaceholder).setRequired(true).build();
-            TextInput endInput = TextInput.create("end_date", TextInputStyle.SHORT).setPlaceholder("YYYY-MM-DD (Optional)").setRequired(false).build();
+            TextInput endInput = TextInput.create("end_date", TextInputStyle.SHORT).setPlaceholder(endPlaceholder).setRequired(false).build();
             TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT).setPlaceholder("e.g. 15").setRequired(true).build();
             
             event.replyModal(Modal.create("modal_disc_save_AUTO_" + interval, "Configure AUTO Discount")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
-                        net.dv8tion.jda.api.components.label.Label.of(interval.equals("YEARLY") ? "Day/Month" : "Start Date", dateInput),
-                        net.dv8tion.jda.api.components.label.Label.of("End Date", endInput),
+                        net.dv8tion.jda.api.components.label.Label.of(interval.equals("YEARLY") ? "Start Event (MM-DD)" : "Start Event", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of(interval.equals("YEARLY") ? "End Event (MM-DD)" : "End Event", endInput),
                         net.dv8tion.jda.api.components.label.Label.of("Percentage", percentInput)
                     ).build()).queue();
         } else if (id.equals("sel_disc_edit_pick")) {
@@ -187,18 +188,19 @@ public class DiscountListener extends ListenerAdapter {
             String percentStr = event.getValue("percent").getAsString();
 
             // Handling Yearly MM-DD format
-            if (repeat.equals("YEARLY") && dateRaw.matches("\\d{1,2}-\\d{1,2}")) {
-                dateRaw = LocalDate.now().getYear() + "-" + dateRaw;
+            if (repeat.equals("YEARLY")) {
+                if (dateRaw.matches("\\d{1,2}-\\d{1,2}")) dateRaw = LocalDate.now().getYear() + "-" + dateRaw;
+                if (!endRaw.isEmpty() && endRaw.matches("\\d{1,2}-\\d{1,2}")) endRaw = LocalDate.now().getYear() + "-" + endRaw;
             }
 
-            if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid start date format. Use YYYY-MM-DD.").setEphemeral(true).queue(); return; }
+            if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid Start Event format. Use YYYY-MM-DD (or MM-DD for Yearly).").setEphemeral(true).queue(); return; }
             
-            String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing start date.").setEphemeral(true).queue(); return; }
+            String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing Start Event.").setEphemeral(true).queue(); return; }
             
             String endDate = null;
             if (!endRaw.isEmpty()) {
-                if (!endRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid end date format. Use YYYY-MM-DD.").setEphemeral(true).queue(); return; }
-                try { String[] dp = endRaw.split("-"); endDate = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing end date.").setEphemeral(true).queue(); return; }
+                if (!endRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid End Event format. Use YYYY-MM-DD (or MM-DD for Yearly).").setEphemeral(true).queue(); return; }
+                try { String[] dp = endRaw.split("-"); endDate = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing End Event.").setEphemeral(true).queue(); return; }
             }
 
             int percent; try { percent = Integer.parseInt(percentStr.replace("%", "").trim()); } catch (Exception e) { event.reply("Invalid percentage.").setEphemeral(true).queue(); return; }

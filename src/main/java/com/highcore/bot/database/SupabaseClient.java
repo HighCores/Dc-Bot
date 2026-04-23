@@ -544,27 +544,43 @@ public class SupabaseClient {
         for (var el : all) {
             JsonObject d = el.getAsJsonObject();
             String dateStr = d.get("schedule_date").getAsString();
-            String type = d.get("type").getAsString();
             String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
             int pct = d.has("percentage") ? d.get("percentage").getAsInt() : 15;
             
             java.time.LocalDate startDate = java.time.LocalDate.parse(dateStr);
             java.time.LocalDate endDate = d.has("end_date") && !d.get("end_date").isJsonNull() ? 
-                java.time.LocalDate.parse(d.get("end_date").getAsString()) : null;
+                java.time.LocalDate.parse(d.get("end_date").getAsString()) : startDate;
 
             boolean active = false;
-            if (repeat.equals("NONE") || type.equals("MANUAL")) {
-                if (endDate != null) {
-                    if (!now.isBefore(startDate) && !now.isAfter(endDate)) active = true;
+            if (repeat.equals("NONE")) {
+                if (!now.isBefore(startDate) && !now.isAfter(endDate)) active = true;
+            } else if (repeat.equals("WEEKLY")) {
+                int nowW = now.getDayOfWeek().getValue();
+                int startW = startDate.getDayOfWeek().getValue();
+                int endW = endDate.getDayOfWeek().getValue();
+                if (endW < startW) { // Wrap around
+                    if (nowW >= startW || nowW <= endW) active = true;
                 } else {
-                    if (startDate.equals(now)) active = true;
+                    if (nowW >= startW && nowW <= endW) active = true;
                 }
             } else if (repeat.equals("MONTHLY")) {
-                if (startDate.getDayOfMonth() == now.getDayOfMonth() && !now.isBefore(startDate)) active = true;
+                int nowD = now.getDayOfMonth();
+                int startD = startDate.getDayOfMonth();
+                int endD = endDate.getDayOfMonth();
+                if (endD < startD) { // Wrap around month
+                    if (nowD >= startD || nowD <= endD) active = true;
+                } else {
+                    if (nowD >= startD && nowD <= endD) active = true;
+                }
             } else if (repeat.equals("YEARLY")) {
-                if (startDate.getMonthValue() == now.getMonthValue() && startDate.getDayOfMonth() == now.getDayOfMonth() && !now.isBefore(startDate)) active = true;
-            } else if (repeat.equals("WEEKLY")) {
-                if (startDate.getDayOfWeek() == now.getDayOfWeek() && !now.isBefore(startDate)) active = true;
+                java.time.MonthDay nowMD = java.time.MonthDay.from(now);
+                java.time.MonthDay startMD = java.time.MonthDay.from(startDate);
+                java.time.MonthDay endMD = java.time.MonthDay.from(endDate);
+                if (endMD.isBefore(startMD)) { // Wrap around year
+                    if (!nowMD.isBefore(startMD) || !nowMD.isAfter(endMD)) active = true;
+                } else {
+                    if (!nowMD.isBefore(startMD) && !nowMD.isAfter(endMD)) active = true;
+                }
             }
             if (active) return pct;
         }
