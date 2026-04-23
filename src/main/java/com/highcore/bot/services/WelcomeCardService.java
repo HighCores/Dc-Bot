@@ -22,34 +22,30 @@ public class WelcomeCardService {
     public static byte[] generateWelcomeCard(Member member) throws Exception {
         BufferedImage background = null;
         try {
-            // Priority 1: Remote URL (User's specific preference)
-            String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
-            if (urlStr != null && !urlStr.isEmpty()) {
-                log.info("Attempting to load background from URL: [{}]", urlStr);
+            // Priority 1: Classpath Resource (Fast and reliable)
+            log.info("Loading background from classpath resources...");
+            java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
+            if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
+            
+            if (is != null) {
+                background = ImageIO.read(is);
+            }
+            
+            // Priority 2: Remote URL (Fallback)
+            if (background == null) {
+                String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
+                log.warn("Resource missing. Attempting emergency remote fetch: [{}]", urlStr);
+                
                 java.net.URL url = new java.net.URL(urlStr);
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
                 connection.setConnectTimeout(8000);
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
+                
                 background = ImageIO.read(connection.getInputStream());
-            }
-
-            // Priority 2: Classpath Resource (Fallback)
-            if (background == null) {
-                log.info("Falling back to classpath resources...");
-                java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
-                if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
-                if (is != null) background = ImageIO.read(is);
             }
         } catch (Exception e) {
             log.error("Resource pipeline failure: {}", e.getMessage());
-            // Final fallback: try local resource if URL fails
-            if (background == null) {
-                try {
-                    java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
-                    if (is != null) background = ImageIO.read(is);
-                } catch (Exception ignored) {}
-            }
-            if (background == null) throw new Exception("Branding pipeline failure: " + e.getMessage());
+            throw new Exception("Branding pipeline failure: " + e.getMessage());
         }
 
         if (background == null) {
