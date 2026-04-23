@@ -42,7 +42,7 @@ public class SlashCommands extends ListenerAdapter {
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
         if (!event.isAcknowledged() && !usesModal) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts");
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts");
             event.deferReply(ephemeral).queue();
         }
 
@@ -223,14 +223,21 @@ public class SlashCommands extends ListenerAdapter {
     }
 
     private void handleTerms(SlashCommandInteractionEvent event) {
-        event.getHook().sendMessage("https://imgur.com/KTPxBfL").queue();
-        event.getHook().sendMessage("https://imgur.com/1454z6W").queue();
-        event.getHook().sendMessage("https://imgur.com/SGcSGsl").queue();
-        event.getHook().sendMessage("https://imgur.com/2lSKtYH").queue();
-        event.getHook().sendMessage("https://imgur.com/jL2SV1F").queue();
-        event.getHook().sendMessage("https://imgur.com/Z8Whznm").queue();
-        event.getHook().sendMessage("https://imgur.com/pVu4NGX").queue();
-        event.getHook().sendMessage("https://imgur.com/KTPxBfL").queue();
+        String[] imgs = {
+            "https://i.imgur.com/KTPxBfL.png",
+            "https://i.imgur.com/1454z6W.png",
+            "https://i.imgur.com/SGcSGsl.png",
+            "https://i.imgur.com/2lSKtYH.png",
+            "https://i.imgur.com/jL2SV1F.png",
+            "https://i.imgur.com/Z8Whznm.png",
+            "https://i.imgur.com/pVu4NGX.png",
+            "https://i.imgur.com/KTPxBfL.png"
+        };
+
+        for (String img : imgs) {
+            event.getChannel().sendMessage(img).queue();
+        }
+        event.getHook().sendMessage("✅ Terms sent to channel.").setEphemeral(true).queue();
     }
 
     private boolean isStaff(Member m) { return Config.isStaff(m); }

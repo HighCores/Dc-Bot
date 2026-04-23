@@ -76,14 +76,23 @@ public class MessageListener extends ListenerAdapter {
 
         // 📜 Terms Command
         if (content.equalsIgnoreCase("terms/")) {
-            event.getChannel().sendMessage("https://imgur.com/KTPxBfL").queue();
-            event.getChannel().sendMessage("https://imgur.com/1454z6W").queue();
-            event.getChannel().sendMessage("https://imgur.com/SGcSGsl").queue();
-            event.getChannel().sendMessage("https://imgur.com/2lSKtYH").queue();
-            event.getChannel().sendMessage("https://imgur.com/jL2SV1F").queue();
-            event.getChannel().sendMessage("https://imgur.com/Z8Whznm").queue();
-            event.getChannel().sendMessage("https://imgur.com/pVu4NGX").queue();
-            event.getChannel().sendMessage("https://imgur.com/KTPxBfL").queue();
+            // Delete the trigger message to keep channel clean (as requested: "مب رد")
+            event.getMessage().delete().queue(null, (err) -> {});
+
+            String[] imgs = {
+                "https://i.imgur.com/KTPxBfL.png",
+                "https://i.imgur.com/1454z6W.png",
+                "https://i.imgur.com/SGcSGsl.png",
+                "https://i.imgur.com/2lSKtYH.png",
+                "https://i.imgur.com/jL2SV1F.png",
+                "https://i.imgur.com/Z8Whznm.png",
+                "https://i.imgur.com/pVu4NGX.png",
+                "https://i.imgur.com/KTPxBfL.png"
+            };
+
+            for (String img : imgs) {
+                event.getChannel().sendMessage(img).queue();
+            }
             return;
         }
     }
