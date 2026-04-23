@@ -13,6 +13,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.entities.emoji.Emoji;
 import java.util.List;
 import java.util.ArrayList;
 
@@ -26,31 +27,48 @@ public class BannedWordCommands extends ListenerAdapter {
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
-        if (!event.getComponentId().equals("bw_add")) return;
+        String id = event.getComponentId();
         if (!Config.isAdmin(event.getMember())) return;
-        TextInput word = TextInput.create("word", TextInputStyle.SHORT).setPlaceholder("Banned term...").setRequired(true).build();
-        event.replyModal(Modal.create("modal_bw_add", "Banned Word").addComponents(net.dv8tion.jda.api.components.label.Label.of("Banned Word", word)).build()).queue();
+        
+        if (id.equals("bw_add")) {
+            TextInput word = TextInput.create("word", TextInputStyle.SHORT).setPlaceholder("Banned term...").setRequired(true).build();
+            event.replyModal(Modal.create("modal_bw_add", "Banned Word").addComponents(net.dv8tion.jda.api.components.label.Label.of("Banned Word", word)).build()).queue();
+        } else if (id.equals("bw_remove")) {
+            TextInput word = TextInput.create("word", TextInputStyle.SHORT).setPlaceholder("Word to remove...").setRequired(true).build();
+            event.replyModal(Modal.create("modal_bw_remove", "Remove Banned Word").addComponents(net.dv8tion.jda.api.components.label.Label.of("Remove Banned Word", word)).build()).queue();
+        }
     }
 
     @Override
     public void onModalInteraction(ModalInteractionEvent event) {
-        if (!event.getModalId().equals("modal_bw_add")) return;
-        String w = event.getValue("word").getAsString();
-        SupabaseClient.addBannedWord(w);
-        sendPanel(event, true);
+        String id = event.getModalId();
+        if (id.equals("modal_bw_add")) {
+            String w = event.getValue("word").getAsString();
+            SupabaseClient.addBannedWord(w);
+            sendPanel(event, true);
+        } else if (id.equals("modal_bw_remove")) {
+            String w = event.getValue("word").getAsString();
+            SupabaseClient.removeBannedWord(w);
+            sendPanel(event, true);
+        }
     }
 
     private void sendPanel(Object event, boolean edit) {
         List<String> words = SupabaseClient.getBannedWords();
         StringBuilder sb = new StringBuilder("### Banned Terms Registry\n\n");
         if (words.isEmpty()) sb.append("*No terms indexed.*");
-        else words.forEach(w -> sb.append("▫️ `").append(w).append("`\n"));
+        else words.forEach(w -> sb.append("\u25AB\uFE0F `").append(w).append("`\n"));
 
-        ActionRow row = ActionRow.of(Button.secondary("bw_add", "Add Term"));
+        ActionRow row = ActionRow.of(
+            Button.secondary("bw_add", "Add Term").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromCustom("AddWord", 1496974927931113483L, false)),
+            Button.secondary("bw_remove", "Remove Term").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromCustom("RemoveWord", 1496974275951984852L, false))
+        );
         var c = EmbedUtil.containerBranded("MODERATION", "Filter Hub", sb.toString(), null, row);
         if (edit) {
             if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editComponents(c).queue();
             else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editComponents(c).queue();
-        } else PanelService.replyEphemeral((SlashCommandInteractionEvent)event, c);
+        } else if (event instanceof SlashCommandInteractionEvent) {
+            PanelService.replyEphemeral((SlashCommandInteractionEvent)event, c);
+        }
     }
 }
