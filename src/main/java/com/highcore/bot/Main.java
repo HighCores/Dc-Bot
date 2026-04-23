@@ -75,7 +75,9 @@ public class Main {
         TelemetryService.start(jda);
         RestApiServer.start(jda);
 
-        log.info("Golden Terminal v1.2.0 fully operational!");
+        log.info("=================================================");
+        log.info("   HIGHCORE BOT - DEBUG VERSION 2.0 (TRACE ON)   ");
+        log.info("=================================================");
     }
 
     private static void registerCommands(JDA jda) {
