@@ -13,6 +13,7 @@ public class CalendarUtil {
         LocalDate firstDay = ym.atDay(1);
         int length = ym.lengthOfMonth();
         int startOffset = firstDay.getDayOfWeek().getValue() % 7; // Sunday = 0
+        LocalDate now = LocalDate.now();
 
         StringBuilder sb = new StringBuilder();
         String monthName = ym.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
@@ -29,7 +30,8 @@ public class CalendarUtil {
         }
 
         for (int i = startOffset; i < 7; i++) {
-            appendDay(sb, currentDay++, scheduledDates);
+            boolean isToday = now.getYear() == year && now.getMonthValue() == month && now.getDayOfMonth() == currentDay;
+            appendDay(sb, currentDay++, scheduledDates, isToday);
         }
         sb.append("` \n");
 
@@ -37,7 +39,8 @@ public class CalendarUtil {
             sb.append("` ");
             for (int i = 0; i < 7; i++) {
                 if (currentDay <= length) {
-                    appendDay(sb, currentDay++, scheduledDates);
+                    boolean isToday = now.getYear() == year && now.getMonthValue() == month && now.getDayOfMonth() == currentDay;
+                    appendDay(sb, currentDay++, scheduledDates, isToday);
                 } else {
                     sb.append("    ");
                 }
@@ -48,12 +51,18 @@ public class CalendarUtil {
         return sb.toString();
     }
 
-    private static void appendDay(StringBuilder sb, int day, Set<Integer> scheduledDates) {
+    private static void appendDay(StringBuilder sb, int day, Set<Integer> scheduledDates, boolean isToday) {
         String dayStr = String.format("%02d", day);
-        if (scheduledDates.contains(day)) {
-            sb.append("[").append(dayStr).append("] "); // Using brackets for scheduled
+        if (isToday) {
+            if (scheduledDates.contains(day)) {
+                sb.append("!!").append(dayStr).append(" "); // Today + Scheduled High Priority
+            } else {
+                sb.append(">>").append(dayStr).append(" "); // Today Only
+            }
+        } else if (scheduledDates.contains(day)) {
+            sb.append("[").append(dayStr).append("] "); // Scheduled Only
         } else {
-            sb.append(" ").append(dayStr).append("  ");
+            sb.append(" ").append(dayStr).append("  "); // Regular
         }
     }
 }
