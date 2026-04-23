@@ -69,12 +69,12 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
             g.setColor(COL_GOLD);
             // Positioned exactly after the # on the right
-            g.drawString(invoiceId, (int)(685 * sX), (int)(152 * sY));
+            g.drawString(tid, (int)(685 * sX), (int)(152 * sY));
 
             // 2. Avatar
-            if (avatarUrl != null && !avatarUrl.isEmpty()) {
+            if (userAvatarUrl != null && !userAvatarUrl.isEmpty()) {
                 try {
-                    java.net.URLConnection conn = new URL(avatarUrl).openConnection();
+                    java.net.URLConnection conn = new URL(userAvatarUrl).openConnection();
                     try (InputStream is = conn.getInputStream()) {
                         BufferedImage avatar = ImageIO.read(is);
                         if (avatar != null) {
@@ -93,7 +93,7 @@ public class InvoiceService {
             // 2b. Username - Centered in the brown rectangle
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(16 * sX)));
             g.setColor(COL_WHITE);
-            String uName = truncate(displayName != null ? displayName : clientName, 20);
+            String uName = truncate(userName != null ? userName : clientName, 20);
             g.drawString(uName, (int)(775 * sX) - g.getFontMetrics().stringWidth(uName)/2, (int)(237 * sY));
 
             // 3. Status
@@ -105,7 +105,7 @@ public class InvoiceService {
             // 4. Client Details - Restoring contact but keeping description removed per request
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(COL_WHITE);
-            g.drawString(truncate(displayName != null ? displayName : clientName, 25), (int)(675 * sX), (int)(355 * sY));
+            g.drawString(truncate(userName != null ? userName : clientName, 25), (int)(675 * sX), (int)(355 * sY));
             
             if (contact != null && !contact.isEmpty()) {
                 g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(16 * sX)));
@@ -143,8 +143,8 @@ public class InvoiceService {
 
             double subtotalVal = 0;
             int drawnCount = 0;
-            for (int i = 0; i < items.size() && drawnCount < 5; i++) {
-                OrderItem item = items.get(i);
+            for (int i = 0; i < mainItems.size() && drawnCount < 5; i++) {
+                OrderItem item = mainItems.get(i);
                 if (item.price <= 0) {
                     subtotalVal += item.price; // Keep adding to subtotal even if hidden
                     continue;
