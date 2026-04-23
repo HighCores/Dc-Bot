@@ -2,6 +2,7 @@ package com.highcore.bot.commands;
 
 import com.highcore.bot.config.Config;
 import com.highcore.bot.services.PanelService;
+import com.highcore.bot.services.WordFilterService;
 import com.highcore.bot.utils.EmbedUtil;
 import com.highcore.bot.database.SupabaseClient;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -44,17 +45,27 @@ public class BannedWordCommands extends ListenerAdapter {
         String id = event.getModalId();
         if (id.equals("modal_bw_add")) {
             String w = event.getValue("word").getAsString();
-            SupabaseClient.addBannedWord(w);
+            WordFilterService.addWord(w);
             sendPanel(event, true);
         } else if (id.equals("modal_bw_remove")) {
             String w = event.getValue("word").getAsString();
-            SupabaseClient.removeBannedWord(w);
+            WordFilterService.removeWord(w);
             sendPanel(event, true);
         }
     }
 
     private void sendPanel(Object event, boolean edit) {
-        List<String> words = SupabaseClient.getBannedWords();
+        // Fetch from dc_word_filter (via service cache or direct DB)
+        com.google.gson.JsonArray arr = SupabaseClient.getWordFilter();
+        List<String> words = new ArrayList<>();
+        if (arr != null) {
+            arr.forEach(el -> {
+                if (el.getAsJsonObject().has("word")) {
+                    words.add(el.getAsJsonObject().get("word").getAsString());
+                }
+            });
+        }
+
         StringBuilder sb = new StringBuilder("### Banned Terms Registry\n\n");
         if (words.isEmpty()) sb.append("*No terms indexed.*");
         else words.forEach(w -> sb.append("\u25AB\uFE0F `").append(w).append("`\n"));

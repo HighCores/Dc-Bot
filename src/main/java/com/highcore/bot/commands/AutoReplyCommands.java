@@ -2,6 +2,7 @@ package com.highcore.bot.commands;
 
 import com.highcore.bot.config.Config;
 import com.highcore.bot.services.PanelService;
+import com.highcore.bot.services.AutoReplyService;
 import com.highcore.bot.utils.EmbedUtil;
 import com.highcore.bot.database.SupabaseClient;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
@@ -50,11 +51,11 @@ public class AutoReplyCommands extends ListenerAdapter {
         if (id.equals("modal_ar_add")) {
             String t = event.getValue("trigger").getAsString();
             String r = event.getValue("reply").getAsString();
-            SupabaseClient.createAutoResponse(t, r, event.getUser().getName());
+            AutoReplyService.addResponse(t, r, event.getUser().getName());
             sendPanel(event, true);
         } else if (id.equals("modal_ar_remove")) {
             String t = event.getValue("trigger").getAsString();
-            SupabaseClient.deleteAutoResponse(t);
+            AutoReplyService.removeResponse(t);
             sendPanel(event, true);
         }
     }
