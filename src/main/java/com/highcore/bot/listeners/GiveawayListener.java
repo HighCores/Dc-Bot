@@ -35,12 +35,12 @@ public class GiveawayListener extends ListenerAdapter {
 
         JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
         if (g == null || g.get("ended").getAsBoolean()) {
-            event.getHook().sendMessage("This giveaway operation has concluded.").setEphemeral(true).queue();
+            event.getHook().sendMessage("This giveaway has already ended.").setEphemeral(true).queue();
             return;
         }
 
         if (SupabaseClient.hasEnteredGiveaway(giveawayId, event.getUser().getId())) {
-            event.getHook().sendMessage("Your entry is already synchronized.").setEphemeral(true).queue();
+            event.getHook().sendMessage("You have already joined this giveaway.").setEphemeral(true).queue();
             return;
         }
 
@@ -51,7 +51,7 @@ public class GiveawayListener extends ListenerAdapter {
 
         if (isDrop) {
             GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
-            event.getHook().sendMessage("Target Optimized: You have successfully claimed the priority reward!").setEphemeral(true).queue();
+            event.getHook().sendMessage("Success! You have claimed the reward!").setEphemeral(true).queue();
             return;
         }
 
@@ -63,16 +63,16 @@ public class GiveawayListener extends ListenerAdapter {
         String endsStr = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
         long endsTs = !endsStr.isEmpty() ? java.time.Instant.parse(endsStr).getEpochSecond() : 0;
 
-        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+        Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Prize" : "Join Giveaway")
             .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
         Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries")).asDisabled();
 
         String body;
         if (isDrop) {
-            body = "### \uD83D\uDCA8 Instant Priority Drop\nA high-priority prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** "
+            body = "### \uD83D\uDCA8 Instant Prize\nA prize is available for the fastest member to claim.\n\n\u25AB\uFE0F **Prize:** "
                     + prize + "\n\u25AB\uFE0F **Winners:** " + winCount + "\n\nClick claim below to win!";
         } else {
-            body = "### \uD83C\uDF81 Active Sweepstakes\nA new reward opportunity is now available for all members.\n\n\u25AB\uFE0F **Prize:** "
+            body = "### \uD83C\uDF81 Active Giveaway\nA new giveaway is now available for all members.\n\n\u25AB\uFE0F **Prize:** "
                     + prize + "\n\u25AB\uFE0F **Winners:** **" + winCount + "**\n\u25AB\uFE0F **Ends In:** <t:"
                     + endsTs + ":R>";
         }
@@ -83,7 +83,7 @@ public class GiveawayListener extends ListenerAdapter {
         gwComps.add(gwC);
 
         event.getMessage().editMessageComponents(gwComps).useComponentsV2(true).queue(null, err -> {});
-        event.getHook().sendMessage("Registry updated. You have successfully entered the giveaway!").setEphemeral(true).queue();
+        event.getHook().sendMessage("Success! You have entered the giveaway.").setEphemeral(true).queue();
         
         // Sync Dashboard
         String dashMsgId = GiveawayCommands.dashboardMessages.get(giveawayId);
@@ -111,6 +111,6 @@ public class GiveawayListener extends ListenerAdapter {
 
         event.deferReply(true).queue();
         GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
-        event.getHook().sendMessage("Manual termination successful. Winners are being processed.").queue();
+        event.getHook().sendMessage("Success! Giveaway ended manually.").queue();
     }
 }

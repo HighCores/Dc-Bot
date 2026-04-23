@@ -110,7 +110,7 @@ public class GiveawayCommands extends ListenerAdapter {
 
             StringBuilder sb = new StringBuilder();
             sb.append(
-                    "### \uD83D\uDCC3 Reward Deployment Log\nListing the most recent reward sessions found in the registry:\n\n");
+                    "### \uD83D\uDCC3 Giveaway History\nListing the most recent reward sessions found in the registry:\n\n");
 
             for (int i = 0; i < active.size(); i++) {
                 JsonObject g = active.get(i).getAsJsonObject();
@@ -164,7 +164,7 @@ public class GiveawayCommands extends ListenerAdapter {
                         .addOption("60% Off", "60")
                         .build();
                 PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT SETUP", "Step 2: Percentage",
-                        "Select the fixed **percentage** for this deployment.", EmbedUtil.BANNER_GIVEAWAY,
+                        "Select the fixed **percentage** for this schedule.", EmbedUtil.BANNER_GIVEAWAY,
                         ActionRow.of(menu)));
             } else if (value.equals("Voucher")) {
                 StringSelectMenu menu = StringSelectMenu.create("sel_gw_sub_voucher")
@@ -375,8 +375,8 @@ public class GiveawayCommands extends ListenerAdapter {
         dashboardChannels.put(giveawayId, target.getId());
 
         LogManager.logEmbed(event.getGuild(), Config.LOG_COMMANDS, EmbedUtil.createOldLogEmbed("giveaway-start",
-                "Operation: Incentive Deployment Initiated\nDeployment Node: " + target.getAsMention()
-                        + "\nPrize Asset: `" + prize + "`\nWinner Slots: " + winCount + "\nDuration: "
+                "Operation: Giveaway Started\nTarget Channel: " + target.getAsMention()
+                        + "\nPrize: `" + prize + "`\nWinner Slots: " + winCount + "\nDuration: "
                         + (isDrop ? "Instant" : duration + "m"),
                 event.getMember(), null, null, EmbedUtil.SUCCESS));
 
@@ -426,7 +426,7 @@ public class GiveawayCommands extends ListenerAdapter {
         var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
                 EmbedUtil.BANNER_GIVEAWAY, dashRow);
 
-        event.getHook().sendMessage("Giveaway sequence fully deployed. You can monitor it below!").setEphemeral(false)
+        event.getHook().sendMessage("Giveaway fully started. You can monitor it below!").setEphemeral(false)
                 .queue();
 
         event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {

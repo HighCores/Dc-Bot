@@ -63,8 +63,8 @@ public class DiscountService {
 
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
         
-        String desc = "### Discount Infrastructure\n" +
-                "Manage scheduled discount events.\n\n" +
+        String desc = "### Discount Management\n" +
+                "View and manage active discount events.\n\n" +
                 calendar + "\n" +
                 "*Symbols: `>>` Today, `[]` Scheduled, `!!` Both.*";
 
@@ -78,7 +78,7 @@ public class DiscountService {
             Button.secondary("disc_deploy_manual", "New Manual Discount")
         );
 
-        PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow));
+        PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
     }
 
     public static void updateDiscountPanel(ButtonInteractionEvent event, int year, int month) {
@@ -122,8 +122,8 @@ public class DiscountService {
         }
 
         String calendar = CalendarUtil.generateSymbolicCalendar(year, month, days);
-        String desc = "### Discount Infrastructure\n" +
-                "Manage scheduled discount events.\n\n" +
+        String desc = "### Discount Management\n" +
+                "View and manage active discount events.\n\n" +
                 calendar + "\n" +
                 "*Symbols: `>>` Today, `[]` Scheduled, `!!` Both.*";
 
@@ -137,6 +137,6 @@ public class DiscountService {
             Button.secondary("disc_deploy_manual", "New Manual Discount")
         );
 
-        PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Operational Schedule", desc, null, navRow, actionRow));
+        PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
     }
 }
