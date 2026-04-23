@@ -188,7 +188,12 @@ public class PanelService {
                             if (c != null && !c.isEmpty()) allComps.add(0, TextDisplay.of(c));
                         } catch (Exception ignored) {}
                     }
-                    hook.editOriginalComponents(allComps).useComponentsV2(true).queue(null, t -> {
+                    
+                    net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(allComps)
+                        .setContent(null); // Explicitly nullify to avoid Legacy Field errors
+                        
+                    hook.editOriginal(builder.build()).useComponentsV2(true).queue(null, t -> {
                         System.err.println("Interaction hook failure: " + t.getMessage());
                     });
                 } else {
