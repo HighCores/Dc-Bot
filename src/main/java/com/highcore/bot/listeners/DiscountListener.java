@@ -42,26 +42,17 @@ public class DiscountListener extends ListenerAdapter {
         }
 
         if (id.equals("disc_deploy_manual")) {
-            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. 2026-04-25")
-                    .setRequired(true)
-                    .build();
-
-            TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. 15")
-                    .setRequired(true)
-                    .build();
-
-            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT)
-                    .setPlaceholder("e.g. Summer Sale")
-                    .setRequired(true)
-                    .build();
+            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder("Start: YYYY-MM-DD").setRequired(true).build();
+            TextInput endInput = TextInput.create("end_date", TextInputStyle.SHORT).setPlaceholder("End: YYYY-MM-DD (Optional)").setRequired(false).build();
+            TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT).setPlaceholder("e.g. 15").setRequired(true).build();
+            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("e.g. Summer Sale").setRequired(true).build();
 
             event.replyModal(Modal.create("modal_disc_save_MANUAL_NONE", "Deploy MANUAL Discount")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Date (YYYY-MM-DD)", dateInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Discount Percentage (%)", percentInput)
+                        net.dv8tion.jda.api.components.label.Label.of("Start Date", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("End Date (Opt)", endInput),
+                        net.dv8tion.jda.api.components.label.Label.of("Discount (%)", percentInput)
                     )
                     .build()).queue();
         } else if (id.equals("disc_deploy_auto")) {
@@ -93,9 +84,11 @@ public class DiscountListener extends ListenerAdapter {
                 int percent = d.has("percentage") ? d.get("percentage").getAsInt() : 15;
                 String name = d.has("name") ? d.get("name").getAsString() : "Discount Event";
 
+                String expiry = d.has("end_date") && !d.get("end_date").isJsonNull() ? d.get("end_date").getAsString() : "Permanent";
+
                 sb.append("\u25AB\uFE0F **").append(date).append("** \u2014 **").append(percent).append("%** ")
                   .append("(_").append(name).append("_)\n")
-                  .append("      (`").append(type).append("` | `").append(repeat).append("`)\n");
+                  .append("      (`").append(type).append("` | `").append(repeat).append("` | Ends: `").append(expiry).append("`)\n");
             }
 
             PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null, 
@@ -154,14 +147,18 @@ public class DiscountListener extends ListenerAdapter {
         if (id.equals("sel_disc_interval")) {
             // ... (existing auto deploy logic)
             String interval = event.getValues().get(0);
-            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("e.g. Monthly Bonus").setRequired(true).build();
-            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder("e.g. 2026-04-25").setRequired(true).build();
+            TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("Holiday Name").setRequired(true).build();
+            
+            String datePlaceholder = interval.equals("YEARLY") ? "MM-DD (e.g. 12-25)" : "YYYY-MM-DD";
+            TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder(datePlaceholder).setRequired(true).build();
+            TextInput endInput = TextInput.create("end_date", TextInputStyle.SHORT).setPlaceholder("YYYY-MM-DD (Optional)").setRequired(false).build();
             TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT).setPlaceholder("e.g. 15").setRequired(true).build();
             
             event.replyModal(Modal.create("modal_disc_save_AUTO_" + interval, "Configure AUTO Discount")
                     .addComponents(
                         net.dv8tion.jda.api.components.label.Label.of("Occasion Name", nameInput),
-                        net.dv8tion.jda.api.components.label.Label.of("Start Date", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of(interval.equals("YEARLY") ? "Day/Month" : "Start Date", dateInput),
+                        net.dv8tion.jda.api.components.label.Label.of("End Date", endInput),
                         net.dv8tion.jda.api.components.label.Label.of("Percentage", percentInput)
                     ).build()).queue();
         } else if (id.equals("sel_disc_edit_pick")) {
@@ -182,19 +179,31 @@ public class DiscountListener extends ListenerAdapter {
         if (id.startsWith("modal_disc_save_")) {
             // ... (existing creation logic)
             String[] parts = id.split("_");
-            String type = parts[3];
-            String repeat = parts[4];
             String name = event.getValue("name").getAsString().trim();
             String dateRaw = event.getValue("date").getAsString().trim();
+            String endRaw = event.getValue("end_date") != null ? event.getValue("end_date").getAsString().trim() : "";
             String percentStr = event.getValue("percent").getAsString();
 
-            if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid date format.").setEphemeral(true).queue(); return; }
-            String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error.").setEphemeral(true).queue(); return; }
+            // Handling Yearly MM-DD format
+            if (repeat.equals("YEARLY") && dateRaw.matches("\\d{1,2}-\\d{1,2}")) {
+                dateRaw = LocalDate.now().getYear() + "-" + dateRaw;
+            }
+
+            if (!dateRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid start date format. Use YYYY-MM-DD.").setEphemeral(true).queue(); return; }
+            
+            String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing start date.").setEphemeral(true).queue(); return; }
+            
+            String endDate = null;
+            if (!endRaw.isEmpty()) {
+                if (!endRaw.matches("\\d{4}-\\d{1,2}-\\d{1,2}")) { event.reply("Invalid end date format. Use YYYY-MM-DD.").setEphemeral(true).queue(); return; }
+                try { String[] dp = endRaw.split("-"); endDate = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error parsing end date.").setEphemeral(true).queue(); return; }
+            }
+
             int percent; try { percent = Integer.parseInt(percentStr.replace("%", "").trim()); } catch (Exception e) { event.reply("Invalid percentage.").setEphemeral(true).queue(); return; }
 
-            SupabaseClient.createDiscount(type, date, repeat, percent, name);
+            SupabaseClient.createDiscount(type, date, repeat, percent, name, endDate);
             try { if (event.getMessage() != null) DiscountService.updateDiscountPanel(event, LocalDate.now().getYear(), LocalDate.now().getMonthValue()); } catch (Exception e) {}
-            event.reply("### \u2705 Success\nDiscount **" + name + "** scheduled for **" + date + "**.").setEphemeral(true).queue();
+            event.reply("### \u2705 Success\nDiscount **" + name + "** scheduled from **" + date + "** to **" + (endDate != null ? endDate : "End of Day") + "**.").setEphemeral(true).queue();
         } else if (id.startsWith("modal_disc_edit_save_")) {
             long dbId = Long.parseLong(id.replace("modal_disc_edit_save_", ""));
             String dateRaw = event.getValue("date").getAsString().trim();

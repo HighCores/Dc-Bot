@@ -546,10 +546,19 @@ public class SupabaseClient {
             String dateStr = d.get("schedule_date").getAsString();
             String type = d.get("type").getAsString();
             String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString().toUpperCase() : "NONE";
+            int pct = d.has("percentage") ? d.get("percentage").getAsInt() : 15;
+            
             java.time.LocalDate startDate = java.time.LocalDate.parse(dateStr);
+            java.time.LocalDate endDate = d.has("end_date") && !d.get("end_date").isJsonNull() ? 
+                java.time.LocalDate.parse(d.get("end_date").getAsString()) : null;
+
             boolean active = false;
             if (repeat.equals("NONE") || type.equals("MANUAL")) {
-                if (startDate.equals(now)) active = true;
+                if (endDate != null) {
+                    if (!now.isBefore(startDate) && !now.isAfter(endDate)) active = true;
+                } else {
+                    if (startDate.equals(now)) active = true;
+                }
             } else if (repeat.equals("MONTHLY")) {
                 if (startDate.getDayOfMonth() == now.getDayOfMonth() && !now.isBefore(startDate)) active = true;
             } else if (repeat.equals("YEARLY")) {
@@ -557,18 +566,19 @@ public class SupabaseClient {
             } else if (repeat.equals("WEEKLY")) {
                 if (startDate.getDayOfWeek() == now.getDayOfWeek() && !now.isBefore(startDate)) active = true;
             }
-            if (active) return d.has("percentage") ? d.get("percentage").getAsInt() : 15;
+            if (active) return pct;
         }
         return 0;
     }
 
-    public static void createDiscount(String type, String date, String repeat, int percentage, String name) {
+    public static void createDiscount(String type, String date, String repeat, int percentage, String name, String endDate) {
         JsonObject body = new JsonObject();
         body.addProperty("type", type);
         body.addProperty("schedule_date", date);
         body.addProperty("repeat_interval", repeat);
         body.addProperty("percentage", percentage);
         body.addProperty("name", name != null ? name : "Discount Event");
+        if (endDate != null) body.addProperty("end_date", endDate);
         post("dc_discounts", body);
     }
 
