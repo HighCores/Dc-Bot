@@ -115,8 +115,8 @@ public class DiscountListener extends ListenerAdapter {
             // Standardize format to YYYY-MM-DD (auto-pad zeros)
             String date;
             try {
-                String[] parts = dateRaw.split("-");
-                date = String.format("%s-%02d-%02d", parts[0], Integer.parseInt(parts[1]), Integer.parseInt(parts[2]));
+                String[] dateParts = dateRaw.split("-");
+                date = String.format("%s-%02d-%02d", dateParts[0], Integer.parseInt(dateParts[1]), Integer.parseInt(dateParts[2]));
             } catch (Exception e) {
                 event.reply("Internal parsing error. Check date format.").setEphemeral(true).queue();
                 return;
