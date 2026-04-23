@@ -68,6 +68,29 @@ public class DiscountListener extends ListenerAdapter {
                  .setComponents(ActionRow.of(menu))
                  .setEphemeral(true)
                  .queue();
+        } else if (id.equals("disc_view_all")) {
+            JsonArray all = SupabaseClient.getAllDiscounts();
+            if (all == null || all.size() == 0) {
+                event.reply("No scheduled discounts were found.").setEphemeral(true).queue();
+                return;
+            }
+
+            StringBuilder sb = new StringBuilder();
+            sb.append("### \uD83D\uDCCB Full Discount Schedule\n\n");
+            for (var dev : all) {
+                JsonObject d = dev.getAsJsonObject();
+                String date = d.get("schedule_date").getAsString();
+                String type = d.get("type").getAsString();
+                String repeat = d.has("repeat_interval") ? d.get("repeat_interval").getAsString() : "NONE";
+                int percent = d.has("percentage") ? d.get("percentage").getAsInt() : 15;
+
+                sb.append("\u25AB\uFE0F **").append(date).append("** \u2014 **").append(percent).append("%** ")
+                  .append("(`").append(type).append("` | `").append(repeat).append("`)\n");
+            }
+
+            event.reply(EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null))
+                 .setEphemeral(true)
+                 .queue();
         }
     }
 
@@ -132,7 +155,19 @@ public class DiscountListener extends ListenerAdapter {
 
             SupabaseClient.createDiscount(type, date, repeat, percent);
             
-            event.reply("### \u2705 Deployment Successful\n" + type + " Discount of **" + percent + "%** scheduled for **" + date + "**.")
+            // Auto Update Original Panel
+            try {
+                // Try to find year/month from original the button ids
+                int yr = LocalDate.now().getYear();
+                int mo = LocalDate.now().getMonthValue();
+                
+                // If the modal was from a panel, we update it
+                if (event.getMessage() != null) {
+                    DiscountService.updateDiscountPanel(event, yr, mo);
+                }
+            } catch (Exception e) {}
+
+            event.reply("### \u2705 Success\n" + type + " Discount of **" + percent + "%** scheduled for **" + date + "**.")
                  .setEphemeral(true)
                  .queue();
         }

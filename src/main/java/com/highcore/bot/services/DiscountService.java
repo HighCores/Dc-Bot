@@ -75,7 +75,8 @@ public class DiscountService {
         
         ActionRow actionRow = ActionRow.of(
             Button.secondary("disc_deploy_auto", "New Auto Discount"),
-            Button.secondary("disc_deploy_manual", "New Manual Discount")
+            Button.secondary("disc_deploy_manual", "New Manual Discount"),
+            Button.primary("disc_view_all", "View Full Schedule")
         );
 
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
@@ -134,7 +135,8 @@ public class DiscountService {
         
         ActionRow actionRow = ActionRow.of(
             Button.secondary("disc_deploy_auto", "New Auto Discount"),
-            Button.secondary("disc_deploy_manual", "New Manual Discount")
+            Button.secondary("disc_deploy_manual", "New Manual Discount"),
+            Button.primary("disc_view_all", "View Full Schedule")
         );
 
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
