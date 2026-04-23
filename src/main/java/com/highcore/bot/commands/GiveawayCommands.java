@@ -141,27 +141,6 @@ public class GiveawayCommands extends ListenerAdapter {
 
             var c = EmbedUtil.containerBranded("REWARDS", "Live Giveaways", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
             PanelService.replyEphemeral(event, c);
-        } else if (id.startsWith("gw_end_early_")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
-                return;
-            long gwId = Long.parseLong(id.replace("gw_end_early_", ""));
-            com.highcore.bot.services.GiveawayService.endGiveaway(event.getJDA(), gwId, 1);
-            PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM", "Giveaway ended early!"));
-        } else if (id.startsWith("gw_reroll_adm_")) {
-            if (!event.getMember().hasPermission(net.dv8tion.jda.api.Permission.MANAGE_SERVER))
-                return;
-            long gwId = Long.parseLong(id.replace("gw_reroll_adm_", ""));
-            com.highcore.bot.services.GiveawayService.rerollGiveaway(event.getJDA(), gwId);
-            PanelService.replyEphemeral(event, EmbedUtil.success("SYSTEM", "Rerolled giveaway winner(s)!"));
-        } else if (id.startsWith("gw_enter_")) {
-            long gwId = Long.parseLong(id.replace("gw_enter_", ""));
-            if (SupabaseClient.hasEnteredGiveaway(gwId, event.getUser().getId())) {
-                event.reply("You have already entered this giveaway!").setEphemeral(true).queue();
-            } else {
-                SupabaseClient.addGiveawayEntry(gwId, event.getUser().getId());
-                event.reply("Success! Your entry has been registered.").setEphemeral(true).queue();
-                updateDashboard(event.getGuild(), gwId);
-            }
         } else if (id.startsWith("gw_count_")) {
             event.reply("This button shows the current entry count. Click **Join** to be part of it!")
                     .setEphemeral(true).queue();

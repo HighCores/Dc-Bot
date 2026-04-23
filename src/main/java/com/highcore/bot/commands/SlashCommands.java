@@ -42,7 +42,7 @@ public class SlashCommands extends ListenerAdapter {
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
         if (!event.isAcknowledged() && !usesModal) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words");
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("terms") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts");
             event.deferReply(ephemeral).queue();
         }
 
@@ -53,7 +53,7 @@ public class SlashCommands extends ListenerAdapter {
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
             "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
-            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title", "discounts"
+            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title"
         );
         if (dedicatedCmds.contains(name)) return;
 
