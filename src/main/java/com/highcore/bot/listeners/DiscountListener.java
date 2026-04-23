@@ -179,6 +179,8 @@ public class DiscountListener extends ListenerAdapter {
         if (id.startsWith("modal_disc_save_")) {
             // ... (existing creation logic)
             String[] parts = id.split("_");
+            String type = parts[3];
+            String repeat = parts[4];
             String name = event.getValue("name").getAsString().trim();
             String dateRaw = event.getValue("date").getAsString().trim();
             String endRaw = event.getValue("end_date") != null ? event.getValue("end_date").getAsString().trim() : "";
