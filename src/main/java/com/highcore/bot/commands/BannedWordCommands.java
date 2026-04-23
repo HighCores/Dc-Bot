@@ -76,10 +76,11 @@ public class BannedWordCommands extends ListenerAdapter {
         );
         var c = EmbedUtil.containerBranded("MODERATION", "Filter Hub", sb.toString(), null, row);
         if (edit) {
-            net.dv8tion.jda.api.utils.messages.MessageCreateData createData = net.dv8tion.jda.api.utils.messages.MessageCreateBuilder.fromV2Components(c).build();
-            net.dv8tion.jda.api.utils.messages.MessageEditData editData = net.dv8tion.jda.api.utils.messages.MessageEditData.fromCreateData(createData);
-            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editMessage(editData).queue();
-            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editMessage(editData).queue();
+            net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                .setComponents(c)
+                .useComponentsV2(true);
+            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editMessage(builder.build()).useComponentsV2(true).queue();
+            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editMessage(builder.build()).useComponentsV2(true).queue();
         } else if (event instanceof SlashCommandInteractionEvent) {
             PanelService.reply((SlashCommandInteractionEvent)event, c);
         }
