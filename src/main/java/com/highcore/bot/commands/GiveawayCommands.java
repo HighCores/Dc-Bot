@@ -51,8 +51,8 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         ActionRow row = ActionRow.of(
-                Button.secondary("btn_gw_create", "Create Giveaway"),
-                Button.secondary("btn_gw_history", "View History"));
+                Button.secondary("btn_gw_create", "Create Giveaway").withEmoji(Emoji.fromCustom("CreatGiveaway", 1496974773098516510L, false)),
+                Button.secondary("btn_gw_history", "View History").withEmoji(Emoji.fromCustom("GiveawayRecords", 1496974526557327530L, false)));
 
         String desc = "Welcome to the **Giveaway Management Hub**.\n" +
                 "Easily create rewards, launch instant drops, or review history.\n\n" +
