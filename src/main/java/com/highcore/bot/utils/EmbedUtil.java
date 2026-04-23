@@ -148,10 +148,9 @@ public class EmbedUtil {
 
     public static Container startupPanel(ActionRow... rows) {
         List<ContainerChildComponent> layout = new ArrayList<>();
-        layout.add(MediaGallery.of(
-            MediaGalleryItem.fromUrl(BANNER_STARTUP_HEADER),
-            MediaGalleryItem.fromUrl(BANNER_WELCOME)
-        ));
+        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_STARTUP_HEADER)));
+        layout.add(Separator.createDivider(Spacing.SMALL));
+        layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(BANNER_WELCOME)));
 
         layout.add(TextDisplay.of("**Highcore Agency**"));
         layout.add(Separator.createDivider(Spacing.SMALL));
