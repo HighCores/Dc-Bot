@@ -138,6 +138,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             PanelService.handleMainSelected(event, event.getUser().getId(), event.getValues());
         } else if (id.equals("order_addon_select")) {
             PanelService.handleAddonsSelected(event, event.getUser().getId(), event.getValues());
+        } else if (id.equals("about_category_select")) {
+            String val = event.getValues().get(0);
+            PanelService.sendServicePriceInfo(event, val.replace("about_", ""));
         }
     }
 
