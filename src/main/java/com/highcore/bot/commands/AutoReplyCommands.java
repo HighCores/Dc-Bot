@@ -20,7 +20,7 @@ import com.google.gson.JsonObject;
 public class AutoReplyCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("autoreply")) return;
+        if (!event.getName().equals("replay")) return;
         if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
         sendPanel(event, false);
     }

@@ -20,7 +20,7 @@ import java.util.ArrayList;
 public class BannedWordCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("bannedwords")) return;
+        if (!event.getName().equals("banned-words")) return;
         if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
         sendPanel(event, false);
     }

@@ -48,7 +48,7 @@ public class SlashCommands extends ListenerAdapter {
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
         if (!event.isAcknowledged() && !usesModal) {
-            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("replay") && !name.equals("banned-words") && !name.equals("discounts") && !name.equals("order");
+            boolean ephemeral = !name.equals("startup") && !name.equals("tickets") && !name.equals("ping") && !name.equals("roll") && !name.equals("giveaway") && !name.equals("suggest") && !name.equals("profile") && !name.equals("discounts") && !name.equals("order");
             event.deferReply(ephemeral).queue();
         }
 
