@@ -323,10 +323,10 @@ public class PanelService {
 
     public static void sendSocialsHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-                Button.link("https://x.com/CoreHigh70331", "X"),
-                Button.link("https://www.tiktok.com/@highcoreagency", "TikTok"),
-                Button.link("https://www.instagram.com/high_core_agency/", "Insta"),
-                Button.link("https://www.threads.com/@high_core_agency", "Threads"));
+                Button.link("https://x.com/CoreHigh70331", "X").withEmoji(Emoji.fromCustom("Xaccount", 1496974032510124122L, false)),
+                Button.link("https://www.tiktok.com/@highcoreagency", "TikTok").withEmoji(Emoji.fromCustom("Tiktok", 1496974115272134837L, false)),
+                Button.link("https://www.instagram.com/high_core_agency/", "Insta").withEmoji(Emoji.fromCustom("instagram", 1496974465417089074L, false)),
+                Button.link("https://www.threads.com/@high_core_agency", "Threads").withEmoji(Emoji.fromCustom("Threads", 1496974135367307515L, false)));
         replyEphemeral(event, EmbedUtil.containerBranded("SOCIAL", "Network Channels",
                 "Join our community platforms and stay connected.", EmbedUtil.BANNER_MAIN, row));
     }
