@@ -141,14 +141,12 @@ public class InvoiceService {
             int tableStartY   = (int)(635 * sY); 
             int tableRowGap   = (int)(45 * sY); 
 
-            double subtotalVal = 0;
+            double subtotalVal = mainItems.stream().mapToDouble(i -> i.price).sum();
             int drawnCount = 0;
             for (int i = 0; i < mainItems.size() && drawnCount < 5; i++) {
                 OrderItem item = mainItems.get(i);
-                if (item.price <= 0) {
-                    subtotalVal += item.price; // Keep adding to subtotal even if hidden
-                    continue;
-                }
+                if (item.price <= 0) continue;
+
                 int y = tableStartY + (drawnCount * tableRowGap);
                 g.setFont(new Font("Segoe UI", Font.BOLD, (int)(16 * sX)));
                 g.setColor(COL_WHITE);
@@ -158,18 +156,18 @@ public class InvoiceService {
                 g.drawString(pStr, col_PriceX - g.getFontMetrics().stringWidth(pStr)/2, y);
                 g.drawString("1", col_QtyX - g.getFontMetrics().stringWidth("1")/2, y);
                 g.drawString(pStr, col_TotalX - g.getFontMetrics().stringWidth(pStr)/2, y);
-                subtotalVal += item.price;
                 drawnCount++;
             }
 
             // 8. Financials
-            double taxVal = (subtotalVal - discount) * 0.05;
-            double finalTotal = Math.max(0, (subtotalVal - discount) + taxVal);
+            double taxVal = subtotalVal * 0.05;
+            double finalTotal = Math.max(0, (subtotalVal + taxVal) - discount);
 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
             g.setColor(COL_GOLD);
             g.drawString("$" + fmt(subtotalVal), (int)(245 * sX), (int)(862 * sY)); 
             
+            // Format deduction: -$Amount (Percentage%)
             String discStr = "-$" + fmt(discount);
             if (discountPercent > 0) discStr += " (" + discountPercent + "%)";
             g.drawString(discStr, (int)(245 * sX), (int)(888 * sY)); 
