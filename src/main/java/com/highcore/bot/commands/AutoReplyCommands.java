@@ -79,7 +79,7 @@ public class AutoReplyCommands extends ListenerAdapter {
             if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editComponents(c).queue();
             else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editComponents(c).queue();
         } else if (event instanceof SlashCommandInteractionEvent) {
-            PanelService.replyEphemeral((SlashCommandInteractionEvent)event, c);
+            PanelService.reply((SlashCommandInteractionEvent)event, c);
         }
     }
 }
