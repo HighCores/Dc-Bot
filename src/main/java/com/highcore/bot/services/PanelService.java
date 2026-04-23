@@ -187,7 +187,8 @@ public class PanelService {
                     
                     net.dv8tion.jda.api.utils.messages.MessageEditBuilder editBuilder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
                         .setComponents(allComps)
-                        .setContent(null); // Force clear content for V2
+                        .setContent(null) // Force clear content for V2
+                        .useComponentsV2(true); // Flag on builder
                         
                     event.getHook().editOriginal(editBuilder.build()).useComponentsV2(true).queue();
                 } else {
@@ -198,7 +199,7 @@ public class PanelService {
                         allComps.add(0, TextDisplay.of(contentRaw));
                     }
                     
-                    createBuilder.setComponents(allComps);
+                    createBuilder.setComponents(allComps).useComponentsV2(true); // Flag on builder
                     event.reply(createBuilder.build()).setEphemeral(ephemeral).useComponentsV2(true).queue();
                 }
             } catch (Exception ex) {
@@ -218,7 +219,7 @@ public class PanelService {
             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
             List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
             if (contentRaw != null && !contentRaw.isEmpty()) allComps.add(0, TextDisplay.of(contentRaw));
-            builder.setComponents(allComps);
+            builder.setComponents(allComps).useComponentsV2(true);
             channel.sendMessage(builder.build()).useComponentsV2(true).queue();
         }
     }
