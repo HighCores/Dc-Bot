@@ -93,9 +93,11 @@ public class MessageListener extends ListenerAdapter {
                 "https://i.imgur.com/KTPxBfL.png"
             };
 
+            List<ContainerChildComponent> layout = new ArrayList<>();
             for (String img : imgs) {
-                PanelService.reply(event.getChannel(), Container.of(MediaGallery.of(MediaGalleryItem.fromUrl(img))));
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(img)));
             }
+            PanelService.reply(event.getChannel(), Container.of(layout));
             return;
         }
     }
