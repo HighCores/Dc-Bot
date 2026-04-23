@@ -161,76 +161,65 @@ public class PanelService {
 
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         List<MessageTopLevelComponent> components = new ArrayList<>();
-        final MessageCreateData[] messageDataArr = { null };
+        String contentRaw = null;
 
         for (Object p : parts) {
-            if (p instanceof MessageCreateData mcd)
-                messageDataArr[0] = mcd;
-            else if (p instanceof String s)
-                messageDataArr[0] = MessageCreateData.fromContent(s);
-            else if (p instanceof MessageTopLevelComponent mtc)
+            if (p instanceof MessageCreateData mcd) {
+                try { contentRaw = mcd.getContent(); } catch (Exception ignored) {}
+            } else if (p instanceof String s) {
+                contentRaw = s;
+            } else if (p instanceof MessageTopLevelComponent mtc) {
                 components.add(mtc);
-            else if (p instanceof ActionRow row)
+            } else if (p instanceof ActionRow row) {
                 components.add(row);
-            else if (p instanceof Container container)
+            } else if (p instanceof Container container) {
                 components.add(container);
+            }
         }
 
         if (target instanceof IReplyCallback event) {
-            final MessageCreateData messageData = messageDataArr[0];
             try {
                 if (event.isAcknowledged()) {
-                    var hook = event.getHook();
                     List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
-                    if (messageData != null) {
-                        try {
-                            String c = messageData.getContent();
-                            if (c != null && !c.isEmpty()) allComps.add(0, TextDisplay.of(c));
-                        } catch (Exception ignored) {}
+                    if (contentRaw != null && !contentRaw.isEmpty()) {
+                        allComps.add(0, TextDisplay.of(contentRaw));
                     }
                     
-                    net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                    net.dv8tion.jda.api.utils.messages.MessageEditBuilder editBuilder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
                         .setComponents(allComps)
-                        .setContent(null); // Explicitly nullify to avoid Legacy Field errors
+                        .setContent(null); // Force clear content for V2
                         
-                    hook.editOriginal(builder.build()).useComponentsV2(true).queue(null, t -> {
-                        System.err.println("Interaction hook failure: " + t.getMessage());
-                    });
+                    event.getHook().editOriginal(editBuilder.build()).useComponentsV2(true).queue();
                 } else {
-                    if (messageData != null && components.isEmpty()) {
-                        event.reply(messageData).setEphemeral(ephemeral).queue();
-                    } else {
-                        List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
-                        if (messageData != null) {
-                           String c = messageData.getContent();
-                           if (c != null && !c.isEmpty()) allComps.add(0, TextDisplay.of(c));
-                        }
-                        event.replyComponents(allComps).useComponentsV2(true).setEphemeral(ephemeral).queue();
+                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder createBuilder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                    List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
+                    
+                    if (contentRaw != null && !contentRaw.isEmpty()) {
+                        allComps.add(0, TextDisplay.of(contentRaw));
                     }
+                    
+                    createBuilder.setComponents(allComps);
+                    event.reply(createBuilder.build()).setEphemeral(ephemeral).useComponentsV2(true).queue();
                 }
             } catch (Exception ex) {
-                System.err.println("Critical handling error: " + ex.getMessage());
+                log.error("PanelService handleReply failure", ex);
                 try {
-                    event.getHook().sendMessage("System Error: " + ex.getMessage()).setEphemeral(true).queue();
+                    if (!event.isAcknowledged()) event.reply("Internal Render Error: " + ex.getMessage()).setEphemeral(true).queue();
+                    else event.getHook().sendMessage("Internal Render Error: " + ex.getMessage()).setEphemeral(true).queue();
                 } catch (Exception ignored) {}
             }
         } else if (target instanceof net.dv8tion.jda.api.entities.Message message) {
             net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
-            if (messageDataArr[0] != null) {
-                try {
-                    builder.setContent(messageDataArr[0].getContent());
-                } catch (Exception ignored) {}
-            }
-            if (!components.isEmpty()) {
-                builder.setComponents(components).useComponentsV2(true);
-            }
+            List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
+            if (contentRaw != null && !contentRaw.isEmpty()) allComps.add(0, TextDisplay.of(contentRaw));
+            builder.setComponents(allComps).useComponentsV2(true);
             message.editMessage(builder.build()).queue();
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
-            final MessageCreateData messageData = messageDataArr[0];
-            if (messageData != null)
-                channel.sendMessage(messageData).queue();
-            else
-                channel.sendMessageComponents(components).useComponentsV2(true).queue();
+            net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+            List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
+            if (contentRaw != null && !contentRaw.isEmpty()) allComps.add(0, TextDisplay.of(contentRaw));
+            builder.setComponents(allComps);
+            channel.sendMessage(builder.build()).useComponentsV2(true).queue();
         }
     }
 
