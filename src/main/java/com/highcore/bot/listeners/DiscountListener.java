@@ -90,9 +90,7 @@ public class DiscountListener extends ListenerAdapter {
                   .append("(`").append(type).append("` | `").append(repeat).append("`)\n");
             }
 
-            event.reply(EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null))
-                 .setEphemeral(true)
-                 .queue();
+            PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null));
         }
     }
 

@@ -82,7 +82,7 @@ public class DiscountService {
         PanelService.reply(event, EmbedUtil.containerBrandedRows("DISCOUNT MANAGER", "Discount Schedule", desc, null, navRow, actionRow));
     }
 
-    public static void updateDiscountPanel(ButtonInteractionEvent event, int year, int month) {
+    public static void updateDiscountPanel(net.dv8tion.jda.api.interactions.callbacks.IReplyCallback event, int year, int month) {
         JsonArray allDiscounts = SupabaseClient.getAllDiscounts();
         
         Set<Integer> days = new HashSet<>();
