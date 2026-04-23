@@ -109,13 +109,25 @@ public class TicketService {
         if (voucherCode != null && !voucherCode.isBlank()) {
             String cleanV = voucherCode.trim().toUpperCase();
             JsonObject v = SupabaseClient.getVoucherByCode(cleanV);
-            if (v != null && v.get("user_id").getAsString().equals(user.getId()) && !v.get("is_used").getAsBoolean()) {
-                String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
-                int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
-                if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount"))
-                    vPercent = va;
-                else
-                    vAmount = va;
+            if (v != null) {
+                String vUserId = v.has("user_id") && !v.get("user_id").isJsonNull() ? v.get("user_id").getAsString() : "";
+                boolean isUsed = v.has("is_used") && v.get("is_used").getAsBoolean();
+                boolean userMatches = vUserId.isEmpty() || vUserId.equalsIgnoreCase("GLOBAL") || vUserId.equals(user.getId());
+
+                if (userMatches && !isUsed) {
+                    String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
+                    int va = v.has("amount") ? v.get("amount").getAsInt() : 0;
+                    if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) {
+                        vPercent = va;
+                    } else {
+                        vAmount = va;
+                    }
+                    log.info("[VOUCHER SUCCESS] Code {} applied: {}% / ${}", cleanV, vPercent, vAmount);
+                } else {
+                    log.warn("[VOUCHER REJECT D] Code {}: userMatches={}, isUsed={}", cleanV, userMatches, isUsed);
+                }
+            } else {
+                log.warn("[VOUCHER NOT FOUND] Code: {}", cleanV);
             }
         }
 
