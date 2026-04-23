@@ -1,5 +1,7 @@
 package com.highcore.bot.listeners;
 
+import com.google.gson.JsonArray;
+import com.google.gson.JsonObject;
 import com.highcore.bot.database.SupabaseClient;
 import com.highcore.bot.services.DiscountService;
 import com.highcore.bot.services.PanelService;
