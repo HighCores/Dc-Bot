@@ -90,8 +90,8 @@ public class DiscountListener extends ListenerAdapter {
                   .append("(`").append(type).append("` | `").append(repeat).append("`)\n");
             }
 
-            PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null), 
-                    ActionRow.of(Button.primary("disc_edit_list", "Edit/Delete Discount")));
+            PanelService.replyEphemeral(event, EmbedUtil.containerBranded("DISCOUNT LIST", "All Active Events", sb.toString(), null, 
+                    ActionRow.of(Button.primary("disc_edit_list", "Edit/Delete Discount"))));
         } else if (id.equals("disc_edit_list")) {
             JsonArray all = SupabaseClient.getAllDiscounts();
             if (all == null || all.size() == 0) {
