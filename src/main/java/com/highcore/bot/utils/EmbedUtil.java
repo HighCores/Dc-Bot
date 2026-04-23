@@ -35,7 +35,7 @@ public class EmbedUtil {
     // User requested to migrate to Imgur to avoid Discord CDN expiry links.
     // Replace the "PLACEHOLDER" parts below with real Imgur IDs.
     public static final String BANNER_MAIN = "https://i.imgur.com/lOQt0gJ.png";
-    public static final String BANNER_WELCOME = "https://i.imgur.com/Lzun3rb.png";
+    public static final String BANNER_WELCOME = "https://i.imgur.com/QF8QFQm.png";
     public static final String BANNER_GIVEAWAY = "https://i.imgur.com/iKKg1BG.png";
     
     // Support category banners

@@ -68,6 +68,7 @@ public class SlashCommands extends ListenerAdapter {
                 case "rename" -> { handleRename(event); }
                 case "setchannel" -> { handleSetChannel(event); }
                 case "discounts" -> { DiscountService.sendDiscountPanel(event); }
+                case "terms" -> handleTerms(event);
                 default -> CommandService.executeSlash(event);
             }
         } catch (Exception e) {
@@ -219,6 +220,17 @@ public class SlashCommands extends ListenerAdapter {
         event.replyModal(Modal.create("modal_boter", "Highcore Transmission")
                 .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message Content", boterMsg))
                 .build()).queue();
+    }
+
+    private void handleTerms(SlashCommandInteractionEvent event) {
+        event.getHook().sendMessage("https://imgur.com/KTPxBfL").queue();
+        event.getHook().sendMessage("https://imgur.com/1454z6W").queue();
+        event.getHook().sendMessage("https://imgur.com/SGcSGsl").queue();
+        event.getHook().sendMessage("https://imgur.com/2lSKtYH").queue();
+        event.getHook().sendMessage("https://imgur.com/jL2SV1F").queue();
+        event.getHook().sendMessage("https://imgur.com/Z8Whznm").queue();
+        event.getHook().sendMessage("https://imgur.com/pVu4NGX").queue();
+        event.getHook().sendMessage("https://imgur.com/KTPxBfL").queue();
     }
 
     private boolean isStaff(Member m) { return Config.isStaff(m); }

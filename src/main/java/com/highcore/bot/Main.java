@@ -228,7 +228,8 @@ public class Main {
                 Commands.slash("translate", "تــرجــمــة الــنــصــوص")
                         .addOption(OptionType.STRING, "text", "الــمــحــتــوى", true)
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
-                Commands.slash("roll", "رمــي الــنــرد")
+                Commands.slash("roll", "رمــي الــنــرد"),
+                Commands.slash("terms", "عــرض شــروط وقــوانــيــن الــوكــالــة")
         ).queue();
     }
 }

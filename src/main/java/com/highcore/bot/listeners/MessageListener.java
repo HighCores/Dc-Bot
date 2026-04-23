@@ -73,6 +73,19 @@ public class MessageListener extends ListenerAdapter {
             event.getMessage().reply(autoReply).queue();
             return;
         }
+
+        // 📜 Terms Command
+        if (content.equalsIgnoreCase("terms/")) {
+            event.getChannel().sendMessage("https://imgur.com/KTPxBfL").queue();
+            event.getChannel().sendMessage("https://imgur.com/1454z6W").queue();
+            event.getChannel().sendMessage("https://imgur.com/SGcSGsl").queue();
+            event.getChannel().sendMessage("https://imgur.com/2lSKtYH").queue();
+            event.getChannel().sendMessage("https://imgur.com/jL2SV1F").queue();
+            event.getChannel().sendMessage("https://imgur.com/Z8Whznm").queue();
+            event.getChannel().sendMessage("https://imgur.com/pVu4NGX").queue();
+            event.getChannel().sendMessage("https://imgur.com/KTPxBfL").queue();
+            return;
+        }
     }
 
     private void saveTicketMessage(MessageReceivedEvent event) {
