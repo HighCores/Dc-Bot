@@ -38,6 +38,7 @@ public class EmbedUtil {
     public static final String BANNER_WELCOME = "https://i.imgur.com/QF8QFQm.png";
     public static final String BANNER_STARTUP_HEADER = "https://i.imgur.com/RDb9nSh.png";
     public static final String BANNER_PARTNERS = "https://i.imgur.com/owRgdCD.png";
+    public static final String BANNER_ORDER = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_GIVEAWAY = "https://i.imgur.com/iKKg1BG.png";
 
     // Support category banners

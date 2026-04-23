@@ -121,6 +121,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                     event.getGuild().addRoleToMember(member, role).queue();
                     event.reply("### 🔔 Notifications Enabled\nYou have subscribed to: " + role.getAsMention()).setEphemeral(true).queue();
                 }
+            } else if (id.startsWith("order_cat_")) {
+                String cat = id.replace("order_cat_", "");
+                PanelService.handleCategorySelected(event, event.getUser().getId(), cat);
             }
         } catch (Exception e) { log.error("Button handling error", e); }
     }

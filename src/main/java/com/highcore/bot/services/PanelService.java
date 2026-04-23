@@ -433,23 +433,20 @@ public class PanelService {
 
     public static void handleOrderFlow(IReplyCallback event) {
         List<ContainerChildComponent> children = new ArrayList<>();
-        children.add(TextDisplay.of(
-                "## \uD83D\uDED2 New Order — Select Category\n" +
-                        "Choose the service category that matches your project."));
+        children.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
         children.add(Separator.createDivider(Spacing.SMALL));
+        children.add(TextDisplay.of(
+                "## 🛍️ New Project Initialization\n" +
+                "Select a specialized module below to examine our creative service protocols and price scales. Once selected, please provide the required project parameters."));
+        children.add(Separator.createDivider(Spacing.SMALL));
+        
         children.add(ActionRow.of(
-                StringSelectMenu.create("order_service_select")
-                        .setPlaceholder("Choose a service category...")
-                        .setMinValues(1).setMaxValues(1)
-                        .addOption("Designer", "designer", "Logos, Branding, UI/UX, Motion",
-                                Emoji.fromUnicode("\uD83C\uDFA8"))
-                        .addOption("Developer", "developer", "Web, Bots, Full-Stack, AI",
-                                Emoji.fromUnicode("\uD83D\uDCBB"))
-                        .addOption("Editor & Animation", "editor", "Reels, Long-form, Gaming, Animation",
-                                Emoji.fromUnicode("\uD83C\uDFAC"))
-                        .addOption("Minecraft Developer", "minecraft", "Plugins, Maps, Models, SysAdmin",
-                                Emoji.fromUnicode("\u26CF\uFE0F"))
-                        .build()));
+                Button.secondary("order_cat_designer", "Designer").withEmoji(Emoji.fromUnicode("🎨")),
+                Button.secondary("order_cat_developer", "Developer").withEmoji(Emoji.fromUnicode("💻")),
+                Button.secondary("order_cat_editor", "Editor & Animation").withEmoji(Emoji.fromUnicode("🎬")),
+                Button.secondary("order_cat_minecraft", "Minecraft Developer").withEmoji(Emoji.fromUnicode("⛏️"))
+        ));
+
         replyEphemeral(event, Container.of(children));
     }
 
