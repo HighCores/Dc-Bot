@@ -171,7 +171,7 @@ public class TicketService {
                     }
 
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
-                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, phone);
+                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc, phone);
                     if (inv != null) {
                         channel.sendMessageComponents(
                                 EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "",

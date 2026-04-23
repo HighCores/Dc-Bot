@@ -25,10 +25,10 @@ public class InvoiceService {
     private static final String BANNER_NEW = EmbedUtil.BANNER_INVOICE;
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
-        return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, null);
+        return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, 0, null);
     }
 
-    public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items, List<OrderItem> addOnItems, boolean isPaid, String avatarUrl, String displayName, String category, String contact, double discount, String phone) {
+    public static byte[] generateInvoice(String tid, String clientName, String projectName, List<OrderItem> mainItems, List<OrderItem> addOnItems, boolean isPaid, String userAvatarUrl, String userName, String category, String contact, double discount, int discountPercent, String phone) {
         try {
             BufferedImage template = null;
             String templateUrl = BANNER_NEW;
@@ -169,7 +169,10 @@ public class InvoiceService {
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
             g.setColor(COL_GOLD);
             g.drawString("$" + fmt(subtotalVal), (int)(245 * sX), (int)(862 * sY)); 
-            g.drawString("-$" + fmt(discount),    (int)(245 * sX), (int)(888 * sY)); 
+            
+            String discStr = "-$" + fmt(discount);
+            if (discountPercent > 0) discStr += " (" + discountPercent + "%)";
+            g.drawString(discStr, (int)(245 * sX), (int)(888 * sY)); 
 
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(23 * sX)));
