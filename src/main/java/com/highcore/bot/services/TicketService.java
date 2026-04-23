@@ -170,8 +170,9 @@ public class TicketService {
                         log.error("[FATAL TICKET ERROR] Error in ticket creation callback", e);
                     }
 
+                    double voucherDeduction = vAmount + (subTotal * (vPercent / 100.0));
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
-                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc, phone);
+                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc, voucherDeduction, phone);
                     if (inv != null) {
                         channel.sendMessageComponents(
                                 EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "",

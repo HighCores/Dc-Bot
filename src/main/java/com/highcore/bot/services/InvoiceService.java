@@ -25,10 +25,10 @@ public class InvoiceService {
     private static final String BANNER_NEW = EmbedUtil.BANNER_INVOICE;
 
     public static byte[] generateInvoice(String invoiceId, String clientName, String projectName, List<OrderItem> items) {
-        return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, 0, null);
+        return generateInvoice(invoiceId, clientName, projectName, items, new ArrayList<>(), false, null, clientName, "Service", "Member", 0.0, 0, 0.0, null);
     }
 
-    public static byte[] generateInvoice(String tid, String clientName, String projectName, List<OrderItem> mainItems, List<OrderItem> addOnItems, boolean isPaid, String userAvatarUrl, String userName, String category, String contact, double discount, int discountPercent, String phone) {
+    public static byte[] generateInvoice(String tid, String clientName, String projectName, List<OrderItem> mainItems, List<OrderItem> addOnItems, boolean isPaid, String userAvatarUrl, String userName, String category, String contact, double discount, int discountPercent, double couponDiscount, String phone) {
         try {
             BufferedImage template = null;
             String templateUrl = BANNER_NEW;
@@ -171,6 +171,12 @@ public class InvoiceService {
             String discStr = "-$" + fmt(discount);
             if (discountPercent > 0) discStr += " (" + discountPercent + "%)";
             g.drawString(discStr, (int)(245 * sX), (int)(888 * sY)); 
+
+            // Draw Coupon Deduction in the field below DISCOUNT
+            if (couponDiscount > 0) {
+                String coupStr = "-$" + fmt(couponDiscount);
+                g.drawString(coupStr, (int)(245 * sX), (int)(914 * sY));
+            }
 
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(23 * sX)));
