@@ -20,33 +20,36 @@ public class WelcomeCardService {
      * Overlay: User Avatar (Left), "Welcome to the Future" text, and Name Box.
      */
     public static byte[] generateWelcomeCard(Member member) throws Exception {
-        // Highcore Agency Precision Template (1126x398) - Loaded from Config
         BufferedImage background = null;
         try {
-            // Priority 1: Classpath Resource (Best for Railway/Jar packaging)
-            java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
-            if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
-            
-            if (is != null) {
-                log.info("Branding asset found in classpath. Decoding...");
-                background = ImageIO.read(is);
-            }
-            
-            // Priority 2: Remote URL (Emergency Fallback)
-            if (background == null) {
-                String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
-                log.warn("Resource missing. Attempting emergency remote fetch: [{}]", urlStr);
-                
+            // Priority 1: Remote URL (User's specific preference)
+            String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
+            if (urlStr != null && !urlStr.isEmpty()) {
+                log.info("Attempting to load background from URL: [{}]", urlStr);
                 java.net.URL url = new java.net.URL(urlStr);
                 java.net.HttpURLConnection connection = (java.net.HttpURLConnection) url.openConnection();
-                connection.setConnectTimeout(8000); // More time for cloud stability
+                connection.setConnectTimeout(8000);
                 connection.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36");
-                
                 background = ImageIO.read(connection.getInputStream());
+            }
+
+            // Priority 2: Classpath Resource (Fallback)
+            if (background == null) {
+                log.info("Falling back to classpath resources...");
+                java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
+                if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
+                if (is != null) background = ImageIO.read(is);
             }
         } catch (Exception e) {
             log.error("Resource pipeline failure: {}", e.getMessage());
-            throw new Exception("Branding pipeline failure: " + e.getMessage());
+            // Final fallback: try local resource if URL fails
+            if (background == null) {
+                try {
+                    java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
+                    if (is != null) background = ImageIO.read(is);
+                } catch (Exception ignored) {}
+            }
+            if (background == null) throw new Exception("Branding pipeline failure: " + e.getMessage());
         }
 
         if (background == null) {
@@ -88,9 +91,9 @@ public class WelcomeCardService {
         // --- THE DESIGNER'S BLUEPRINT (PIXEL-PERFECT ARCHITECTURE) ---
         
         // 1. Digital Avatar Container (Surgically Calibrated)
-        int avatarSize = 185; 
-        int avatarX = 218; 
-        int avatarY = 105; // Lowered from 98 for centering
+        int avatarSize = 640; 
+        int avatarX = 410; 
+        int avatarY = 198;
 
         g.setClip(new Ellipse2D.Float(avatarX, avatarY, avatarSize, avatarSize));
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
@@ -100,10 +103,10 @@ public class WelcomeCardService {
         int headlineY = 145;
 
         // 3. Member Identity Engine (Sleek Font)
-        String name = member.getUser().getName().toUpperCase(); 
-        if (name.length() > 14) name = name.substring(0, 12) + "..";
+        String name = member.getEffectiveName().toUpperCase(); 
+        if (name.length() > 25) name = name.substring(0, 23) + "..";
 
-        int fontSize = 32; // Shrunk for elegance
+        int fontSize = 60; 
         g.setFont(new Font("SansSerif", Font.BOLD, fontSize));
         
         java.util.Map<java.awt.font.TextAttribute, Object> attributes = new java.util.HashMap<>();
@@ -111,8 +114,8 @@ public class WelcomeCardService {
         g.setFont(g.getFont().deriveFont(attributes));
 
         FontMetrics metrics = g.getFontMetrics();
-        int nameX = 420; 
-        int nameY = 208 + (metrics.getAscent() / 3); // Raised for better box flow
+        int nameX = 1204; 
+        int nameY = 652 + ((725 - 652) / 2) + (metrics.getAscent() / 2) - 5;
 
         // A. Drop Shadow Case
         g.setColor(new Color(0, 0, 0, 180));
