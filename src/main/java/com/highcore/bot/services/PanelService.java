@@ -243,10 +243,10 @@ public class PanelService {
 
     public static void sendStartupHub(IReplyCallback event) {
         ActionRow row = ActionRow.of(
-                Button.secondary("btn_highcore", "HighCore"),
-                Button.secondary("btn_about", "About Us"),
-                Button.secondary("btn_partners", "Partners"),
-                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support"));
+                Button.secondary("btn_highcore", "HighCore").withEmoji(Emoji.fromCustom("Highcore", 1496974488099885177L, false)),
+                Button.secondary("btn_about", "About Us").withEmoji(Emoji.fromCustom("Aboutus", 1496974985875427358L, false)),
+                Button.secondary("btn_partners", "Partners").withEmoji(Emoji.fromCustom("Partners", 1496974406369415178L, false)),
+                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support").withEmoji(Emoji.fromCustom("Support", 1496974182217547816L, false)));
         reply(event, EmbedUtil.startupPanel(row));
     }
     public static void sendHighcoreHub(IReplyCallback event) {
@@ -290,7 +290,7 @@ public class PanelService {
 
         layout.add(Separator.createDivider(Separator.Spacing.SMALL));
         layout.add(ActionRow.of(
-                Button.secondary("btn_pings", "Pings")));
+                Button.secondary("btn_pings", "Pings").withEmoji(Emoji.fromCustom("Pings", 1496974337511657627L, false))));
 
         replyEphemeral(event, Container.of(layout));
     }
