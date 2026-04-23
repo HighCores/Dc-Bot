@@ -192,7 +192,9 @@ public class LogManager {
         if (guild == null || embed == null) return;
         TextChannel ch = getDashboardLogChannel(guild, channelKey);
         if (ch != null) {
-            ch.sendMessageEmbeds(embed).queue();
+            ch.sendMessageEmbeds(embed)
+                .setAllowedMentions(java.util.Collections.emptyList())
+                .queue();
         }
     }
 
