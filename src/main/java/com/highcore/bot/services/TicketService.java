@@ -11,6 +11,10 @@ import net.dv8tion.jda.api.entities.Member;
 import net.dv8tion.jda.api.entities.User;
 import net.dv8tion.jda.api.entities.channel.concrete.Category;
 import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ThreadChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildMessageChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
 import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
@@ -403,10 +407,10 @@ public class TicketService {
 
     public static void closeTicket(ButtonInteractionEvent event, Member member) {
         event.deferEdit().queue();
-        closeTicketInternal(event.getChannel().asTextChannel(), member, event);
+        closeTicketInternal((GuildMessageChannel) event.getChannel(), member, event);
     }
 
-    private static void closeTicketInternal(TextChannel ch, Member member, ButtonInteractionEvent event) {
+    private static void closeTicketInternal(GuildMessageChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null)
             return;
@@ -431,13 +435,13 @@ public class TicketService {
 
         // 1. Remove client write access but keep view access
         if (client != null) {
-            ch.getManager().putMemberPermissionOverride(client.getIdLong(), 
-                    EnumSet.of(Permission.VIEW_CHANNEL), 
-                    EnumSet.of(Permission.MESSAGE_SEND)).queue();
-        } else {
-            ch.getManager()
-                    .putPermissionOverride(ch.getGuild().getPublicRole(), null, EnumSet.of(Permission.MESSAGE_SEND))
-                    .queue();
+            if (ch instanceof ThreadChannel thread) {
+                thread.getManager().setLocked(true).queue();
+            } else if (ch instanceof TextChannel tc) {
+                tc.getManager().putMemberPermissionOverride(client.getIdLong(), 
+                        EnumSet.of(Permission.VIEW_CHANNEL), 
+                        EnumSet.of(Permission.MESSAGE_SEND)).queue();
+            }
         }
 
         // 2. Update DB status
