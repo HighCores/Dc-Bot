@@ -51,20 +51,21 @@ public class WelcomeListener extends ListenerAdapter {
         TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
         if (ch == null) return;
 
-        String body = String.format("""
-                ### - WELCOME TO HIGHCORE | %s
-                
+        String header = String.format("### - WELCOME TO HIGHCORE | %s", member.getAsMention());
+        String guide = """
                 **Start Here :**
                 
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
-                """, member.getAsMention());
+                """;
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
         if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
-        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(header));
+        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(guide));
         Container c = Container.of(layout);
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
@@ -77,20 +78,21 @@ public class WelcomeListener extends ListenerAdapter {
     private void sendStartupDM(Member member, byte[] image) {
         String hub = "1488795130470072321";
 
-        String body = String.format("""
-                ### - WELCOME TO HIGHCORE | %s
-                
+        String header = String.format("### - WELCOME TO HIGHCORE | %s", member.getUser().getAsMention());
+        String guide = """
                 **Start Here :**
                 
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
-                """, member.getUser().getAsMention());
+                """;
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
         if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
-        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(header));
+        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(guide));
         Container c = Container.of(layout);
 
         member.getUser().openPrivateChannel().queue(
