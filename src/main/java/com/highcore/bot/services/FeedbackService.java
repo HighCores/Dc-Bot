@@ -206,14 +206,29 @@ public class FeedbackService {
             String[] words = p.split(" ");
             StringBuilder line = new StringBuilder();
             for (String word : words) {
-                if (fm.stringWidth(line + word) < maxWidth) {
+                if (fm.stringWidth(word) > maxWidth) {
+                    // Word itself is too long, break it
+                    if (line.length() > 0) {
+                        lines.add(line.toString().trim());
+                        line = new StringBuilder();
+                    }
+                    for (int i = 0; i < word.length(); i++) {
+                        if (fm.stringWidth(line.toString() + word.charAt(i)) < maxWidth) {
+                            line.append(word.charAt(i));
+                        } else {
+                            lines.add(line.toString().trim());
+                            line = new StringBuilder().append(word.charAt(i));
+                        }
+                    }
+                    line.append(" ");
+                } else if (fm.stringWidth(line + word) < maxWidth) {
                     line.append(word).append(" ");
                 } else {
                     lines.add(line.toString().trim());
                     line = new StringBuilder(word).append(" ");
                 }
             }
-            lines.add(line.toString().trim());
+            if (line.length() > 0) lines.add(line.toString().trim());
         }
         return lines;
     }
