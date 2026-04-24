@@ -179,44 +179,31 @@ public class PanelService {
 
         if (target instanceof IReplyCallback event) {
             try {
-                if (event.isAcknowledged()) {
-                    List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
-                    if (contentRaw != null && !contentRaw.isEmpty()) {
-                        allComps.add(0, TextDisplay.of(contentRaw));
-                    }
-                    
-                    net.dv8tion.jda.api.utils.messages.MessageEditBuilder editBuilder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                        .setComponents(allComps)
-                        .setContent(null) // Force clear content for V2
-                        .useComponentsV2(true); // Flag on builder
-                        
-                    event.getHook().editOriginal(editBuilder.build()).useComponentsV2(true).queue();
-                } else {
-                    net.dv8tion.jda.api.utils.messages.MessageCreateBuilder createBuilder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
-                    List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
-                    
-                    if (contentRaw != null && !contentRaw.isEmpty()) {
-                        allComps.add(0, TextDisplay.of(contentRaw));
-                    }
-                    
-                    createBuilder.setComponents(allComps).useComponentsV2(true);
-                    
-                    if (ephemeral) {
-                        event.reply(createBuilder.build())
-                            .setEphemeral(true)
-                            .setAllowedMentions(java.util.Collections.emptyList())
-                            .useComponentsV2(true)
-                            .queue();
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder createBuilder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                List<MessageTopLevelComponent> allComps = new ArrayList<>(components);
+                if (contentRaw != null && !contentRaw.isEmpty()) allComps.add(0, TextDisplay.of(contentRaw));
+                createBuilder.setComponents(allComps).useComponentsV2(true);
+
+                if (ephemeral) {
+                    if (event.isAcknowledged()) {
+                        net.dv8tion.jda.api.utils.messages.MessageEditBuilder editBuilder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                            .setComponents(allComps).setContent(null).useComponentsV2(true);
+                        event.getHook().editOriginal(editBuilder.build()).useComponentsV2(true).queue();
                     } else {
-                        // Send fresh public message and delete the ephemeral original to clear the UI
-                        event.getMessageChannel().sendMessageComponents(createBuilder.getComponents()).useComponentsV2(true).queue(
-                            msg -> {
-                                if (event.isAcknowledged()) {
-                                    event.getHook().deleteOriginal().queue(null, (err) -> {});
-                                }
-                            }
-                        );
+                        event.reply(createBuilder.build()).setEphemeral(true).setAllowedMentions(java.util.Collections.emptyList()).useComponentsV2(true).queue();
                     }
+                } else {
+                    // Send as a fresh message to the channel to avoid any interaction link or label
+                    event.getMessageChannel().sendMessageComponents(createBuilder.getComponents()).useComponentsV2(true).queue(
+                        msg -> {
+                            if (event.isAcknowledged()) {
+                                event.getHook().deleteOriginal().queue(null, (err) -> {});
+                            } else {
+                                // Acknowledge and immediately delete to satisfy Discord silently
+                                event.deferReply(true).queue(h -> h.deleteOriginal().queue(null, (e) -> {}));
+                            }
+                        }
+                    );
                 }
             } catch (Exception ex) {
                 log.error("PanelService handleReply failure", ex);
