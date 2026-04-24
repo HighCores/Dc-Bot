@@ -70,15 +70,17 @@ public class MessageListener extends ListenerAdapter {
         }
 
         if (AIService.isAIEnabled(channelId)) {
+            event.getMessage().delete().queue(null, (err) -> {});
             event.getChannel().sendTyping().queue();
-            event.getMessage().reply(AIService.chat(userId, content)).queue();
+            event.getChannel().sendMessage(AIService.chat(userId, content)).queue();
             return;
         }
 
         // 🤖 Auto Replies
         String autoReply = AutoReplyService.getResponse(content);
         if (autoReply != null) {
-            event.getMessage().reply(autoReply).queue();
+            event.getMessage().delete().queue(null, (err) -> {});
+            event.getChannel().sendMessage(autoReply).queue();
             return;
         }
 

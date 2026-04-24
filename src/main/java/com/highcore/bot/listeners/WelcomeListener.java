@@ -50,9 +50,14 @@ public class WelcomeListener extends ListenerAdapter {
         if (ch == null) return;
 
         String body = String.format("""
-                Welcome : %s, 
-                You are the %d'th member .
-                Dont forget to visit the line : <#1488795130470072321>
+                ### - WELCOME TO HIGHCORE | %s
+                . You're member #%d - glad to have you here.
+                
+                Start Here :
+                
+                Highcore → <#1488795130470072321>
+                Order → <#1493239936583860416>
+                Prices → <#1497186489560465618>
                 """, member.getAsMention(), guild.getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
@@ -69,10 +74,15 @@ public class WelcomeListener extends ListenerAdapter {
         String hub = "1488795130470072321";
 
         String body = String.format("""
-                Welcome : %s,
-                You are the %d'th member .
-                Dont forget to visit the line : <#%s>
-                """, member.getUser().getAsMention(), member.getGuild().getMemberCount(), hub);
+                ### - WELCOME TO HIGHCORE | %s
+                . You're member #%d - glad to have you here.
+                
+                Start Here :
+                
+                Highcore → <#1488795130470072321>
+                Order → <#1493239936583860416>
+                Prices → <#1497186489560465618>
+                """, member.getUser().getAsMention(), member.getGuild().getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
