@@ -115,6 +115,7 @@ public class SupabaseClient {
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
         body.addProperty("channel_id", channelId);
+        body.addProperty("type", type);
         body.addProperty("subject", subject);
         body.addProperty("platform", "Discord");
         
