@@ -440,9 +440,11 @@ public class PanelService {
     public static void handleOrderFlow(IReplyCallback event) {
         List<ContainerChildComponent> children = new ArrayList<>();
         children.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
+        
+        children.add(TextDisplay.of("## HIGHCORE ORDERS"));
         children.add(Separator.createDivider(Spacing.SMALL));
+        
         children.add(TextDisplay.of(
-                "- HIGHCORE ORDERS\n\n" +
                 "◗ Ready to bring your idea to life ?\n\n" +
                 "Choose a category below to see our services.\n" +
                 "After that, you can fill in your project details."));
@@ -455,7 +457,7 @@ public class PanelService {
                 Button.secondary("order_cat_minecraft", "Minecraft").withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false))
         ));
 
-        replyEphemeral(event, Container.of(children));
+        reply(event, Container.of(children));
     }
 
     public static void handleCategorySelected(IReplyCallback event, String userId, String category) {
