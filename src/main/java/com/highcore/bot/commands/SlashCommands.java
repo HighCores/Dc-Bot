@@ -45,6 +45,12 @@ public class SlashCommands extends ListenerAdapter {
                 return;
             }
             PanelService.sendStartupHub(event);
+        } else if (name.equals("tickets")) {
+            if (!Config.isAdmin(event.getMember())) {
+                PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
+                return;
+            }
+            PanelService.sendTicketPanel(event);
         } else if (name.equals("bc")) {
             if (!Config.isAdmin(event.getMember())) {
                 PanelService.replyEphemeral(event, EmbedUtil.accessDenied());

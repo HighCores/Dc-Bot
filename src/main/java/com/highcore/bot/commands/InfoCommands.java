@@ -29,7 +29,24 @@ public class InfoCommands extends ListenerAdapter {
             case "invites" -> handleInvites(event);
             case "server-avatar" -> handleServerAvatar(event);
             case "server-banner" -> handleServerBanner(event);
+            case "roles" -> handleRoles(event);
         }
+    }
+
+    private void handleRoles(SlashCommandInteractionEvent event) {
+        if (!com.highcore.bot.config.Config.isAdmin(event.getMember())) {
+            PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
+            return;
+        }
+        
+        String roles = event.getGuild().getRoles().stream()
+                .map(r -> r.getAsMention() + " (`" + r.getId() + "`) \u2014 " + event.getGuild().getMembersWithRoles(r).size() + " members")
+                .collect(Collectors.joining("\n"));
+        
+        if (roles.length() > 4096) roles = roles.substring(0, 4090) + "...";
+        
+        PanelService.reply(event, EmbedUtil.containerBranded("SECURITY", "Clearance Registry", 
+            "### 📑 Authority Roles\n" + roles, null));
     }
 
     private void handleAvatar(SlashCommandInteractionEvent event) {

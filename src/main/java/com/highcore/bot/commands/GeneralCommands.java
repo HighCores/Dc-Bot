@@ -20,6 +20,8 @@ public class GeneralCommands extends ListenerAdapter {
             case "translate" -> handleTranslate(event);
             case "title" -> handleTitle(event);
             case "line" -> handleLine(event);
+            case "order" -> PanelService.handleOrderFlow(event);
+            case "terms" -> PanelService.reply(event, EmbedUtil.rulePanel());
         }
     }
 
