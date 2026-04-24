@@ -402,7 +402,7 @@ public class PanelService {
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
                 Button.secondary("ticket_init_support", "Technical Support").withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
-                Button.secondary("ticket_init_complaint", "File Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))));
+                Button.secondary("ticket_init_complaint", "Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))));
 
         reply(event, Container.of(children));
     }
@@ -443,8 +443,10 @@ public class PanelService {
         children.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(TextDisplay.of(
-                "## 🛍️ Start New Project\n" +
-                "Choose a category below to see our services and prices. After that, you can fill in your project details."));
+                "- HIGHCORE ORDERS\n\n" +
+                "◗ Ready to bring your idea to life ?\n\n" +
+                "Choose a category below to see our services.\n" +
+                "After that, you can fill in your project details."));
         children.add(Separator.createDivider(Spacing.SMALL));
         
         children.add(ActionRow.of(

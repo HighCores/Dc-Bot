@@ -60,7 +60,11 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TicketService.markAsPaid(event.getChannel().asTextChannel(), tid, member);
                 event.reply("✅ Payment verification initiated.").setEphemeral(true).queue();
             } else if (id.equals("ticket_close")) {
+                TicketService.requestCloseConfirmation(event);
+            } else if (id.equals("ticket_close_final")) {
                 TicketService.closeTicket(event, member);
+            } else if (id.equals("ticket_close_cancel")) {
+                event.reply("Closure cancelled.").setEphemeral(true).queue();
             } else if (id.equals("ticket_reopen")) {
                 TicketService.reopenTicket(event.getChannel().asTextChannel(), member, event);
             } else if (id.equals("ticket_transcript")) {
@@ -224,9 +228,9 @@ public class CentralInteractionListener extends ListenerAdapter {
             TicketService.createHighEndOrderTicket(event.getGuild(), event.getUser(), event.getValue("o_project").getAsString(), event.getValue("o_name").getAsString(), event.getValue("o_contact").getAsString(), "", cat, main, add, event.getValue("o_voucher").getAsString(), event.getValue("o_eta").getAsString());
             event.getHook().sendMessage("✅ Order ticket created.").setEphemeral(true).queue();
         } else if (id.equals("modal_support_init")) {
-            TicketService.createTicket(event, event.getValue("issue_desc").getAsString(), "MEDIUM", "SUPPORT", "Service: "+event.getValue("service_type").getAsString());
+            TicketService.createTicket(event, event.getValue("issue_desc").getAsString(), "SUPPORT", "Service: "+event.getValue("service_type").getAsString());
         } else if (id.equals("modal_complaint_init")) {
-            TicketService.createTicket(event, event.getValue("comp_desc").getAsString(), "HIGH", "COMPLAINT", "Target: " + event.getValue("comp_person").getAsString() + " | Subject: " + event.getValue("comp_type").getAsString());
+            TicketService.createTicket(event, event.getValue("comp_desc").getAsString(), "COMPLAINT", "Target: " + event.getValue("comp_person").getAsString() + " | Subject: " + event.getValue("comp_type").getAsString());
         } else if (id.equals("modal_ar_add")) {
             AutoReplyService.addResponse(event.getValue("ar_keyword").getAsString(), event.getValue("ar_response").getAsString(), event.getUser().getId());
             event.reply("Auto-reply added.").setEphemeral(true).queue();

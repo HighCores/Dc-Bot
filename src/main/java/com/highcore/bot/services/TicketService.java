@@ -38,7 +38,7 @@ public class TicketService {
     private static final String ADMIN_ROLE_ID = "1488795130767736853";
     public static final Map<String, JsonObject> ticketCache = new ConcurrentHashMap<>();
 
-    public static void createTicket(IReplyCallback event, String subject, String priority, String type, String body) {
+    public static void createTicket(IReplyCallback event, String subject, String type, String body) {
         Guild guild = event.getGuild();
         if (guild == null)
             return;
@@ -55,7 +55,7 @@ public class TicketService {
                 .addPermissionOverride(guild.getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
                 .addPermissionOverride(guild.getMember(user), EnumSet.of(Permission.VIEW_CHANNEL), null)
                 .queue(ch -> {
-                    SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject, priority);
+                    SupabaseClient.createTicket(tid, user.getId(), user.getName(), ch.getId(), type, subject);
 
                     JsonObject ticket = new JsonObject();
                     ticket.addProperty("ticket_id", tid);
@@ -67,7 +67,7 @@ public class TicketService {
                     meta.addProperty("category", type);
                     meta.addProperty("subject", subject);
                     meta.addProperty("body", body);
-                    meta.addProperty("priority", priority);
+                    meta.addProperty("body", body);
                     ticket.add("metadata", meta);
                     ticketCache.put(ch.getId(), ticket);
 
@@ -173,7 +173,7 @@ public class TicketService {
                     ticket.add("metadata", meta);
                     ticketCache.put(channel.getId(), ticket);
 
-                    SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName, "HIGH");
+                    SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName);
                     SupabaseClient.saveTicketMeta(tid, meta);
 
                     if (voucherCode != null && !voucherCode.isBlank()) {
@@ -229,8 +229,7 @@ public class TicketService {
         b.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
 
         if (meta != null) {
-            String prio = meta.has("priority") ? meta.get("priority").getAsString() : "HIGH";
-            b.append("**Priority:** `").append(prio.toUpperCase()).append("` \u2022 ");
+            b.append("\n");
 
             if (meta.has("subject"))
                 b.append("**Subject:** `").append(meta.get("subject").getAsString()).append("` \u2022 ");
@@ -278,10 +277,7 @@ public class TicketService {
         StringBuilder b = new StringBuilder();
         b.append("Welcome <@").append(userId).append("> \uD83D\uDC4B\n\n");
 
-        String prio = "HIGH";
-        if (meta != null && meta.has("priority"))
-            prio = meta.get("priority").getAsString();
-        b.append("**Priority:** `").append(prio.toUpperCase()).append("` \u2022 ");
+        b.append("\n");
 
         String subject = "gh";
         if (meta != null && meta.has("project_name"))
@@ -310,17 +306,9 @@ public class TicketService {
         b.append("\u26A0\uFE0F **Your ticket is locked** \u2014 it will be unlocked once payment is confirmed.");
 
         ActionRow row;
-        if (!claimed) {
-            row = ActionRow.of(
-                    Button.secondary("ticket_verify", "Verify Payment"),
-                    Button.secondary("ticket_claim", "Claim Ticket"),
-                    Button.secondary("ticket_close", "Close Ticket"));
-        } else {
-            row = ActionRow.of(
-                    Button.secondary("ticket_verify", "Verify Payment"),
-                    Button.secondary("ticket_unclaim", "Unclaim Ticket"),
-                    Button.secondary("ticket_close", "Close Ticket"));
-        }
+        row = ActionRow.of(
+                Button.secondary("ticket_verify", "Verify Payment"),
+                Button.secondary("ticket_close", "Close Ticket"));
 
         return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), EmbedUtil.BANNER_ORDER_TICKET,
                 row);
@@ -348,6 +336,10 @@ public class TicketService {
                 .setComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch)))
                 .useComponentsV2(true)
                 .build()).queue();
+
+        // Rename channel
+        String type = ch.getName().split("-")[0];
+        ch.getManager().setName(type + "-" + member.getEffectiveName()).queue();
 
         // Send separate notification
         ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed",
@@ -386,12 +378,22 @@ public class TicketService {
 
     // Metadata is now managed via database lookups rather than channel topics.
 
-    public static void closeTicket(ButtonInteractionEvent event, Member member) {
-        event.deferEdit().queue();
-        closeTicketInternal(event.getChannel().asTextChannel(), member);
+    public static void requestCloseConfirmation(ButtonInteractionEvent event) {
+        event.replyComponents(EmbedUtil.containerBranded("CONFIRMATION", "Close Ticket",
+                "### Are you sure you want to close this ticket?",
+                EmbedUtil.BANNER_SUPPORT,
+                ActionRow.of(
+                        Button.secondary("ticket_close_final", "Confirm Close"),
+                        Button.secondary("ticket_close_cancel", "Cancel"))))
+                .setEphemeral(true).useComponentsV2(true).queue();
     }
 
-    private static void closeTicketInternal(TextChannel ch, Member member) {
+    public static void closeTicket(ButtonInteractionEvent event, Member member) {
+        event.deferEdit().queue();
+        closeTicketInternal(event.getChannel().asTextChannel(), member, event);
+    }
+
+    private static void closeTicketInternal(TextChannel ch, Member member, ButtonInteractionEvent event) {
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null)
@@ -419,7 +421,16 @@ public class TicketService {
                                 + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.DANGER));
 
-        // 3. Send Control Panel
+        // 3. Rename channel
+        String currentName = ch.getName();
+        if (!currentName.endsWith("-C")) {
+            ch.getManager().setName(currentName + "-C").queue();
+        }
+
+        // 4. Auto Transcript
+        transcriptTicket(ch, member, event);
+
+        // 5. Send Control Panel
         ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
                 "### TICKET CLOSED\nAgent **"
                         + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.",
@@ -501,9 +512,13 @@ public class TicketService {
                             .of(Button.link(url, "View Web Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))))
                     .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                     .queue();
-            event.reply("✅ Transcript has been uploaded to the management sector.").setEphemeral(true).queue();
+            if (event != null) {
+                event.reply("✅ Transcript has been uploaded to the management sector.").setEphemeral(true).queue();
+            }
         } else {
-            event.reply("❌ Management sector not found.").setEphemeral(true).queue();
+            if (event != null) {
+                event.reply("❌ Management sector not found.").setEphemeral(true).queue();
+            }
         }
     }
 
@@ -516,6 +531,6 @@ public class TicketService {
     }
 
     public static void finalizeClose(TextChannel ch, Member m, String status) {
-        closeTicketInternal(ch, m);
+        closeTicketInternal(ch, m, null);
     }
 }

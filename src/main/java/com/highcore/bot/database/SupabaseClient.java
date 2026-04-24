@@ -107,14 +107,13 @@ public class SupabaseClient {
         delete("dc_ticket_meta", "id=gt.0");
     }
 
-    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject, String priority) {
+    public static void createTicket(String ticketId, String userId, String userName, String channelId, String type, String subject) {
         log.info("[TRACE] createTicket called for ID: {}", ticketId);
         JsonObject body = new JsonObject();
         body.addProperty("ticket_id", ticketId);
         body.addProperty("user_id", userId);
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
-        body.addProperty("priority", priority);
         body.addProperty("channel_id", channelId);
         body.addProperty("subject", subject);
         body.addProperty("platform", "Discord");
