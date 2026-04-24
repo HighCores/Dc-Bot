@@ -112,10 +112,20 @@ public class ModerationCommands extends ListenerAdapter {
     private void handleUnban(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.BAN_MEMBERS)) return;
         String userId = event.getOption("user_id", OptionMapping::getAsString);
-        event.getGuild().unban(User.fromId(userId)).queue(v -> {
-            PanelService.reply(event, EmbedUtil.success("Unban System", "Restrictions removed for user ID: `" + userId + "`"));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Exile Revocation\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
-        });
+        if (userId == null || !userId.matches("\\d+")) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("INVALID ID", "Please provide a valid numeric User ID."));
+            return;
+        }
+
+        event.getGuild().unban(User.fromId(userId)).queue(
+            v -> {
+                PanelService.reply(event, EmbedUtil.success("Unban System", "Restrictions removed for user ID: `" + userId + "`"));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Exile Revocation\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
+            },
+            e -> {
+                PanelService.replyEphemeral(event, EmbedUtil.error("UNBAN FAILED", "Unable to revoke exile for ID: `" + userId + "`. Ensure the ID is correct and the user is currently banned."));
+            }
+        );
     }
 
     private void handleUnbanAll(SlashCommandInteractionEvent event) {
