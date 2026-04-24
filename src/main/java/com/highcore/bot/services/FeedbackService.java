@@ -199,6 +199,25 @@ public class FeedbackService {
         }
     }
 
+    private static List<String> wrapText(String text, FontMetrics fm, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        String[] paragraphs = text.split("\n");
+        for (String p : paragraphs) {
+            String[] words = p.split(" ");
+            StringBuilder line = new StringBuilder();
+            for (String word : words) {
+                if (fm.stringWidth(line + word) < maxWidth) {
+                    line.append(word).append(" ");
+                } else {
+                    lines.add(line.toString().trim());
+                    line = new StringBuilder(word).append(" ");
+                }
+            }
+            lines.add(line.toString().trim());
+        }
+        return lines;
+    }
+
     private static List<Object> parseLineParts(String line) {
         List<Object> parts = new ArrayList<>();
         int i = 0;

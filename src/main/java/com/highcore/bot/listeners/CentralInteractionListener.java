@@ -250,11 +250,10 @@ public class CentralInteractionListener extends ListenerAdapter {
         } else if (id.equals("modal_feedback_submit")) {
             event.deferReply(true).queue();
             
-            Integer stars = FeedbackService.ratingCache.remove(event.getUser().getId());
-            if (stars == null) stars = 5;
-            String feedback = event.getValue("feedback_input").getAsString();
-
-            net.dv8tion.jda.api.entities.channel.middleman.GuildChannel logCh = event.getGuild().getGuildChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
+            Integer starsRaw = FeedbackService.ratingCache.remove(event.getUser().getId());
+            final int stars = (starsRaw == null) ? 5 : starsRaw;
+            final String feedback = event.getValue("feedback_input").getAsString();
+            final net.dv8tion.jda.api.entities.channel.middleman.GuildChannel logCh = event.getGuild().getGuildChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
             
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
