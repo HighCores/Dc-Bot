@@ -179,6 +179,7 @@ public class PanelService {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                 if (contentRaw != null) builder.setContent(contentRaw);
                 builder.setComponents(components);
+                builder.useComponentsV2(useV2);
 
                 if (ephemeral) {
                     if (event.isAcknowledged()) {
@@ -201,11 +202,13 @@ public class PanelService {
             net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
             builder.setComponents(components);
+            builder.useComponentsV2(useV2);
             message.editMessage(builder.build()).useComponentsV2(useV2).queue();
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
             builder.setComponents(components);
+            builder.useComponentsV2(useV2);
             channel.sendMessage(builder.build()).useComponentsV2(useV2).queue();
         }
     }
