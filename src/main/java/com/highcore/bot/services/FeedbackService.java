@@ -26,7 +26,7 @@ public class FeedbackService {
     private static final Logger log = LoggerFactory.getLogger(FeedbackService.class);
 
     public static final Map<String, Integer> ratingCache = new ConcurrentHashMap<>();
-    private static final Map<String, BufferedImage> emojiCache = new HashMap<>();
+    private static final Map<String, BufferedImage> emojiCache = new ConcurrentHashMap<>();
     private static final Pattern CUSTOM_EMOJI_PATTERN = Pattern.compile("<a?:(\\w+):(\\d+)>");
 
     private static final String TEMPLATE_1 = "https://i.imgur.com/H5h3H4b.jpg";
