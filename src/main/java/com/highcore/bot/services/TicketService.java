@@ -422,7 +422,18 @@ public class TicketService {
         Member client = ch.getGuild().getMemberById(userId);
 
         // Feedback Trigger (For Order tickets) - Public in channel
-        if (ticket.has("type") && "ORDER".equalsIgnoreCase(ticket.get("type").getAsString())) {
+        String type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "";
+        if (type.isEmpty() && ticket.has("metadata")) {
+            JsonElement metaEl = ticket.get("metadata");
+            if (metaEl.isJsonObject()) {
+                JsonObject meta = metaEl.getAsJsonObject();
+                if (meta.has("type")) type = meta.get("type").getAsString();
+            }
+        }
+
+        log.info("[FEEDBACK DEBUG] Ticket #{} type detected: '{}'", tid, type);
+
+        if ("ORDER".equalsIgnoreCase(type)) {
             ch.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.containerBranded("Feedback", "Order Completed", 
                 "How was your experience with Highcore Agency?", 
                 "https://imgur.com/UyWt6Jr.png",
@@ -476,7 +487,11 @@ public class TicketService {
                         Button.secondary("ticket_delete_init", "Delete")
                                 .withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false))));
 
-        ch.sendMessageComponents(panel).useComponentsV2(true).queue();
+        if (event != null) {
+            event.getHook().sendMessageComponents(panel).setEphemeral(true).useComponentsV2(true).queue();
+        } else {
+            ch.sendMessageComponents(panel).useComponentsV2(true).queue();
+        }
     }
 
     public static void reopenTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
