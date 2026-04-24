@@ -110,9 +110,13 @@ public class GiveawayListener extends ListenerAdapter {
             return;
         }
 
+        JsonObject g = SupabaseClient.getGiveawayById(giveawayId);
+        if (g == null) return;
+        int winCount = g.has("winner_count") ? g.get("winner_count").getAsInt() : 1;
+
         event.deferReply(true).queue();
-        GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
-        event.getHook().sendMessage("Success! Giveaway ended manually.").queue();
+        GiveawayService.endGiveaway(event.getJDA(), giveawayId, winCount);
+        event.getHook().sendMessage("Success! Giveaway ended manually with " + winCount + " winner slots.").queue();
     }
 
     private void handleReroll(ButtonInteractionEvent event) {
