@@ -469,11 +469,7 @@ public class TicketService {
                         Button.secondary("ticket_delete_init", "Delete")
                                 .withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false))));
 
-        if (event != null) {
-            event.getHook().sendMessageComponents(panel).setEphemeral(true).useComponentsV2(true).queue();
-        } else {
-            ch.sendMessageComponents(panel).useComponentsV2(true).queue();
-        }
+        ch.sendMessageComponents(panel).useComponentsV2(true).queue();
     }
 
     public static void reopenTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
