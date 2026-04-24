@@ -43,7 +43,7 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
+        boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter") || name.equals("line");
         
         if (!event.isAcknowledged() && !usesModal) {
             event.deferReply(true).queue();
