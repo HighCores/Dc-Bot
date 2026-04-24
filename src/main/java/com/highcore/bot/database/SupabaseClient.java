@@ -115,17 +115,29 @@ public class SupabaseClient {
         body.addProperty("user_name", userName);
         body.addProperty("status", "open");
         body.addProperty("channel_id", channelId);
-        body.addProperty("type", type);
         body.addProperty("subject", subject);
         body.addProperty("platform", "Discord");
         
         log.info("[TRACE] Attempting POST to dc_tickets: {}", body.toString());
         post("dc_tickets", body);
+
+        // Save type in metadata since column is missing in dc_tickets
+        JsonObject meta = new JsonObject();
+        meta.addProperty("type", type);
+        saveTicketMeta(ticketId, meta);
+        
         log.info("[TRACE] createTicket finished for ID: {}", ticketId);
     }
 
     public static void saveTicketMeta(String ticketId, JsonObject meta) {
         if (meta == null) return;
+        JsonObject existing = getTicketMeta(ticketId);
+        if (existing != null) {
+            for (String key : meta.keySet()) {
+                existing.add(key, meta.get(key));
+            }
+            meta = existing;
+        }
         setSetting("ticket_meta_" + ticketId, meta.toString());
     }
 
