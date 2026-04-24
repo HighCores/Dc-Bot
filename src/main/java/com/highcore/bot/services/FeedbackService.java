@@ -80,17 +80,25 @@ public class FeedbackService {
         log.info("[FEEDBACK] Loading template: {}", templateBase);
         BufferedImage template = null;
         try {
-            ImageIO.setUseCache(false); // Avoid disk permission issues
-            log.info("[FEEDBACK] Supported formats: {}", java.util.Arrays.toString(ImageIO.getReaderFormatNames()));
+            ImageIO.setUseCache(false);
             
             URL url = new URL(templateBase);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             int respCode = conn.getResponseCode();
-            log.info("[FEEDBACK] Template response code: {}", respCode);
+            String contentType = conn.getContentType();
+            int contentLength = conn.getContentLength();
+            log.info("[FEEDBACK] Template response: code={}, type={}, length={}", respCode, contentType, contentLength);
+            
             if (respCode == 200) {
-                try (java.io.InputStream is = new java.io.BufferedInputStream(conn.getInputStream())) {
-                    template = ImageIO.read(is);
+                try (java.io.InputStream is = conn.getInputStream()) {
+                    byte[] bytes = is.readAllBytes();
+                    log.info("[FEEDBACK] Read {} bytes from stream.", bytes.length);
+                    if (bytes.length > 0) {
+                        try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes)) {
+                            template = ImageIO.read(bais);
+                        }
+                    }
                 }
             } else {
                 log.error("[FEEDBACK] Connection failed with code: {}", respCode);
