@@ -132,14 +132,14 @@ public class CentralInteractionListener extends ListenerAdapter {
                 int stars = Integer.parseInt(id.replace("feedback_star_", ""));
                 FeedbackService.ratingCache.put(event.getUser().getId(), stars);
 
-                TextInput fb = TextInput.create("feedback_input", "Write Your Feed-Back", TextInputStyle.PARAGRAPH)
+                TextInput fb = TextInput.create("feedback_input", TextInputStyle.PARAGRAPH)
                         .setPlaceholder("Tell us more about your experience...")
                         .setRequired(true)
                         .setMinimumLength(20)
                         .build();
 
                 event.replyModal(Modal.create("modal_feedback_submit", "Write Your Feed-Back")
-                        .addComponents(ActionRow.of(fb))
+                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Feedback", fb))
                         .build()).queue();
             }
         } catch (Exception e) { log.error("Button handling error", e); }
