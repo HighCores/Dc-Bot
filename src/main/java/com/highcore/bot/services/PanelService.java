@@ -17,6 +17,7 @@ import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
+import net.dv8tion.jda.api.components.container.Container;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,6 +155,7 @@ public class PanelService {
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         String contentRaw = null;
         List<ActionRow> rows = new ArrayList<>();
+        Container container = null;
 
         for (Object p : parts) {
             if (p instanceof MessageCreateData mcd) {
@@ -163,6 +165,8 @@ public class PanelService {
                 contentRaw = s;
             } else if (p instanceof ActionRow row) {
                 rows.add(row);
+            } else if (p instanceof Container c) {
+                container = c;
             } else if (p instanceof net.dv8tion.jda.api.utils.messages.MessageCreateBuilder b) {
                 var m = b.build();
                 contentRaw = m.getContent();
@@ -174,19 +178,25 @@ public class PanelService {
             try {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                 if (contentRaw != null) builder.setContent(contentRaw);
-                builder.setComponents(rows).useComponentsV2(true);
+                
+                if (container != null) {
+                    builder.setContainer(container).useComponentsV2(true);
+                } else {
+                    builder.setComponents(rows);
+                }
 
                 if (ephemeral) {
                     if (event.isAcknowledged()) {
-                        event.getHook().editOriginal(MessageEditData.fromCreateData(builder.build())).useComponentsV2(true).queue();
+                        var edit = MessageEditData.fromCreateData(builder.build());
+                        event.getHook().editOriginal(edit).useComponentsV2(container != null).queue();
                     } else {
-                        event.reply(builder.build()).setEphemeral(true).useComponentsV2(true).queue();
+                        event.reply(builder.build()).setEphemeral(true).useComponentsV2(container != null).queue();
                     }
                 } else {
                     if (event.isAcknowledged()) {
-                        event.getHook().sendMessage(builder.build()).useComponentsV2(true).queue();
+                        event.getHook().sendMessage(builder.build()).useComponentsV2(container != null).queue();
                     } else {
-                        event.reply(builder.build()).useComponentsV2(true).queue();
+                        event.reply(builder.build()).useComponentsV2(container != null).queue();
                     }
                 }
             } catch (Exception ex) {
@@ -195,13 +205,21 @@ public class PanelService {
         } else if (target instanceof net.dv8tion.jda.api.entities.Message message) {
             net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
-            builder.setComponents(rows).useComponentsV2(true);
-            message.editMessage(builder.build()).queue();
+            if (container != null) {
+                builder.setContainer(container).useComponentsV2(true);
+            } else {
+                builder.setComponents(rows);
+            }
+            message.editMessage(builder.build()).useComponentsV2(container != null).queue();
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
-            builder.setComponents(rows).useComponentsV2(true);
-            channel.sendMessage(builder.build()).useComponentsV2(true).queue();
+            if (container != null) {
+                builder.setContainer(container).useComponentsV2(true);
+            } else {
+                builder.setComponents(rows);
+            }
+            channel.sendMessage(builder.build()).useComponentsV2(container != null).queue();
         }
     }
 
