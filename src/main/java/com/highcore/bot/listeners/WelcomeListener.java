@@ -13,6 +13,8 @@ import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import java.util.List;
+import java.util.ArrayList;
 
 public class WelcomeListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(WelcomeListener.class);
@@ -61,7 +63,7 @@ public class WelcomeListener extends ListenerAdapter {
                 """, member.getAsMention(), guild.getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
-        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
         if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
         Container c = Container.of(layout);
@@ -88,7 +90,7 @@ public class WelcomeListener extends ListenerAdapter {
                 """, member.getUser().getAsMention(), member.getGuild().getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
-        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
         if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
         Container c = Container.of(layout);
