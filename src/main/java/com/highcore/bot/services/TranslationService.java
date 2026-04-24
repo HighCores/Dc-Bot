@@ -49,10 +49,9 @@ public class TranslationService {
             BufferedImage image = ImageIO.read(new URL(imageUrl));
             if (image == null) return null;
 
-            // 2. OCR with Vision
             List<AnnotateImageRequest> requests = new ArrayList<>();
             ByteString imgBytes = ByteString.readFrom(new URL(imageUrl).openStream());
-            Image img = Image.newBuilder().setContent(imgBytes).build();
+            com.google.cloud.vision.v1.Image img = com.google.cloud.vision.v1.Image.newBuilder().setContent(imgBytes).build();
             Feature feat = Feature.newBuilder().setType(Feature.Type.TEXT_DETECTION).build();
             AnnotateImageRequest request = AnnotateImageRequest.newBuilder().addFeatures(feat).setImage(img).build();
             requests.add(request);

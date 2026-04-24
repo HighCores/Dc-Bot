@@ -20,6 +20,7 @@ import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 public class TranslationListener extends ListenerAdapter {
@@ -112,10 +113,8 @@ public class TranslationListener extends ListenerAdapter {
             // Send with translated image
             event.getHook().sendFiles(FileUpload.fromData(translatedImage, "translated.png")).setEphemeral(true).queue(sentMsg -> {
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(sentMsg.getAttachments().get(0).getUrl())));
-                layout.add(TextDisplay.of("## " + translatedTitle + "\n" + translatedBody));
-                event.getHook().editOriginalComponents(ActionRow.of()).queue(); // Clear the select menu
+                event.getHook().editOriginalComponents(Collections.emptyList()).queue(); // Clear the select menu
                 event.getHook().editOriginal(sentMsg.getAttachments().get(0).getUrl() + "\n\n" + translatedBody).queue();
-                // Note: Containers are tricky in ephemeral edits, so we might just use a standard embed
             });
         } else {
             // Fallback to original image or just text
