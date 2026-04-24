@@ -53,14 +53,13 @@ public class WelcomeListener extends ListenerAdapter {
 
         String body = String.format("""
                 ### - WELCOME TO HIGHCORE | %s
-                . You're member #%d - glad to have you here.
                 
-                Start Here :
+                **Start Here :**
                 
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
-                """, member.getAsMention(), guild.getMemberCount());
+                """, member.getAsMention());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
@@ -80,14 +79,13 @@ public class WelcomeListener extends ListenerAdapter {
 
         String body = String.format("""
                 ### - WELCOME TO HIGHCORE | %s
-                . You're member #%d - glad to have you here.
                 
-                Start Here :
+                **Start Here :**
                 
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
-                """, member.getUser().getAsMention(), member.getGuild().getMemberCount());
+                """, member.getUser().getAsMention());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
