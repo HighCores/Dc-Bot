@@ -135,7 +135,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TextInput fb = TextInput.create("feedback_input", TextInputStyle.PARAGRAPH)
                         .setPlaceholder("Tell us more about your experience...")
                         .setRequired(true)
-                        .setMinimumLength(20)
+                        .setMinLength(20)
                         .build();
 
                 event.replyModal(Modal.create("modal_feedback_submit", "Write Your Feed-Back")
