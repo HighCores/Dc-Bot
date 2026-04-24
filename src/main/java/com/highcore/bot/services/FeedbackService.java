@@ -109,12 +109,23 @@ public class FeedbackService {
 
         // Fonts
         Font arabicFont;
-        try (java.io.InputStream is = FeedbackService.class.getResourceAsStream("/templates/thmanyahsans-Bold.otf")) {
-            if (is == null) {
-                log.error("[FEEDBACK] FONT FILE NOT FOUND: /templates/thmanyahsans-Bold.otf");
+        java.io.InputStream is = FeedbackService.class.getResourceAsStream("/templates/thmanyahsans-Bold.otf");
+        if (is == null) {
+            try {
+                java.io.File fallbackFile = new java.io.File("src/main/resources/templates/thmanyahsans-Bold.otf");
+                if (fallbackFile.exists()) {
+                    is = new java.io.FileInputStream(fallbackFile);
+                    log.info("[FEEDBACK] Loaded font from filesystem fallback");
+                }
+            } catch (Exception ignored) {}
+        }
+
+        try (java.io.InputStream fontStream = is) {
+            if (fontStream == null) {
+                log.error("[FEEDBACK] FONT FILE NOT FOUND (Classpath & Filesystem): /templates/thmanyahsans-Bold.otf");
                 arabicFont = new Font("SansSerif", Font.BOLD, 45);
             } else {
-                arabicFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.BOLD, 45f);
+                arabicFont = Font.createFont(Font.TRUETYPE_FONT, fontStream).deriveFont(Font.BOLD, 45f);
                 log.info("[FEEDBACK] Successfully loaded font: {}", arabicFont.getFontName());
             }
         } catch (Exception e) {
