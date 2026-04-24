@@ -249,6 +249,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             event.reply("Auto-reply added.").setEphemeral(true).queue();
         } else if (id.equals("modal_feedback_submit")) {
             event.deferReply(true).queue();
+            event.getHook().editOriginal("### ⏳ Processing Your Feed-Back...\nOur systems are generating your professional feedback card. Please wait a moment.").queue();
             
             Integer starsRaw = FeedbackService.ratingCache.remove(event.getUser().getId());
             final int stars = (starsRaw == null) ? 5 : starsRaw;

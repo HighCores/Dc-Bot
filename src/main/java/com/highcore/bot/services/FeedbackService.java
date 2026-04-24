@@ -170,6 +170,8 @@ public class FeedbackService {
         return baos.toByteArray();
     }
 
+    private static final Map<String, Long> failedEmojiCache = new java.util.concurrent.ConcurrentHashMap<>();
+
     private static String expandShortcodes(String text, net.dv8tion.jda.api.JDA jda) {
         if (text == null || jda == null) return text;
         Pattern p = Pattern.compile(":(\\w+):");
@@ -179,19 +181,15 @@ public class FeedbackService {
         while (m.find()) {
             sb.append(text, last, m.start());
             String name = m.group(1);
-            // Check if it's already part of <:name:id>
             boolean alreadyFormatted = (m.start() > 1 && text.charAt(m.start()-1) == '<' && text.charAt(m.start()-2) == ':');
             if (alreadyFormatted) {
                 sb.append(":").append(name).append(":");
             } else {
-                String id = null;
-                for (net.dv8tion.jda.api.entities.Guild g : jda.getGuilds()) {
-                    java.util.List<net.dv8tion.jda.api.entities.emoji.RichCustomEmoji> emojis = g.getEmojisByName(name, true);
-                    if (!emojis.isEmpty()) {
-                        id = emojis.get(0).getId();
-                        break;
-                    }
-                }
+                String id = jda.getEmojis().stream()
+                    .filter(e -> e.getName().equalsIgnoreCase(name))
+                    .map(e -> e.getId())
+                    .findFirst().orElse(null);
+                
                 if (id != null) sb.append("<:").append(name).append(":").append(id).append(">");
                 else sb.append(":").append(name).append(":");
             }
@@ -375,15 +373,21 @@ public class FeedbackService {
     private static BufferedImage getEmojiImage(String id, boolean isUnicode) {
         String cacheKey = (isUnicode ? "U_" : "C_") + id;
         if (emojiCache.containsKey(cacheKey)) return emojiCache.get(cacheKey);
+        
+        if (failedEmojiCache.containsKey(cacheKey)) {
+            if (System.currentTimeMillis() - failedEmojiCache.get(cacheKey) < 600000) return null;
+            else failedEmojiCache.remove(cacheKey);
+        }
+
         try {
             String urlStr = isUnicode 
                 ? "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/" + id + ".png"
                 : "https://cdn.discordapp.com/emojis/" + id + ".png";
             
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(urlStr).openConnection();
-            conn.setConnectTimeout(2000);
-            conn.setReadTimeout(2000);
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            conn.setConnectTimeout(1500);
+            conn.setReadTimeout(1500);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36");
             
             try (java.io.InputStream is = conn.getInputStream()) {
                 BufferedImage img = ImageIO.read(is);
@@ -393,7 +397,8 @@ public class FeedbackService {
                 }
             }
         } catch (Exception e) {
-            if (!isUnicode) log.error("[FEEDBACK] Failed to load emoji ({}): {}", id, e.getMessage());
+            failedEmojiCache.put(cacheKey, System.currentTimeMillis());
+            if (!isUnicode) log.warn("[FEEDBACK] Failed to load emoji ({}): {}", id, e.getMessage());
         }
         return null;
     }
