@@ -115,12 +115,12 @@ public class FeedbackService {
         int nameY = 295 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
         g.drawString(name, nameX, nameY);
 
-        // Feedback
+        // Feedback (Updated coordinates)
         g.setFont(arabicFont);
         g.setColor(new Color(220, 220, 220));
-        int commBoxW = 1230 - 579;
-        int commBoxH = 553 - 330;
-        drawWrappedText(g, feedback, 579, 330, commBoxW, commBoxH);
+        int commBoxW = 1273 - 545;
+        int commBoxH = 592 - 341;
+        drawWrappedText(g, feedback, 545, 341, commBoxW, commBoxH);
 
         g.dispose();
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
