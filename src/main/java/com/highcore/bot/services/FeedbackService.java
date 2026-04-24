@@ -236,35 +236,36 @@ public class FeedbackService {
         String[] paragraphs = text.split("\n");
         for (String p : paragraphs) {
             StringBuilder currentLine = new StringBuilder();
+            int currentLineWidth = 0;
             
-            // Tokenize by spaces but keep emojis intact
             String[] tokens = p.split(" ");
             for (String token : tokens) {
-                // If the token contains emojis, we need to be careful
-                // For simplicity, if the whole token (including emoji) fits, add it
-                // If not, and it contains an emoji, we MUST NOT break the emoji
-                
                 int tokenWidth = calculateTokenWidth(token, fm);
+                int spaceWidth = fm.charWidth(' ');
                 
-                if (fm.stringWidth(currentLine.toString() + token) < maxWidth) {
+                if (currentLineWidth + tokenWidth < maxWidth) {
                     currentLine.append(token).append(" ");
+                    currentLineWidth += tokenWidth + spaceWidth;
                 } else {
                     if (currentLine.length() > 0) {
                         lines.add(currentLine.toString().trim());
                         currentLine = new StringBuilder();
+                        currentLineWidth = 0;
                     }
                     
                     if (tokenWidth <= maxWidth) {
                         currentLine.append(token).append(" ");
+                        currentLineWidth = tokenWidth + spaceWidth;
                     } else {
-                        // Token is too long and must be broken, but PROTECT EMOJIS
                         String remaining = token;
                         while (!remaining.isEmpty()) {
                             int breakIdx = findSafeBreak(remaining, fm, maxWidth);
                             lines.add(remaining.substring(0, breakIdx));
                             remaining = remaining.substring(breakIdx);
-                            if (fm.stringWidth(remaining) <= maxWidth) {
+                            int remWidth = calculateTokenWidth(remaining, fm);
+                            if (remWidth <= maxWidth) {
                                 currentLine.append(remaining).append(" ");
+                                currentLineWidth = remWidth + spaceWidth;
                                 break;
                             }
                         }
