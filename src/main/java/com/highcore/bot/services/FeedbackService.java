@@ -328,7 +328,7 @@ public class FeedbackService {
         List<Object> parts = new ArrayList<>();
         int i = 0;
         while (i < line.length()) {
-            // Check for Custom Discord Emoji
+            // 1. Check for Custom Discord Emoji at current position
             Matcher m = CUSTOM_EMOJI_PATTERN.matcher(line.substring(i));
             if (m.find() && m.start() == 0) {
                 String id = m.group(2);
@@ -342,23 +342,28 @@ public class FeedbackService {
             int codePoint = line.codePointAt(i);
             int charCount = Character.charCount(codePoint);
 
+            // 2. Check for Unicode Emoji at current position
             if (isEmoji(codePoint)) {
                 StringBuilder hex = new StringBuilder(Integer.toHexString(codePoint));
-                // Handle variation selectors and ZWJ sequences if needed (simplified here)
                 BufferedImage img = getEmojiImage(hex.toString(), true);
                 if (img != null) parts.add(img);
                 else parts.add(line.substring(i, i + charCount));
                 i += charCount;
             } else {
+                // 3. It's regular text, collect until next emoji or end
                 StringBuilder textPart = new StringBuilder();
-                while (i < line.length() && !isEmoji(line.codePointAt(i)) && !CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find()) {
+                while (i < line.length()) {
+                    // Check if next thing is an emoji
+                    if (isEmoji(line.codePointAt(i))) break;
+                    if (CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find() && 
+                        CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).start() == 0) break;
+                    
                     int cp = line.codePointAt(i);
                     int cc = Character.charCount(cp);
                     textPart.append(line.substring(i, i + cc));
                     i += cc;
-                    if (i < line.length() && CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find()) break;
                 }
-                parts.add(textPart.toString());
+                if (textPart.length() > 0) parts.add(textPart.toString());
             }
         }
         return parts;
