@@ -60,7 +60,6 @@ public class GiveawayCommands extends ListenerAdapter {
         String desc = "Welcome to the **Giveaway Management Hub**.\n" +
                 "Easily create rewards, launch instant drops, or review history.\n\n" +
                 "\uD83D\uDCDD **Create Giveaway** \u2014 Step-by-step setup.\n" +
-                "\uD83D\uDCA8 **Instant Drop** \u2014 Fast 'first-to-claim' prize.\n" +
                 "\uD83D\uDDD2 **View History** \u2014 Check active tasks.";
 
         PanelService.reply(event, EmbedUtil.containerBranded("GIVEAWAY MANAGER", "Setup & History", desc,
@@ -113,9 +112,10 @@ public class GiveawayCommands extends ListenerAdapter {
 
             StringBuilder sb = new StringBuilder();
             sb.append(
-                    "### \uD83D\uDCC3 Giveaway History\nListing the most recent reward sessions found in the registry:\n\n");
+                    "### \uD83D\uDCC3 Giveaway History\nListing the **10 most recent** reward sessions found in the registry:\n\n");
 
-            for (int i = 0; i < active.size(); i++) {
+            int count = Math.min(active.size(), 10);
+            for (int i = 0; i < count; i++) {
                 JsonObject g = active.get(i).getAsJsonObject();
                 long gwIdLong = g.get("id").getAsLong();
                 String prize = g.has("prize_details") ? g.get("prize_details").getAsString() : "Unknown";
@@ -127,19 +127,16 @@ public class GiveawayCommands extends ListenerAdapter {
                 JsonArray entries = SupabaseClient.getGiveawayEntries(gwIdLong);
                 int pCount = (entries != null) ? entries.size() : 0;
 
-                sb.append("\u25AB\uFE0F **Prize:** ").append(prize)
-                        .append("\n\u001F \u001F **Host:** <@").append(hostId).append(">")
-                        .append("\n\u001F \u001F **Room:** <#").append(chanId).append(">")
-                        .append("\n\u001F \u001F **Stats:** ").append(pCount).append(" members joined");
+                sb.append("🏆 **").append(prize).append("** | <#").append(chanId).append(">\n")
+                  .append("👤 Host: <@").append(hostId).append("> • 👥 ").append(pCount).append(" Joined\n");
 
                 if (!ends.isEmpty()) {
                     try {
                         long ts = java.time.Instant.parse(ends).getEpochSecond();
-                        sb.append("\n\u001F \u001F **Limit:** <t:").append(ts).append(":R>");
-                    } catch (Exception e) {
-                    }
+                        sb.append("⏳ Ends: <t:").append(ts).append(":R>\n");
+                    } catch (Exception e) {}
                 }
-                sb.append("\n\n");
+                sb.append("──────────────────\n");
             }
 
             var c = EmbedUtil.containerBranded("REWARDS", "Live Giveaways", sb.toString(), EmbedUtil.BANNER_GIVEAWAY);
