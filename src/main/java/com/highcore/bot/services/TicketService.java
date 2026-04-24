@@ -431,15 +431,20 @@ public class TicketService {
         transcriptTicket(ch, member, event);
 
         // 5. Send Control Panel
-        ch.sendMessageComponents(EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
+        Container panel = EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
                 "### TICKET CLOSED\nAgent **"
                         + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.",
                 EmbedUtil.BANNER_SUPPORT,
                 ActionRow.of(
                         Button.secondary("ticket_reopen", "Reopen"),
                         Button.secondary("ticket_transcript", "Transcript").withEmoji(Emoji.fromCustom("Transcript", 1496974091318722561L, false)),
-                        Button.secondary("ticket_delete_init", "Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false)))))
-                .useComponentsV2(true).queue();
+                        Button.secondary("ticket_delete_init", "Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false))));
+
+        if (event != null) {
+            event.getHook().sendMessageComponents(panel).setEphemeral(true).useComponentsV2(true).queue();
+        } else {
+            ch.sendMessageComponents(panel).useComponentsV2(true).queue();
+        }
     }
 
     public static void reopenTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
