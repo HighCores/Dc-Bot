@@ -160,7 +160,7 @@ public class PanelService {
         for (Object p : parts) {
             if (p instanceof MessageCreateData mcd) {
                 try { contentRaw = mcd.getContent(); } catch (Exception ignored) {}
-                for (var l : mcd.getComponents()) if (l instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                for (var l : mcd.getComponents()) components.add(l);
             } else if (p instanceof String s) {
                 contentRaw = s;
             } else if (p instanceof MessageTopLevelComponent mtc) {
@@ -168,7 +168,7 @@ public class PanelService {
             } else if (p instanceof net.dv8tion.jda.api.utils.messages.MessageCreateBuilder b) {
                 var m = b.build();
                 contentRaw = m.getContent();
-                for (var l : m.getComponents()) if (l instanceof MessageTopLevelComponent mtc) components.add(mtc);
+                for (var l : m.getComponents()) components.add(l);
             }
         }
 
