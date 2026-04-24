@@ -81,7 +81,7 @@ public class TicketService {
 
                     ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, ch)).useComponentsV2(true)
                             .queue();
-                    event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
+                    PanelService.replyEphemeral(event, "✅ Ticket created: " + ch.getAsMention());
                 });
     }
 
@@ -319,7 +319,7 @@ public class TicketService {
         if (ticket == null)
             ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
-            event.reply("Session data missing.").setEphemeral(true).queue();
+            PanelService.replyEphemeral(event, "Session data missing.");
             return;
         }
 
@@ -452,7 +452,7 @@ public class TicketService {
         String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
-            event.reply("Session data missing.").setEphemeral(true).queue();
+            PanelService.replyEphemeral(event, "Session data missing.");
             return;
         }
 
@@ -471,7 +471,7 @@ public class TicketService {
                                 + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.INFO));
 
-        event.reply("✅ Ticket reopened. Access restored.").queue();
+        PanelService.reply(event, "✅ Ticket reopened. Access restored.");
     }
 
     public static void requestDeleteConfirmation(ButtonInteractionEvent event) {
@@ -487,7 +487,7 @@ public class TicketService {
     public static void transcriptTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
-            if (event != null) event.reply("Session data missing.").setEphemeral(true).queue();
+            if (event != null) PanelService.replyEphemeral(event, "Session data missing.");
             return;
         }
         String tid = ticket.get("ticket_id").getAsString();
@@ -520,11 +520,11 @@ public class TicketService {
                     .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                     .queue();
             if (event != null) {
-                event.reply("✅ Transcript has been uploaded to the management sector.").setEphemeral(true).queue();
+                PanelService.replyEphemeral(event, "✅ Transcript has been uploaded to the management sector.");
             }
         } else {
             if (event != null) {
-                event.reply("❌ Management sector not found.").setEphemeral(true).queue();
+                PanelService.replyEphemeral(event, "❌ Management sector not found.");
             }
         }
     }
