@@ -123,7 +123,8 @@ public class ModerationCommands extends ListenerAdapter {
                 LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Unban\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
             },
             e -> {
-                PanelService.replyEphemeral(event, EmbedUtil.error("UNBAN FAILED", "Unable to unban ID: `" + userId + "`. Ensure the ID is correct and the user is currently banned."));
+                log.error("Unban failed for ID {}: {}", userId, e.getMessage());
+                PanelService.replyEphemeral(event, EmbedUtil.error("UNBAN FAILED", "Unable to unban ID: `" + userId + "`. Reason: " + e.getMessage()));
             }
         );
     }
