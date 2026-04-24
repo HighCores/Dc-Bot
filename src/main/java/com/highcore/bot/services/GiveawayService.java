@@ -315,7 +315,7 @@ public class GiveawayService {
         });
     }
 
-    private static List<String> pickWinners(List<String> users, int count) {
+    public static List<String> pickWinners(List<String> users, int count) {
         if (users == null || users.isEmpty())
             return new ArrayList<>();
         Collections.shuffle(users);
