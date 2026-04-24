@@ -61,7 +61,10 @@ public class WelcomeListener extends ListenerAdapter {
                 """, member.getAsMention(), guild.getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
-        Container c = EmbedUtil.containerBranded("Welcome", "New Member", body, bannerUrl);
+        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+        if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
+        Container c = Container.of(layout);
         
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
@@ -85,7 +88,10 @@ public class WelcomeListener extends ListenerAdapter {
                 """, member.getUser().getAsMention(), member.getGuild().getMemberCount());
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
-        Container c = EmbedUtil.containerBranded("Guide", "Startup Information", body, bannerUrl);
+        List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+        if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
+        layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(body));
+        Container c = Container.of(layout);
 
         member.getUser().openPrivateChannel().queue(
                 dm -> {
