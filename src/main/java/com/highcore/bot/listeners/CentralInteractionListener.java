@@ -128,6 +128,19 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("order_cat_")) {
                 String cat = id.replace("order_cat_", "");
                 PanelService.handleCategorySelected(event, event.getUser().getId(), cat);
+            } else if (id.startsWith("feedback_star_")) {
+                int stars = Integer.parseInt(id.replace("feedback_star_", ""));
+                FeedbackService.ratingCache.put(event.getUser().getId(), stars);
+
+                TextInput fb = TextInput.create("feedback_input", "Write Your Feed-Back", TextInputStyle.PARAGRAPH)
+                        .setPlaceholder("Tell us more about your experience...")
+                        .setRequired(true)
+                        .setMinimumLength(20)
+                        .build();
+
+                event.replyModal(Modal.create("modal_feedback_submit", "Write Your Feed-Back")
+                        .addComponents(ActionRow.of(fb))
+                        .build()).queue();
             }
         } catch (Exception e) { log.error("Button handling error", e); }
     }
@@ -234,6 +247,15 @@ public class CentralInteractionListener extends ListenerAdapter {
         } else if (id.equals("modal_ar_add")) {
             AutoReplyService.addResponse(event.getValue("ar_keyword").getAsString(), event.getValue("ar_response").getAsString(), event.getUser().getId());
             event.reply("Auto-reply added.").setEphemeral(true).queue();
+        } else if (id.equals("modal_feedback_submit")) {
+            Integer stars = FeedbackService.ratingCache.remove(event.getUser().getId());
+            if (stars == null) stars = 5;
+            String feedback = event.getValue("feedback_input").getAsString();
+
+            net.dv8tion.jda.api.entities.channel.concrete.TextChannel logCh = event.getJDA().getTextChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
+            FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
+
+            event.reply("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").setEphemeral(true).queue();
         }
     }
 }

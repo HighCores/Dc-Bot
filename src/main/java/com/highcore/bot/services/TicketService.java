@@ -431,7 +431,23 @@ public class TicketService {
         // 4. Auto Transcript
         transcriptTicket(ch, member, event);
 
-        // 5. Send Control Panel
+        // 5. Feedback Trigger (For Order tickets)
+        if (ticket.has("type") && "ORDER".equalsIgnoreCase(ticket.get("type").getAsString()) && client != null) {
+            client.getUser().openPrivateChannel().queue(dm -> {
+                dm.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.containerBranded("Feedback", "Order Completed", 
+                    "How was your experience with Highcore Agency?", 
+                    "https://imgur.com/UyWt6Jr.png",
+                    ActionRow.of(
+                        Button.secondary("feedback_star_1", "⭐"),
+                        Button.secondary("feedback_star_2", "⭐⭐"),
+                        Button.secondary("feedback_star_3", "⭐⭐⭐"),
+                        Button.secondary("feedback_star_4", "⭐⭐⭐⭐"),
+                        Button.secondary("feedback_star_5", "⭐⭐⭐⭐⭐")
+                    ))).useComponentsV2(true).queue(null, err -> log.warn("Failed to send feedback DM to user " + client.getId()));
+            });
+        }
+
+        // 6. Send Control Panel
         Container panel = EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
                 "### TICKET CLOSED\nAgent **"
                         + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.",
