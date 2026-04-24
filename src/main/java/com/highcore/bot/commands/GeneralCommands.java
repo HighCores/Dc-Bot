@@ -84,6 +84,10 @@ public class GeneralCommands extends ListenerAdapter {
     }
 
     private void handleLine(SlashCommandInteractionEvent event) {
-        event.reply("https://i.imgur.com/KTPxBfL.png").queue();
+        PanelService.reply(event, net.dv8tion.jda.api.components.container.Container.of(
+            net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(
+                net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl("https://i.imgur.com/KTPxBfL.png")
+            )
+        ));
     }
 }
