@@ -196,7 +196,7 @@ public class SlashCommands extends ListenerAdapter {
                 .setRequired(true).build();
  
         event.replyModal(Modal.create("modal_bc", "Broadcast Transmission")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Broadcast Content", bcMsg))
+                .addComponents(ActionRow.of(bcMsg))
                 .build()).queue();
     }
 
@@ -221,7 +221,7 @@ public class SlashCommands extends ListenerAdapter {
                 .setRequired(true)
                 .build();
         event.replyModal(Modal.create("modal_boter", "Highcore Transmission")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message Content", boterMsg))
+                .addComponents(ActionRow.of(boterMsg))
                 .build()).queue();
     }
 

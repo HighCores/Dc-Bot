@@ -103,10 +103,13 @@ public class ModerationCommands extends ListenerAdapter {
         Member targetMember = event.getGuild().getMember(u);
         if (targetMember != null && !canManage(event, targetMember)) return;
 
-        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(v -> {
-            PanelService.reply(event, EmbedUtil.success("Ban Enforcement", u.getName() + " has been banned from the agency.\nReason: " + reason));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("ban", "Action: Global Blacklist\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, targetMember, EmbedUtil.DANGER));
-        });
+        event.getGuild().ban(u, 7, TimeUnit.DAYS).reason(reason).queue(
+            v -> {
+                PanelService.reply(event, EmbedUtil.success("Ban Enforcement", u.getName() + " has been banned from the agency.\nReason: " + reason));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("ban", "Action: Global Blacklist\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), u, targetMember, EmbedUtil.DANGER));
+            },
+            e -> PanelService.replyEphemeral(event, EmbedUtil.error("BAN FAILED", "Operation rejected: " + e.getMessage()))
+        );
     }
 
     private void handleUnban(SlashCommandInteractionEvent event) {
@@ -142,21 +145,30 @@ public class ModerationCommands extends ListenerAdapter {
         if (!hasPerm(event, Permission.KICK_MEMBERS)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         String reason = getReason(event);
-        if (m == null) return;
-        m.kick().reason(reason).queue(v -> {
-            PanelService.reply(event, EmbedUtil.success("Kick System", m.getUser().getName() + " has been kicked from the server.\nReason: " + reason));
-            LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("kick", "Action: Manual Disconnect\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
-        });
+        if (!canManage(event, m)) return;
+        m.kick().reason(reason).queue(
+            v -> {
+                PanelService.reply(event, EmbedUtil.success("Kick System", m.getUser().getName() + " has been kicked from the server.\nReason: " + reason));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("kick", "Action: Manual Disconnect\nReason: " + reason + "\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+            },
+            e -> PanelService.replyEphemeral(event, EmbedUtil.error("KICK FAILED", "Operation rejected: " + e.getMessage()))
+        );
     }
 
     private void handleVoiceKick(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.KICK_MEMBERS)) return;
         Member m = event.getOption("user", OptionMapping::getAsMember);
         if (m != null && m.getVoiceState().inAudioChannel()) {
-            event.getGuild().kickVoiceMember(m).queue(v -> {
-                PanelService.reply(event, EmbedUtil.success("Voice Kick", m.getUser().getName() + " has been disconnected from the voice channel."));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("vkick", "Action: Voice Channel Eviction\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
-            });
+            if (!canManage(event, m)) return;
+            event.getGuild().kickVoiceMember(m).queue(
+                v -> {
+                    PanelService.reply(event, EmbedUtil.success("Voice Kick", m.getUser().getName() + " has been disconnected from the voice channel."));
+                    LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("vkick", "Action: Voice Channel Eviction\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+                },
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("VOICE KICK FAILED", "Operation rejected: " + e.getMessage()))
+            );
+        } else {
+            PanelService.replyEphemeral(event, EmbedUtil.error("TARGET ERROR", "User is not in a voice channel."));
         }
     }
 

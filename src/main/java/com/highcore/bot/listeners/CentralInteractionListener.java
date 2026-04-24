@@ -84,12 +84,12 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("ticket_init_support")) {
                 TextInput st = TextInput.create("service_type", TextInputStyle.SHORT).setPlaceholder("Which service?").setRequired(true).build();
                 TextInput idesc = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details...").setRequired(true).build();
-                event.replyModal(Modal.create("modal_support_init", "Support").addComponents(net.dv8tion.jda.api.components.label.Label.of("Service", st), net.dv8tion.jda.api.components.label.Label.of("Issue", idesc)).build()).queue();
+                event.replyModal(Modal.create("modal_support_init", "Support").addComponents(ActionRow.of(st), ActionRow.of(idesc)).build()).queue();
             } else if (id.equals("ticket_init_complaint")) {
                 TextInput pr = TextInput.create("comp_person", TextInputStyle.SHORT).setPlaceholder("Against").setRequired(false).build();
                 TextInput tp = TextInput.create("comp_type", TextInputStyle.SHORT).setPlaceholder("Subject").setRequired(true).build();
                 TextInput ds = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details").setRequired(true).build();
-                event.replyModal(Modal.create("modal_complaint_init", "Complaint").addComponents(net.dv8tion.jda.api.components.label.Label.of("Against", pr), net.dv8tion.jda.api.components.label.Label.of("Subject", tp), net.dv8tion.jda.api.components.label.Label.of("Details", ds)).build()).queue();
+                event.replyModal(Modal.create("modal_complaint_init", "Complaint").addComponents(ActionRow.of(pr), ActionRow.of(tp), ActionRow.of(ds)).build()).queue();
             } else if (id.startsWith("ticket_pay_")) {
                 String method = id.split("_")[2];
                 event.reply("✅ Method selected: **" + method.toUpperCase() + "**. Please provide proof of payment once finished.").setEphemeral(true).queue();
@@ -110,7 +110,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("ar_add")) {
                 TextInput kw = TextInput.create("ar_keyword", TextInputStyle.SHORT).setPlaceholder("Keyword").setRequired(true).build();
                 TextInput rs = TextInput.create("ar_response", TextInputStyle.PARAGRAPH).setPlaceholder("Response").setRequired(true).build();
-                event.replyModal(Modal.create("modal_ar_add", "New AR").addComponents(net.dv8tion.jda.api.components.label.Label.of("Keyword", kw), net.dv8tion.jda.api.components.label.Label.of("Response", rs)).build()).queue();
+                event.replyModal(Modal.create("modal_ar_add", "New AR").addComponents(ActionRow.of(kw), ActionRow.of(rs)).build()).queue();
             } else if (id.startsWith("ping_")) {
                 String roleId = id.replace("ping_", "");
                 net.dv8tion.jda.api.entities.Role role = event.getGuild().getRoleById(roleId);
@@ -139,7 +139,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                         .build();
 
                 event.replyModal(Modal.create("modal_feedback_submit", "Write Your Feed-Back")
-                        .addComponents(net.dv8tion.jda.api.components.label.Label.of("Feedback", fb))
+                        .addComponents(ActionRow.of(fb))
                         .build()).queue();
             }
         } catch (Exception e) { log.error("Button handling error", e); }
@@ -264,6 +264,39 @@ public class CentralInteractionListener extends ListenerAdapter {
                 event.getHook().editOriginal("### ❌ Submission Failed\nThere was an error processing your feedback. Please try again later.").queue();
                 return null;
             });
+        } else if (id.equals("modal_bc")) {
+            event.deferReply(true).queue();
+            SlashCommands.BcSession session = SlashCommands.BC_SESSIONS.remove("bc_" + event.getUser().getId());
+            String message = event.getValue("message").getAsString();
+            if (session != null) {
+                BroadcastService.startBroadcast(event.getGuild(), message, session.roleId, session.attUrl);
+                event.getHook().sendMessage("✅ Broadcast sequence initiated.").setEphemeral(true).queue();
+            } else {
+                event.getHook().sendMessage("❌ Session expired. Please try again.").setEphemeral(true).queue();
+            }
+        } else if (id.equals("modal_boter")) {
+            event.deferReply(true).queue();
+            SlashCommands.BoterSession session = SlashCommands.BOTER_SESSIONS.remove("boter_" + event.getUser().getId());
+            String message = event.getValue("message").getAsString();
+            if (session != null) {
+                net.dv8tion.jda.api.entities.channel.concrete.TextChannel target = event.getGuild().getTextChannelById(session.channelId);
+                if (target != null) {
+                    List<com.highcore.bot.components.mediagallery.MediaGalleryItem> items = session.fileUrls.stream()
+                        .map(url -> com.highcore.bot.components.mediagallery.MediaGalleryItem.fromUrl(url))
+                        .toList();
+                    
+                    List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
+                    if (!items.isEmpty()) layout.add(com.highcore.bot.components.mediagallery.MediaGallery.of(items));
+                    layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(com.highcore.bot.utils.EmojiUtil.parse(message)));
+                    
+                    target.sendMessageComponents(net.dv8tion.jda.api.components.container.Container.of(layout)).useComponentsV2(true).queue();
+                    event.getHook().sendMessage("✅ Transmission deployed to " + target.getAsMention()).setEphemeral(true).queue();
+                } else {
+                    event.getHook().sendMessage("❌ Target channel not found.").setEphemeral(true).queue();
+                }
+            } else {
+                event.getHook().sendMessage("❌ Session expired.").setEphemeral(true).queue();
+            }
         }
     }
 }
