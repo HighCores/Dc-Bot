@@ -22,11 +22,11 @@ public class FeedbackService {
     
     public static final Map<String, Integer> ratingCache = new ConcurrentHashMap<>();
 
-    private static final String TEMPLATE_1 = "https://imgur.com/H5h3H4b.png";
-    private static final String TEMPLATE_2 = "https://imgur.com/eyypAlB.png";
-    private static final String TEMPLATE_3 = "https://imgur.com/kdWPO3f.png";
-    private static final String TEMPLATE_4 = "https://imgur.com/mXYKYnv.png";
-    private static final String TEMPLATE_5 = "https://imgur.com/RqCWzzv.png";
+    private static final String TEMPLATE_1 = "https://i.imgur.com/H5h3H4b.png";
+    private static final String TEMPLATE_2 = "https://i.imgur.com/eyypAlB.png";
+    private static final String TEMPLATE_3 = "https://i.imgur.com/kdWPO3f.png";
+    private static final String TEMPLATE_4 = "https://i.imgur.com/mXYKYnv.png";
+    private static final String TEMPLATE_5 = "https://i.imgur.com/RqCWzzv.png";
     
     public static final String FEEDBACK_CHANNEL_ID = "1491423672202952806";
 
