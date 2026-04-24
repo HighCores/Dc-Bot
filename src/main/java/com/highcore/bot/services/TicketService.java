@@ -407,13 +407,15 @@ public class TicketService {
 
     public static void closeTicket(ButtonInteractionEvent event, Member member) {
         event.deferEdit().queue();
-        closeTicketInternal((GuildMessageChannel) event.getChannel(), member, event);
+        closeTicketInternal(event.getChannel().asTextChannel(), member, event);
     }
 
-    private static void closeTicketInternal(GuildMessageChannel ch, Member member, ButtonInteractionEvent event) {
+    private static void closeTicketInternal(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
-        if (ticket == null)
+        if (ticket == null) {
+            log.warn("Ticket data not found in DB for channel: {}", ch.getId());
             return;
+        }
         String tid = ticket.get("ticket_id").getAsString();
 
         String userId = ticket.get("user_id").getAsString();
@@ -435,13 +437,9 @@ public class TicketService {
 
         // 1. Remove client write access but keep view access
         if (client != null) {
-            if (ch instanceof ThreadChannel thread) {
-                thread.getManager().setLocked(true).queue();
-            } else if (ch instanceof TextChannel tc) {
-                tc.getManager().putMemberPermissionOverride(client.getIdLong(), 
-                        EnumSet.of(Permission.VIEW_CHANNEL), 
-                        EnumSet.of(Permission.MESSAGE_SEND)).queue();
-            }
+            ch.getManager().putMemberPermissionOverride(client.getIdLong(), 
+                    EnumSet.of(Permission.VIEW_CHANNEL), 
+                    EnumSet.of(Permission.MESSAGE_SEND)).queue();
         }
 
         // 2. Update DB status
