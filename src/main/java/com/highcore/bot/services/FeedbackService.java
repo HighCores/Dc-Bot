@@ -379,14 +379,21 @@ public class FeedbackService {
             String urlStr = isUnicode 
                 ? "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/" + id + ".png"
                 : "https://cdn.discordapp.com/emojis/" + id + ".png";
-            URL url = new URL(urlStr);
-            BufferedImage img = ImageIO.read(url);
-            if (img != null) {
-                emojiCache.put(cacheKey, img);
-                return img;
+            
+            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) new URL(urlStr).openConnection();
+            conn.setConnectTimeout(2000);
+            conn.setReadTimeout(2000);
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
+            
+            try (java.io.InputStream is = conn.getInputStream()) {
+                BufferedImage img = ImageIO.read(is);
+                if (img != null) {
+                    emojiCache.put(cacheKey, img);
+                    return img;
+                }
             }
         } catch (Exception e) {
-            if (!isUnicode) log.error("[FEEDBACK] Failed to load emoji: " + id);
+            if (!isUnicode) log.error("[FEEDBACK] Failed to load emoji ({}): {}", id, e.getMessage());
         }
         return null;
     }

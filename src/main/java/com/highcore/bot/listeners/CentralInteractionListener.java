@@ -257,10 +257,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             
             java.util.concurrent.CompletableFuture.runAsync(() -> {
                 FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
-                event.getHook().sendMessage("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").setEphemeral(true).queue();
+                event.getHook().editOriginal("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").queue();
             }).exceptionally(ex -> {
                 log.error("Error submitting feedback", ex);
-                event.getHook().sendMessage("### ❌ Submission Failed\nThere was an error processing your feedback. Please try again later.").setEphemeral(true).queue();
+                event.getHook().editOriginal("### ❌ Submission Failed\nThere was an error processing your feedback. Please try again later.").queue();
                 return null;
             });
         }
