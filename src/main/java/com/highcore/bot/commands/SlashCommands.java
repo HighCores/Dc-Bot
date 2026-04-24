@@ -14,7 +14,6 @@ import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.jetbrains.annotations.NotNull;
 import org.slf4j.Logger;
@@ -44,22 +43,19 @@ public class SlashCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // SMART DEFERRAL: Do NOT defer if the command uses a Modal (bc, embed, boter)
         boolean usesModal = name.equals("bc") || name.equals("embed") || name.equals("boter");
         
         if (!event.isAcknowledged() && !usesModal) {
-            // Force ephemeral deferral to avoid "Used Command" label publicly
             event.deferReply(true).queue();
         }
 
-        // Dedicated commands handled elsewhere
         List<String> dedicatedCmds = java.util.Arrays.asList(
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
             "role", "role-multiple", "temprole", "rar", "inrole", "warn-add", "warn-remove",
             "warnings", "violations", "violations-clear", "lock", "unlock", "hide", "show", "slowmode", "add-emoji", "giveaway",
             "profile", "avatar", "server-avatar", "server", "roles", "banner", "server-banner", "invites",
-            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title"
+            "replay", "banned-words", "ping", "roll", "translate", "suggest", "suggestion", "title", "line"
         );
         if (dedicatedCmds.contains(name)) return;
 

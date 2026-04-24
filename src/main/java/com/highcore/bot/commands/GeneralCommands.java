@@ -84,9 +84,6 @@ public class GeneralCommands extends ListenerAdapter {
     }
 
     private void handleLine(SlashCommandInteractionEvent event) {
-        event.getHook().sendMessageEmbeds(new net.dv8tion.jda.api.EmbedBuilder()
-                .setImage("https://i.imgur.com/KTPxBfL.png")
-                .setColor(EmbedUtil.ACCENT)
-                .build()).queue();
+        event.reply("https://i.imgur.com/KTPxBfL.png").queue();
     }
 }
