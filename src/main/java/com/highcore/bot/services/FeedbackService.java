@@ -80,13 +80,18 @@ public class FeedbackService {
         log.info("[FEEDBACK] Loading template: {}", templateBase);
         BufferedImage template = null;
         try {
+            ImageIO.setUseCache(false); // Avoid disk permission issues
+            log.info("[FEEDBACK] Supported formats: {}", java.util.Arrays.toString(ImageIO.getReaderFormatNames()));
+            
             URL url = new URL(templateBase);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
             conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
             int respCode = conn.getResponseCode();
             log.info("[FEEDBACK] Template response code: {}", respCode);
             if (respCode == 200) {
-                template = ImageIO.read(conn.getInputStream());
+                try (java.io.InputStream is = new java.io.BufferedInputStream(conn.getInputStream())) {
+                    template = ImageIO.read(is);
+                }
             } else {
                 log.error("[FEEDBACK] Connection failed with code: {}", respCode);
             }
