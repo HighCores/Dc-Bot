@@ -84,6 +84,9 @@ public class GeneralCommands extends ListenerAdapter {
     }
 
     private void handleLine(SlashCommandInteractionEvent event) {
-        PanelService.reply(event, EmbedUtil.containerBranded("", "", null, "https://i.imgur.com/KTPxBfL.png"));
+        event.getHook().sendMessageEmbeds(new net.dv8tion.jda.api.EmbedBuilder()
+                .setImage("https://i.imgur.com/KTPxBfL.png")
+                .setColor(EmbedUtil.ACCENT)
+                .build()).queue();
     }
 }
