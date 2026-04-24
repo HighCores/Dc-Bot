@@ -15,12 +15,17 @@ import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.net.URL;
 import java.util.Map;
+import java.util.HashMap;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 public class FeedbackService {
     private static final Logger log = LoggerFactory.getLogger(FeedbackService.class);
 
     public static final Map<String, Integer> ratingCache = new ConcurrentHashMap<>();
+    private static final Map<String, BufferedImage> emojiCache = new HashMap<>();
+    private static final Pattern CUSTOM_EMOJI_PATTERN = Pattern.compile("<a?:(\\w+):(\\d+)>");
 
     private static final String TEMPLATE_1 = "https://i.imgur.com/H5h3H4b.jpg";
     private static final String TEMPLATE_2 = "https://i.imgur.com/eyypAlB.jpg";
@@ -163,34 +168,113 @@ public class FeedbackService {
     }
 
     private static void drawWrappedText(Graphics2D g, String text, int x, int y, int width, int height) {
-        FontMetrics fm = g.getFontMetrics();
+        Font zain = g.getFont();
+        Font emojiFont = new Font("Segoe UI Emoji", Font.PLAIN, zain.getSize());
+        
+        FontMetrics fm = g.getFontMetrics(zain);
         int lineHeight = fm.getHeight();
         int curY = y + fm.getAscent();
 
-        String[] lines = text.split("\n");
-        for (String rawLine : lines) {
-            String[] words = rawLine.split(" ");
-            StringBuilder currentLine = new StringBuilder();
+        List<String> wrappedLines = wrapText(text, fm, width);
+        for (String rawLine : wrappedLines) {
+            List<Object> parts = parseLineParts(rawLine);
+            int lineWidth = calculatePartsWidth(g, parts, zain, emojiFont);
+            
+            int curX = x + (width - lineWidth) / 2;
 
-            for (String word : words) {
-                if (fm.stringWidth(currentLine + word) < width) {
-                    currentLine.append(word).append(" ");
-                } else {
-                    String toDraw = currentLine.toString().trim();
-                    int lineX = x + (width - fm.stringWidth(toDraw)) / 2;
-                    g.drawString(toDraw, lineX, curY);
-                    currentLine = new StringBuilder(word).append(" ");
-                    curY += lineHeight;
-                    if (curY > y + height)
-                        return;
+            for (Object part : parts) {
+                if (part instanceof String s) {
+                    g.setFont(zain);
+                    g.drawString(s, curX, curY);
+                    curX += g.getFontMetrics().stringWidth(s);
+                } else if (part instanceof BufferedImage img) {
+                    int size = (int) (lineHeight * 0.8);
+                    int offset = (lineHeight - size) / 2;
+                    g.drawImage(img, curX, curY - fm.getAscent() + offset, size, size, null);
+                    curX += size + 2;
+                } else if (part instanceof Character c) {
+                    g.setFont(emojiFont);
+                    String s = String.valueOf(c);
+                    g.drawString(s, curX, curY);
+                    curX += g.getFontMetrics().stringWidth(s);
                 }
             }
-            String toDraw = currentLine.toString().trim();
-            int lineX = x + (width - fm.stringWidth(toDraw)) / 2;
-            g.drawString(toDraw, lineX, curY);
+            
             curY += lineHeight;
-            if (curY > y + height)
-                return;
+            if (curY > y + height) return;
         }
+    }
+
+    private static List<String> wrapText(String text, FontMetrics fm, int maxWidth) {
+        List<String> lines = new ArrayList<>();
+        String[] paragraphs = text.split("\n");
+        for (String p : paragraphs) {
+            String[] words = p.split(" ");
+            StringBuilder line = new StringBuilder();
+            for (String word : words) {
+                if (fm.stringWidth(line + word) < maxWidth) {
+                    line.append(word).append(" ");
+                } else {
+                    lines.add(line.toString().trim());
+                    line = new StringBuilder(word).append(" ");
+                }
+            }
+            lines.add(line.toString().trim());
+        }
+        return lines;
+    }
+
+    private static List<Object> parseLineParts(String line) {
+        List<Object> parts = new ArrayList<>();
+        Matcher m = CUSTOM_EMOJI_PATTERN.matcher(line);
+        int lastIdx = 0;
+        
+        while (m.find()) {
+            if (m.start() > lastIdx) {
+                parts.add(line.substring(lastIdx, m.start()));
+            }
+            String id = m.group(2);
+            BufferedImage img = getEmojiImage(id);
+            if (img != null) parts.add(img);
+            else parts.add(m.group(0)); // fallback to raw text
+            
+            lastIdx = m.end();
+        }
+        if (lastIdx < line.length()) {
+            parts.add(line.substring(lastIdx));
+        }
+        return parts;
+    }
+
+    private static BufferedImage getEmojiImage(String id) {
+        if (emojiCache.containsKey(id)) return emojiCache.get(id);
+        try {
+            URL url = new URL("https://cdn.discordapp.com/emojis/" + id + ".png");
+            BufferedImage img = ImageIO.read(url);
+            if (img != null) {
+                emojiCache.put(id, img);
+                return img;
+            }
+        } catch (Exception e) {
+            log.error("[FEEDBACK] Failed to load emoji: " + id, e);
+        }
+        return null;
+    }
+
+    private static int calculatePartsWidth(Graphics2D g, List<Object> parts, Font zain, Font emojiFont) {
+        int w = 0;
+        int emojiSize = (int) (g.getFontMetrics(zain).getHeight() * 0.8);
+        for (Object p : parts) {
+            if (p instanceof String s) {
+                g.setFont(zain);
+                w += g.getFontMetrics().stringWidth(s);
+            } else if (p instanceof BufferedImage) {
+                w += emojiSize + 2;
+            } else if (p instanceof Character) {
+                g.setFont(emojiFont);
+                w += g.getFontMetrics().stringWidth(String.valueOf(p));
+            }
+        }
+        return w;
     }
 }
