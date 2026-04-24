@@ -38,10 +38,11 @@ public class FeedbackService {
     public static final String FEEDBACK_CHANNEL_ID = "1491423672202952806";
 
     public static void submitFeedback(User user, int stars, String feedback, GuildChannel channel) {
+        String expandedFeedback = expandShortcodes(feedback, user.getJDA());
         log.info("[FEEDBACK] Submitting feedback for user: {} ({} stars). Channel: {}", user.getName(), stars,
                 (channel != null ? channel.getName() : "NULL"));
         try {
-            byte[] image = generateFeedbackImage(user, stars, feedback);
+            byte[] image = generateFeedbackImage(user, stars, expandedFeedback);
             if (image == null) {
                 log.warn("[FEEDBACK] Failed to generate image for user: {}", user.getName());
                 return;
@@ -167,6 +168,37 @@ public class FeedbackService {
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(combined, "png", baos);
         return baos.toByteArray();
+    }
+
+    private static String expandShortcodes(String text, net.dv8tion.jda.api.JDA jda) {
+        if (text == null || jda == null) return text;
+        Pattern p = Pattern.compile(":(\\w+):");
+        Matcher m = p.matcher(text);
+        StringBuilder sb = new StringBuilder();
+        int last = 0;
+        while (m.find()) {
+            sb.append(text, last, m.start());
+            String name = m.group(1);
+            // Check if it's already part of <:name:id>
+            boolean alreadyFormatted = (m.start() > 1 && text.charAt(m.start()-1) == '<' && text.charAt(m.start()-2) == ':');
+            if (alreadyFormatted) {
+                sb.append(":").append(name).append(":");
+            } else {
+                String id = null;
+                for (net.dv8tion.jda.api.entities.Guild g : jda.getGuilds()) {
+                    java.util.List<net.dv8tion.jda.api.entities.emoji.RichCustomEmoji> emojis = g.getEmojisByName(name, true);
+                    if (!emojis.isEmpty()) {
+                        id = emojis.get(0).getId();
+                        break;
+                    }
+                }
+                if (id != null) sb.append("<:").append(name).append(":").append(id).append(">");
+                else sb.append(":").append(name).append(":");
+            }
+            last = m.end();
+        }
+        sb.append(text.substring(last));
+        return sb.toString();
     }
 
     private static void drawWrappedText(Graphics2D g, String text, int x, int y, int width, int height) {
