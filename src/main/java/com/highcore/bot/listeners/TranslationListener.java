@@ -141,7 +141,8 @@ public class TranslationListener extends ListenerAdapter {
             
             MessageEditBuilder meb = new MessageEditBuilder()
                     .setContent("")
-                    .setComponents(components);
+                    .setComponents(components)
+                    .useComponentsV2(true);
 
             event.getHook().editOriginal(meb.build()).queue();
         } catch (Exception e) {
