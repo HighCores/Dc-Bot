@@ -199,23 +199,12 @@ public class PanelService {
                         allComps.add(0, TextDisplay.of(contentRaw));
                     }
                     
-                    createBuilder.setComponents(allComps).useComponentsV2(true);
-                    
-                    if (ephemeral) {
-                        event.reply(createBuilder.build())
-                            .setEphemeral(true)
-                            .setAllowedMentions(java.util.Collections.emptyList())
-                            .useComponentsV2(true)
-                            .queue();
-                    } else {
-                        event.getMessageChannel().sendMessageComponents(createBuilder.getComponents()).useComponentsV2(true).queue(
-                            msg -> {
-                                if (event.isAcknowledged()) {
-                                    event.getHook().deleteOriginal().queue(null, (err) -> {});
-                                }
-                            }
-                        );
-                    }
+                    createBuilder.setComponents(allComps).useComponentsV2(true); // Flag on builder
+                    event.reply(createBuilder.build())
+                        .setEphemeral(ephemeral)
+                        .setAllowedMentions(java.util.Collections.emptyList())
+                        .useComponentsV2(true)
+                        .queue();
                 }
             } catch (Exception ex) {
                 log.error("PanelService handleReply failure", ex);
