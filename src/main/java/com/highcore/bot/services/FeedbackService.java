@@ -116,9 +116,9 @@ public class FeedbackService {
         g.setColor(Color.WHITE);
         String name = user.getEffectiveName();
         FontMetrics nm = g.getFontMetrics();
-        int nameBoxW = 682 - 529;
+        int nameBoxW = 1273 - 545;
         int nameBoxH = 332 - 295;
-        int nameX = 529 + (nameBoxW - nm.stringWidth(name)) / 2;
+        int nameX = 545 + (nameBoxW - nm.stringWidth(name)) / 2;
         int nameY = 295 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
         g.drawString(name, nameX, nameY);
 
@@ -149,13 +149,17 @@ public class FeedbackService {
                 if (fm.stringWidth(currentLine + word) < width) {
                     currentLine.append(word).append(" ");
                 } else {
-                    g.drawString(currentLine.toString(), x, curY);
+                    String toDraw = currentLine.toString().trim();
+                    int lineX = x + (width - fm.stringWidth(toDraw)) / 2;
+                    g.drawString(toDraw, lineX, curY);
                     currentLine = new StringBuilder(word).append(" ");
                     curY += lineHeight;
                     if (curY > y + height) return;
                 }
             }
-            g.drawString(currentLine.toString(), x, curY);
+            String toDraw = currentLine.toString().trim();
+            int lineX = x + (width - fm.stringWidth(toDraw)) / 2;
+            g.drawString(toDraw, lineX, curY);
             curY += lineHeight;
             if (curY > y + height) return;
         }
