@@ -10,12 +10,12 @@ import net.dv8tion.jda.api.interactions.callbacks.IModalCallback;
 import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent;
 import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.messages.MessageEditData;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.interactions.components.text.TextInput;
-import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
-import net.dv8tion.jda.api.interactions.modals.Modal;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.components.textinput.TextInput;
+import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -154,7 +154,6 @@ public class PanelService {
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         String contentRaw = null;
         List<ActionRow> rows = new ArrayList<>();
-        List<Object> complexComps = new ArrayList<>();
 
         for (Object p : parts) {
             if (p instanceof MessageCreateData mcd) {
@@ -168,8 +167,6 @@ public class PanelService {
                 var m = b.build();
                 contentRaw = m.getContent();
                 for (var l : m.getComponents()) if (l instanceof ActionRow ar) rows.add(ar);
-            } else {
-                complexComps.add(p);
             }
         }
 
@@ -178,15 +175,6 @@ public class PanelService {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                 if (contentRaw != null) builder.setContent(contentRaw);
                 builder.setComponents(rows).useComponentsV2(true);
-
-                // Add complex components if they are available in this version's JDA build
-                // Note: We use reflection or direct calls if they are part of a custom build
-                try {
-                    for (Object comp : complexComps) {
-                        // Attempt to add complex components to the builder if supported
-                        // This preserves custom UI elements while maintaining stability
-                    }
-                } catch (Exception ignored) {}
 
                 if (ephemeral) {
                     if (event.isAcknowledged()) {
@@ -270,7 +258,7 @@ public class PanelService {
                 Button.secondary("ping_1488916736639238357", "Updates"),
                 Button.secondary("ping_1488916921687736421", "Giveaway"),
                 Button.secondary("ping_1488916879186596081", "Offers"),
-                Button.secondary("ping_1489764018989301840", "Hiring"));
+                Button.secondary("ping_1488916879186596081", "Hiring"));
         replyEphemeral(event, EmbedUtil.containerBranded("SYNC", "Alert Layers", body, EmbedUtil.BANNER_MAIN, row));
     }
 

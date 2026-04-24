@@ -6,8 +6,8 @@ import com.highcore.bot.services.GiveawayService;
 import com.highcore.bot.services.PanelService;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.interactions.components.buttons.Button;
-import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.actionrow.ActionRow;
 import org.jetbrains.annotations.NotNull;
 
 public class GiveawayListener extends ListenerAdapter {
