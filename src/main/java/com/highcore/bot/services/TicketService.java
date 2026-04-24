@@ -440,6 +440,10 @@ public class TicketService {
             ch.getManager().putMemberPermissionOverride(client.getIdLong(), 
                     EnumSet.of(Permission.VIEW_CHANNEL), 
                     EnumSet.of(Permission.MESSAGE_SEND)).queue();
+        } else {
+            ch.getManager()
+                    .putPermissionOverride(ch.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+                    .queue();
         }
 
         // 2. Update DB status
