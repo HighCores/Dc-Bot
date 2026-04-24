@@ -108,19 +108,14 @@ public class FeedbackService {
         g.drawImage(template, 0, 0, null);
 
         // Fonts
-        Font arabicFont = new Font("thamanya sans", Font.PLAIN, 30);
-        Font englishFont = new Font("Source Code Pro", Font.BOLD, 28);
-
-        // Name
-        g.setFont(englishFont);
-        g.setColor(Color.WHITE);
-        String name = user.getEffectiveName();
-        FontMetrics nm = g.getFontMetrics();
-        int nameBoxW = 744 - 505;
-        int nameBoxH = 344 - 290;
-        int nameX = 505;
-        int nameY = 290 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
-        g.drawString(name, nameX, nameY);
+        Font arabicFont;
+        try (java.io.InputStream is = FeedbackService.class.getResourceAsStream("/templates/thmanyahsans-Bold.otf")) {
+            if (is == null) throw new Exception("Font file not found");
+            arabicFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(30f);
+        } catch (Exception e) {
+            log.warn("[FEEDBACK] Could not load thmanyahsans-Bold.otf from resources, using fallback");
+            arabicFont = new Font("Arial", Font.PLAIN, 30);
+        }
 
         // Feedback (Updated coordinates)
         g.setFont(arabicFont);
