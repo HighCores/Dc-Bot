@@ -12,11 +12,17 @@ import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.utils.FileUpload;
+import net.dv8tion.jda.api.components.buttons.Button;
+import net.dv8tion.jda.api.components.ActionComponent;
+import net.dv8tion.jda.api.components.LayoutComponent;
 import net.dv8tion.jda.api.components.container.Container;
 import net.dv8tion.jda.api.components.container.ContainerChildComponent;
 import net.dv8tion.jda.api.components.mediagallery.MediaGallery;
 import net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem;
 import net.dv8tion.jda.api.components.textdisplay.TextDisplay;
+import net.dv8tion.jda.api.utils.messages.MessageCreateBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditBuilder;
+import net.dv8tion.jda.api.utils.messages.MessageEditData;
 import org.jetbrains.annotations.NotNull;
 
 import java.util.ArrayList;
@@ -115,15 +121,13 @@ public class TranslationListener extends ListenerAdapter {
         }
 
         // Final message construction
-        Container container = Container.of(layout);
-        List<net.dv8tion.jda.api.interactions.components.LayoutComponent> components = new ArrayList<>(actionRows);
-        
         event.getHook().editOriginalComponents(Collections.emptyList()).queue();
-        event.getHook().sendMessage("").setEphemeral(true).setComponents(components).queue(msg -> {
-             // We use a trick to send container via edit if possible, or just send a rich embed if container fails in ephemeral
-             event.getHook().editOriginal(container).queue(null, err -> {
-                 // Fallback to basic embed if container logic fails in this context
-             });
-        });
+        
+        MessageCreateBuilder mcb = new MessageCreateBuilder()
+                .setContent("")
+                .addComponents(Container.of(layout))
+                .addComponents(actionRows);
+
+        event.getHook().sendMessage(mcb.build()).setEphemeral(true).queue();
     }
 }
