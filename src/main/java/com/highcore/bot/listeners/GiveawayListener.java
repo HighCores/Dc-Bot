@@ -23,6 +23,8 @@ public class GiveawayListener extends ListenerAdapter {
             handleEntry(event);
         } else if (id.startsWith("gw_end_early_")) {
              handleEndEarly(event);
+        } else if (id.startsWith("gw_reroll_adm_")) {
+             handleReroll(event);
         }
     }
 
@@ -111,5 +113,20 @@ public class GiveawayListener extends ListenerAdapter {
         event.deferReply(true).queue();
         GiveawayService.endGiveaway(event.getJDA(), giveawayId, 1);
         event.getHook().sendMessage("Success! Giveaway ended manually.").queue();
+    }
+
+    private void handleReroll(ButtonInteractionEvent event) {
+        String idStr = event.getComponentId().replace("gw_reroll_adm_", "");
+        long giveawayId;
+        try { giveawayId = Long.parseLong(idStr); } catch (Exception e) { return; }
+
+        if (!com.highcore.bot.config.Config.isAdmin(event.getMember())) {
+            event.reply("Authorization required for this operation.").setEphemeral(true).queue();
+            return;
+        }
+
+        event.deferReply(true).queue();
+        GiveawayService.rerollGiveaway(event.getJDA(), giveawayId);
+        event.getHook().sendMessage("Success! Reroll completed, new winner identified.").queue();
     }
 }

@@ -126,37 +126,32 @@ public class GiveawayService {
                     "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.",
                     EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
         } else {
-            final String firstId = winners.get(0);
-            jda.retrieveUserById(firstId).queue(user -> {
-                byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-                VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
+            // Process each winner individually
+            for (String winnerId : winners) {
+                jda.retrieveUserById(winnerId).queue(user -> {
+                    // 1. Generate Image
+                    byte[] winnerImg = generateWinnerImage(user, prizeDetails);
+                    
+                    // 2. Issue Voucher/DM
+                    VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
 
-                StringBuilder wb = new StringBuilder();
-                for (String w : winners)
-                    wb.append("<@").append(w).append("> ");
+                    // 3. Send Public Announcement for this winner
+                    if (winnerImg != null) {
+                        var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified",
+                                "<@" + user.getId() + "> won **" + prizeDetails + "**!\n\n> Voucher Sent In Dm",
+                                "attachment://winner_" + user.getId() + ".png");
 
-                if (winnerImg != null) {
-                    var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified",
-                            wb + " won **" + prizeDetails
-                                    + "**!\n\n> Voucher Sent In Dm",
-                            "attachment://winner.png");
-
-                    ch.sendFiles(FileUpload.fromData(winnerImg, "winner.png")).setContent("").setComponents(eb)
-                            .useComponentsV2(true).queue();
-                } else {
-                    ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n" + wb + " won **" + prizeDetails + "**!\n> Voucher Sent In Dm")
-                            .queue();
-                }
-
-                // Others
-                for (int i = 1; i < winners.size(); i++) {
-                    jda.retrieveUserById(winners.get(i)).queue(u -> {
-                        byte[] wImg = generateWinnerImage(u, prizeDetails);
-                        VoucherService.issueVoucher(u, finalValue, type, expiresAt, prizeDetails, ch);
-                    }, e -> {
-                    });
-                }
-            }, e -> log.error("Failed to retrieve winner: {}", e.getMessage()));
+                        ch.sendFiles(FileUpload.fromData(winnerImg, "winner_" + user.getId() + ".png"))
+                                .setContent("")
+                                .setComponents(eb)
+                                .useComponentsV2(true)
+                                .queue();
+                    } else {
+                        ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n<@" + user.getId() + "> won **" + prizeDetails + "**!\n> Voucher Sent In Dm")
+                                .queue();
+                    }
+                }, e -> log.error("Failed to retrieve winner {}: {}", winnerId, e.getMessage()));
+            }
         }
 
         // Sync Dashboard
