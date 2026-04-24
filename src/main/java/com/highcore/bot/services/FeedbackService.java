@@ -110,16 +110,21 @@ public class FeedbackService {
         // Fonts
         Font arabicFont;
         try (java.io.InputStream is = FeedbackService.class.getResourceAsStream("/templates/thmanyahsans-Bold.otf")) {
-            if (is == null) throw new Exception("Font file not found");
-            arabicFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(30f);
+            if (is == null) {
+                log.error("[FEEDBACK] FONT FILE NOT FOUND: /templates/thmanyahsans-Bold.otf");
+                arabicFont = new Font("SansSerif", Font.BOLD, 45);
+            } else {
+                arabicFont = Font.createFont(Font.TRUETYPE_FONT, is).deriveFont(Font.BOLD, 45f);
+                log.info("[FEEDBACK] Successfully loaded font: {}", arabicFont.getFontName());
+            }
         } catch (Exception e) {
-            log.warn("[FEEDBACK] Could not load thmanyahsans-Bold.otf from resources, using fallback");
-            arabicFont = new Font("Arial", Font.PLAIN, 30);
+            log.error("[FEEDBACK] Error loading custom font", e);
+            arabicFont = new Font("SansSerif", Font.BOLD, 45);
         }
 
         // Feedback (Updated coordinates)
         g.setFont(arabicFont);
-        g.setColor(new Color(220, 220, 220));
+        g.setColor(Color.WHITE);
         int commBoxW = 1273 - 545;
         int commBoxH = 592 - 341;
         drawWrappedText(g, feedback, 545, 341, commBoxW, commBoxH);
