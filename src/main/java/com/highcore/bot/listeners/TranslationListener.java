@@ -83,7 +83,7 @@ public class TranslationListener extends ListenerAdapter {
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl("https://i.imgur.com/KTPxBfL.png"))); // The second banner from the screenshot
 
                 actionRows.add(ActionRow.of(
-                    Button.secondary("btn_highcore", TranslationService.translateText("HighCore", lang)).withEmoji(Emoji.fromCustom("Highcore", 1496974136931778641L, false)),
+                    Button.secondary("btn_highcore", TranslationService.translateText("HighCore", lang)).withEmoji(Emoji.fromCustom("Highcore", 1496974488099885177L, false)),
                     Button.secondary("btn_about", TranslationService.translateText("About Us", lang)).withEmoji(Emoji.fromCustom("Aboutus", 1496974985875427358L, false)),
                     Button.secondary("btn_partners", TranslationService.translateText("Partners", lang)).withEmoji(Emoji.fromCustom("Partners", 1496974406369415178L, false)),
                     Button.link("https://discord.com/channels/1488798547947159612", TranslationService.translateText("Support", lang)).withEmoji(Emoji.fromCustom("Support", 1496974182217547816L, false))
@@ -95,7 +95,7 @@ public class TranslationListener extends ListenerAdapter {
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
                 layout.add(TextDisplay.of("## " + header + "\n" + body));
                 actionRows.add(ActionRow.of(
-                    Button.secondary("order_cat_creative", TranslationService.translateText("Creative", lang)).withEmoji(Emoji.fromCustom("Creative", 1496974426573373461L, false)),
+                    Button.secondary("order_cat_designer", TranslationService.translateText("Designer", lang)).withEmoji(Emoji.fromCustom("Design", 1496974725258285157L, false)),
                     Button.secondary("order_cat_developer", TranslationService.translateText("Developer", lang)).withEmoji(Emoji.fromCustom("Developer", 1496974704005611633L, false)),
                     Button.secondary("order_cat_editor", TranslationService.translateText("Editor", lang)).withEmoji(Emoji.fromCustom("Editor", 1496974685030715503L, false)),
                     Button.secondary("order_cat_minecraft", TranslationService.translateText("Minecraft", lang)).withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false))
@@ -145,8 +145,8 @@ public class TranslationListener extends ListenerAdapter {
 
             event.getHook().editOriginal(meb.build()).queue();
         } catch (Exception e) {
-            log.error("Failed to send translation result", e);
-            event.getHook().editOriginal("An error occurred while rendering the translation.").queue();
+            log.error("CRITICAL: Failed to render translation UI for type: {} in lang: {}", type, lang, e);
+            event.getHook().editOriginal("⚠️ Rendering Error: " + e.getMessage()).queue();
         }
     }
 }
