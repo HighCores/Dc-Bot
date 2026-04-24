@@ -28,6 +28,7 @@ import java.util.Collections;
 import java.util.List;
 
 public class TranslationListener extends ListenerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(TranslationListener.class);
 
     @Override
     public void onButtonInteraction(@NotNull ButtonInteractionEvent event) {
@@ -129,12 +130,13 @@ public class TranslationListener extends ListenerAdapter {
         }
 
         try {
-            // Final message construction
+            List<MessageTopLevelComponent> components = new ArrayList<>();
+            components.add(Container.of(layout));
+            components.addAll(actionRows);
+            
             MessageEditBuilder meb = new MessageEditBuilder()
                     .setContent("")
-                    .setComponents(Collections.emptyList()) // Clear the select menu from the original thinking msg
-                    .addComponents(Container.of(layout))
-                    .addComponents(actionRows);
+                    .setComponents(components);
 
             event.getHook().editOriginal(meb.build()).queue();
         } catch (Exception e) {
