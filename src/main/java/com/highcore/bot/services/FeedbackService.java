@@ -82,8 +82,14 @@ public class FeedbackService {
         try {
             URL url = new URL(templateBase);
             java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-            template = ImageIO.read(conn.getInputStream());
+            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
+            int respCode = conn.getResponseCode();
+            log.info("[FEEDBACK] Template response code: {}", respCode);
+            if (respCode == 200) {
+                template = ImageIO.read(conn.getInputStream());
+            } else {
+                log.error("[FEEDBACK] Connection failed with code: {}", respCode);
+            }
         } catch (Exception e) {
             log.error("[FEEDBACK] Failed to load feedback template: " + templateBase, e);
             return null;
