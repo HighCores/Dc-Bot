@@ -9,6 +9,9 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.OnlineStatus;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import org.jetbrains.annotations.NotNull;
 import java.util.stream.Collectors;
 
@@ -38,7 +41,7 @@ public class InfoCommands extends ListenerAdapter {
         Member m = event.getOption("user") != null ? event.getOption("user").getAsMember() : event.getMember();
         if (m == null) return;
         
-        event.deferReply().queue();
+        // Removed redundant deferReply to prevent IllegalStateException
         
         m.getUser().retrieveProfile().queue(profile -> {
             long created = m.getUser().getTimeCreated().toEpochSecond();

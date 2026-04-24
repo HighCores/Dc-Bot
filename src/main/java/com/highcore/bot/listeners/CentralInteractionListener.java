@@ -1,28 +1,30 @@
 package com.highcore.bot.listeners;
 
-import com.highcore.bot.services.*;
 import com.highcore.bot.config.Config;
+import com.highcore.bot.database.SupabaseClient;
+import com.highcore.bot.services.*;
+import com.highcore.bot.commands.*;
 import com.highcore.bot.utils.EmbedUtil;
-import com.highcore.bot.commands.AutoReplyCommands;
-import com.highcore.bot.commands.BannedWordCommands;
 import com.google.gson.JsonArray;
 import com.google.gson.JsonObject;
 import net.dv8tion.jda.api.entities.Member;
+import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
 import net.dv8tion.jda.api.events.interaction.ModalInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent;
 import net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent;
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
-import net.dv8tion.jda.api.components.actionrow.ActionRow;
-import net.dv8tion.jda.api.components.buttons.Button;
-import net.dv8tion.jda.api.components.selections.StringSelectMenu;
-import net.dv8tion.jda.api.components.textinput.TextInput;
-import net.dv8tion.jda.api.components.textinput.TextInputStyle;
-import net.dv8tion.jda.api.modals.Modal;
+import net.dv8tion.jda.api.interactions.components.ActionRow;
+import net.dv8tion.jda.api.interactions.components.buttons.Button;
+import net.dv8tion.jda.api.interactions.components.selections.StringSelectMenu;
+import net.dv8tion.jda.api.interactions.components.text.TextInput;
+import net.dv8tion.jda.api.interactions.components.text.TextInputStyle;
+import net.dv8tion.jda.api.interactions.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
 
 public class CentralInteractionListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(CentralInteractionListener.class);
@@ -281,15 +283,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (session != null) {
                 net.dv8tion.jda.api.entities.channel.concrete.TextChannel target = event.getGuild().getTextChannelById(session.channelId);
                 if (target != null) {
-                    List<com.highcore.bot.components.mediagallery.MediaGalleryItem> items = session.fileUrls.stream()
-                        .map(url -> com.highcore.bot.components.mediagallery.MediaGalleryItem.fromUrl(url))
-                        .toList();
-                    
-                    List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
-                    if (!items.isEmpty()) layout.add(com.highcore.bot.components.mediagallery.MediaGallery.of(items));
-                    layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(com.highcore.bot.utils.EmojiUtil.parse(message)));
-                    
-                    target.sendMessageComponents(net.dv8tion.jda.api.components.container.Container.of(layout)).useComponentsV2(true).queue();
+                    PanelService.reply(target, com.highcore.bot.utils.EmojiUtil.parse(message));
                     event.getHook().sendMessage("✅ Transmission deployed to " + target.getAsMention()).setEphemeral(true).queue();
                 } else {
                     event.getHook().sendMessage("❌ Target channel not found.").setEphemeral(true).queue();
