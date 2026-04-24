@@ -43,19 +43,26 @@ public class FeedbackService {
                 return;
             }
 
-            String title = "Feedback | @" + user.getName();
+            String title = "Feedback | " + user.getEffectiveName();
             FileUpload file = FileUpload.fromData(image, "feedback.png");
+            MessageCreateData messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .addFiles(file)
+                    .setContent("### Feedback from " + user.getAsMention())
+                    .build();
             
             if (channel instanceof ForumChannel forum) {
                 log.info("[FEEDBACK] Posting to ForumChannel: {}", forum.getName());
-                forum.createForumPost(title, MessageCreateData.fromFiles(file)).queue(
-                    post -> log.info("[FEEDBACK] Successfully created forum post: {}", post.getThreadChannel().getName()),
+                forum.createForumPost(title, messageData).queue(
+                    post -> {
+                        log.info("[FEEDBACK] Successfully created forum post: {}", post.getThreadChannel().getName());
+                        // Lock the thread
+                        post.getThreadChannel().getManager().setLocked(true).queue();
+                    },
                     err -> log.error("[FEEDBACK] Failed to create forum post", err)
                 );
             } else if (channel instanceof MessageChannel mc) {
                 log.info("[FEEDBACK] Posting to MessageChannel: {}", mc.getName());
-                mc.sendMessage(title)
-                        .addFiles(file)
+                mc.sendMessage(messageData)
                         .queue(
                             msg -> log.info("[FEEDBACK] Successfully sent feedback message"),
                             err -> log.error("[FEEDBACK] Failed to send feedback message", err)
