@@ -81,7 +81,7 @@ public class TicketService {
 
                     ch.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, ch)).useComponentsV2(true)
                             .queue();
-                    PanelService.replyEphemeral(event, "✅ Ticket created: " + ch.getAsMention());
+                    event.reply("✅ Ticket created: " + ch.getAsMention()).setEphemeral(true).queue();
                 });
     }
 
@@ -110,15 +110,19 @@ public class TicketService {
             String cleanV = voucherCode.trim().toUpperCase();
             JsonObject v = SupabaseClient.getVoucherByCode(cleanV);
             if (v != null) {
-                String vUserId = v.has("user_id") && !v.get("user_id").isJsonNull() ? v.get("user_id").getAsString() : "";
+                String vUserId = v.has("user_id") && !v.get("user_id").isJsonNull() ? v.get("user_id").getAsString()
+                        : "";
                 boolean isUsed = v.has("is_used") && v.get("is_used").getAsBoolean();
-                boolean userMatches = vUserId.isEmpty() || vUserId.equalsIgnoreCase("GLOBAL") || vUserId.equals(user.getId());
+                boolean userMatches = vUserId.isEmpty() || vUserId.equalsIgnoreCase("GLOBAL")
+                        || vUserId.equals(user.getId());
 
                 if (userMatches && !isUsed) {
                     String vt = v.has("type") ? v.get("type").getAsString() : "PERCENT";
                     int va = 0;
-                    if (v.has("percentage")) va = v.get("percentage").getAsInt();
-                    else if (v.has("amount")) va = v.get("amount").getAsInt();
+                    if (v.has("percentage"))
+                        va = v.get("percentage").getAsInt();
+                    else if (v.has("amount"))
+                        va = v.get("amount").getAsInt();
 
                     if (vt.equalsIgnoreCase("PERCENT") || vt.toLowerCase().contains("discount")) {
                         vPercent = va;
@@ -148,61 +152,69 @@ public class TicketService {
                     log.info("[TICKET DEBUG] Channel queue callback started for: {}", channel.getName());
                     try {
                         JsonArray itemsArr = new JsonArray();
-                    for (var i : allItems) {
-                        JsonObject o = new JsonObject();
-                        o.addProperty("name", i.name);
-                        o.addProperty("price", i.price);
-                        itemsArr.add(o);
-                    }
+                        for (var i : allItems) {
+                            JsonObject o = new JsonObject();
+                            o.addProperty("name", i.name);
+                            o.addProperty("price", i.price);
+                            itemsArr.add(o);
+                        }
 
-                    JsonObject meta = new JsonObject();
-                    meta.addProperty("client_name", cName);
-                    meta.addProperty("project_name", pName);
-                    meta.addProperty("category", category);
-                    meta.addProperty("contact", contact);
-                    meta.addProperty("phone", phone);
-                    meta.addProperty("eta", eta);
-                    meta.addProperty("total_discount", totalDisc);
-                    meta.add("items", itemsArr);
+                        JsonObject meta = new JsonObject();
+                        meta.addProperty("client_name", cName);
+                        meta.addProperty("project_name", pName);
+                        meta.addProperty("category", category);
+                        meta.addProperty("contact", contact);
+                        meta.addProperty("phone", phone);
+                        meta.addProperty("eta", eta);
+                        meta.addProperty("total_discount", totalDisc);
+                        meta.add("items", itemsArr);
 
-                    JsonObject ticket = new JsonObject();
-                    ticket.addProperty("ticket_id", tid);
-                    ticket.addProperty("user_id", user.getId());
-                    ticket.addProperty("channel_id", channel.getId());
-                    ticket.addProperty("type", "ORDER");
-                    ticket.add("metadata", meta);
-                    ticketCache.put(channel.getId(), ticket);
+                        JsonObject ticket = new JsonObject();
+                        ticket.addProperty("ticket_id", tid);
+                        ticket.addProperty("user_id", user.getId());
+                        ticket.addProperty("channel_id", channel.getId());
+                        ticket.addProperty("type", "ORDER");
+                        ticket.add("metadata", meta);
+                        ticketCache.put(channel.getId(), ticket);
 
-                    SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName);
-                    SupabaseClient.saveTicketMeta(tid, meta);
+                        SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName);
+                        SupabaseClient.saveTicketMeta(tid, meta);
 
-                    if (voucherCode != null && !voucherCode.isBlank()) {
-                        String cleanCode = voucherCode.trim().toUpperCase();
-                        log.info("Marking voucher as used: {}", cleanCode);
-                        SupabaseClient.markVoucherAsUsed(cleanCode);
-                    }
+                        if (voucherCode != null && !voucherCode.isBlank()) {
+                            String cleanCode = voucherCode.trim().toUpperCase();
+                            log.info("Marking voucher as used: {}", cleanCode);
+                            SupabaseClient.markVoucherAsUsed(cleanCode);
+                        }
 
-                    channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel))
-                            .useComponentsV2(true).queue();
+                        channel.sendMessageComponents(rebuildWelcomeContainer(ticket, false, null, channel))
+                                .useComponentsV2(true).queue();
                     } catch (Exception e) {
                         log.error("[FATAL TICKET ERROR] Error in ticket creation callback", e);
                     }
 
                     double voucherDeduction = finalVAmount + (subTotal * (finalVPercent / 100.0));
                     byte[] inv = InvoiceService.generateInvoice(tid, cName, pName, allItems, addOnItems, false,
-                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc, voucherDeduction, phone);
+                            user.getEffectiveAvatarUrl(), user.getEffectiveName(), category, contact, totalDisc, fPerc,
+                            voucherDeduction, phone);
                     if (inv != null) {
                         channel.sendMessageComponents(
                                 EmbedUtil.containerBranded("\uD83D\uDCC3 Invoice \u2014 Payment Required", "",
                                         "Review your order and choose a payment method.", "attachment://invoice.png",
                                         ActionRow.of(
-                                                Button.secondary("ticket_pay_binance_" + tid, "Binance").withEmoji(Emoji.fromCustom("Binance", 1496974881030541533L, false)),
-                                                Button.secondary("ticket_pay_payoneer_" + tid, "Payoneer").withEmoji(Emoji.fromCustom("Payoneer", 1496974382172733490L, false)),
-                                                Button.secondary("ticket_pay_cliq_" + tid, "CliQ").withEmoji(Emoji.fromCustom("Cliq", 1496974857118679162L, false)),
-                                                Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(Emoji.fromCustom("Paypal", 1496974360286593134L, false)),
-                                                Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay").withEmoji(Emoji.fromCustom("friendipay", 1496974547969376479L, false))),
+                                                Button.secondary("ticket_pay_binance_" + tid, "Binance").withEmoji(
+                                                        Emoji.fromCustom("Binance", 1496974881030541533L, false)),
+                                                Button.secondary("ticket_pay_payoneer_" + tid, "Payoneer").withEmoji(
+                                                        Emoji.fromCustom("Payoneer", 1496974382172733490L, false)),
+                                                Button.secondary("ticket_pay_cliq_" + tid, "CliQ").withEmoji(
+                                                        Emoji.fromCustom("Cliq", 1496974857118679162L, false)),
+                                                Button.secondary("ticket_pay_paypal_" + tid, "PayPal").withEmoji(
+                                                        Emoji.fromCustom("Paypal", 1496974360286593134L, false)),
+                                                Button.secondary("ticket_pay_friendi_" + tid, "Friendi Pay").withEmoji(
+                                                        Emoji.fromCustom("friendipay", 1496974547969376479L, false))),
                                         ActionRow.of(
-                                                Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi").withEmoji(Emoji.fromCustom("BankTransfer", 1496974903490904278L, false)))))
+                                                Button.secondary("ticket_pay_rajhi_" + tid, "Al Rajhi")
+                                                        .withEmoji(Emoji.fromCustom("BankTransfer",
+                                                                1496974903490904278L, false)))))
                                 .useComponentsV2(true).addFiles(FileUpload.fromData(inv, "invoice.png")).queue();
                     }
                 });
@@ -403,6 +415,20 @@ public class TicketService {
         String userId = ticket.get("user_id").getAsString();
         Member client = ch.getGuild().getMemberById(userId);
 
+        // Feedback Trigger (For Order tickets) - Public in channel
+        if (ticket.has("type") && "ORDER".equalsIgnoreCase(ticket.get("type").getAsString())) {
+            ch.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.containerBranded("Feedback", "Order Completed", 
+                "How was your experience with Highcore Agency?", 
+                "https://imgur.com/UyWt6Jr.png",
+                ActionRow.of(
+                    Button.secondary("feedback_star_1", "⭐"),
+                    Button.secondary("feedback_star_2", "⭐⭐"),
+                    Button.secondary("feedback_star_3", "⭐⭐⭐"),
+                    Button.secondary("feedback_star_4", "⭐⭐⭐⭐"),
+                    Button.secondary("feedback_star_5", "⭐⭐⭐⭐⭐")
+                ))).useComponentsV2(true).queue();
+        }
+
         // 1. Remove client access
         if (client != null) {
             ch.getManager().putMemberPermissionOverride(client.getIdLong(), null,
@@ -431,31 +457,17 @@ public class TicketService {
         // 4. Auto Transcript
         transcriptTicket(ch, member, event);
 
-        // 5. Feedback Trigger (For Order tickets)
-        if (ticket.has("type") && "ORDER".equalsIgnoreCase(ticket.get("type").getAsString()) && client != null) {
-            client.getUser().openPrivateChannel().queue(dm -> {
-                dm.sendMessageComponents(com.highcore.bot.utils.EmbedUtil.containerBranded("Feedback", "Order Completed", 
-                    "How was your experience with Highcore Agency?", 
-                    "https://imgur.com/UyWt6Jr.png",
-                    ActionRow.of(
-                        Button.secondary("feedback_star_1", "⭐"),
-                        Button.secondary("feedback_star_2", "⭐⭐"),
-                        Button.secondary("feedback_star_3", "⭐⭐⭐"),
-                        Button.secondary("feedback_star_4", "⭐⭐⭐⭐"),
-                        Button.secondary("feedback_star_5", "⭐⭐⭐⭐⭐")
-                    ))).useComponentsV2(true).queue(null, err -> log.warn("Failed to send feedback DM to user " + client.getId()));
-            });
-        }
-
-        // 6. Send Control Panel
+        // 5. Send Control Panel
         Container panel = EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
                 "### TICKET CLOSED\nAgent **"
                         + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.",
                 EmbedUtil.BANNER_SUPPORT,
                 ActionRow.of(
                         Button.secondary("ticket_reopen", "Reopen"),
-                        Button.secondary("ticket_transcript", "Transcript").withEmoji(Emoji.fromCustom("Transcript", 1496974091318722561L, false)),
-                        Button.secondary("ticket_delete_init", "Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false))));
+                        Button.secondary("ticket_transcript", "Transcript")
+                                .withEmoji(Emoji.fromCustom("Transcript", 1496974091318722561L, false)),
+                        Button.secondary("ticket_delete_init", "Delete")
+                                .withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false))));
 
         if (event != null) {
             event.getHook().sendMessageComponents(panel).setEphemeral(true).useComponentsV2(true).queue();
@@ -495,7 +507,8 @@ public class TicketService {
                 "### Are you sure?\nThis action will permanently delete this channel and cannot be undone.",
                 EmbedUtil.BANNER_SUPPORT,
                 ActionRow.of(
-                        Button.secondary("ticket_delete_final", "Confirm Delete").withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false)),
+                        Button.secondary("ticket_delete_final", "Confirm Delete")
+                                .withEmoji(Emoji.fromCustom("Delete", 1496974827754487988L, false)),
                         Button.secondary("ticket_delete_cancel", "Cancel"))))
                 .setEphemeral(true).useComponentsV2(true).queue();
     }
@@ -503,7 +516,8 @@ public class TicketService {
     public static void transcriptTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
-            if (event != null) PanelService.replyEphemeral(event, "Session data missing.");
+            if (event != null)
+                PanelService.replyEphemeral(event, "Session data missing.");
             return;
         }
         String tid = ticket.get("ticket_id").getAsString();
