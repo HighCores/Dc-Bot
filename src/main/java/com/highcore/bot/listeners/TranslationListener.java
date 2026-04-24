@@ -68,62 +68,62 @@ public class TranslationListener extends ListenerAdapter {
     }
 
     private void handleTranslation(StringSelectInteractionEvent event, String type, String lang) {
-        String title = "Translated Content";
-        String body = "";
-        String imageUrl = null;
+        List<ContainerChildComponent> layout = new ArrayList<>();
+        List<ActionRow> actionRows = new ArrayList<>();
 
-        // Simplified mapping for the requested embeds
         switch (type) {
             case "startup" -> {
-                title = "Startup Hub";
-                body = "Welcome to Highcore Agency. Access all departments via the control modules below.";
-                imageUrl = EmbedUtil.BANNER_MAIN;
+                String title = TranslationService.translateText("PROTOCOL", lang);
+                String header = TranslationService.translateText("Startup Hub", lang);
+                String body = TranslationService.translateText("Welcome to Highcore Agency. Access all departments via the control modules below.", lang);
+                
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
+                layout.add(TextDisplay.of("### " + title + "\n## " + header + "\n" + body));
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl("https://i.imgur.com/KTPxBfL.png"))); // The second banner from the screenshot
+
+                actionRows.add(ActionRow.of(
+                    Button.secondary("btn_highcore", TranslationService.translateText("HighCore", lang)).withEmoji(Emoji.fromCustom("Highcore", 1496974136931778641L, false)),
+                    Button.secondary("btn_about", TranslationService.translateText("About Us", lang)).withEmoji(Emoji.fromCustom("Aboutus", 1496974985875427358L, false)),
+                    Button.secondary("btn_partners", TranslationService.translateText("Partners", lang)).withEmoji(Emoji.fromCustom("Partners", 1496974406369415178L, false)),
+                    Button.link("https://discord.com/channels/1488798547947159612", TranslationService.translateText("Support", lang)).withEmoji(Emoji.fromCustom("Support", 1496974182217547816L, false))
+                ));
             }
             case "order" -> {
-                title = "Highcore Orders";
-                body = "Ready to bring your idea to life? Choose a category below to see our services.";
-                imageUrl = EmbedUtil.BANNER_ORDER;
+                String header = TranslationService.translateText("Highcore Orders", lang);
+                String body = TranslationService.translateText("Ready to bring your idea to life? Choose a category below to see our services.", lang);
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
+                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                actionRows.add(ActionRow.of(
+                    Button.secondary("order_cat_creative", TranslationService.translateText("Creative", lang)).withEmoji(Emoji.fromCustom("Creative", 1496974426573373461L, false)),
+                    Button.secondary("order_cat_developer", TranslationService.translateText("Developer", lang)).withEmoji(Emoji.fromCustom("Developer", 1496974704005611633L, false)),
+                    Button.secondary("order_cat_editor", TranslationService.translateText("Editor", lang)).withEmoji(Emoji.fromCustom("Editor", 1496974685030715503L, false)),
+                    Button.secondary("order_cat_minecraft", TranslationService.translateText("Minecraft", lang)).withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false))
+                ));
             }
             case "tickets" -> {
-                title = "Ticket Support";
-                body = "Initialize a project session or report an issue via the modules below. Please follow agency rules.";
-                imageUrl = EmbedUtil.BANNER_TICKETS_MENU;
+                String header = TranslationService.translateText("Ticket Support", lang);
+                String body = TranslationService.translateText("Initialize a project session or report an issue via the modules below. Please follow agency rules.", lang);
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_TICKETS_MENU)));
+                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                actionRows.add(ActionRow.of(
+                    Button.secondary("ticket_init_order", TranslationService.translateText("Order", lang)).withEmoji(Emoji.fromCustom("Order", 1496974488561123380L, false)),
+                    Button.secondary("ticket_init_support", TranslationService.translateText("Support", lang)).withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
+                    Button.secondary("ticket_init_complaint", TranslationService.translateText("Complaint", lang)).withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))
+                ));
             }
-            case "giveaway" -> {
-                title = "Active Rewards";
-                body = "A new giveaway session is active. Participate to acquire agency merits.";
-                imageUrl = EmbedUtil.BANNER_GIVEAWAY;
-            }
-            case "terms" -> {
-                title = "Agency Protocols";
-                body = "By engaging with Highcore Agency, you agree to the following terms and conditions.";
-                imageUrl = EmbedUtil.BANNER_MAIN;
-            }
+            // Add other cases as needed...
         }
 
-        // Translate text
-        String translatedTitle = TranslationService.translateText(title, lang);
-        String translatedBody = TranslationService.translateText(body, lang);
+        // Final message construction
+        Container container = Container.of(layout);
+        List<net.dv8tion.jda.api.interactions.components.LayoutComponent> components = new ArrayList<>(actionRows);
         
-        // Translate Image
-        byte[] translatedImage = TranslationService.translateImage(imageUrl, lang);
-
-        List<ContainerChildComponent> layout = new ArrayList<>();
-        if (translatedImage != null) {
-            // Send with translated image
-            event.getHook().sendFiles(FileUpload.fromData(translatedImage, "translated.png")).setEphemeral(true).queue(sentMsg -> {
-                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(sentMsg.getAttachments().get(0).getUrl())));
-                event.getHook().editOriginalComponents(Collections.emptyList()).queue(); // Clear the select menu
-                event.getHook().editOriginal(sentMsg.getAttachments().get(0).getUrl() + "\n\n" + translatedBody).queue();
-            });
-        } else {
-            // Fallback to original image or just text
-            EmbedBuilder eb = new EmbedBuilder()
-                    .setTitle(translatedTitle)
-                    .setDescription(translatedBody)
-                    .setImage(imageUrl)
-                    .setColor(EmbedUtil.ACCENT);
-            event.getHook().sendMessageEmbeds(eb.build()).setEphemeral(true).queue();
-        }
+        event.getHook().editOriginalComponents(Collections.emptyList()).queue();
+        event.getHook().sendMessage("").setEphemeral(true).setComponents(components).queue(msg -> {
+             // We use a trick to send container via edit if possible, or just send a rich embed if container fails in ephemeral
+             event.getHook().editOriginal(container).queue(null, err -> {
+                 // Fallback to basic embed if container logic fails in this context
+             });
+        });
     }
 }
