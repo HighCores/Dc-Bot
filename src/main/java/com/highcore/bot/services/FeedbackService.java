@@ -116,10 +116,10 @@ public class FeedbackService {
         g.setColor(Color.WHITE);
         String name = user.getEffectiveName();
         FontMetrics nm = g.getFontMetrics();
-        int nameBoxW = 1273 - 545;
-        int nameBoxH = 332 - 295;
-        int nameX = 545 + (nameBoxW - nm.stringWidth(name)) / 2;
-        int nameY = 295 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
+        int nameBoxW = 744 - 505;
+        int nameBoxH = 344 - 290;
+        int nameX = 505;
+        int nameY = 290 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
         g.drawString(name, nameX, nameY);
 
         // Feedback (Updated coordinates)
