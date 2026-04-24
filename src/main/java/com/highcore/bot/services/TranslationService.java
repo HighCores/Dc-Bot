@@ -20,6 +20,8 @@ import java.util.List;
 
 public class TranslationService {
     private static final Logger log = LoggerFactory.getLogger(TranslationService.class);
+    private static long lastGoogleErrorTime = 0;
+    private static final long ERROR_RETRY_DELAY = 10 * 60 * 1000; // 10 minutes
     
     private static Translate getTranslateService() {
         return TranslateOptions.newBuilder().setApiKey(Config.GOOGLE_API_KEY).build().getService();
@@ -27,16 +29,23 @@ public class TranslationService {
 
     public static String translateText(String text, String targetLang) {
         if (Config.GOOGLE_API_KEY == null || Config.GOOGLE_API_KEY.isEmpty()) {
-            return AIService.translate(text, targetLang); // Fallback to Groq if Google not configured
+            return AIService.translate(text, targetLang);
         }
+
+        // Fast fallback if Google was recently detected as blocked/disabled
+        if (System.currentTimeMillis() - lastGoogleErrorTime < ERROR_RETRY_DELAY) {
+            return AIService.translate(text, targetLang);
+        }
+
         try {
             Translate translate = getTranslateService();
             Translation translation = translate.translate(text, Translate.TranslateOption.targetLanguage(targetLang));
             return translation.getTranslatedText();
         } catch (com.google.cloud.translate.TranslateException e) {
             String msg = e.getMessage();
-            if (msg.contains("SERVICE_DISABLED") || msg.contains("API_KEY_SERVICE_BLOCKED")) {
-                log.warn("Google Translate API error: {}. Falling back to AI quickly.", msg);
+            if (msg.contains("SERVICE_DISABLED") || msg.contains("API_KEY_SERVICE_BLOCKED") || msg.contains("403")) {
+                log.warn("Google Translate API error: {}. Switching to AI fallback for 10 minutes.", msg);
+                lastGoogleErrorTime = System.currentTimeMillis();
                 return AIService.translate(text, targetLang);
             }
             log.error("Google Translate error", e);

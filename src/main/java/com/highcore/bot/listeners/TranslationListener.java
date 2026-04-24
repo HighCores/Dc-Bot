@@ -128,14 +128,18 @@ public class TranslationListener extends ListenerAdapter {
             }
         }
 
-        // Final message construction
-        event.getHook().editOriginalComponents(Collections.emptyList()).queue();
-        
-        MessageCreateBuilder mcb = new MessageCreateBuilder()
-                .setContent("")
-                .addComponents(Container.of(layout))
-                .addComponents(actionRows);
+        try {
+            // Final message construction
+            MessageEditBuilder meb = new MessageEditBuilder()
+                    .setContent("")
+                    .setComponents(Collections.emptyList()) // Clear the select menu from the original thinking msg
+                    .addComponents(Container.of(layout))
+                    .addComponents(actionRows);
 
-        event.getHook().sendMessage(mcb.build()).setEphemeral(true).queue();
+            event.getHook().editOriginal(meb.build()).queue();
+        } catch (Exception e) {
+            log.error("Failed to send translation result", e);
+            event.getHook().editOriginal("An error occurred while rendering the translation.").queue();
+        }
     }
 }
