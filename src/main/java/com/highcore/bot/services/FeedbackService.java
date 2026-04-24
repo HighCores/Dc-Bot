@@ -1,7 +1,10 @@
 package com.highcore.bot.services;
 
 import net.dv8tion.jda.api.entities.User;
-import net.dv8tion.jda.api.entities.channel.concrete.TextChannel;
+import net.dv8tion.jda.api.entities.channel.concrete.ForumChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.GuildChannel;
+import net.dv8tion.jda.api.entities.channel.middleman.MessageChannel;
+import net.dv8tion.jda.api.utils.messages.MessageCreateData;
 import net.dv8tion.jda.api.utils.FileUpload;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -27,13 +30,20 @@ public class FeedbackService {
     
     public static final String FEEDBACK_CHANNEL_ID = "1491423672202952806";
 
-    public static void submitFeedback(User user, int stars, String feedback, TextChannel logChannel) {
+    public static void submitFeedback(User user, int stars, String feedback, GuildChannel channel) {
         try {
             byte[] image = generateFeedbackImage(user, stars, feedback);
-            if (image != null && logChannel != null) {
-                logChannel.sendMessage("Feedback | " + user.getAsMention())
-                        .addFiles(FileUpload.fromData(image, "feedback.png"))
-                        .queue();
+            if (image != null && channel != null) {
+                String title = "Feedback | @" + user.getName();
+                FileUpload file = FileUpload.fromData(image, "feedback.png");
+                
+                if (channel instanceof ForumChannel forum) {
+                    forum.createForumPost(title, MessageCreateData.fromFiles(file)).queue();
+                } else if (channel instanceof MessageChannel mc) {
+                    mc.sendMessage(title)
+                            .addFiles(file)
+                            .queue();
+                }
             }
         } catch (Exception e) {
             log.error("Error submitting feedback", e);

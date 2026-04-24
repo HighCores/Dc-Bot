@@ -252,7 +252,7 @@ public class CentralInteractionListener extends ListenerAdapter {
             if (stars == null) stars = 5;
             String feedback = event.getValue("feedback_input").getAsString();
 
-            net.dv8tion.jda.api.entities.channel.concrete.TextChannel logCh = event.getJDA().getTextChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
+            net.dv8tion.jda.api.entities.channel.middleman.GuildChannel logCh = event.getGuild().getGuildChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
             FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
 
             event.reply("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").setEphemeral(true).queue();
