@@ -79,8 +79,7 @@ public class MessageListener extends ListenerAdapter {
         // 🤖 Auto Replies
         String autoReply = AutoReplyService.getResponse(content);
         if (autoReply != null) {
-            event.getMessage().delete().queue(null, (err) -> {});
-            event.getChannel().sendMessage(autoReply).queue();
+            event.getMessage().reply(autoReply).queue();
             return;
         }
 
