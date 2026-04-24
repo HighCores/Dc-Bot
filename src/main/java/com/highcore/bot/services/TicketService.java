@@ -429,13 +429,14 @@ public class TicketService {
                 ))).useComponentsV2(true).queue();
         }
 
-        // 1. Remove client access
+        // 1. Remove client write access but keep view access
         if (client != null) {
-            ch.getManager().putMemberPermissionOverride(client.getIdLong(), null,
-                    EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND)).queue();
+            ch.getManager().putMemberPermissionOverride(client.getIdLong(), 
+                    EnumSet.of(Permission.VIEW_CHANNEL), 
+                    EnumSet.of(Permission.MESSAGE_SEND)).queue();
         } else {
             ch.getManager()
-                    .putPermissionOverride(ch.getGuild().getPublicRole(), null, EnumSet.of(Permission.VIEW_CHANNEL))
+                    .putPermissionOverride(ch.getGuild().getPublicRole(), null, EnumSet.of(Permission.MESSAGE_SEND))
                     .queue();
         }
 
