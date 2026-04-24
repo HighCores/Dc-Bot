@@ -33,8 +33,15 @@ public class TranslationService {
             Translate translate = getTranslateService();
             Translation translation = translate.translate(text, Translate.TranslateOption.targetLanguage(targetLang));
             return translation.getTranslatedText();
-        } catch (Exception e) {
+        } catch (com.google.cloud.translate.TranslateException e) {
+            if (e.getMessage().contains("SERVICE_DISABLED")) {
+                log.warn("Google Translate API is disabled. Please enable it in the Google Cloud Console.");
+                return "⚠️ [API DISABLED] " + AIService.translate(text, targetLang);
+            }
             log.error("Google Translate error", e);
+            return AIService.translate(text, targetLang);
+        } catch (Exception e) {
+            log.error("General Translate error", e);
             return AIService.translate(text, targetLang);
         }
     }

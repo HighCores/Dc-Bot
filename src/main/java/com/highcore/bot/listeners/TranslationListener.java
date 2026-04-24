@@ -58,15 +58,6 @@ public class TranslationListener extends ListenerAdapter {
             String lang = event.getValues().get(0);
             
             event.deferReply(true).queue();
-            
-            // Logic to get the original embed content and image
-            // Since we're replying to a select menu, the original message is the one the button was on
-            event.getMessageChannel().retrieveMessageById(event.getMessageId()).queue(originalMsg -> {
-                // Actually, in Discord, you can't easily read the "original message" content if it's a container in an ephemeral reply chain?
-                // But here, the original message is the one with the 🌐 button.
-            });
-            
-            // We'll use a mapping for the 5 main embeds
             handleTranslation(event, type, lang);
         }
     }
@@ -115,7 +106,26 @@ public class TranslationListener extends ListenerAdapter {
                     Button.secondary("ticket_init_complaint", TranslationService.translateText("Complaint", lang)).withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))
                 ));
             }
-            // Add other cases as needed...
+            case "giveaway" -> {
+                String header = TranslationService.translateText("Active Rewards", lang);
+                String body = TranslationService.translateText("A new giveaway session is active. Participate to acquire agency merits.", lang);
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_GIVEAWAY)));
+                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                actionRows.add(ActionRow.of(
+                    Button.primary("gw_enter_translated", TranslationService.translateText("Join Giveaway", lang)).withEmoji(Emoji.fromUnicode("\uD83C\uDF89"))
+                ));
+            }
+            case "terms" -> {
+                String header = TranslationService.translateText("Agency Protocols", lang);
+                String body = TranslationService.translateText("By engaging with Highcore Agency, you agree to the following terms and conditions.", lang);
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
+                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                // Add images from handleTerms logic
+                String[] imgs = {"https://i.imgur.com/KTPxBfL.png", "https://i.imgur.com/1454z6W.png"};
+                for (String img : imgs) {
+                    layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(img)));
+                }
+            }
         }
 
         // Final message construction
