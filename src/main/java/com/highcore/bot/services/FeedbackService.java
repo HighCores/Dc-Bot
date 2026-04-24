@@ -48,7 +48,7 @@ public class FeedbackService {
             FileUpload file = FileUpload.fromData(image, "feedback.png");
             MessageCreateData messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
                     .addFiles(file)
-                    .setContent("### Feedback from " + user.getAsMention())
+                    .setContent("### Feedback from " + user.getAsMention() + "\n\n" + feedback)
                     .build();
 
             if (channel instanceof ForumChannel forum) {
