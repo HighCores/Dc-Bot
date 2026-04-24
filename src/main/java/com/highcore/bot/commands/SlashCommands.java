@@ -7,6 +7,7 @@ import net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEve
 import net.dv8tion.jda.api.hooks.ListenerAdapter;
 import net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
+import net.dv8tion.jda.api.interactions.commands.OptionMapping;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
 import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.components.textinput.TextInput;
@@ -50,8 +51,11 @@ public class SlashCommands extends ListenerAdapter {
                 return;
             }
             BcSession session = new BcSession();
-            session.roleId = event.getOption("role") != null ? event.getOption("role").getAsRole().getId() : null;
-            session.attUrl = event.getOption("attachment") != null ? event.getOption("attachment").getAsAttachment().getUrl() : null;
+            OptionMapping roleOpt = event.getOption("role");
+            OptionMapping attOpt = event.getOption("attachment");
+            
+            session.roleId = (roleOpt != null) ? roleOpt.getAsRole().getId() : null;
+            session.attUrl = (attOpt != null) ? attOpt.getAsAttachment().getUrl() : null;
             BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
             TextInput msg = TextInput.create("message", TextInputStyle.PARAGRAPH).setPlaceholder("Broadcast Message").setRequired(true).build();
@@ -63,8 +67,14 @@ public class SlashCommands extends ListenerAdapter {
                 PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
                 return;
             }
+            OptionMapping channelOpt = event.getOption("channel");
+            if (channelOpt == null) {
+                PanelService.replyEphemeral(event, "Error: Target channel is required.");
+                return;
+            }
+
             BoterSession session = new BoterSession();
-            session.channelId = event.getOption("channel").getAsChannel().getId();
+            session.channelId = channelOpt.getAsChannel().getId();
             BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
             TextInput msg = TextInput.create("message", TextInputStyle.PARAGRAPH).setPlaceholder("Message to send").setRequired(true).build();
