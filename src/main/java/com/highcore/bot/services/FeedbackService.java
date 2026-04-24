@@ -55,7 +55,7 @@ public class FeedbackService {
             FileUpload file = FileUpload.fromData(image, "feedback.png");
             MessageCreateData messageData = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
                     .addFiles(file)
-                    .setContent("### Feedback from " + user.getAsMention() + "\n\n" + feedback)
+                    .setContent("### Feedback from " + user.getAsMention())
                     .build();
 
             if (channel instanceof ForumChannel forum) {
@@ -171,8 +171,6 @@ public class FeedbackService {
 
     private static void drawWrappedText(Graphics2D g, String text, int x, int y, int width, int height) {
         Font zain = g.getFont();
-        Font emojiFont = new Font("Segoe UI Emoji", Font.PLAIN, zain.getSize());
-        
         FontMetrics fm = g.getFontMetrics(zain);
         int lineHeight = fm.getHeight();
         int curY = y + fm.getAscent();
@@ -180,25 +178,19 @@ public class FeedbackService {
         List<String> wrappedLines = wrapText(text, fm, width);
         for (String rawLine : wrappedLines) {
             List<Object> parts = parseLineParts(rawLine);
-            int lineWidth = calculatePartsWidth(g, parts, zain, emojiFont);
+            int lineWidth = calculatePartsWidth(g, parts, zain);
             
             int curX = x + (width - lineWidth) / 2;
 
             for (Object part : parts) {
                 if (part instanceof String s) {
-                    g.setFont(zain);
                     g.drawString(s, curX, curY);
                     curX += g.getFontMetrics().stringWidth(s);
                 } else if (part instanceof BufferedImage img) {
-                    int size = (int) (lineHeight * 0.8);
+                    int size = (int) (lineHeight * 0.85);
                     int offset = (lineHeight - size) / 2;
                     g.drawImage(img, curX, curY - fm.getAscent() + offset, size, size, null);
                     curX += size + 2;
-                } else if (part instanceof Character c) {
-                    g.setFont(emojiFont);
-                    String s = String.valueOf(c);
-                    g.drawString(s, curX, curY);
-                    curX += g.getFontMetrics().stringWidth(s);
                 }
             }
             
@@ -207,74 +199,79 @@ public class FeedbackService {
         }
     }
 
-    private static List<String> wrapText(String text, FontMetrics fm, int maxWidth) {
-        List<String> lines = new ArrayList<>();
-        String[] paragraphs = text.split("\n");
-        for (String p : paragraphs) {
-            String[] words = p.split(" ");
-            StringBuilder line = new StringBuilder();
-            for (String word : words) {
-                if (fm.stringWidth(line + word) < maxWidth) {
-                    line.append(word).append(" ");
-                } else {
-                    lines.add(line.toString().trim());
-                    line = new StringBuilder(word).append(" ");
-                }
-            }
-            lines.add(line.toString().trim());
-        }
-        return lines;
-    }
-
     private static List<Object> parseLineParts(String line) {
         List<Object> parts = new ArrayList<>();
-        Matcher m = CUSTOM_EMOJI_PATTERN.matcher(line);
-        int lastIdx = 0;
-        
-        while (m.find()) {
-            if (m.start() > lastIdx) {
-                parts.add(line.substring(lastIdx, m.start()));
+        int i = 0;
+        while (i < line.length()) {
+            // Check for Custom Discord Emoji
+            Matcher m = CUSTOM_EMOJI_PATTERN.matcher(line.substring(i));
+            if (m.find() && m.start() == 0) {
+                String id = m.group(2);
+                BufferedImage img = getEmojiImage(id, false);
+                if (img != null) parts.add(img);
+                else parts.add(m.group(0));
+                i += m.end();
+                continue;
             }
-            String id = m.group(2);
-            BufferedImage img = getEmojiImage(id);
-            if (img != null) parts.add(img);
-            else parts.add(m.group(0)); // fallback to raw text
-            
-            lastIdx = m.end();
-        }
-        if (lastIdx < line.length()) {
-            parts.add(line.substring(lastIdx));
+
+            int codePoint = line.codePointAt(i);
+            int charCount = Character.charCount(codePoint);
+
+            if (isEmoji(codePoint)) {
+                StringBuilder hex = new StringBuilder(Integer.toHexString(codePoint));
+                // Handle variation selectors and ZWJ sequences if needed (simplified here)
+                BufferedImage img = getEmojiImage(hex.toString(), true);
+                if (img != null) parts.add(img);
+                else parts.add(line.substring(i, i + charCount));
+                i += charCount;
+            } else {
+                StringBuilder textPart = new StringBuilder();
+                while (i < line.length() && !isEmoji(line.codePointAt(i)) && !CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find()) {
+                    int cp = line.codePointAt(i);
+                    int cc = Character.charCount(cp);
+                    textPart.append(line.substring(i, i + cc));
+                    i += cc;
+                    if (i < line.length() && CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find()) break;
+                }
+                parts.add(textPart.toString());
+            }
         }
         return parts;
     }
 
-    private static BufferedImage getEmojiImage(String id) {
-        if (emojiCache.containsKey(id)) return emojiCache.get(id);
+    private static boolean isEmoji(int codePoint) {
+        return (codePoint >= 0x1F300 && codePoint <= 0x1F9FF) || 
+               (codePoint >= 0x2600 && codePoint <= 0x27BF) ||
+               (codePoint >= 0x1F1E6 && codePoint <= 0x1F1FF);
+    }
+
+    private static BufferedImage getEmojiImage(String id, boolean isUnicode) {
+        String cacheKey = (isUnicode ? "U_" : "C_") + id;
+        if (emojiCache.containsKey(cacheKey)) return emojiCache.get(cacheKey);
         try {
-            URL url = new URL("https://cdn.discordapp.com/emojis/" + id + ".png");
+            String urlStr = isUnicode 
+                ? "https://cdnjs.cloudflare.com/ajax/libs/twemoji/14.0.2/72x72/" + id + ".png"
+                : "https://cdn.discordapp.com/emojis/" + id + ".png";
+            URL url = new URL(urlStr);
             BufferedImage img = ImageIO.read(url);
             if (img != null) {
-                emojiCache.put(id, img);
+                emojiCache.put(cacheKey, img);
                 return img;
             }
         } catch (Exception e) {
-            log.error("[FEEDBACK] Failed to load emoji: " + id, e);
+            if (!isUnicode) log.error("[FEEDBACK] Failed to load emoji: " + id);
         }
         return null;
     }
 
-    private static int calculatePartsWidth(Graphics2D g, List<Object> parts, Font zain, Font emojiFont) {
+    private static int calculatePartsWidth(Graphics2D g, List<Object> parts, Font zain) {
         int w = 0;
-        int emojiSize = (int) (g.getFontMetrics(zain).getHeight() * 0.8);
+        int emojiSize = (int) (g.getFontMetrics(zain).getHeight() * 0.85);
         for (Object p : parts) {
             if (p instanceof String s) {
-                g.setFont(zain);
-                w += g.getFontMetrics().stringWidth(s);
+                w += g.getFontMetrics(zain).stringWidth(s);
             } else if (p instanceof BufferedImage) {
                 w += emojiSize + 2;
-            } else if (p instanceof Character) {
-                g.setFont(emojiFont);
-                w += g.getFontMetrics().stringWidth(String.valueOf(p));
             }
         }
         return w;
