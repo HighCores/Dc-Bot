@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.components.textinput.TextInputStyle;
 import net.dv8tion.jda.api.modals.Modal;
 import net.dv8tion.jda.api.entities.emoji.Emoji;
 import net.dv8tion.jda.api.components.container.Container;
+import net.dv8tion.jda.api.components.MessageTopLevelComponent;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -154,49 +155,43 @@ public class PanelService {
 
     private static void handleReply(Object target, boolean ephemeral, Object... parts) {
         String contentRaw = null;
-        List<ActionRow> rows = new ArrayList<>();
-        Container container = null;
+        List<MessageTopLevelComponent> components = new ArrayList<>();
 
         for (Object p : parts) {
             if (p instanceof MessageCreateData mcd) {
                 try { contentRaw = mcd.getContent(); } catch (Exception ignored) {}
-                for (var l : mcd.getComponents()) if (l instanceof ActionRow ar) rows.add(ar);
+                for (var l : mcd.getComponents()) if (l instanceof MessageTopLevelComponent mtc) components.add(mtc);
             } else if (p instanceof String s) {
                 contentRaw = s;
-            } else if (p instanceof ActionRow row) {
-                rows.add(row);
-            } else if (p instanceof Container c) {
-                container = c;
+            } else if (p instanceof MessageTopLevelComponent mtc) {
+                components.add(mtc);
             } else if (p instanceof net.dv8tion.jda.api.utils.messages.MessageCreateBuilder b) {
                 var m = b.build();
                 contentRaw = m.getContent();
-                for (var l : m.getComponents()) if (l instanceof ActionRow ar) rows.add(ar);
+                for (var l : m.getComponents()) if (l instanceof MessageTopLevelComponent mtc) components.add(mtc);
             }
         }
+
+        boolean useV2 = components.stream().anyMatch(c -> c instanceof Container);
 
         if (target instanceof IReplyCallback event) {
             try {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
                 if (contentRaw != null) builder.setContent(contentRaw);
-                
-                if (container != null) {
-                    builder.setContainer(container).useComponentsV2(true);
-                } else {
-                    builder.setComponents(rows);
-                }
+                builder.setComponents(components);
 
                 if (ephemeral) {
                     if (event.isAcknowledged()) {
                         var edit = MessageEditData.fromCreateData(builder.build());
-                        event.getHook().editOriginal(edit).useComponentsV2(container != null).queue();
+                        event.getHook().editOriginal(edit).useComponentsV2(useV2).queue();
                     } else {
-                        event.reply(builder.build()).setEphemeral(true).useComponentsV2(container != null).queue();
+                        event.reply(builder.build()).setEphemeral(true).useComponentsV2(useV2).queue();
                     }
                 } else {
                     if (event.isAcknowledged()) {
-                        event.getHook().sendMessage(builder.build()).useComponentsV2(container != null).queue();
+                        event.getHook().sendMessage(builder.build()).useComponentsV2(useV2).queue();
                     } else {
-                        event.reply(builder.build()).useComponentsV2(container != null).queue();
+                        event.reply(builder.build()).useComponentsV2(useV2).queue();
                     }
                 }
             } catch (Exception ex) {
@@ -205,21 +200,13 @@ public class PanelService {
         } else if (target instanceof net.dv8tion.jda.api.entities.Message message) {
             net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
-            if (container != null) {
-                builder.setContainer(container).useComponentsV2(true);
-            } else {
-                builder.setComponents(rows);
-            }
-            message.editMessage(builder.build()).useComponentsV2(container != null).queue();
+            builder.setComponents(components);
+            message.editMessage(builder.build()).useComponentsV2(useV2).queue();
         } else if (target instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel channel) {
             net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
             if (contentRaw != null) builder.setContent(contentRaw);
-            if (container != null) {
-                builder.setContainer(container).useComponentsV2(true);
-            } else {
-                builder.setComponents(rows);
-            }
-            channel.sendMessage(builder.build()).useComponentsV2(container != null).queue();
+            builder.setComponents(components);
+            channel.sendMessage(builder.build()).useComponentsV2(useV2).queue();
         }
     }
 
