@@ -252,8 +252,9 @@ public class PanelService {
                 Button.secondary("btn_highcore", "HighCore").withEmoji(Emoji.fromCustom("Highcore", 1496974488099885177L, false)),
                 Button.secondary("btn_about", "About Us").withEmoji(Emoji.fromCustom("Aboutus", 1496974985875427358L, false)),
                 Button.secondary("btn_partners", "Partners").withEmoji(Emoji.fromCustom("Partners", 1496974406369415178L, false)),
-                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support").withEmoji(Emoji.fromCustom("Support", 1496974182217547816L, false)));
-        reply(event, EmbedUtil.startupPanel(row, EmbedUtil.createTranslationRow("startup")));
+                Button.link("https://discord.com/channels/" + com.highcore.bot.config.Config.GUILD_ID + "/1488798547947159612", "Support").withEmoji(Emoji.fromCustom("Support", 1496974182217547816L, false)),
+                EmbedUtil.createTranslationButton("startup"));
+        reply(event, EmbedUtil.startupPanel(row));
     }
     public static void sendHighcoreHub(IReplyCallback event) {
         List<ContainerChildComponent> layout = new ArrayList<>();
@@ -401,9 +402,10 @@ public class PanelService {
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
                 Button.secondary("ticket_init_support", "Support").withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
-                Button.secondary("ticket_init_complaint", "Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))));
+                Button.secondary("ticket_init_complaint", "Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false)),
+                EmbedUtil.createTranslationButton("tickets")));
 
-        reply(event, Container.of(children), EmbedUtil.createTranslationRow("tickets"));
+        reply(event, Container.of(children));
     }
 
     public static void handleSupportFlow(IReplyCallback event, String id) {
@@ -454,10 +456,11 @@ public class PanelService {
                 Button.secondary("order_cat_designer", "Designer").withEmoji(Emoji.fromCustom("Design", 1496974725258285157L, false)),
                 Button.secondary("order_cat_developer", "Developer").withEmoji(Emoji.fromCustom("Developer", 1496974704005611633L, false)),
                 Button.secondary("order_cat_editor", "Editor").withEmoji(Emoji.fromCustom("Editor", 1496974685030715503L, false)),
-                Button.secondary("order_cat_minecraft", "Minecraft").withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false))
+                Button.secondary("order_cat_minecraft", "Minecraft").withEmoji(Emoji.fromCustom("Minecraft", 1496974445905051719L, false)),
+                EmbedUtil.createTranslationButton("order")
         ));
 
-        reply(event, Container.of(children), EmbedUtil.createTranslationRow("order"));
+        reply(event, Container.of(children));
     }
 
     public static void handleCategorySelected(IReplyCallback event, String userId, String category) {

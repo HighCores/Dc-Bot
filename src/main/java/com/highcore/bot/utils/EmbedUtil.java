@@ -348,14 +348,11 @@ public class EmbedUtil {
     }
 
     public static ActionRow createTranslationRow(String id) {
-        // Using \u200B (zero-width space) to satisfy Discord's requirement for a label
-        return ActionRow.of(
-            Button.secondary("blank1_" + id, "\u200B").asDisabled(),
-            Button.secondary("blank2_" + id, "\u200B").asDisabled(),
-            Button.secondary("blank3_" + id, "\u200B").asDisabled(),
-            Button.secondary("blank4_" + id, "\u200B").asDisabled(),
-            Button.secondary("translate_init_" + id, "🌐")
-        );
+        return ActionRow.of(createTranslationButton(id));
+    }
+
+    public static Button createTranslationButton(String id) {
+        return Button.secondary("translate_init_" + id, Emoji.fromUnicode("🌐"));
     }
 
     public static Color parseColor(String colorStr) {
