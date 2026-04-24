@@ -27,7 +27,9 @@ public class BroadcastService {
 
         log.info("Starting broadcast for guild: {} (Role: {}) (Media: {})", guild.getName(), targetRoleId != null ? targetRoleId : "ALL", attachmentUrl != null ? "YES" : "NO");
         
+        log.info("[BROADCAST] Initiating member load for targeting...");
         guild.loadMembers().onSuccess(members -> {
+            log.info("[BROADCAST] Successfully loaded {} members. Starting filtration...", members.size());
             List<Member> targetMembers = new ArrayList<>();
             for (Member m : members) {
                 if (m.getUser().isBot()) continue;
@@ -37,7 +39,7 @@ public class BroadcastService {
                 targetMembers.add(m);
             }
 
-            log.info("Broadcast queue established: {} users. Beginning delivery...", targetMembers.size());
+            log.info("[BROADCAST] Filtration complete. Queue established: {} users. Beginning delivery...", targetMembers.size());
             executeBroadcastStep(targetMembers, com.highcore.bot.utils.EmojiUtil.parse(message), attachmentUrl, 0);
         }).onError(e -> {
             log.error("Failed to load members for broadcast: {}", e.getMessage());

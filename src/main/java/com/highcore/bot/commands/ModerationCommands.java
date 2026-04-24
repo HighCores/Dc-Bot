@@ -143,8 +143,15 @@ public class ModerationCommands extends ListenerAdapter {
 
     private void handleKick(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.KICK_MEMBERS)) return;
-        Member m = event.getOption("user", OptionMapping::getAsMember);
+        OptionMapping opt = event.getOption("user");
+        Member m = (opt != null) ? opt.getAsMember() : null;
         String reason = getReason(event);
+        
+        if (m == null) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("NOT FOUND", "Target member not found in this server."));
+            return;
+        }
+        
         if (!canManage(event, m)) return;
         m.kick().reason(reason).queue(
             v -> {
@@ -157,18 +164,25 @@ public class ModerationCommands extends ListenerAdapter {
 
     private void handleVoiceKick(SlashCommandInteractionEvent event) {
         if (!hasPerm(event, Permission.KICK_MEMBERS)) return;
-        Member m = event.getOption("user", OptionMapping::getAsMember);
-        if (m != null && m.getVoiceState().inAudioChannel()) {
+        OptionMapping opt = event.getOption("user");
+        Member m = (opt != null) ? opt.getAsMember() : null;
+        
+        if (m == null) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("NOT FOUND", "Target member not found in this server."));
+            return;
+        }
+
+        if (m.getVoiceState() != null && m.getVoiceState().inAudioChannel()) {
             if (!canManage(event, m)) return;
             event.getGuild().kickVoiceMember(m).queue(
                 v -> {
                     PanelService.reply(event, EmbedUtil.success("Voice Kick", m.getUser().getName() + " has been disconnected from the voice channel."));
-                    LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("vkick", "Action: Voice Channel Eviction\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.WARNING));
+                    LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("vkick", "Action: Voice Ejection\nChannel: " + event.getChannel().getAsMention(), event.getMember(), m.getUser(), m, EmbedUtil.INFO));
                 },
-                e -> PanelService.replyEphemeral(event, EmbedUtil.error("VOICE KICK FAILED", "Operation rejected: " + e.getMessage()))
+                e -> PanelService.replyEphemeral(event, EmbedUtil.error("VKICK FAILED", "Operation rejected: " + e.getMessage()))
             );
         } else {
-            PanelService.replyEphemeral(event, EmbedUtil.error("TARGET ERROR", "User is not in a voice channel."));
+            PanelService.replyEphemeral(event, EmbedUtil.error("NOT IN VOICE", "This member is not connected to a voice channel."));
         }
     }
 
@@ -511,7 +525,10 @@ public class ModerationCommands extends ListenerAdapter {
     }
 
     private boolean canManage(SlashCommandInteractionEvent event, Member target) {
-        if (target == null) return false;
+        if (target == null) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("NOT FOUND", "Target member not found in this server."));
+            return false;
+        }
         if (!event.getGuild().getSelfMember().canInteract(target)) {
             PanelService.replyEphemeral(event, EmbedUtil.error("Hierarchy Error", "I cannot manage this member because their highest role is equal to or higher than mine."));
             return false;

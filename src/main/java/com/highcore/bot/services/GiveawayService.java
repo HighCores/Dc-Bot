@@ -85,7 +85,9 @@ public class GiveawayService {
                 userIds.add(e.getAsJsonObject().get("user_id").getAsString());
         }
 
+        log.info("[GIVEAWAY] Ending giveaway {}. Participants: {}. Slots: {}", giveawayId, userIds.size(), winnerCount);
         List<String> winners = pickWinners(userIds, Math.min(winnerCount, userIds.size()));
+        log.info("[GIVEAWAY] Selected {} winners: {}", winners.size(), winners);
         SupabaseClient.endGiveaway(giveawayId, winners.toArray(new String[0]));
 
         String prizeDetails = g.has("prize_details") ? g.get("prize_details").getAsString() : "Classified Item";
