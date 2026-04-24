@@ -81,8 +81,6 @@ public class GiveawayListener extends ListenerAdapter {
         java.util.List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new java.util.ArrayList<>();
         gwComps.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of("<@&1488916921687736421>"));
         gwComps.add(gwC);
-        gwComps.add(EmbedUtil.createTranslationRow("giveaway"));
-
         event.getMessage().editMessageComponents(gwComps).useComponentsV2(true).queue(null, err -> {});
         event.getHook().sendMessage("Success! You have entered the giveaway.").setEphemeral(true).queue();
         

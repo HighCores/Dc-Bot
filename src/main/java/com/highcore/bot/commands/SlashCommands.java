@@ -244,7 +244,7 @@ public class SlashCommands extends ListenerAdapter {
                 layout.add(Separator.createDivider(Spacing.SMALL));
             }
         }
-        PanelService.reply(event.getChannel(), Container.of(layout), EmbedUtil.createTranslationRow("terms"));
+        PanelService.reply(event.getChannel(), Container.of(layout));
         event.getHook().sendMessage("✅ Terms sent to channel.").setEphemeral(true).queue();
     }
 
