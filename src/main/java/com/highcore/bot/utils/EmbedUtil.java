@@ -228,7 +228,7 @@ public class EmbedUtil {
     }
 
     public static Container accessDenied() {
-        return error("ACCESS RESTRICTED", "Credentials insufficient for this terminal node.");
+        return error("ACCESS DENIED", "You do not have permission to use this command.");
     }
 
     public static Container activityLog(String type, String details, Color color) {

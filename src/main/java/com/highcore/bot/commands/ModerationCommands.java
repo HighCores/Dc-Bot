@@ -120,10 +120,10 @@ public class ModerationCommands extends ListenerAdapter {
         event.getGuild().unban(User.fromId(userId)).queue(
             v -> {
                 PanelService.reply(event, EmbedUtil.success("Unban System", "Restrictions removed for user ID: `" + userId + "`"));
-                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Exile Revocation\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
+                LogManager.logEmbed(event.getGuild(), Config.LOG_MODS_CMD, EmbedUtil.createOldLogEmbed("unban", "Action: Unban\nTarget ID: `" + userId + "`\nChannel: " + event.getChannel().getAsMention(), event.getMember(), User.fromId(userId), null, EmbedUtil.SUCCESS));
             },
             e -> {
-                PanelService.replyEphemeral(event, EmbedUtil.error("UNBAN FAILED", "Unable to revoke exile for ID: `" + userId + "`. Ensure the ID is correct and the user is currently banned."));
+                PanelService.replyEphemeral(event, EmbedUtil.error("UNBAN FAILED", "Unable to unban ID: `" + userId + "`. Ensure the ID is correct and the user is currently banned."));
             }
         );
     }
