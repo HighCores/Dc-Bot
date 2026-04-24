@@ -77,6 +77,7 @@ public class FeedbackService {
             default -> TEMPLATE_5;
         };
 
+        log.info("[FEEDBACK] Loading template: {}", templateBase);
         BufferedImage template = null;
         try {
             URL url = new URL(templateBase);
@@ -84,11 +85,16 @@ public class FeedbackService {
             conn.setRequestProperty("User-Agent", "Mozilla/5.0");
             template = ImageIO.read(conn.getInputStream());
         } catch (Exception e) {
-            log.error("Failed to load feedback template: " + templateBase, e);
+            log.error("[FEEDBACK] Failed to load feedback template: " + templateBase, e);
             return null;
         }
 
-        if (template == null) return null;
+        if (template == null) {
+            log.error("[FEEDBACK] ImageIO.read returned null for template: {}", templateBase);
+            return null;
+        }
+
+        log.info("[FEEDBACK] Template loaded. Size: {}x{}", template.getWidth(), template.getHeight());
 
         int w = template.getWidth();
         int h = template.getHeight();
@@ -105,6 +111,7 @@ public class FeedbackService {
         Font arabicFont = new Font("thamanya sans", Font.PLAIN, 30);
         Font englishFont = new Font("Source Code Pro", Font.BOLD, 28);
 
+        log.info("[FEEDBACK] Drawing name: {}", user.getEffectiveName());
         // Name Coordinates: 529,295 to 682,332
         g.setFont(englishFont);
         g.setColor(Color.WHITE);
@@ -116,6 +123,7 @@ public class FeedbackService {
         int nameY = 295 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
         g.drawString(name, nameX, nameY);
 
+        log.info("[FEEDBACK] Drawing feedback text...");
         // Comment Coordinates: 579,330 to 1230,553
         g.setFont(arabicFont);
         g.setColor(new Color(220, 220, 220));
@@ -125,6 +133,7 @@ public class FeedbackService {
         drawWrappedText(g, feedback, 579, 330, commBoxW, commBoxH);
 
         g.dispose();
+        log.info("[FEEDBACK] Image generation complete. Encoding to PNG...");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(combined, "png", baos);
         return baos.toByteArray();
