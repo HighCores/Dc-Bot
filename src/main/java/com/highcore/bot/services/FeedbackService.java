@@ -31,22 +31,40 @@ public class FeedbackService {
     public static final String FEEDBACK_CHANNEL_ID = "1491423672202952806";
 
     public static void submitFeedback(User user, int stars, String feedback, GuildChannel channel) {
+        log.info("[FEEDBACK] Submitting feedback for user: {} ({} stars). Channel: {}", user.getName(), stars, (channel != null ? channel.getName() : "NULL"));
         try {
             byte[] image = generateFeedbackImage(user, stars, feedback);
-            if (image != null && channel != null) {
-                String title = "Feedback | @" + user.getName();
-                FileUpload file = FileUpload.fromData(image, "feedback.png");
-                
-                if (channel instanceof ForumChannel forum) {
-                    forum.createForumPost(title, MessageCreateData.fromFiles(file)).queue();
-                } else if (channel instanceof MessageChannel mc) {
-                    mc.sendMessage(title)
-                            .addFiles(file)
-                            .queue();
-                }
+            if (image == null) {
+                log.warn("[FEEDBACK] Failed to generate image for user: {}", user.getName());
+                return;
+            }
+            if (channel == null) {
+                log.warn("[FEEDBACK] Feedback channel not found! ID: {}", FEEDBACK_CHANNEL_ID);
+                return;
+            }
+
+            String title = "Feedback | @" + user.getName();
+            FileUpload file = FileUpload.fromData(image, "feedback.png");
+            
+            if (channel instanceof ForumChannel forum) {
+                log.info("[FEEDBACK] Posting to ForumChannel: {}", forum.getName());
+                forum.createForumPost(title, MessageCreateData.fromFiles(file)).queue(
+                    post -> log.info("[FEEDBACK] Successfully created forum post: {}", post.getThreadChannel().getName()),
+                    err -> log.error("[FEEDBACK] Failed to create forum post", err)
+                );
+            } else if (channel instanceof MessageChannel mc) {
+                log.info("[FEEDBACK] Posting to MessageChannel: {}", mc.getName());
+                mc.sendMessage(title)
+                        .addFiles(file)
+                        .queue(
+                            msg -> log.info("[FEEDBACK] Successfully sent feedback message"),
+                            err -> log.error("[FEEDBACK] Failed to send feedback message", err)
+                        );
+            } else {
+                log.warn("[FEEDBACK] Channel is not a ForumChannel or MessageChannel! Type: {}", channel.getType());
             }
         } catch (Exception e) {
-            log.error("Error submitting feedback", e);
+            log.error("[FEEDBACK] Critical error in submitFeedback", e);
         }
     }
 
