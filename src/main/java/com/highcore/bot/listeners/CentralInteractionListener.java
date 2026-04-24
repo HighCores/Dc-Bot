@@ -248,14 +248,22 @@ public class CentralInteractionListener extends ListenerAdapter {
             AutoReplyService.addResponse(event.getValue("ar_keyword").getAsString(), event.getValue("ar_response").getAsString(), event.getUser().getId());
             event.reply("Auto-reply added.").setEphemeral(true).queue();
         } else if (id.equals("modal_feedback_submit")) {
+            event.deferReply(true).queue();
+            
             Integer stars = FeedbackService.ratingCache.remove(event.getUser().getId());
             if (stars == null) stars = 5;
             String feedback = event.getValue("feedback_input").getAsString();
 
             net.dv8tion.jda.api.entities.channel.middleman.GuildChannel logCh = event.getGuild().getGuildChannelById(FeedbackService.FEEDBACK_CHANNEL_ID);
-            FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
-
-            event.reply("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").setEphemeral(true).queue();
+            
+            java.util.concurrent.CompletableFuture.runAsync(() -> {
+                FeedbackService.submitFeedback(event.getUser(), stars, feedback, logCh);
+                event.getHook().sendMessage("### ✅ Thank You!\nYour feedback has been submitted successfully. We appreciate your support!").setEphemeral(true).queue();
+            }).exceptionally(ex -> {
+                log.error("Error submitting feedback", ex);
+                event.getHook().sendMessage("### ❌ Submission Failed\nThere was an error processing your feedback. Please try again later.").setEphemeral(true).queue();
+                return null;
+            });
         }
     }
 }
