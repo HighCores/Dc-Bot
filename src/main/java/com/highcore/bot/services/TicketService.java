@@ -75,7 +75,7 @@ public class TicketService {
 
                     LogManager.logEmbed(guild, Config.LOG_TICKETS,
                             EmbedUtil.createOldLogEmbed("ticket-create",
-                                    "Action: Session Established\nCase: #" + tid + "\nType: " + type + "\nClient: "
+                                    "Action: Ticket Created\nCase: #" + tid + "\nType: " + type + "\nClient: "
                                             + user.getAsMention() + "\nChannel: " + ch.getAsMention(),
                                     guild.getMember(user), null, null, EmbedUtil.GOLD));
 
@@ -323,11 +323,12 @@ public class TicketService {
             return;
         }
 
-        SupabaseClient.claimTicket(ticket.get("ticket_id").getAsString(), member.getEffectiveName());
+        String tid = ticket.get("ticket_id").getAsString();
+        SupabaseClient.claimTicket(tid, member.getEffectiveName());
 
         LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS,
                 EmbedUtil.createOldLogEmbed("ticket-claim",
-                        "Action: Agent Assignment\nCase: #" + ticket.get("ticket_id").getAsString() + "\nAgent: "
+                        "Action: Ticket Claimed\nCase: #" + tid + "\nAgent: "
                                 + member.getAsMention() + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.SUCCESS));
 
@@ -394,10 +395,10 @@ public class TicketService {
     }
 
     private static void closeTicketInternal(TextChannel ch, Member member, ButtonInteractionEvent event) {
-        String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null)
             return;
+        String tid = ticket.get("ticket_id").getAsString();
 
         String userId = ticket.get("user_id").getAsString();
         Member client = ch.getGuild().getMemberById(userId);
@@ -417,7 +418,7 @@ public class TicketService {
 
         LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS,
                 EmbedUtil.createOldLogEmbed("ticket-close",
-                        "Action: Session Termination\nCase: #" + tid + "\nAgent: " + member.getAsMention()
+                        "Action: Ticket Closed\nCase: #" + tid + "\nAgent: " + member.getAsMention()
                                 + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.DANGER));
 
@@ -484,12 +485,12 @@ public class TicketService {
     }
 
     public static void transcriptTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {
-        String tid = ch.getName().split("-")[ch.getName().split("-").length - 1];
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
-            event.reply("Session data missing.").setEphemeral(true).queue();
+            if (event != null) event.reply("Session data missing.").setEphemeral(true).queue();
             return;
         }
+        String tid = ticket.get("ticket_id").getAsString();
 
         JsonArray msgs = SupabaseClient.getTicketMessages(tid);
 
@@ -509,10 +510,11 @@ public class TicketService {
             String userId = ticket.get("user_id").getAsString();
             String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + tid;
             String logBody = "▶ **TRANSCRIPT • Archive \u2014 Case #" + tid + "**\n\n" +
-                    "**Opener:** <@" + userId + "> (" + opener + ")\n" +
+                    "**User:** <@" + userId + "> (" + opener + ")\n" +
                     "**Closed By:** " + member.getAsMention();
 
             logCh.sendMessage(logBody)
+                    .setAllowedMentions(java.util.Collections.emptyList())
                     .setComponents(ActionRow
                             .of(Button.link(url, "View Web Transcript").withEmoji(Emoji.fromUnicode("\uD83D\uDCDC"))))
                     .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))

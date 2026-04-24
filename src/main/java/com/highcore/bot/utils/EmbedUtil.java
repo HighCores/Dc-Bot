@@ -278,7 +278,7 @@ public class EmbedUtil {
         }
 
         if (details != null && !details.isEmpty()) {
-            eb.addField("Intelligence/Data:", details, false);
+            eb.addField("Details:", details, false);
         }
 
         // Exact Footer from screenshot

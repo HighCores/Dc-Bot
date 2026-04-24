@@ -86,10 +86,10 @@ public class CentralInteractionListener extends ListenerAdapter {
                 TextInput idesc = TextInput.create("issue_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details...").setRequired(true).build();
                 event.replyModal(Modal.create("modal_support_init", "Support").addComponents(net.dv8tion.jda.api.components.label.Label.of("Service", st), net.dv8tion.jda.api.components.label.Label.of("Issue", idesc)).build()).queue();
             } else if (id.equals("ticket_init_complaint")) {
-                TextInput pr = TextInput.create("comp_person", TextInputStyle.SHORT).setPlaceholder("Target").setRequired(false).build();
+                TextInput pr = TextInput.create("comp_person", TextInputStyle.SHORT).setPlaceholder("Against").setRequired(false).build();
                 TextInput tp = TextInput.create("comp_type", TextInputStyle.SHORT).setPlaceholder("Subject").setRequired(true).build();
                 TextInput ds = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).setPlaceholder("Details").setRequired(true).build();
-                event.replyModal(Modal.create("modal_complaint_init", "Complaint").addComponents(net.dv8tion.jda.api.components.label.Label.of("Person", pr), net.dv8tion.jda.api.components.label.Label.of("Subject", tp), net.dv8tion.jda.api.components.label.Label.of("Details", ds)).build()).queue();
+                event.replyModal(Modal.create("modal_complaint_init", "Complaint").addComponents(net.dv8tion.jda.api.components.label.Label.of("Against", pr), net.dv8tion.jda.api.components.label.Label.of("Subject", tp), net.dv8tion.jda.api.components.label.Label.of("Details", ds)).build()).queue();
             } else if (id.startsWith("ticket_pay_")) {
                 String method = id.split("_")[2];
                 event.reply("✅ Method selected: **" + method.toUpperCase() + "**. Please provide proof of payment once finished.").setEphemeral(true).queue();
