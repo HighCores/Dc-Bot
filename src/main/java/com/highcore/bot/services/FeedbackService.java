@@ -109,7 +109,7 @@ public class FeedbackService {
 
         // Fonts
         Font arabicFont;
-        String fontName = "thmanyahsans-Bold.otf";
+        String fontName = "Zain-Bold.ttf";
         log.info("[FEEDBACK] Current Directory: {}", new java.io.File(".").getAbsolutePath());
         
         java.io.InputStream is = FeedbackService.class.getResourceAsStream("/templates/" + fontName);
