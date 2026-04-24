@@ -74,13 +74,9 @@ public class TranslationListener extends ListenerAdapter {
 
         switch (type) {
             case "startup" -> {
-                String title = TranslationService.translateText("PROTOCOL", lang);
-                String header = TranslationService.translateText("Startup Hub", lang);
-                String body = TranslationService.translateText("Welcome to Highcore Agency. Access all departments via the control modules below.", lang);
-                
-                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
-                layout.add(TextDisplay.of("### " + title + "\n## " + header + "\n" + body));
-                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl("https://i.imgur.com/KTPxBfL.png"))); // The second banner from the screenshot
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_STARTUP_HEADER)));
+                layout.add(Separator.createDivider(Spacing.SMALL));
+                layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_WELCOME)));
 
                 actionRows.add(ActionRow.of(
                     Button.secondary("btn_highcore", TranslationService.translateText("HighCore", lang)).withEmoji(Emoji.fromCustom("Highcore", 1496974488099885177L, false)),
@@ -90,10 +86,14 @@ public class TranslationListener extends ListenerAdapter {
                 ));
             }
             case "order" -> {
-                String header = TranslationService.translateText("Highcore Orders", lang);
-                String body = TranslationService.translateText("Ready to bring your idea to life? Choose a category below to see our services.", lang);
+                String header = TranslationService.translateText("HIGHCORE ORDERS", lang);
+                String body = TranslationService.translateText("◗ Ready to bring your idea to life ?\n\nChoose a category below to see our services.\nAfter that, you can fill in your project details.", lang);
+                
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_ORDER)));
-                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                layout.add(TextDisplay.of("## " + header));
+                layout.add(Separator.createDivider(Spacing.SMALL));
+                layout.add(TextDisplay.of(body));
+
                 actionRows.add(ActionRow.of(
                     Button.secondary("order_cat_designer", TranslationService.translateText("Designer", lang)).withEmoji(Emoji.fromCustom("Design", 1496974725258285157L, false)),
                     Button.secondary("order_cat_developer", TranslationService.translateText("Developer", lang)).withEmoji(Emoji.fromCustom("Developer", 1496974704005611633L, false)),
@@ -102,12 +102,21 @@ public class TranslationListener extends ListenerAdapter {
                 ));
             }
             case "tickets" -> {
-                String header = TranslationService.translateText("Ticket Support", lang);
-                String body = TranslationService.translateText("Initialize a project session or report an issue via the modules below. Please follow agency rules.", lang);
+                String header = TranslationService.translateText("TICKET SUPPORT | High Core Agency", lang);
+                String rules = TranslationService.translateText("📜 **RULES & GUIDELINES**\n\n" +
+                        "**Mutual Respect** — Please respect all staff members. Any form of offensive behavior or harassment will not be tolerated.\n\n" +
+                        "**One Ticket** — Open only one ticket per issue. Do not open multiple tickets for the same problem.\n\n" +
+                        "**Clarity** — Please fully describe your issue or request before a staff member responds.\n\n" +
+                        "**Content** — Spam and external links are strictly prohibited without staff authorization.\n\n" +
+                        "**Mentions** — Pinging or mentioning the staff member inside the ticket is strictly forbidden.", lang);
+                
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_TICKETS_MENU)));
-                layout.add(TextDisplay.of("## " + header + "\n" + body));
+                layout.add(TextDisplay.of("### " + header));
+                layout.add(Separator.createDivider(Spacing.SMALL));
+                layout.add(TextDisplay.of(rules));
+                layout.add(Separator.createDivider(Spacing.SMALL));
+
                 actionRows.add(ActionRow.of(
-                    Button.secondary("ticket_init_order", TranslationService.translateText("Order", lang)).withEmoji(Emoji.fromCustom("Order", 1496974488561123380L, false)),
                     Button.secondary("ticket_init_support", TranslationService.translateText("Support", lang)).withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
                     Button.secondary("ticket_init_complaint", TranslationService.translateText("Complaint", lang)).withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))
                 ));
