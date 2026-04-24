@@ -401,7 +401,7 @@ public class PanelService {
         children.add(TextDisplay.of(rules));
         children.add(Separator.createDivider(Spacing.SMALL));
         children.add(ActionRow.of(
-                Button.secondary("ticket_init_support", "Technical Support").withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
+                Button.secondary("ticket_init_support", "Support").withEmoji(Emoji.fromCustom("TechnicalSupport", 1496974160621207673L, false)),
                 Button.secondary("ticket_init_complaint", "Complaint").withEmoji(Emoji.fromCustom("FileComplaint", 1496974577576968272L, false))));
 
         reply(event, Container.of(children));

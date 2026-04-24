@@ -212,7 +212,7 @@ public class EmbedUtil {
     }
 
     public static Container error(String title, String description) {
-        return containerBranded("ERROR", title, "❌ " + description, BANNER_SUPPORT);
+        return containerBranded("ERROR", title, "❌ " + description, BANNER_MAIN);
     }
 
     public static Container info(String title, String description) {
