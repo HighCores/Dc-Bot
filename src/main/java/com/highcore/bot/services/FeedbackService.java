@@ -353,15 +353,14 @@ public class FeedbackService {
                 // 3. It's regular text, collect until next emoji or end
                 StringBuilder textPart = new StringBuilder();
                 while (i < line.length()) {
-                    // Check if next thing is an emoji
-                    if (isEmoji(line.codePointAt(i))) break;
-                    if (CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).find() && 
-                        CUSTOM_EMOJI_PATTERN.matcher(line.substring(i)).start() == 0) break;
-                    
                     int cp = line.codePointAt(i);
-                    int cc = Character.charCount(cp);
-                    textPart.append(line.substring(i, i + cc));
-                    i += cc;
+                    if (isEmoji(cp)) break;
+                    
+                    Matcher mInner = CUSTOM_EMOJI_PATTERN.matcher(line.substring(i));
+                    if (mInner.find() && mInner.start() == 0) break;
+                    
+                    textPart.appendCodePoint(cp);
+                    i += Character.charCount(cp);
                 }
                 if (textPart.length() > 0) parts.add(textPart.toString());
             }
