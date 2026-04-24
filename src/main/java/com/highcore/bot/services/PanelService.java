@@ -360,8 +360,8 @@ public class PanelService {
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_support_init", "Technical Support")
                         .addComponents(
-                                ActionRow.of(issueInput),
-                                ActionRow.of(serviceInput))
+                                net.dv8tion.jda.api.components.label.Label.of("Issue", issueInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Service", serviceInput))
                         .build()).queue();
             }
         }
@@ -374,9 +374,9 @@ public class PanelService {
             TextInput descInput = TextInput.create("comp_desc", TextInputStyle.PARAGRAPH).build();
             modal.replyModal(Modal.create("modal_complaint_init", "File a Complaint")
                     .addComponents(
-                            ActionRow.of(issueTypeInput),
-                            ActionRow.of(personInput),
-                            ActionRow.of(descInput))
+                            net.dv8tion.jda.api.components.label.Label.of("Type", issueTypeInput),
+                            net.dv8tion.jda.api.components.label.Label.of("Person", personInput),
+                            net.dv8tion.jda.api.components.label.Label.of("Description", descInput))
                     .build()).queue();
         }
     }
@@ -469,11 +469,11 @@ public class PanelService {
             if (event instanceof IModalCallback modal) {
                 modal.replyModal(Modal.create("modal_order_final", "Finalize Order Details")
                         .addComponents(
-                                ActionRow.of(projectInput),
-                                ActionRow.of(nameInput),
-                                ActionRow.of(contactInput),
-                                ActionRow.of(etaInput),
-                                ActionRow.of(voucherInput))
+                                net.dv8tion.jda.api.components.label.Label.of("Project", projectInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Client", nameInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Communication", contactInput),
+                                net.dv8tion.jda.api.components.label.Label.of("ETA", etaInput),
+                                net.dv8tion.jda.api.components.label.Label.of("Voucher", voucherInput))
                         .build()).queue();
             }
         }

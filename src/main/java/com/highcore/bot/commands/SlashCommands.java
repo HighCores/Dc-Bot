@@ -55,7 +55,9 @@ public class SlashCommands extends ListenerAdapter {
             BC_SESSIONS.put("bc_" + event.getUser().getId(), session);
 
             TextInput msg = TextInput.create("message", TextInputStyle.PARAGRAPH).setPlaceholder("Broadcast Message").setRequired(true).build();
-            event.replyModal(Modal.create("modal_bc", "Send Broadcast").addComponents(ActionRow.of(msg)).build()).queue();
+            event.replyModal(Modal.create("modal_bc", "Send Broadcast")
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message", msg))
+                .build()).queue();
         } else if (name.equals("boter")) {
             if (!Config.isAdmin(event.getMember())) {
                 PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
@@ -66,7 +68,9 @@ public class SlashCommands extends ListenerAdapter {
             BOTER_SESSIONS.put("boter_" + event.getUser().getId(), session);
 
             TextInput msg = TextInput.create("message", TextInputStyle.PARAGRAPH).setPlaceholder("Message to send").setRequired(true).build();
-            event.replyModal(Modal.create("modal_boter", "Send via Bot").addComponents(ActionRow.of(msg)).build()).queue();
+            event.replyModal(Modal.create("modal_boter", "Send via Bot")
+                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message", msg))
+                .build()).queue();
         }
     }
 

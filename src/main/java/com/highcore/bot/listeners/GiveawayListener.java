@@ -39,12 +39,12 @@ public class GiveawayListener extends ListenerAdapter {
         }
 
         String userId = event.getUser().getId();
-        if (SupabaseClient.isEntered(giveawayId, userId)) {
+        if (SupabaseClient.hasEnteredGiveaway(giveawayId, userId)) {
             PanelService.replyEphemeral(event, "You are already registered for this giveaway.");
             return;
         }
 
-        SupabaseClient.enterGiveaway(giveawayId, userId);
+        SupabaseClient.addGiveawayEntry(giveawayId, userId);
         PanelService.replyEphemeral(event, "✅ Entry Registered! Good luck.");
     }
 

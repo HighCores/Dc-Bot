@@ -34,7 +34,7 @@ public class InfoCommands extends ListenerAdapter {
         // Use PanelService for interaction safety
         m.getUser().retrieveProfile().queue(profile -> {
             long created = m.getUser().getTimeCreated().toEpochSecond();
-            long joined = m.getGuild().getTimeJoined().toEpochSecond();
+            long joined = m.getTimeJoined().toEpochSecond();
 
             String roles = m.getRoles().stream()
                     .map(net.dv8tion.jda.api.entities.Role::getAsMention)
