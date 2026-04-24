@@ -143,10 +143,14 @@ public class TranslationListener extends ListenerAdapter {
             }
         }
 
+        if (!actionRows.isEmpty()) {
+            layout.add(Separator.createDivider(Spacing.SMALL));
+            layout.addAll(actionRows);
+        }
+
         try {
             List<MessageTopLevelComponent> components = new ArrayList<>();
             components.add(Container.of(layout));
-            components.addAll(actionRows);
             
             MessageEditBuilder meb = new MessageEditBuilder()
                     .setContent("")
