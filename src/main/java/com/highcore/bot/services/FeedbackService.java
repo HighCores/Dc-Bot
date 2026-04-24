@@ -235,34 +235,94 @@ public class FeedbackService {
         List<String> lines = new ArrayList<>();
         String[] paragraphs = text.split("\n");
         for (String p : paragraphs) {
-            String[] words = p.split(" ");
-            StringBuilder line = new StringBuilder();
-            for (String word : words) {
-                if (fm.stringWidth(word) > maxWidth) {
-                    // Word itself is too long, break it
-                    if (line.length() > 0) {
-                        lines.add(line.toString().trim());
-                        line = new StringBuilder();
+            StringBuilder currentLine = new StringBuilder();
+            
+            // Tokenize by spaces but keep emojis intact
+            String[] tokens = p.split(" ");
+            for (String token : tokens) {
+                // If the token contains emojis, we need to be careful
+                // For simplicity, if the whole token (including emoji) fits, add it
+                // If not, and it contains an emoji, we MUST NOT break the emoji
+                
+                int tokenWidth = calculateTokenWidth(token, fm);
+                
+                if (fm.stringWidth(currentLine.toString() + token) < maxWidth) {
+                    currentLine.append(token).append(" ");
+                } else {
+                    if (currentLine.length() > 0) {
+                        lines.add(currentLine.toString().trim());
+                        currentLine = new StringBuilder();
                     }
-                    for (int i = 0; i < word.length(); i++) {
-                        if (fm.stringWidth(line.toString() + word.charAt(i)) < maxWidth) {
-                            line.append(word.charAt(i));
-                        } else {
-                            lines.add(line.toString().trim());
-                            line = new StringBuilder().append(word.charAt(i));
+                    
+                    if (tokenWidth <= maxWidth) {
+                        currentLine.append(token).append(" ");
+                    } else {
+                        // Token is too long and must be broken, but PROTECT EMOJIS
+                        String remaining = token;
+                        while (!remaining.isEmpty()) {
+                            int breakIdx = findSafeBreak(remaining, fm, maxWidth);
+                            lines.add(remaining.substring(0, breakIdx));
+                            remaining = remaining.substring(breakIdx);
+                            if (fm.stringWidth(remaining) <= maxWidth) {
+                                currentLine.append(remaining).append(" ");
+                                break;
+                            }
                         }
                     }
-                    line.append(" ");
-                } else if (fm.stringWidth(line + word) < maxWidth) {
-                    line.append(word).append(" ");
-                } else {
-                    lines.add(line.toString().trim());
-                    line = new StringBuilder(word).append(" ");
                 }
             }
-            if (line.length() > 0) lines.add(line.toString().trim());
+            if (currentLine.length() > 0) lines.add(currentLine.toString().trim());
         }
         return lines;
+    }
+
+    private static int calculateTokenWidth(String token, FontMetrics fm) {
+        // Simple width, we assume emojis will be drawn at ~lineHeight
+        int w = 0;
+        int emojiSize = (int) (fm.getHeight() * 0.85);
+        int i = 0;
+        while (i < token.length()) {
+            Matcher m = CUSTOM_EMOJI_PATTERN.matcher(token.substring(i));
+            if (m.find() && m.start() == 0) {
+                w += emojiSize + 2;
+                i += m.end();
+            } else {
+                int cp = token.codePointAt(i);
+                if (isEmoji(cp)) w += emojiSize + 2;
+                else w += fm.charWidth(token.charAt(i));
+                i += Character.charCount(cp);
+            }
+        }
+        return w;
+    }
+
+    private static int findSafeBreak(String s, FontMetrics fm, int maxWidth) {
+        int w = 0;
+        int i = 0;
+        int lastSafe = 1;
+        int emojiSize = (int) (fm.getHeight() * 0.85);
+        
+        while (i < s.length()) {
+            int stepWidth = 0;
+            int stepChars = 0;
+            
+            Matcher m = CUSTOM_EMOJI_PATTERN.matcher(s.substring(i));
+            if (m.find() && m.start() == 0) {
+                stepWidth = emojiSize + 2;
+                stepChars = m.end();
+            } else {
+                int cp = s.codePointAt(i);
+                stepChars = Character.charCount(cp);
+                if (isEmoji(cp)) stepWidth = emojiSize + 2;
+                else stepWidth = fm.charWidth(s.charAt(i));
+            }
+            
+            if (w + stepWidth > maxWidth) return Math.max(1, i);
+            w += stepWidth;
+            i += stepChars;
+            lastSafe = i;
+        }
+        return s.length();
     }
 
     private static List<Object> parseLineParts(String line) {
