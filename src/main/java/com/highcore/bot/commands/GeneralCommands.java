@@ -19,6 +19,7 @@ public class GeneralCommands extends ListenerAdapter {
             case "roll" -> handleRoll(event);
             case "translate" -> handleTranslate(event);
             case "title" -> handleTitle(event);
+            case "line" -> handleLine(event);
         }
     }
 
@@ -59,9 +60,7 @@ public class GeneralCommands extends ListenerAdapter {
             com.highcore.bot.database.SupabaseClient.setTitle(event.getUser().getId(), event.getGuild().getId(), title);
         }
 
-        // Refined Nickname Sync: Clean old [Title] tags if they exist
         String currentName = event.getMember().getEffectiveName();
-        // Regex matches anything inside starting brackets: e.g. [ADMIN] Name -> Name
         String baseName = currentName.replaceAll("^\\[.*?\\]\\s*", "");
 
         final String finalNick;
@@ -70,7 +69,6 @@ public class GeneralCommands extends ListenerAdapter {
         } else {
             String candidate = "[" + title + "] " + baseName;
             if (candidate.length() > 32) {
-                // If too long, try to truncate title or just use base
                 candidate = candidate.substring(0, 32);
             }
             finalNick = candidate;
@@ -83,5 +81,9 @@ public class GeneralCommands extends ListenerAdapter {
                                         : "Identity synchronized. Your title is now set to: **" + title + "**")),
                 error -> PanelService.reply(event, EmbedUtil.success("Identity Update",
                         "Registry update finalized. *Note: Nickname synchronization failed due to hierarchy restrictions.*")));
+    }
+
+    private void handleLine(SlashCommandInteractionEvent event) {
+        PanelService.reply(event, EmbedUtil.containerBranded("", "", null, "https://i.imgur.com/KTPxBfL.png"));
     }
 }

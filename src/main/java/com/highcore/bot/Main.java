@@ -230,7 +230,8 @@ public class Main {
                         .addOption(OptionType.STRING, "language", "الــلــغــة", true),
                 Commands.slash("roll", "رمــي الــنــرد"),
                 Commands.slash("order", "بــدء طــلــب مــشــروع جــديــد"),
-                Commands.slash("terms", "عــرض شــروط وقــوانــيــن الــوكــالــة")
+                Commands.slash("terms", "عــرض شــروط وقــوانــيــن الــوكــالــة"),
+                Commands.slash("line", "إرســال خــط فــاصــل")
         ).queue();
     }
 }
