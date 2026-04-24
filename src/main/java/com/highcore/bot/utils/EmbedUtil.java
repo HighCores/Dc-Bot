@@ -346,6 +346,17 @@ public class EmbedUtil {
         return containerBranded(category, title, body, imageUrl);
     }
 
+    public static ActionRow createTranslationRow(String id) {
+        // Adding 4 disabled empty buttons to push the globe to the far right
+        return ActionRow.of(
+            Button.secondary("blank1", " ").asDisabled(),
+            Button.secondary("blank2", " ").asDisabled(),
+            Button.secondary("blank3", " ").asDisabled(),
+            Button.secondary("blank4", " ").asDisabled(),
+            Button.secondary("translate_init_" + id, "🌐")
+        );
+    }
+
     public static Color parseColor(String colorStr) {
         if (colorStr == null)
             return ACCENT_TEAL;

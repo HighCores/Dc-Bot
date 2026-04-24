@@ -37,6 +37,7 @@ public class Config {
     public static String SUPABASE_KEY = get("SUPABASE_KEY");
     public static String GROQ_API_KEY = get("GROQ_API_KEY");
     public static String GROQ_MODEL = getOrDefault("GROQ_MODEL", "openai/gpt-oss-120b");
+    public static String GOOGLE_API_KEY = get("GOOGLE_API_KEY");
     public static int API_PORT = Integer.parseInt(getOrDefault("API_PORT", "8080"));
     public static String API_KEY = get("API_KEY");
     public static String TICKET_CATEGORY_ID = get("TICKET_CATEGORY_ID");
