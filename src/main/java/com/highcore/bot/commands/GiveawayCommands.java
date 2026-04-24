@@ -52,8 +52,10 @@ public class GiveawayCommands extends ListenerAdapter {
         }
 
         ActionRow row = ActionRow.of(
-                Button.secondary("btn_gw_create", "Create Giveaway").withEmoji(Emoji.fromCustom("CreatGiveaway", 1496974773098516510L, false)),
-                Button.secondary("btn_gw_history", "View History").withEmoji(Emoji.fromCustom("GiveawayRecords", 1496974526557327530L, false)));
+                Button.secondary("btn_gw_create", "Create Giveaway")
+                        .withEmoji(Emoji.fromCustom("CreatGiveaway", 1496974773098516510L, false)),
+                Button.secondary("btn_gw_history", "View History")
+                        .withEmoji(Emoji.fromCustom("GiveawayRecords", 1496974526557327530L, false)));
 
         String desc = "Welcome to the **Giveaway Management Hub**.\n" +
                 "Easily create rewards, launch instant drops, or review history.\n\n" +
@@ -274,15 +276,18 @@ public class GiveawayCommands extends ListenerAdapter {
 
         try {
             winCount = Integer.parseInt(event.getValue("winners").getAsString());
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         try {
             duration = Integer.parseInt(event.getValue("duration").getAsString());
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
         try {
             if (event.getValue("expire") != null) {
                 expireDays = Integer.parseInt(event.getValue("expire").getAsString());
             }
-        } catch (Exception e) {}
+        } catch (Exception e) {
+        }
 
         String tempId = "setup_" + System.currentTimeMillis() + "_" + event.getUser().getId();
 
@@ -343,7 +348,10 @@ public class GiveawayCommands extends ListenerAdapter {
 
         int prizeValue = 0;
         if (type.contains("-")) {
-            try { prizeValue = Integer.parseInt(type.split("-")[1]); } catch(Exception e) {}
+            try {
+                prizeValue = Integer.parseInt(type.split("-")[1]);
+            } catch (Exception e) {
+            }
         }
         String cleanType = type.contains("-") ? type.split("-")[0] : type;
 
@@ -427,7 +435,7 @@ public class GiveawayCommands extends ListenerAdapter {
         var dashC = EmbedUtil.containerBranded("GIVEAWAY DASHBOARD", "Live Tracking", dashDesc,
                 EmbedUtil.BANNER_GIVEAWAY, dashRow);
 
-        PanelService.reply(event, "Giveaway fully started. You can monitor it below!");
+        PanelService.reply(event, dashC);
 
         event.getChannel().sendMessageComponents(dashC).useComponentsV2(true).queue(dashMsg -> {
             dashboardMessages.put(giveawayId, dashMsg.getId());
@@ -467,25 +475,32 @@ public class GiveawayCommands extends ListenerAdapter {
         });
 
         // Also update the main giveaway message count button
-        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString() : null;
+        String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString()
+                : null;
         String mainChanId = g.has("channel_id") ? g.get("channel_id").getAsString() : null;
-        
+
         if (mainMsgId != null && mainChanId != null) {
             TextChannel mainCh = guild.getTextChannelById(mainChanId);
             if (mainCh != null) {
                 mainCh.retrieveMessageById(mainMsgId).queue(msg -> {
                     boolean isDrop = g.has("prize_type") && g.get("prize_type").getAsString().equalsIgnoreCase("Drop");
-                    Button joinBtn = Button.primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
-                        .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
-                    Button countBtn = Button.secondary("gw_count_" + giveawayId, count + (count == 1 ? " entry" : " entries"));
-                    
+                    Button joinBtn = Button
+                            .primary("gw_enter_" + giveawayId, isDrop ? "Claim Instant Prize" : "Join Sweepstakes")
+                            .withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji
+                                    .fromUnicode(isDrop ? "\uD83D\uDCA8" : "\uD83C\uDF89"));
+                    Button countBtn = Button.secondary("gw_count_" + giveawayId,
+                            count + (count == 1 ? " entry" : " entries"));
+
                     ActionRow newGwRow = ActionRow.of(joinBtn, isDrop ? countBtn.asDisabled() : countBtn);
 
-                    java.util.List<net.dv8tion.jda.api.components.MessageTopLevelComponent> currentComps = new java.util.ArrayList<>(msg.getComponents());
+                    java.util.List<net.dv8tion.jda.api.components.MessageTopLevelComponent> currentComps = new java.util.ArrayList<>(
+                            msg.getComponents());
                     for (int i = 0; i < currentComps.size(); i++) {
                         if (currentComps.get(i) instanceof net.dv8tion.jda.api.components.container.Container) {
-                            net.dv8tion.jda.api.components.container.Container currentContainer = (net.dv8tion.jda.api.components.container.Container) currentComps.get(i);
-                            java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> children = new java.util.ArrayList<>(currentContainer.getComponents());
+                            net.dv8tion.jda.api.components.container.Container currentContainer = (net.dv8tion.jda.api.components.container.Container) currentComps
+                                    .get(i);
+                            java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> children = new java.util.ArrayList<>(
+                                    currentContainer.getComponents());
                             for (int j = 0; j < children.size(); j++) {
                                 if (children.get(j) instanceof ActionRow) {
                                     children.set(j, newGwRow);
@@ -494,8 +509,10 @@ public class GiveawayCommands extends ListenerAdapter {
                             currentComps.set(i, net.dv8tion.jda.api.components.container.Container.of(children));
                         }
                     }
-                    mainCh.editMessageComponentsById(mainMsgId, currentComps).useComponentsV2(true).queue(null, ex -> {});
-                }, ex -> {});
+                    mainCh.editMessageComponentsById(mainMsgId, currentComps).useComponentsV2(true).queue(null, ex -> {
+                    });
+                }, ex -> {
+                });
             }
         }
     }
