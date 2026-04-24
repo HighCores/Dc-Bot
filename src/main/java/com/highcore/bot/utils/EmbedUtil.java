@@ -348,12 +348,12 @@ public class EmbedUtil {
     }
 
     public static ActionRow createTranslationRow(String id) {
-        // Adding 4 disabled empty buttons to push the globe to the far right
+        // Using \u200B (zero-width space) to satisfy Discord's requirement for a label
         return ActionRow.of(
-            Button.secondary("blank1", " ").asDisabled(),
-            Button.secondary("blank2", " ").asDisabled(),
-            Button.secondary("blank3", " ").asDisabled(),
-            Button.secondary("blank4", " ").asDisabled(),
+            Button.secondary("blank1_" + id, "\u200B").asDisabled(),
+            Button.secondary("blank2_" + id, "\u200B").asDisabled(),
+            Button.secondary("blank3_" + id, "\u200B").asDisabled(),
+            Button.secondary("blank4_" + id, "\u200B").asDisabled(),
             Button.secondary("translate_init_" + id, "🌐")
         );
     }
