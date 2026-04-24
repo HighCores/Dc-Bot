@@ -69,51 +69,25 @@ public class FeedbackService {
     }
 
     private static byte[] generateFeedbackImage(User user, int stars, String feedback) throws Exception {
-        String templateBase = switch (stars) {
-            case 1 -> TEMPLATE_1;
-            case 2 -> TEMPLATE_2;
-            case 3 -> TEMPLATE_3;
-            case 4 -> TEMPLATE_4;
-            default -> TEMPLATE_5;
-        };
-
-        log.info("[FEEDBACK] Loading template: {}", templateBase);
+        String templatePath = "/templates/feedback_" + stars + ".jpg";
+        log.info("[FEEDBACK] Loading local template: {}", templatePath);
+        
         BufferedImage template = null;
-        try {
-            ImageIO.setUseCache(false);
-            
-            URL url = new URL(templateBase);
-            java.net.HttpURLConnection conn = (java.net.HttpURLConnection) url.openConnection();
-            conn.setRequestProperty("User-Agent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36");
-            int respCode = conn.getResponseCode();
-            String contentType = conn.getContentType();
-            int contentLength = conn.getContentLength();
-            log.info("[FEEDBACK] Template response: code={}, type={}, length={}", respCode, contentType, contentLength);
-            
-            if (respCode == 200) {
-                try (java.io.InputStream is = conn.getInputStream()) {
-                    byte[] bytes = is.readAllBytes();
-                    log.info("[FEEDBACK] Read {} bytes from stream.", bytes.length);
-                    if (bytes.length > 0) {
-                        try (java.io.ByteArrayInputStream bais = new java.io.ByteArrayInputStream(bytes)) {
-                            template = ImageIO.read(bais);
-                        }
-                    }
-                }
-            } else {
-                log.error("[FEEDBACK] Connection failed with code: {}", respCode);
+        try (java.io.InputStream is = FeedbackService.class.getResourceAsStream(templatePath)) {
+            if (is == null) {
+                log.error("[FEEDBACK] Template NOT FOUND in classpath: {}", templatePath);
+                return null;
             }
+            template = ImageIO.read(is);
         } catch (Exception e) {
-            log.error("[FEEDBACK] Failed to load feedback template: " + templateBase, e);
+            log.error("[FEEDBACK] Failed to read local template: " + templatePath, e);
             return null;
         }
 
         if (template == null) {
-            log.error("[FEEDBACK] ImageIO.read returned null for template: {}", templateBase);
+            log.error("[FEEDBACK] ImageIO.read returned null for local template: {}", templatePath);
             return null;
         }
-
-        log.info("[FEEDBACK] Template loaded. Size: {}x{}", template.getWidth(), template.getHeight());
 
         int w = template.getWidth();
         int h = template.getHeight();
@@ -126,12 +100,11 @@ public class FeedbackService {
         
         g.drawImage(template, 0, 0, null);
 
-        // Fonts - Using provided font names
+        // Fonts
         Font arabicFont = new Font("thamanya sans", Font.PLAIN, 30);
         Font englishFont = new Font("Source Code Pro", Font.BOLD, 28);
 
-        log.info("[FEEDBACK] Drawing name: {}", user.getEffectiveName());
-        // Name Coordinates: 529,295 to 682,332
+        // Name
         g.setFont(englishFont);
         g.setColor(Color.WHITE);
         String name = user.getEffectiveName();
@@ -142,17 +115,14 @@ public class FeedbackService {
         int nameY = 295 + (nameBoxH / 2) + (nm.getAscent() / 2) - 4;
         g.drawString(name, nameX, nameY);
 
-        log.info("[FEEDBACK] Drawing feedback text...");
-        // Comment Coordinates: 579,330 to 1230,553
+        // Feedback
         g.setFont(arabicFont);
         g.setColor(new Color(220, 220, 220));
-        
         int commBoxW = 1230 - 579;
         int commBoxH = 553 - 330;
         drawWrappedText(g, feedback, 579, 330, commBoxW, commBoxH);
 
         g.dispose();
-        log.info("[FEEDBACK] Image generation complete. Encoding to PNG...");
         ByteArrayOutputStream baos = new ByteArrayOutputStream();
         ImageIO.write(combined, "png", baos);
         return baos.toByteArray();
