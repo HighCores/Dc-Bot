@@ -21,27 +21,36 @@ import com.google.gson.JsonObject;
 public class AutoReplyCommands extends ListenerAdapter {
     @Override
     public void onSlashCommandInteraction(SlashCommandInteractionEvent event) {
-        if (!event.getName().equals("replay")) return;
-        if (!Config.isAdmin(event.getMember())) { PanelService.reply(event, EmbedUtil.accessDenied()); return; }
+        if (!event.getName().equals("replay"))
+            return;
+        if (!Config.isAdmin(event.getMember())) {
+            PanelService.reply(event, EmbedUtil.accessDenied());
+            return;
+        }
         sendPanel(event, false);
     }
 
     @Override
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
-        if (!Config.isAdmin(event.getMember())) return;
-        
+        if (!Config.isAdmin(event.getMember()))
+            return;
+
         if (id.equals("ar_add")) {
-            TextInput tr = TextInput.create("trigger", TextInputStyle.SHORT).setPlaceholder("Keyword...").setRequired(true).build();
-            TextInput re = TextInput.create("reply", TextInputStyle.PARAGRAPH).setPlaceholder("Bot reply...").setRequired(true).build();
+            TextInput tr = TextInput.create("trigger", TextInputStyle.SHORT).setPlaceholder("Keyword...")
+                    .setRequired(true).build();
+            TextInput re = TextInput.create("reply", TextInputStyle.PARAGRAPH).setPlaceholder("Bot reply...")
+                    .setRequired(true).build();
             event.replyModal(Modal.create("modal_ar_add", "Auto Reply")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Trigger", tr), net.dv8tion.jda.api.components.label.Label.of("Response", re))
-                .build()).queue();
+                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Trigger", tr),
+                            net.dv8tion.jda.api.components.label.Label.of("Response", re))
+                    .build()).queue();
         } else if (id.equals("ar_manage")) {
-            TextInput tr = TextInput.create("trigger", TextInputStyle.SHORT).setPlaceholder("Trigger to remove...").setRequired(true).build();
+            TextInput tr = TextInput.create("trigger", TextInputStyle.SHORT).setPlaceholder("Trigger to remove...")
+                    .setRequired(true).build();
             event.replyModal(Modal.create("modal_ar_remove", "Delete Auto Reply")
-                .addComponents(net.dv8tion.jda.api.components.label.Label.of("Trigger", tr))
-                .build()).queue();
+                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Trigger", tr))
+                    .build()).queue();
         }
     }
 
@@ -63,27 +72,32 @@ public class AutoReplyCommands extends ListenerAdapter {
     private void sendPanel(Object event, boolean edit) {
         JsonArray replies = SupabaseClient.getAutoResponses();
         StringBuilder sb = new StringBuilder("### Autonomous Response Registry\n\n");
-        if (replies == null || replies.size() == 0) sb.append("*No triggers indexed.*");
+        if (replies == null || replies.size() == 0)
+            sb.append("*No triggers indexed.*");
         else {
             for (var el : replies) {
                 JsonObject o = el.getAsJsonObject();
-                sb.append("\u25AB\uFE0F **").append(o.get("keyword").getAsString()).append(":** ").append(o.get("response_text").getAsString()).append("\n");
+                sb.append("\u25AB\uFE0F **").append(o.get("keyword").getAsString()).append(":** ")
+                        .append(o.get("response_text").getAsString()).append("\n");
             }
         }
 
         ActionRow row = ActionRow.of(
-            Button.secondary("ar_add", "Add Response").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromCustom("Reply", 1496974225104175334L, false)),
-            Button.secondary("ar_manage", "Delete Response").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji.fromCustom("DeleteResponce", 1496974794518954035L, false))
-        );
+                Button.secondary("ar_add", "Add Response").withEmoji(
+                        net.dv8tion.jda.api.entities.emoji.Emoji.fromCustom("Reply", 1496974225104175334L, false)),
+                Button.secondary("ar_manage", "Delete Response").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji
+                        .fromCustom("DeleteResponce", 1496974794518954035L, false)));
         var c = EmbedUtil.containerBranded("AUTOMATION", "Logic Hub", sb.toString(), null, row);
         if (edit) {
             net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                .setComponents(c)
-                .useComponentsV2(true);
-            if (event instanceof ButtonInteractionEvent) ((ButtonInteractionEvent)event).editMessage(builder.build()).useComponentsV2(true).queue();
-            else if (event instanceof ModalInteractionEvent) ((ModalInteractionEvent)event).editMessage(builder.build()).useComponentsV2(true).queue();
+                    .setComponents(c)
+                    .useComponentsV2(true);
+            if (event instanceof ButtonInteractionEvent)
+                ((ButtonInteractionEvent) event).editMessage(builder.build()).useComponentsV2(true).queue();
+            else if (event instanceof ModalInteractionEvent)
+                ((ModalInteractionEvent) event).editMessage(builder.build()).useComponentsV2(true).queue();
         } else if (event instanceof SlashCommandInteractionEvent) {
-            PanelService.reply((SlashCommandInteractionEvent)event, c);
+            PanelService.reply((SlashCommandInteractionEvent) event, c);
         }
     }
 }
