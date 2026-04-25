@@ -62,6 +62,7 @@ public class Main {
                                                 new GiveawayListener(),
                                                 new TranslationListener(),
                                                 new DiscountListener(),
+                                                new VoucherCommands(),
                                                 new CentralInteractionListener())
                                 .build().awaitReady();
 
@@ -257,6 +258,22 @@ public class Main {
                                 // ===== Information (Administrative & Public) =====
                                 Commands.slash("roles", "قــائمة رتــب الــســيــرفــر")
                                                 .setDefaultPermissions(adminPerms), // Restricted per user request
+
+                                // ===== Vouchers (Administrative) =====
+                                Commands.slash("voucher", "إدارة وتــولــيــد الــكــوبــونــات")
+                                                .addSubcommands(
+                                                                new SubcommandData("create", "تــولــيــد كــوبــون جــديــد")
+                                                                                .addOption(OptionType.USER, "user", "الــعــضــو", true)
+                                                                                .addOption(OptionType.STRING, "type", "الــنــوع", true)
+                                                                                        .addChoices(
+                                                                                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("Discount (خصم)", "DISCOUNT"),
+                                                                                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("Voucher (قسيمة)", "VOUCHER")
+                                                                                        )
+                                                                                .addOption(OptionType.INTEGER, "amount", "الــقــيــمــة", true),
+                                                                new SubcommandData("view", "عــرض الــكــوبــونــات الــنــشــطــة")
+                                                                                .addOption(OptionType.USER, "user", "الــعــضــو", false)
+                                                )
+                                                .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.MESSAGE_MANAGE)),
 
                                 // ===== Information (Public) =====
                                 Commands.slash("ping", "فــحــص ســرعــة اتــصــال الــبــوت"),
