@@ -102,7 +102,7 @@ public class VoucherService {
         }
     }
 
-    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails, net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch) {
+    public static void issueVoucher(User user, int value, String type, String expiresAt, String prizeDetails, net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch, net.dv8tion.jda.api.entities.channel.concrete.TextChannel adminLogs) {
         boolean isPercent = type.equalsIgnoreCase("PERCENT") || type.toLowerCase().contains("discount");
         String code = generateRandomCode(value, isPercent);
         
@@ -135,6 +135,9 @@ public class VoucherService {
                   .useComponentsV2(true).queue(null, ex -> {
                       log.error("Failed to DM voucher to {}: {}", user.getName(), ex.getMessage());
                       ch.sendMessage("### \u26A0\uFE0F ENCRYPTION ERROR\n<@" + user.getId() + ">, I couldn't DM your voucher. Please enable DMs and contact staff.").queue();
+                      if (adminLogs != null) {
+                          adminLogs.sendMessage("### \u26A0\uFE0F DM FAILURE\nWinner <@" + user.getId() + "> (" + user.getName() + ") did not receive their voucher for **" + prizeDetails + "** because their DMs are closed.").queue();
+                      }
                   });
             });
         } else {
@@ -142,6 +145,9 @@ public class VoucherService {
                 dm.sendMessageComponents(eb2).useComponentsV2(true).queue(null, ex -> {
                     log.error("Failed to DM voucher to {}: {}", user.getName(), ex.getMessage());
                     ch.sendMessage("### \u26A0\uFE0F ENCRYPTION ERROR\n<@" + user.getId() + ">, I couldn't DM your voucher. Please enable DMs and contact staff.").queue();
+                    if (adminLogs != null) {
+                        adminLogs.sendMessage("### \u26A0\uFE0F DM FAILURE\nWinner <@" + user.getId() + "> (" + user.getName() + ") did not receive their voucher for **" + prizeDetails + "** because their DMs are closed.").queue();
+                    }
                 });
             });
         }

@@ -135,7 +135,9 @@ public class GiveawayService {
                     byte[] winnerImg = generateWinnerImage(user, prizeDetails);
                     
                     // 2. Issue Voucher/DM
-                    VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
+                    String dchId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
+                    TextChannel adminCh = (dchId != null) ? guild.getTextChannelById(dchId) : null;
+                    VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch, adminCh);
 
                     // 3. Send Public Announcement for this winner
                     if (winnerImg != null) {
@@ -300,7 +302,9 @@ public class GiveawayService {
 
         jda.retrieveUserById(winners.get(0)).queue(user -> {
             byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-            VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch);
+            String dchId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
+            TextChannel adminCh = (dchId != null) ? guild.getTextChannelById(dchId) : null;
+            VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch, adminCh);
 
             if (winnerImg != null) {
                 var eb = EmbedUtil.containerBranded("REROLL", "New Winner Identified",
