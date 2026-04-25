@@ -40,6 +40,7 @@ public class VoucherCommands extends ListenerAdapter {
             User target = event.getOption("user").getAsUser();
             String type = event.getOption("type").getAsString(); // VOUCHER or DISCOUNT
             int amount = event.getOption("amount").getAsInt();
+            int expiryDays = event.getOption("expiry").getAsInt();
 
             // Constraints
             if (type.equalsIgnoreCase("DISCOUNT")) {
@@ -56,7 +57,7 @@ public class VoucherCommands extends ListenerAdapter {
 
             event.deferReply(true).queue();
 
-            String expiresAt = Instant.now().plus(Duration.ofDays(7)).toString();
+            String expiresAt = Instant.now().plus(Duration.ofDays(expiryDays)).toString();
             String prizeDetails = (type.equalsIgnoreCase("DISCOUNT") ? amount + "% Discount" : "$" + amount + " Voucher");
             
             // Issue to channel

@@ -268,7 +268,15 @@ public class Main {
                                                                                 .addOptions(new OptionData(OptionType.STRING, "type", "الــنــوع", true)
                                                                                         .addChoice("Discount (خصم)", "DISCOUNT")
                                                                                         .addChoice("Voucher (قسيمة)", "VOUCHER"))
-                                                                                .addOption(OptionType.INTEGER, "amount", "الــقــيــمــة", true),
+                                                                                .addOptions(new OptionData(OptionType.INTEGER, "amount", "الــقــيــمــة", true)
+                                                                                        .addChoice("10", 10)
+                                                                                        .addChoice("20", 20)
+                                                                                        .addChoice("30", 30)
+                                                                                        .addChoice("40", 40)
+                                                                                        .addChoice("50", 50)
+                                                                                        .addChoice("60", 60)
+                                                                                        .addChoice("100", 100))
+                                                                                .addOption(OptionType.INTEGER, "expiry", "مــدة الــصــلاحــيــة بــالأيــام (مثلاً: 7)", true),
                                                                 new SubcommandData("view", "عــرض الــكــوبــونــات الــنــشــطــة")
                                                                                 .addOption(OptionType.USER, "user", "الــعــضــو", false)
                                                 )
