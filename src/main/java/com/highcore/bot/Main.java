@@ -12,6 +12,7 @@ import net.dv8tion.jda.api.entities.Activity;
 import net.dv8tion.jda.api.entities.Guild;
 import net.dv8tion.jda.api.interactions.commands.OptionType;
 import net.dv8tion.jda.api.interactions.commands.build.Commands;
+import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
@@ -264,11 +265,9 @@ public class Main {
                                                 .addSubcommands(
                                                                 new SubcommandData("create", "تــولــيــد كــوبــون جــديــد")
                                                                                 .addOption(OptionType.USER, "user", "الــعــضــو", true)
-                                                                                .addOption(OptionType.STRING, "type", "الــنــوع", true)
-                                                                                        .addChoices(
-                                                                                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("Discount (خصم)", "DISCOUNT"),
-                                                                                                new net.dv8tion.jda.api.interactions.commands.Command.Choice("Voucher (قسيمة)", "VOUCHER")
-                                                                                        )
+                                                                                .addOptions(new OptionData(OptionType.STRING, "type", "الــنــوع", true)
+                                                                                        .addChoice("Discount (خصم)", "DISCOUNT")
+                                                                                        .addChoice("Voucher (قسيمة)", "VOUCHER"))
                                                                                 .addOption(OptionType.INTEGER, "amount", "الــقــيــمــة", true),
                                                                 new SubcommandData("view", "عــرض الــكــوبــونــات الــنــشــطــة")
                                                                                 .addOption(OptionType.USER, "user", "الــعــضــو", false)
