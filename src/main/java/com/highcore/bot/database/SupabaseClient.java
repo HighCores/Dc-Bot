@@ -637,4 +637,12 @@ public class SupabaseClient {
         json.addProperty("is_used", true);
         patch("dc_vouchers", "code=eq." + code, json);
     }
+
+    public static JsonArray getUserVouchers(String userId) {
+        return get("dc_vouchers", "user_id=eq." + userId + "&is_used=eq.false");
+    }
+
+    public static JsonArray getAllActiveVouchers() {
+        return get("dc_vouchers", "is_used=eq.false&limit=50");
+    }
 }

@@ -145,6 +145,39 @@ public class VoucherService {
                 });
             });
         }
+    }
 
+    public static void issueVoucherToChannel(User user, int value, String type, String expiresAt, String prizeDetails, net.dv8tion.jda.api.entities.channel.concrete.TextChannel ch) {
+        boolean isPercent = type.equalsIgnoreCase("PERCENT") || type.toLowerCase().contains("discount");
+        String code = generateRandomCode(value, isPercent);
+        
+        com.highcore.bot.database.SupabaseClient.createVoucher(user.getId(), code, value, type, expiresAt);
+        
+        byte[] voucherImg = drawVoucher(code);
+
+        long ts = 0;
+        try {
+            ts = java.time.Instant.parse(expiresAt).getEpochSecond();
+        } catch (Exception ignored) {
+            ts = java.time.Instant.now().plus(java.time.Duration.ofDays(7)).getEpochSecond();
+        }
+
+        String body = "### \uD83C\uDFAB VOUCHER ISSUED\n" +
+                "**Congratulations <@" + user.getId() + ">!**\n" +
+                "● **Item:** `" + prizeDetails + "`\n" +
+                "● **Code:** `" + code + "`\n" +
+                "● **Expiry:** <t:" + ts + ":D> (<t:" + ts + ":R>)\n\n" +
+                "Claim this voucher through the agency terminal or support desk.";
+        
+        var eb = EmbedUtil.containerBranded("PRIZE ACQUIRED", "Voucher Deployment", body,
+                (voucherImg != null ? "attachment://voucher.png" : null));
+
+        if (voucherImg != null) {
+            ch.sendFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(voucherImg, "voucher.png"))
+              .setComponents(eb)
+              .useComponentsV2(true).queue();
+        } else {
+            ch.sendMessageComponents(eb).useComponentsV2(true).queue();
+        }
     }
 }
