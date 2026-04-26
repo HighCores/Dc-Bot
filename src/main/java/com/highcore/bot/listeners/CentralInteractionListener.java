@@ -110,7 +110,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                     case "ticket_transcript" -> TicketService.transcriptTicket(tc, member, event);
                     case "ticket_delete_init" -> TicketService.requestDeleteConfirmation(event);
                     case "ticket_delete_final" -> TicketService.deleteTicket(tc);
-                    case "ticket_verify" -> event.reply("✅ Payment verification system initialized. Staff will review shortly.").setEphemeral(true).queue();
+                    case "ticket_verify" -> event.reply("✅ Payment verification system initialized. Staff will review shortly.").setEphemeral(false).queue();
                 }
             }
         } catch (Exception e) { log.error("Button error", e); }
@@ -216,8 +216,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("modal_ticket_rename")) {
                 String newName = event.getValue("new_name").getAsString();
                 event.getGuildChannel().asTextChannel().getManager().setName(newName).queue(
-                        v -> event.reply("✅ Channel name changed to: `" + newName + "`").setEphemeral(true).queue(),
-                        e -> event.reply("❌ Failed to change channel name: " + e.getMessage()).setEphemeral(true).queue()
+                        v -> event.reply("✅ Channel name changed to: `" + newName + "`").setEphemeral(false).queue(),
+                        e -> event.reply("❌ Failed to change channel name: " + e.getMessage()).setEphemeral(false).queue()
                 );
             } else if (id.equals("modal_ticket_add")) {
                 String userId = event.getValue("user_id").getAsString();
@@ -226,9 +226,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                             event.getGuildChannel().asTextChannel().getManager()
                                     .putMemberPermissionOverride(m.getIdLong(), java.util.EnumSet.of(net.dv8tion.jda.api.Permission.VIEW_CHANNEL, net.dv8tion.jda.api.Permission.MESSAGE_SEND), null)
                                     .queue();
-                            event.reply("✅ Added " + m.getAsMention() + " to the ticket.").setEphemeral(true).queue();
+                            event.reply("✅ Added " + m.getAsMention() + " to the ticket.").setEphemeral(false).queue();
                         },
-                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(true).queue()
+                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(false).queue()
                 );
             } else if (id.equals("modal_ticket_remove")) {
                 String userId = event.getValue("user_id").getAsString();
@@ -237,9 +237,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                             event.getGuildChannel().asTextChannel().getManager()
                                     .removePermissionOverride(m.getIdLong())
                                     .queue();
-                            event.reply("✅ Removed " + m.getAsMention() + " from the ticket.").setEphemeral(true).queue();
+                            event.reply("✅ Removed " + m.getAsMention() + " from the ticket.").setEphemeral(false).queue();
                         },
-                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(true).queue()
+                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(false).queue()
                 );
             }
         } catch (Exception e) { log.error("Modal error", e); }
