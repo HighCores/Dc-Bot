@@ -17,7 +17,7 @@ import java.util.Set;
 public class DiscountService {
 
     public static void sendDiscountPanel(SlashCommandInteractionEvent event) {
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(java.time.ZoneId.of("Asia/Riyadh"));
         sendDiscountPanel(event, now.getYear(), now.getMonthValue());
     }
 

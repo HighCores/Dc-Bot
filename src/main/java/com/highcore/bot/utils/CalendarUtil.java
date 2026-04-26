@@ -13,7 +13,7 @@ public class CalendarUtil {
         LocalDate firstDay = ym.atDay(1);
         int length = ym.lengthOfMonth();
         int startOffset = firstDay.getDayOfWeek().getValue() % 7; // Sunday = 0
-        LocalDate now = LocalDate.now();
+        LocalDate now = LocalDate.now(java.time.ZoneId.of("Asia/Riyadh"));
 
         StringBuilder sb = new StringBuilder();
         String monthName = ym.getMonth().getDisplayName(TextStyle.FULL, Locale.ENGLISH);
