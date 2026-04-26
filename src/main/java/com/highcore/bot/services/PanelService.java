@@ -174,6 +174,26 @@ public class PanelService {
 
         boolean useV2 = components.stream().anyMatch(c -> c instanceof Container);
 
+        if (target instanceof SlashCommandInteractionEvent event && !ephemeral && useV2) {
+            try {
+                net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();
+                if (contentRaw != null) builder.setContent(contentRaw);
+                builder.setComponents(components);
+                builder.useComponentsV2(useV2);
+
+                if (!event.isAcknowledged()) {
+                    event.deferReply(true).queue(success -> {
+                        event.getChannel().sendMessage(builder.build()).useComponentsV2(useV2).queue();
+                    });
+                } else {
+                    event.getChannel().sendMessage(builder.build()).useComponentsV2(useV2).queue();
+                }
+                return;
+            } catch (Exception ex) {
+                log.error("PanelService standalone reply failure", ex);
+            }
+        }
+
         if (target instanceof IReplyCallback event) {
             try {
                 net.dv8tion.jda.api.utils.messages.MessageCreateBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder();

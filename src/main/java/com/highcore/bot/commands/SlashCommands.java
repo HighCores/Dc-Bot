@@ -87,6 +87,12 @@ public class SlashCommands extends ListenerAdapter {
             event.replyModal(Modal.create("modal_boter", "Send via Bot")
                 .addComponents(net.dv8tion.jda.api.components.label.Label.of("Message", msg))
                 .build()).queue();
+        } else if (name.equals("discounts")) {
+            if (!Config.isAdmin(event.getMember())) {
+                PanelService.replyEphemeral(event, EmbedUtil.accessDenied());
+                return;
+            }
+            com.highcore.bot.services.DiscountService.sendDiscountPanel(event);
         }
     }
 
