@@ -71,7 +71,7 @@ public class MessageListener extends ListenerAdapter {
             return;
         }
 
-        if (AIService.isAIEnabled(channelId)) {
+        if (!isAboveLaw && AIService.isAIEnabled(channelId)) {
             event.getMessage().delete().queue(null, (err) -> {});
             event.getChannel().sendTyping().queue();
             event.getChannel().sendMessage(AIService.chat(userId, content)).queue();
@@ -79,7 +79,7 @@ public class MessageListener extends ListenerAdapter {
         }
 
         // 🤖 Auto Replies
-        String autoReply = AutoReplyService.getResponse(content);
+        String autoReply = isAboveLaw ? null : AutoReplyService.getResponse(content);
         if (autoReply != null) {
             event.getMessage().reply(autoReply).queue();
             return;

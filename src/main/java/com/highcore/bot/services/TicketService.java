@@ -225,6 +225,17 @@ public class TicketService {
                 });
     }
 
+    private static ActionRow buildTicketManageMenu() {
+        return ActionRow.of(
+                StringSelectMenu.create("ticket_manage_menu")
+                        .setPlaceholder("...إدارة التذكرة")
+                        .addOption("تغيير الاسم", "ticket_manage_rename")
+                        .addOption("إضافة عضو", "ticket_manage_add")
+                        .addOption("إزالة عضو", "ticket_manage_remove")
+                        .build()
+        );
+    }
+
     private static Container rebuildWelcomeContainer(JsonObject ticket, boolean claimed, Member staff, TextChannel ch) {
         JsonObject meta = ticket.getAsJsonObject("metadata");
         String tid = ticket.get("ticket_id").getAsString();
@@ -283,7 +294,7 @@ public class TicketService {
         String title = type.equalsIgnoreCase("COMPLAINT") ? "Complaint Board" : "Support Center";
         String banner = type.equalsIgnoreCase("COMPLAINT") ? EmbedUtil.BANNER_COMPLAINT : EmbedUtil.BANNER_SUPPORT;
 
-        return EmbedUtil.containerBranded(title, "Case #" + tid, b.toString(), banner, row);
+        return EmbedUtil.containerBranded(title, "Case #" + tid, b.toString(), banner, buildTicketManageMenu(), row);
     }
 
     private static Container buildOrderPipelineContainer(JsonObject ticket, boolean claimed, Member staff) {
@@ -328,7 +339,7 @@ public class TicketService {
                 Button.secondary("ticket_close", "Close Ticket"));
 
         return EmbedUtil.containerBranded("Order Pipeline", "Case #" + tid, b.toString(), EmbedUtil.BANNER_ORDER_TICKET,
-                row);
+                buildTicketManageMenu(), row);
     }
 
     public static void claimTicket(TextChannel ch, Member member, ButtonInteractionEvent event) {

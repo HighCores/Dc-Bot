@@ -89,6 +89,28 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.startsWith("translate_init_")) {
                  // Forward to handleTranslationRequest if it exists in TranslationListener or implement here
                  // For now, use existing pattern if available
+            } else if (id.startsWith("ticket_") && !id.startsWith("ticket_init_")) {
+                Member member = event.getMember();
+                if (member == null) return;
+                
+                // Restriction for ticket options
+                if (member.getRoles().stream().noneMatch(r -> r.getId().equals("1488795130008961040"))) {
+                    event.reply("هذا الخيار متاح فقط لرتبة الإدارة المخصصة.").setEphemeral(true).queue();
+                    return;
+                }
+
+                TextChannel tc = event.getChannel().asTextChannel();
+                switch (id) {
+                    case "ticket_claim" -> TicketService.claimTicket(tc, member, event);
+                    case "ticket_unclaim" -> TicketService.unclaimTicket(tc, member, event);
+                    case "ticket_close" -> TicketService.requestCloseConfirmation(event);
+                    case "ticket_close_final" -> TicketService.closeTicket(event, member);
+                    case "ticket_reopen" -> TicketService.reopenTicket(tc, member, event);
+                    case "ticket_transcript" -> TicketService.transcriptTicket(tc, member, event);
+                    case "ticket_delete_init" -> TicketService.requestDeleteConfirmation(event);
+                    case "ticket_delete_final" -> TicketService.deleteTicket(tc);
+                    case "ticket_verify" -> event.reply("✅ Payment verification system initialized. Staff will review shortly.").setEphemeral(true).queue();
+                }
             }
         } catch (Exception e) { log.error("Button error", e); }
     }
@@ -104,6 +126,46 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("about_category_select")) {
                 String cat = event.getValues().get(0).replace("about_", "");
                 PanelService.sendServicePriceInfo(event, cat);
+            } else if (id.equals("ticket_manage_menu")) {
+                String selection = event.getValues().get(0);
+                Member member = event.getMember();
+                if (member == null) return;
+                
+                // Permission check: only specific management role can manage tickets
+                if (member.getRoles().stream().noneMatch(r -> r.getId().equals("1488795130008961040"))) {
+                    event.reply("You do not have permission to manage this ticket.").setEphemeral(true).queue();
+                    return;
+                }
+
+                switch (selection) {
+                    case "ticket_manage_rename":
+                        TextInput nameInput = TextInput.create("new_name", "الاسم الجديد", TextInputStyle.SHORT)
+                                .setPlaceholder("ادخل الاسم الجديد هنا...")
+                                .setRequired(true)
+                                .build();
+                        event.replyModal(Modal.create("modal_ticket_rename", "تغيير اسم التذكرة")
+                                .addComponents(ActionRow.of(nameInput))
+                                .build()).queue();
+                        break;
+                    case "ticket_manage_add":
+                        TextInput addInput = TextInput.create("user_id", "معرف العضو (ID)", TextInputStyle.SHORT)
+                                .setPlaceholder("ادخل ID العضو لإضافته...")
+                                .setRequired(true)
+                                .build();
+                        event.replyModal(Modal.create("modal_ticket_add", "إضافة عضو للتذكرة")
+                                .addComponents(ActionRow.of(addInput))
+                                .build()).queue();
+                        break;
+                    case "ticket_manage_remove":
+                        TextInput removeInput = TextInput.create("user_id", "معرف العضو (ID)", TextInputStyle.SHORT)
+                                .setPlaceholder("ادخل ID العضو لإزالته...")
+                                .setRequired(true)
+                                .build();
+                        event.replyModal(Modal.create("modal_ticket_remove", "إزالة عضو من التذكرة")
+                                .addComponents(ActionRow.of(removeInput))
+                                .build()).queue();
+                        break;
+                }
             }
         } catch (Exception e) { log.error("Select error", e); }
     }
@@ -150,6 +212,34 @@ public class CentralInteractionListener extends ListenerAdapter {
                         event.getHook().sendMessage("Transmission deployed.").setEphemeral(true).queue();
                     }
                 }
+            } else if (id.equals("modal_ticket_rename")) {
+                String newName = event.getValue("new_name").getAsString();
+                event.getGuildChannel().asTextChannel().getManager().setName(newName).queue(
+                        v -> event.reply("✅ تم تغيير اسم القناة إلى: `" + newName + "`").setEphemeral(true).queue(),
+                        e -> event.reply("❌ فشل تغيير اسم القناة: " + e.getMessage()).setEphemeral(true).queue()
+                );
+            } else if (id.equals("modal_ticket_add")) {
+                String userId = event.getValue("user_id").getAsString();
+                event.getGuild().retrieveMemberById(userId).queue(
+                        m -> {
+                            event.getGuildChannel().asTextChannel().getManager()
+                                    .putMemberPermissionOverride(m.getIdLong(), java.util.EnumSet.of(net.dv8tion.jda.api.Permission.VIEW_CHANNEL, net.dv8tion.jda.api.Permission.MESSAGE_SEND), null)
+                                    .queue();
+                            event.reply("✅ تم إضافة " + m.getAsMention() + " إلى التذكرة.").setEphemeral(true).queue();
+                        },
+                        e -> event.reply("❌ لم يتم العثور على عضو بهذا المعرف.").setEphemeral(true).queue()
+                );
+            } else if (id.equals("modal_ticket_remove")) {
+                String userId = event.getValue("user_id").getAsString();
+                event.getGuild().retrieveMemberById(userId).queue(
+                        m -> {
+                            event.getGuildChannel().asTextChannel().getManager()
+                                    .removePermissionOverride(m.getIdLong())
+                                    .queue();
+                            event.reply("✅ تم إزالة " + m.getAsMention() + " من التذكرة.").setEphemeral(true).queue();
+                        },
+                        e -> event.reply("❌ لم يتم العثور على عضو بهذا المعرف.").setEphemeral(true).queue()
+                );
             }
         } catch (Exception e) { log.error("Modal error", e); }
     }
