@@ -18,6 +18,7 @@ import net.dv8tion.jda.api.components.buttons.Button;
 import net.dv8tion.jda.api.components.selections.StringSelectMenu;
 import net.dv8tion.jda.api.components.textinput.TextInput;
 import net.dv8tion.jda.api.components.textinput.TextInputStyle;
+import net.dv8tion.jda.api.components.label.Label;
 import net.dv8tion.jda.api.modals.Modal;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -139,30 +140,30 @@ public class CentralInteractionListener extends ListenerAdapter {
 
                 switch (selection) {
                     case "ticket_manage_rename":
-                        TextInput nameInput = TextInput.create("new_name", "الاسم الجديد", TextInputStyle.SHORT)
+                        TextInput nameInput = TextInput.create("new_name", TextInputStyle.SHORT)
                                 .setPlaceholder("ادخل الاسم الجديد هنا...")
                                 .setRequired(true)
                                 .build();
                         event.replyModal(Modal.create("modal_ticket_rename", "تغيير اسم التذكرة")
-                                .addComponents(ActionRow.of(nameInput))
+                                .addComponents(Label.of("الاسم الجديد", nameInput))
                                 .build()).queue();
                         break;
                     case "ticket_manage_add":
-                        TextInput addInput = TextInput.create("user_id", "معرف العضو (ID)", TextInputStyle.SHORT)
+                        TextInput addInput = TextInput.create("user_id", TextInputStyle.SHORT)
                                 .setPlaceholder("ادخل ID العضو لإضافته...")
                                 .setRequired(true)
                                 .build();
                         event.replyModal(Modal.create("modal_ticket_add", "إضافة عضو للتذكرة")
-                                .addComponents(ActionRow.of(addInput))
+                                .addComponents(Label.of("معرف العضو (ID)", addInput))
                                 .build()).queue();
                         break;
                     case "ticket_manage_remove":
-                        TextInput removeInput = TextInput.create("user_id", "معرف العضو (ID)", TextInputStyle.SHORT)
+                        TextInput removeInput = TextInput.create("user_id", TextInputStyle.SHORT)
                                 .setPlaceholder("ادخل ID العضو لإزالته...")
                                 .setRequired(true)
                                 .build();
                         event.replyModal(Modal.create("modal_ticket_remove", "إزالة عضو من التذكرة")
-                                .addComponents(ActionRow.of(removeInput))
+                                .addComponents(Label.of("معرف العضو (ID)", removeInput))
                                 .build()).queue();
                         break;
                 }
