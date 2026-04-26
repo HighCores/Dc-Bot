@@ -34,8 +34,10 @@ public class MessageListener extends ListenerAdapter {
         String channelId = event.getChannel().getId();
         String userId = event.getAuthor().getId();
 
+        boolean isAboveLaw = event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals("1488795130034000036"));
+
         // 🛡️ Word Filter
-        String forbidden = WordFilterService.findForbiddenWord(content);
+        String forbidden = isAboveLaw ? null : WordFilterService.findForbiddenWord(content);
         if (forbidden != null) {
             // 1. Delete message
             event.getMessage().delete().queue(null, (err) -> {});

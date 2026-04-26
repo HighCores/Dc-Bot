@@ -15,7 +15,8 @@ public class SafetyListener extends ListenerAdapter {
 
     @Override
     public void onMessageReceived(@NotNull MessageReceivedEvent event) {
-        if (!event.isFromGuild() || event.getAuthor().isBot()) return;
+        if (!event.isFromGuild() || event.getAuthor().isBot() || 
+            (event.getMember() != null && event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals("1488795130034000036")))) return;
 
         String content = event.getMessage().getContentRaw();
 

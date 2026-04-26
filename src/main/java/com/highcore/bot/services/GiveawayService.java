@@ -133,7 +133,7 @@ public class GiveawayService {
                 jda.retrieveUserById(winnerId).queue(user -> {
                     // 1. Generate Image
                     byte[] winnerImg = generateWinnerImage(user, prizeDetails);
-                    
+
                     // 2. Issue Voucher/DM
                     String dchId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
                     TextChannel adminCh = (dchId != null) ? guild.getTextChannelById(dchId) : null;
@@ -151,7 +151,8 @@ public class GiveawayService {
                                 .useComponentsV2(true)
                                 .queue();
                     } else {
-                        ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n<@" + user.getId() + "> won **" + prizeDetails + "**!\n> Voucher Sent In Dm")
+                        ch.sendMessage("### \uD83C\uDF8A CONGRATULATIONS\n<@" + user.getId() + "> won **" + prizeDetails
+                                + "**!\n> Voucher Sent In Dm")
                                 .queue();
                     }
                 }, e -> log.error("Failed to retrieve winner {}: {}", winnerId, e.getMessage()));
@@ -231,7 +232,7 @@ public class GiveawayService {
             FontMetrics metrics = g.getFontMetrics();
             int nameX = 1292 + (801 - metrics.stringWidth(name)) / 2;
             int nameY = 638 + ((80 - metrics.getHeight()) / 2) + metrics.getAscent();
-            
+
             g.drawString(name, nameX, nameY);
 
             g.dispose();
