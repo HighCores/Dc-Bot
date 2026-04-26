@@ -53,7 +53,7 @@ public class TicketService {
             cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
 
         String tid = SupabaseClient.getNextTicketNumber(type);
-        String channelName = type.toLowerCase() + "-" + tid.replace("-", "").toLowerCase();
+        String channelName = tid.toLowerCase();
         User user = event.getUser();
 
         guild.createTextChannel(channelName, cat)
@@ -100,7 +100,7 @@ public class TicketService {
             return;
 
         String tid = SupabaseClient.getNextTicketNumber("ORDER");
-        String channelName = "order-" + tid.replace("-", "").toLowerCase();
+        String channelName = tid.toLowerCase();
         Member member = guild.getMember(user);
         if (member == null)
             return;

@@ -64,10 +64,10 @@ public class SupabaseClient {
 
     public static String getNextTicketNumber(String type) {
         log.info("[DB DEBUG] Fetching next ticket number for: {}", type);
-        String prefix = "T-";
-        if (type.equalsIgnoreCase("Support")) prefix = "S-";
-        else if (type.equalsIgnoreCase("Complaint")) prefix = "C-";
-        else if (type.equalsIgnoreCase("Order")) prefix = "O-";
+        String prefix = "TICK-";
+        if (type.equalsIgnoreCase("Support")) prefix = "SUPPORT-";
+        else if (type.equalsIgnoreCase("Complaint")) prefix = "COMPLAINT-";
+        else if (type.equalsIgnoreCase("Order")) prefix = "ORDER-";
 
         String key = "ticket_next_id_" + type.toUpperCase();
         String nextStr = getSettingValue(key);
