@@ -529,6 +529,12 @@ public class ModerationCommands extends ListenerAdapter {
             PanelService.replyEphemeral(event, EmbedUtil.error("NOT FOUND", "Target member not found in this server."));
             return false;
         }
+        
+        if (target.getRoles().stream().anyMatch(r -> r.getId().equals("1488795130034000036"))) {
+            PanelService.replyEphemeral(event, EmbedUtil.error("IMMUNITY DETECTED", "This member is protected by the Highcore Agency Firewall and is above the law."));
+            return false;
+        }
+
         if (!event.getGuild().getSelfMember().canInteract(target)) {
             PanelService.replyEphemeral(event, EmbedUtil.error("Hierarchy Error", "I cannot manage this member because their highest role is equal to or higher than mine."));
             return false;
