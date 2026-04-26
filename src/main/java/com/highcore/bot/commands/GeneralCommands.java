@@ -21,7 +21,31 @@ public class GeneralCommands extends ListenerAdapter {
             case "title" -> handleTitle(event);
             case "line" -> handleLine(event);
             case "order" -> PanelService.handleOrderFlow(event);
-            case "terms" -> PanelService.reply(event, EmbedUtil.rulePanel());
+            case "terms" -> {
+                String[] imgs = {
+                    "https://i.imgur.com/KTPxBfL.png",
+                    "https://i.imgur.com/1454z6W.png",
+                    "https://i.imgur.com/SGcSGsl.png",
+                    "https://i.imgur.com/2lSKtYH.png",
+                    "https://i.imgur.com/jL2SV1F.png",
+                    "https://i.imgur.com/Z8Whznm.png",
+                    "https://i.imgur.com/pVu4NGX.png",
+                    "https://i.imgur.com/KTPxBfL.png"
+                };
+                
+                // 1. Text Rules
+                PanelService.reply(event, EmbedUtil.rulePanel());
+
+                // 2. Banners
+                java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+                for (int i = 0; i < imgs.length; i++) {
+                    layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(imgs[i])));
+                    if (i < imgs.length - 1) {
+                        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+                    }
+                }
+                PanelService.reply(event, net.dv8tion.jda.api.components.container.Container.of(layout));
+            }
         }
     }
 
