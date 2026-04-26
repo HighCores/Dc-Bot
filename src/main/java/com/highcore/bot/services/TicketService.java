@@ -52,9 +52,8 @@ public class TicketService {
         if (cat == null)
             cat = guild.getCategoriesByName("TICKETS", true).stream().findFirst().orElse(null);
 
-        int num = SupabaseClient.getNextTicketNumber(type);
-        String tid = String.format("%04d", num);
-        String channelName = type.toLowerCase() + "-" + tid;
+        String tid = SupabaseClient.getNextTicketNumber(type);
+        String channelName = type.toLowerCase() + "-" + tid.replace("-", "").toLowerCase();
         User user = event.getUser();
 
         guild.createTextChannel(channelName, cat)
@@ -100,9 +99,8 @@ public class TicketService {
         if (cat == null)
             return;
 
-        int num = SupabaseClient.getNextTicketNumber("ORDER");
-        String tid = String.format("%04d", num);
-        String channelName = "order-" + tid;
+        String tid = SupabaseClient.getNextTicketNumber("ORDER");
+        String channelName = "order-" + tid.replace("-", "").toLowerCase();
         Member member = guild.getMember(user);
         if (member == null)
             return;
@@ -229,10 +227,10 @@ public class TicketService {
     private static ActionRow buildTicketManageMenu() {
         return ActionRow.of(
                 StringSelectMenu.create("ticket_manage_menu")
-                        .setPlaceholder("...إدارة التذكرة")
-                        .addOption("تغيير الاسم", "ticket_manage_rename")
-                        .addOption("إضافة عضو", "ticket_manage_add")
-                        .addOption("إزالة عضو", "ticket_manage_remove")
+                        .setPlaceholder("Manage Ticket...")
+                        .addOption("Rename Ticket", "ticket_manage_rename")
+                        .addOption("Add Member", "ticket_manage_add")
+                        .addOption("Remove Member", "ticket_manage_remove")
                         .build()
         );
     }

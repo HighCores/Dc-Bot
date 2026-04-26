@@ -62,8 +62,13 @@ public class SupabaseClient {
 
     // ========== TICKETS ==========
 
-    public static int getNextTicketNumber(String type) {
+    public static String getNextTicketNumber(String type) {
         log.info("[DB DEBUG] Fetching next ticket number for: {}", type);
+        String prefix = "T-";
+        if (type.equalsIgnoreCase("Support")) prefix = "S-";
+        else if (type.equalsIgnoreCase("Complaint")) prefix = "C-";
+        else if (type.equalsIgnoreCase("Order")) prefix = "O-";
+
         String key = "ticket_next_id_" + type.toUpperCase();
         String nextStr = getSettingValue(key);
         int next = 1;
@@ -71,14 +76,16 @@ public class SupabaseClient {
             try { next = Integer.parseInt(nextStr); } catch (Exception e) {}
         }
         
-        // Prevent 409 collisions by checking if the ID already exists
-        while (getTicketById(String.format("%04d", next)) != null) {
+        String formattedId;
+        while (true) {
+            formattedId = prefix + String.format("%04d", next);
+            if (getTicketById(formattedId) == null) break;
             next++;
         }
 
         setSetting(key, String.valueOf(next + 1));
-        log.info("[DB DEBUG] Resulting ticket number: {}", next);
-        return next;
+        log.info("[DB DEBUG] Resulting ticket ID: {}", formattedId);
+        return formattedId;
     }
 
     public static JsonObject getTicketByChannel(String channelId) {

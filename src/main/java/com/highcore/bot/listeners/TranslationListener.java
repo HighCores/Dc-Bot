@@ -43,14 +43,14 @@ public class TranslationListener extends ListenerAdapter {
             String type = id.replace("translate_init_", "");
             
             StringSelectMenu menu = StringSelectMenu.create("translate_lang_" + type)
-                    .setPlaceholder("Select Language / اختر اللغة")
+                    .setPlaceholder("Select Language")
                     .addOption("English", "en", "Translate to English", Emoji.fromUnicode("🇺🇸"))
                     .addOption("Turkish", "tr", "Translate to Turkish", Emoji.fromUnicode("🇹🇷"))
                     .addOption("Russian", "ru", "Translate to Russian", Emoji.fromUnicode("🇷🇺"))
                     .addOption("French", "fr", "Translate to French", Emoji.fromUnicode("🇫🇷"))
                     .build();
 
-            event.reply("Choose your language / اختر لغتك:")
+            event.reply("Choose your language:")
                     .setEphemeral(true)
                     .setComponents(ActionRow.of(menu))
                     .queue();

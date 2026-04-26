@@ -96,7 +96,7 @@ public class CentralInteractionListener extends ListenerAdapter {
                 
                 // Restriction for ticket options
                 if (member.getRoles().stream().noneMatch(r -> r.getId().equals("1488795130008961040"))) {
-                    event.reply("هذا الخيار متاح فقط لرتبة الإدارة المخصصة.").setEphemeral(true).queue();
+                    event.reply("This option is only available for the designated management role.").setEphemeral(true).queue();
                     return;
                 }
 
@@ -141,29 +141,29 @@ public class CentralInteractionListener extends ListenerAdapter {
                 switch (selection) {
                     case "ticket_manage_rename":
                         TextInput nameInput = TextInput.create("new_name", TextInputStyle.SHORT)
-                                .setPlaceholder("ادخل الاسم الجديد هنا...")
+                                .setPlaceholder("Enter the new name here...")
                                 .setRequired(true)
                                 .build();
-                        event.replyModal(Modal.create("modal_ticket_rename", "تغيير اسم التذكرة")
-                                .addComponents(Label.of("الاسم الجديد", nameInput))
+                        event.replyModal(Modal.create("modal_ticket_rename", "Rename Ticket")
+                                .addComponents(Label.of("New Name", nameInput))
                                 .build()).queue();
                         break;
                     case "ticket_manage_add":
                         TextInput addInput = TextInput.create("user_id", TextInputStyle.SHORT)
-                                .setPlaceholder("ادخل ID العضو لإضافته...")
+                                .setPlaceholder("Enter Member ID to add...")
                                 .setRequired(true)
                                 .build();
-                        event.replyModal(Modal.create("modal_ticket_add", "إضافة عضو للتذكرة")
-                                .addComponents(Label.of("معرف العضو (ID)", addInput))
+                        event.replyModal(Modal.create("modal_ticket_add", "Add Member to Ticket")
+                                .addComponents(Label.of("Member ID", addInput))
                                 .build()).queue();
                         break;
                     case "ticket_manage_remove":
                         TextInput removeInput = TextInput.create("user_id", TextInputStyle.SHORT)
-                                .setPlaceholder("ادخل ID العضو لإزالته...")
+                                .setPlaceholder("Enter Member ID to remove...")
                                 .setRequired(true)
                                 .build();
-                        event.replyModal(Modal.create("modal_ticket_remove", "إزالة عضو من التذكرة")
-                                .addComponents(Label.of("معرف العضو (ID)", removeInput))
+                        event.replyModal(Modal.create("modal_ticket_remove", "Remove Member from Ticket")
+                                .addComponents(Label.of("Member ID", removeInput))
                                 .build()).queue();
                         break;
                 }
@@ -216,8 +216,8 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("modal_ticket_rename")) {
                 String newName = event.getValue("new_name").getAsString();
                 event.getGuildChannel().asTextChannel().getManager().setName(newName).queue(
-                        v -> event.reply("✅ تم تغيير اسم القناة إلى: `" + newName + "`").setEphemeral(true).queue(),
-                        e -> event.reply("❌ فشل تغيير اسم القناة: " + e.getMessage()).setEphemeral(true).queue()
+                        v -> event.reply("✅ Channel name changed to: `" + newName + "`").setEphemeral(true).queue(),
+                        e -> event.reply("❌ Failed to change channel name: " + e.getMessage()).setEphemeral(true).queue()
                 );
             } else if (id.equals("modal_ticket_add")) {
                 String userId = event.getValue("user_id").getAsString();
@@ -226,9 +226,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                             event.getGuildChannel().asTextChannel().getManager()
                                     .putMemberPermissionOverride(m.getIdLong(), java.util.EnumSet.of(net.dv8tion.jda.api.Permission.VIEW_CHANNEL, net.dv8tion.jda.api.Permission.MESSAGE_SEND), null)
                                     .queue();
-                            event.reply("✅ تم إضافة " + m.getAsMention() + " إلى التذكرة.").setEphemeral(true).queue();
+                            event.reply("✅ Added " + m.getAsMention() + " to the ticket.").setEphemeral(true).queue();
                         },
-                        e -> event.reply("❌ لم يتم العثور على عضو بهذا المعرف.").setEphemeral(true).queue()
+                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(true).queue()
                 );
             } else if (id.equals("modal_ticket_remove")) {
                 String userId = event.getValue("user_id").getAsString();
@@ -237,9 +237,9 @@ public class CentralInteractionListener extends ListenerAdapter {
                             event.getGuildChannel().asTextChannel().getManager()
                                     .removePermissionOverride(m.getIdLong())
                                     .queue();
-                            event.reply("✅ تم إزالة " + m.getAsMention() + " من التذكرة.").setEphemeral(true).queue();
+                            event.reply("✅ Removed " + m.getAsMention() + " from the ticket.").setEphemeral(true).queue();
                         },
-                        e -> event.reply("❌ لم يتم العثور على عضو بهذا المعرف.").setEphemeral(true).queue()
+                        e -> event.reply("❌ Member not found with this ID.").setEphemeral(true).queue()
                 );
             }
         } catch (Exception e) { log.error("Modal error", e); }
