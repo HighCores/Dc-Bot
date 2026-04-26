@@ -101,9 +101,6 @@ public class MessageListener extends ListenerAdapter {
                 "https://i.imgur.com/KTPxBfL.png"
             };
 
-            // 1. Text Rules
-            PanelService.reply(event.getChannel(), EmbedUtil.rulePanel());
-
             // 2. Banners
             List<ContainerChildComponent> layout = new ArrayList<>();
             for (int i = 0; i < imgs.length; i++) {

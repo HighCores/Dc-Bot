@@ -33,9 +33,6 @@ public class GeneralCommands extends ListenerAdapter {
                     "https://i.imgur.com/KTPxBfL.png"
                 };
                 
-                // 1. Text Rules
-                PanelService.reply(event, EmbedUtil.rulePanel());
-
                 // 2. Banners
                 java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
                 for (int i = 0; i < imgs.length; i++) {
