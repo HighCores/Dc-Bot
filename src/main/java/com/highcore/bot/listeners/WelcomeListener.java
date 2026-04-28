@@ -22,7 +22,7 @@ public class WelcomeListener extends ListenerAdapter {
     @Override
     public void onGuildMemberJoin(GuildMemberJoinEvent event) {
         log.info("Member joined: {} in {}", event.getMember().getUser().getName(), event.getGuild().getName());
-        
+
         try {
             byte[] welcomeImage = WelcomeCardService.generateWelcomeCard(event.getMember());
             sendWelcomeMessage(event.getMember(), event.getGuild(), welcomeImage);
@@ -32,12 +32,16 @@ public class WelcomeListener extends ListenerAdapter {
             sendWelcomeMessage(event.getMember(), event.getGuild(), null);
         }
 
-        logActivity(event.getGuild(), "Member Joined", "A new member has joined: **" + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")", com.highcore.bot.utils.EmbedUtil.SUCCESS);
+        logActivity(event.getGuild(), "Member Joined", "A new member has joined: **"
+                + event.getMember().getUser().getName() + "** (" + event.getMember().getId() + ")",
+                com.highcore.bot.utils.EmbedUtil.SUCCESS);
     }
 
     @Override
     public void onGuildMemberRemove(net.dv8tion.jda.api.events.guild.member.GuildMemberRemoveEvent event) {
-        logActivity(event.getGuild(), "Member Left", "A member has left the server: **" + event.getUser().getName() + "** (" + event.getUser().getId() + ")", com.highcore.bot.utils.EmbedUtil.DANGER);
+        logActivity(event.getGuild(), "Member Left",
+                "A member has left the server: **" + event.getUser().getName() + "** (" + event.getUser().getId() + ")",
+                com.highcore.bot.utils.EmbedUtil.DANGER);
     }
 
     private void logActivity(Guild guild, String title, String body, java.awt.Color color) {
@@ -49,25 +53,29 @@ public class WelcomeListener extends ListenerAdapter {
 
     private void sendWelcomeMessage(Member member, Guild guild, byte[] image) {
         TextChannel ch = guild.getTextChannelById(Config.WELCOME_CHANNEL_ID);
-        if (ch == null) return;
+        if (ch == null)
+            return;
 
         String header = String.format("### - WELCOME TO HIGHCORE | %s", member.getAsMention());
         String guide = """
                 **Start Here :**
-                
+
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
                 """;
 
-        String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.WELCOME_BG_URL;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
-        if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
+        if (bannerUrl != null)
+            layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery
+                    .of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(header));
-        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+        layout.add(net.dv8tion.jda.api.components.separator.Separator
+                .createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(guide));
         Container c = Container.of(layout);
-        
+
         var message = ch.sendMessageComponents(c).useComponentsV2(true);
         if (image != null) {
             message.addFiles(FileUpload.fromData(image, "welcome.png"));
@@ -81,7 +89,7 @@ public class WelcomeListener extends ListenerAdapter {
         String header = String.format("### - WELCOME TO HIGHCORE | %s", member.getUser().getAsMention());
         String guide = """
                 **Start Here :**
-                
+
                 Highcore → <#1488795130470072321>
                 Order → <#1493239936583860416>
                 Prices → <#1497186489560465618>
@@ -89,9 +97,12 @@ public class WelcomeListener extends ListenerAdapter {
 
         String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.BANNER_MAIN;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
-        if (bannerUrl != null) layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
+        if (bannerUrl != null)
+            layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery
+                    .of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(bannerUrl)));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(header));
-        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+        layout.add(net.dv8tion.jda.api.components.separator.Separator
+                .createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
         layout.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of(guide));
         Container c = Container.of(layout);
 
