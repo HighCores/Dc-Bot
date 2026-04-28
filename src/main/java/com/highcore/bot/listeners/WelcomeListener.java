@@ -65,7 +65,7 @@ public class WelcomeListener extends ListenerAdapter {
                 Prices → <#1497186489560465618>
                 """;
 
-        String bannerUrl = (image != null) ? "attachment://welcome.png" : EmbedUtil.WELCOME_BG_URL;
+        String bannerUrl = (image != null) ? "attachment://welcome.png" : com.highcore.bot.config.Config.WELCOME_BG_URL;
         List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new ArrayList<>();
         if (bannerUrl != null)
             layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery
