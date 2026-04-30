@@ -43,6 +43,24 @@ public class GeneralCommands extends ListenerAdapter {
                 }
                 PanelService.reply(event, net.dv8tion.jda.api.components.container.Container.of(layout));
             }
+            case "prices" -> {
+                String[] imgs = {
+                    "https://i.imgur.com/2qAETE2.png",
+                    "https://i.imgur.com/2qAETE2.png",
+                    "https://i.imgur.com/2qAETE2.png",
+                    "https://i.imgur.com/2qAETE2.png",
+                    "https://i.imgur.com/2qAETE2.png"
+                };
+                
+                java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
+                for (int i = 0; i < imgs.length; i++) {
+                    layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(imgs[i])));
+                    if (i < imgs.length - 1) {
+                        layout.add(net.dv8tion.jda.api.components.separator.Separator.createDivider(net.dv8tion.jda.api.components.separator.Separator.Spacing.SMALL));
+                    }
+                }
+                PanelService.reply(event, net.dv8tion.jda.api.components.container.Container.of(layout));
+            }
         }
     }
 

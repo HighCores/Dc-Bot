@@ -303,6 +303,7 @@ public class Main {
                                 Commands.slash("roll", "Roll the dice"),
                                 Commands.slash("order", "Start a new project order"),
                                 Commands.slash("terms", "View agency terms and rules"),
+                                Commands.slash("prices", "View agency services prices"),
                                 Commands.slash("line", "Send the global line separator")).queue();
         }
 }
