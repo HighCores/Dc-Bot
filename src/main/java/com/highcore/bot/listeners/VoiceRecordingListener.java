@@ -116,7 +116,16 @@ public class VoiceRecordingListener extends ListenerAdapter {
         }
 
         if (id.equals("rec_cancel")) {
-            event.editMessage("Action cancelled.").setComponents().queue();
+            net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                "VERIFY",
+                "Action Cancelled",
+                "The recording action was cancelled.",
+                com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+            );
+            event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                    .setComponents(container)
+                    .useComponentsV2(true)
+                    .build()).queue();
             return;
         }
 
@@ -125,9 +134,27 @@ public class VoiceRecordingListener extends ListenerAdapter {
             AudioRecorder recorder = recorders.get(guild.getIdLong());
             if (recorder != null) {
                 recorder.setRecording(true);
-                event.editMessage("✅ Recording **STARTED**.").setComponents().queue();
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "PROTOCOL",
+                    "Recording Started",
+                    "✅ The recording session has been **STARTED**.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build()).queue();
             } else {
-                event.editMessage("❌ Bot is not currently recording in a voice channel.").setComponents().queue();
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "ERROR",
+                    "Recording Error",
+                    "❌ Bot is not currently recording in a voice channel.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build()).queue();
             }
             return;
         }
@@ -137,9 +164,27 @@ public class VoiceRecordingListener extends ListenerAdapter {
             AudioRecorder recorder = recorders.get(guild.getIdLong());
             if (recorder != null) {
                 recorder.setRecording(false);
-                event.editMessage("⏸️ Recording **STOPPED**.").setComponents().queue();
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "PROTOCOL",
+                    "Recording Stopped",
+                    "⏸️ The recording session has been **STOPPED**.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build()).queue();
             } else {
-                event.editMessage("❌ Bot is not currently recording in a voice channel.").setComponents().queue();
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "ERROR",
+                    "Recording Error",
+                    "❌ Bot is not currently recording in a voice channel.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build()).queue();
             }
             return;
         }
@@ -154,13 +199,39 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 
                 if (audioManager.isConnected() && connectedChannel != null) {
                     connectAndStartRecording(guild, audioManager.getConnectedChannel());
-                    event.editMessage("🔄 Recording saved. A new session is ready. Click **Start** to begin recording.")
-                            .setComponents().queue();
+                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                        "PROTOCOL",
+                        "New Session",
+                        "🔄 Recording saved. A new session is ready. Click **Start** to begin recording.",
+                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                    );
+                    event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                            .setComponents(container)
+                            .useComponentsV2(true)
+                            .build()).queue();
                 } else {
-                    event.editMessage("❌ Bot is not connected anymore.").setComponents().queue();
+                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                        "ERROR",
+                        "Connection Error",
+                        "❌ Bot is not connected anymore.",
+                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                    );
+                    event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                            .setComponents(container)
+                            .useComponentsV2(true)
+                            .build()).queue();
                 }
             } else {
-                event.editMessage("❌ No active recording found.").setComponents().queue();
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "ERROR",
+                    "Recording Error",
+                    "❌ No active recording found.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build()).queue();
             }
             return;
         }
