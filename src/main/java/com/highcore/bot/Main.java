@@ -16,6 +16,9 @@ import net.dv8tion.jda.api.interactions.commands.build.OptionData;
 import net.dv8tion.jda.api.interactions.commands.build.SubcommandData;
 import net.dv8tion.jda.api.requests.GatewayIntent;
 import net.dv8tion.jda.api.utils.MemberCachePolicy;
+import net.dv8tion.jda.api.audio.AudioModuleConfig;
+import moe.kyokobot.libdave.NativeDaveFactory;
+import moe.kyokobot.libdave.jda.LDJDADaveSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,6 +42,8 @@ public class Main {
                 }
 
                 JDA jda = JDABuilder.createDefault(Config.DISCORD_TOKEN)
+                                .setAudioModuleConfig(new AudioModuleConfig()
+                                                .withDaveSessionFactory(new LDJDADaveSessionFactory(new NativeDaveFactory())))
                                 .setStatus(OnlineStatus.ONLINE)
                                 .setActivity(Activity.watching("High Core [v1.2.0]"))
                                 .enableIntents(GatewayIntent.GUILD_MESSAGES, GatewayIntent.GUILD_MEMBERS,
