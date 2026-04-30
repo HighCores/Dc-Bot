@@ -95,180 +95,180 @@ public class Main {
 
                 guild.updateCommands().addCommands(
                                 // ===== Core & Business (Administrative) =====
-                                Commands.slash("startup", "Display the main control panel")
+                                Commands.slash("startup", "فـــتــــح بـــنـــل الـــتـــحـــكـــم")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("tickets", "Open the ticket system")
+                                Commands.slash("tickets", "فـــتــــح بـــنـــل الــتـــكـــتــات")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("bc", "Broadcast a mass message")
-                                                .addOption(OptionType.STRING, "message", "Message content",
+                                Commands.slash("bc", "إرســـــال بـــــروكــــاســــت لــــلــــجــــمــــيــــع")
+                                                .addOption(OptionType.STRING, "message", "مـــحـــتـــوى الـــرســـالـــة",
                                                                 true)
                                                 .addOption(OptionType.ROLE, "role",
-                                                                "Target role", false)
+                                                                "الـــرتـــبـــة الـــمـــســـتـــهـــدفـــة", false)
                                                 .addOption(OptionType.ATTACHMENT, "attachment",
-                                                                "Media attachment", false)
+                                                                "الـــمـــلـــف الـــمـــرفـــق", false)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("discounts", "Manage discounts and scheduling system")
+                                Commands.slash("discounts", "إدارة نــــظــــام الــــتـــخـــفـــيـــضــــات")
                                                 .setDefaultPermissions(adminPerms),
 
                                 // ===== Moderation (Administrative) =====
-                                Commands.slash("setnick", "Change a member's nickname")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("setnick", "تــــغــــيــــيــــر لــــقــــب الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.STRING, "nick", "New nickname", true)
+                                                .addOption(OptionType.STRING, "nick", "الـــلـــقـــب الـــجـــديـــد", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("ban", "Ban a member from the server")
+                                Commands.slash("ban", "بـــــان لــــلــــعــــضـــــو")
                                                 .addOption(OptionType.USER, "user", "The member", true)
-                                                .addOption(OptionType.STRING, "reason", "The reason", false)
+                                                .addOption(OptionType.STRING, "reason", "الـــســـبـــب", false)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("unban", "Unban a member")
-                                                .addOption(OptionType.STRING, "user_id", "Member ID", true)
+                                Commands.slash("unban", "فـــــك الــــبــــان عــــن الـــعـــضــــو")
+                                                .addOption(OptionType.STRING, "user_id", "إي دي الـــعـــضـــو", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("unban-all", "Clear the entire ban list")
+                                Commands.slash("unban-all", "فـــــك الــــبــــان عــــن الـــجـــمـــيــــع")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("kick", "Kick a member from the server")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("kick", "طـــــرد الــــعــــضــــو مــــن الـــســـيـــرفــــر")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.STRING, "reason", "The reason", false)
+                                                .addOption(OptionType.STRING, "reason", "الـــســـبـــب", false)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("vkick", "Kick a member from the voice channel")
-                                                .addOption(OptionType.USER, "user", "Target member",
-                                                                true)
-                                                .setDefaultPermissions(adminPerms),
-                                Commands.slash("mute-text", "Mute a member from chat")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("vkick", "طـــــرد الــــعــــضــــو مــــن الـــروم الـــصـــوتـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("unmute-text", "Unmute a member from chat")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("mute-text", "إعـــــطــــاء مـــيـــوت كـــتـــابـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("mute-check", "Check a member's mute status")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("unmute-text", "فـــــك الـــمـــيـــوت الـــكـــتـــابـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("mute-voice", "Mute a member from voice")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("mute-check", "الـــتـــحـــقـــق مـــن حـــالـــة الـــمـــيـــوت")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("unmute-voice", "Unmute a member from voice")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("mute-voice", "إعـــــطــــاء مـــيـــوت صـــوتـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("timeout", "Timeout a member for a duration")
-                                                .addOption(OptionType.USER, "user", "Target member",
-                                                                true)
-                                                .addOption(OptionType.INTEGER, "duration", "Duration in minutes",
+                                Commands.slash("unmute-voice", "فـــــك الـــمـــيـــوت الـــصـــوتـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("untimeout", "Remove member timeout")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("timeout", "إعـــــطــــاء تـــايـــم أوت لـــلـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
+                                                                true)
+                                                .addOption(OptionType.INTEGER, "duration", "الـــمـــدة بـــالـــدقـــائـــق",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("clear", "Clear channel messages")
-                                                .addOption(OptionType.INTEGER, "amount", "Number of messages", true)
-                                                .setDefaultPermissions(adminPerms),
-                                Commands.slash("move", "Move a member to a voice channel")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("untimeout", "فـــــك الـــتـــايـــم أوت عـــن الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.CHANNEL, "channel", "The destination", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("role", "Manage member roles")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("clear", "تـــنـــظـــيـــف الـــشـــات")
+                                                .addOption(OptionType.INTEGER, "amount", "عـــدد الـــرســـائـــل", true)
+                                                .setDefaultPermissions(adminPerms),
+                                Commands.slash("move", "ســـحـــب الـــعـــضـــو إلـــى روم صـــوتـــي")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.ROLE, "role",
-                                                                "Target role", true)
+                                                .addOption(OptionType.CHANNEL, "channel", "الـــوجـــهـــة", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("temprole", "Give a temporary role")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("role", "إدارة رتـــــب الـــعـــضــــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .addOption(OptionType.ROLE, "role",
-                                                                "Target role", true)
-                                                .addOption(OptionType.INTEGER, "duration", "Duration in hours",
-                                                                true)
+                                                                "الـــرتـــبـــة الـــمـــســـتـــهـــدفـــة", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("rar", "Remove all roles from a member")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("temprole", "إعـــــطــــاء رتـــبـــة مـــؤقـــتــــة")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .setDefaultPermissions(adminPerms),
-                                Commands.slash("inrole", "Display members in a role")
                                                 .addOption(OptionType.ROLE, "role",
-                                                                "Target role", true)
+                                                                "الـــرتـــبـــة الـــمـــســـتـــهـــدفـــة", true)
+                                                .addOption(OptionType.INTEGER, "duration", "الـــمـــدة بـــالـــســـاعـــات",
+                                                                true)
+                                                .setDefaultPermissions(adminPerms),
+                                Commands.slash("rar", "ســـحـــب جـــمـــيـــع الـــرتـــب")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
+                                                                true)
+                                                .setDefaultPermissions(adminPerms),
+                                Commands.slash("inrole", "عـــعرض الأعـــضـــاء فـــي رتـــبـــة مـــعـــيـــنـــة")
+                                                .addOption(OptionType.ROLE, "role",
+                                                                "الـــرتـــبـــة الـــمـــســـتـــهـــدفـــة", true)
                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("warn-add", "Add a warning to a member")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("warn-add", "إعـــــطــــاء تـــحـــذيـــر لـــلـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.STRING, "reason", "The reason", false)
+                                                .addOption(OptionType.STRING, "reason", "الـــســـبـــب", false)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("warn-remove", "Remove a warning from a member")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("warn-remove", "حــــذف تـــحـــذيـــر مـــن الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
-                                                .addOption(OptionType.INTEGER, "id", "Warning ID", false)
+                                                .addOption(OptionType.INTEGER, "id", "إي دي الـــتـــحـــذيـــر", false)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("warnings", "View member warnings")
-                                                .addOption(OptionType.USER, "user", "Target member",
-                                                                true)
-                                                .setDefaultPermissions(adminPerms),
-                                Commands.slash("violations", "View filter violations")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("warnings", "عـــعرض تـــحـــذيـــرات الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("violations-clear", "Clear filter violations")
-                                                .addOption(OptionType.USER, "user", "Target member",
+                                Commands.slash("violations", "عـــعرض مـــخـــالـــفـــات الـــتـــصـــفـــيـــة")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("lock", "Lock the current channel")
+                                Commands.slash("violations-clear", "مـــســـح مـــخـــالـــفـــات الـــتـــصـــفـــيـــة")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
+                                                                true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("unlock", "Unlock the current channel")
+                                Commands.slash("lock", "قـــفـــل الـــروم الـــحـــالـــي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("hide", "Hide the current channel")
+                                Commands.slash("unlock", "فــــتـــح الـــروم الـــحـــالـــي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("show", "Show the current channel")
+                                Commands.slash("hide", "إخـــفـــاء الـــروم الـــحـــالـــي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("slowmode", "Enable slowmode")
-                                                .addOption(OptionType.INTEGER, "seconds", "Seconds", true)
+                                Commands.slash("show", "إظـــهـــار الـــروم الـــحـــالـــي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("add-emoji", "Add a new emoji")
-                                                .addOption(OptionType.ATTACHMENT, "image", "The image", true)
-                                                .addOption(OptionType.STRING, "name", "Emoji name", true)
+                                Commands.slash("slowmode", "تـــفـــعـــيـــل الـــوضـــع الـــبـــطـــيء")
+                                                .addOption(OptionType.INTEGER, "seconds", "الـــثـــوانـــي", true)
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("role-multiple", "Manage roles for everyone")
+                                Commands.slash("add-emoji", "إضـــافـــة إيـــمـــوجـــي جـــديـــد")
+                                                .addOption(OptionType.ATTACHMENT, "image", "الـــصـــورة", true)
+                                                .addOption(OptionType.STRING, "name", "اســـم الإيـــمـــوجـــي", true)
+                                                .setDefaultPermissions(adminPerms),
+                                Commands.slash("role-multiple", "إدارة الـــرتـــب لـــلـــجـــمـــيـــع")
                                                 .addOption(OptionType.ROLE, "role",
-                                                                "Target role", true)
-                                                .addOption(OptionType.STRING, "action", "The action", true)
+                                                                "الـــرتـــبـــة الـــمـــســـتـــهـــدفـــة", true)
+                                                .addOption(OptionType.STRING, "action", "الإجـــراء", true)
                                                 .setDefaultPermissions(adminPerms),
 
                                 // ===== Giveaways (Administrative) =====
-                                Commands.slash("giveaway", "Open giveaways control panel")
+                                Commands.slash("giveaway", "فـــتـــح بـــنـــل الـــقـــيـــف اواي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("replay", "Manage auto-reply system")
+                                Commands.slash("replay", "إدارة نــــظــــام الـــرد الـــتـــلـــقـــائـــي")
                                                 .setDefaultPermissions(adminPerms),
-                                Commands.slash("banned-words", "Manage banned words system")
+                                Commands.slash("banned-words", "إدارة نــــظــــام الـــكـــلـــمـــات الـــمـــمـــنـــوعـــة")
                                                 .setDefaultPermissions(adminPerms),
 
                                 // ===== Emulation (Administrative) =====
-                                Commands.slash("boter", "Send a message as the bot")
+                                Commands.slash("boter", "إرســـــال رســـــالـــة عـــن طـــريـــق الـــبـــوت")
                                                 .addOption(OptionType.CHANNEL, "channel",
-                                                                "Target channel", false)
-                                                .addOption(OptionType.ATTACHMENT, "file1", "First attachment", false)
-                                                .addOption(OptionType.ATTACHMENT, "file2", "Second attachment",
+                                                                "الـــروم الـــمـــســـتـــهـــدف", false)
+                                                .addOption(OptionType.ATTACHMENT, "file1", "الـــمـــرفـــق الأول", false)
+                                                .addOption(OptionType.ATTACHMENT, "file2", "الـــمـــرفـــق الـــثـــانـــي",
                                                                 false)
-                                                .addOption(OptionType.ATTACHMENT, "file3", "Third attachment",
+                                                .addOption(OptionType.ATTACHMENT, "file3", "الـــمـــرفـــق الـــثـــالـــث",
                                                                 false)
                                                 .setDefaultPermissions(adminPerms),
 
                                 // ===== Information (Administrative & Public) =====
-                                Commands.slash("roles", "List of server roles")
+                                Commands.slash("roles", "قـــائـــمـــة رتـــب الـــســـيـــرفـــر")
                                                 .setDefaultPermissions(adminPerms), // Restricted per user request
 
                                 // ===== Vouchers (Administrative) =====
-                                Commands.slash("voucher", "Manage and generate vouchers")
+                                Commands.slash("voucher", "إدارة وإنـــشـــاء الـــقـــســـائـــم")
                                                 .addSubcommands(
-                                                                new SubcommandData("create", "Generate a new voucher")
-                                                                                .addOption(OptionType.USER, "user", "Member", true)
-                                                                                .addOptions(new OptionData(OptionType.STRING, "type", "Type", true)
+                                                                new SubcommandData("create", "إنـــشـــاء قـــســـيـــمـــة جـــديـــدة")
+                                                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", true)
+                                                                                .addOptions(new OptionData(OptionType.STRING, "type", "الـــنـــوع", true)
                                                                                         .addChoice("Discount", "DISCOUNT")
                                                                                         .addChoice("Voucher", "VOUCHER"))
-                                                                                .addOptions(new OptionData(OptionType.INTEGER, "amount", "Value", true)
+                                                                                .addOptions(new OptionData(OptionType.INTEGER, "amount", "الـــقـــيـــمـــة", true)
                                                                                         .addChoice("10", 10)
                                                                                         .addChoice("20", 20)
                                                                                         .addChoice("30", 30)
@@ -276,34 +276,34 @@ public class Main {
                                                                                         .addChoice("50", 50)
                                                                                         .addChoice("60", 60)
                                                                                         .addChoice("100", 100))
-                                                                                .addOption(OptionType.INTEGER, "expiry", "Validity period in days (e.g., 7)", true),
-                                                                new SubcommandData("view", "View active vouchers")
-                                                                                .addOption(OptionType.USER, "user", "Member", false)
+                                                                                .addOption(OptionType.INTEGER, "expiry", "مـــدة الـــصـــلاحـــيـــة بـــالأيـــام", true),
+                                                                new SubcommandData("view", "عـــعرض الـــقـــســـائـــم الـــمـــفـــعـــلـــة")
+                                                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", false)
                                                 )
                                                 .setDefaultPermissions(net.dv8tion.jda.api.interactions.commands.DefaultMemberPermissions.enabledFor(net.dv8tion.jda.api.Permission.MESSAGE_MANAGE)),
 
                                 // ===== Information (Public) =====
-                                Commands.slash("ping", "Check bot latency"),
-                                Commands.slash("profile", "View member profile")
-                                                .addOption(OptionType.USER, "user", "Member", false),
-                                Commands.slash("avatar", "View member avatar")
-                                                .addOption(OptionType.USER, "user", "Member", false),
-                                Commands.slash("server", "View server information"),
-                                Commands.slash("banner", "View member banner")
-                                                .addOption(OptionType.USER, "user", "Member", false),
-                                Commands.slash("invites", "View invitation statistics")
-                                                .addOption(OptionType.USER, "user", "Member", false),
-                                Commands.slash("server-avatar", "View server icon"),
-                                Commands.slash("server-banner", "View server banner"),
+                                Commands.slash("ping", "فـــحـــص ســـرعـــة اتـــصـــال الـــبـــوت"),
+                                Commands.slash("profile", "عـــعرض مـــلـــف الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", false),
+                                Commands.slash("avatar", "عـــعرض صـــورة الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", false),
+                                Commands.slash("server", "عـــعرض مـــعـــلـــومـــات الـــســـيـــرفـــر"),
+                                Commands.slash("banner", "عـــعرض بـــانـــر الـــعـــضـــو")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", false),
+                                Commands.slash("invites", "عـــعرض إحـــصـــائـــيـــات الـــدعـــوات")
+                                                .addOption(OptionType.USER, "user", "الـــعـــضـــو", false),
+                                Commands.slash("server-avatar", "عـــعرض صـــورة الـــســـيـــرفـــر"),
+                                Commands.slash("server-banner", "عـــعرض بـــانـــر الـــســـيـــرفـــر"),
 
                                 // ===== General & Fun (Public) =====
-                                Commands.slash("translate", "Translate text")
-                                                .addOption(OptionType.STRING, "text", "The content", true)
-                                                .addOption(OptionType.STRING, "language", "The language", true),
-                                Commands.slash("roll", "Roll the dice"),
-                                Commands.slash("order", "Start a new project order"),
-                                Commands.slash("terms", "View agency terms and rules"),
-                                Commands.slash("prices", "View agency services prices"),
-                                Commands.slash("line", "Send the global line separator")).queue();
+                                Commands.slash("translate", "تـــرجـــمـــة الـــنـــصـــوص")
+                                                .addOption(OptionType.STRING, "text", "الـــمـــحـــتـــوى", true)
+                                                .addOption(OptionType.STRING, "language", "الـــلـــغـــة", true),
+                                Commands.slash("roll", "رمـــي الـــنـــرد"),
+                                Commands.slash("order", "بـــدء طـــلـــب مـــشـــروع جـــديـــد"),
+                                Commands.slash("terms", "عـــعرض شـــروط وقـــوانـــيـــن الـــوكـــالـــة"),
+                                Commands.slash("prices", "عـــعرض أســـعـــار خـــدمـــات الـــوكـــالـــة"),
+                                Commands.slash("line", "إرســـــال الـــخـــط الـــفـــاصـــل")).queue();
         }
 }
