@@ -33,15 +33,16 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioChannel leftChannel = event.getChannelLeft();
 
         // Join and start recording if someone joins/switches to a channel and bot is not connected
-        if (joinedChannel != null && joinedChannel != leftChannel && !event.getMember().getUser().isBot()) {
+        if (joinedChannel != null && (leftChannel == null || joinedChannel.getIdLong() != leftChannel.getIdLong()) && !event.getMember().getUser().isBot()) {
             if (!audioManager.isConnected()) {
                 connectAndStartRecording(guild, joinedChannel);
             }
         }
 
         // Stop and send recording if the last human leaves the channel the bot is in
-        if (leftChannel != null && leftChannel != joinedChannel) {
-            if (audioManager.isConnected() && leftChannel.equals(audioManager.getConnectedChannel())) {
+        if (leftChannel != null && (joinedChannel == null || leftChannel.getIdLong() != joinedChannel.getIdLong())) {
+            AudioChannel connectedChannel = audioManager.getConnectedChannel();
+            if (audioManager.isConnected() && connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
                 long humanCount = leftChannel.getMembers().stream()
                         .filter(m -> !m.getUser().isBot())
                         .count();
