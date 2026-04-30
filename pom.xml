@@ -47,28 +47,28 @@
             <version>${jda.version}</version>
         </dependency>
         <dependency>
-            <groupId>club.minnced</groupId>
-            <artifactId>jdave-api</artifactId>
+            <groupId>moe.kyokobot.libdave</groupId>
+            <artifactId>impl-jni</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
-            <groupId>club.minnced</groupId>
-            <artifactId>jdave-adapter-jda</artifactId>
+            <groupId>moe.kyokobot.libdave</groupId>
+            <artifactId>adapter-jda</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
-            <groupId>club.minnced</groupId>
-            <artifactId>jdave-native-windows-x86-64</artifactId>
+            <groupId>moe.kyokobot.libdave</groupId>
+            <artifactId>natives-win-x86-64</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
-            <groupId>club.minnced</groupId>
-            <artifactId>jdave-native-linux-x86-64</artifactId>
+            <groupId>moe.kyokobot.libdave</groupId>
+            <artifactId>natives-linux-x86-64</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
-            <groupId>club.minnced</groupId>
-            <artifactId>jdave-native-linux-musl-x86-64</artifactId>
+            <groupId>moe.kyokobot.libdave</groupId>
+            <artifactId>natives-linux-musl-x86-64</artifactId>
             <version>0.1.0</version>
         </dependency>
         <dependency>
