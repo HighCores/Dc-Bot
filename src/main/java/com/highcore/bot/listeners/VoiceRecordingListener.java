@@ -200,11 +200,11 @@ public class VoiceRecordingListener extends ListenerAdapter {
             Guild guild = event.getGuild();
             AudioRecorder recorder = recorders.get(guild.getIdLong());
             if (recorder != null) {
-                recorder.setRecording(false);
+                stopAndSendRecording(guild, guild.getAudioManager().getConnectedChannel());
                 net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                     "PROTOCOL",
-                    "Recording Stopped",
-                    "⏸️ The recording session has been **STOPPED**.",
+                    "Recording Finished",
+                    "⏹️ The recording session has been **STOPPED & SAVED**.",
                     com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
                 );
                 event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
