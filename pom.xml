@@ -41,7 +41,7 @@
         <dependency>
             <groupId>net.dv8tion</groupId>
             <artifactId>jda-dave</artifactId>
-            <version>1.1.1</version>
+            <version>1.1.0</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>

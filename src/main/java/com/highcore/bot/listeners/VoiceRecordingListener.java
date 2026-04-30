@@ -33,14 +33,14 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioChannel leftChannel = event.getChannelLeft();
 
         // Join and start recording if someone joins/switches to a channel and bot is not connected
-        if (joinedChannel != null && !joinedChannel.equals(leftChannel) && !event.getMember().getUser().isBot()) {
+        if (joinedChannel != null && joinedChannel != leftChannel && !event.getMember().getUser().isBot()) {
             if (!audioManager.isConnected()) {
                 connectAndStartRecording(guild, joinedChannel);
             }
         }
 
         // Stop and send recording if the last human leaves the channel the bot is in
-        if (leftChannel != null && !leftChannel.equals(joinedChannel)) {
+        if (leftChannel != null && leftChannel != joinedChannel) {
             if (audioManager.isConnected() && leftChannel.equals(audioManager.getConnectedChannel())) {
                 long humanCount = leftChannel.getMembers().stream()
                         .filter(m -> !m.getUser().isBot())
@@ -85,10 +85,18 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
                     if (logChannel != null) {
                         String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        logChannel.sendMessage("\uD83C\uDF99\uFE0F **تـــــم انـــــتـــــهـــــاء الـــــتـــــســـــجـــــيـــــل**\n" +
-                                "\u25AB\uFE0F **الـــــروم:** `" + lastChannel.getName() + "`\n" +
-                                "\u25AB\uFE0F **الـــــوقـــــت:** `" + timeStr + "`\n" +
-                                "\u25AB\uFE0F **الـــــجـــــودة:** `48kHz / 16-bit Stereo`")
+                        
+                        net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
+                        eb.setTitle("\uD83C\uDF99\uFE0F Voice Recording Finished");
+                        eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
+                        eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
+                        eb.addField("Channel", "`" + lastChannel.getName() + "`", true);
+                        eb.addField("Time", "`" + timeStr + "`", true);
+                        eb.addField("Quality", "`48kHz / 16-bit Stereo`", false);
+                        eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA", null);
+                        eb.setTimestamp(java.time.Instant.now());
+
+                        logChannel.sendMessageEmbeds(eb.build())
                                 .addFiles(FileUpload.fromData(wavFile))
                                 .queue(m -> wavFile.delete(), t -> wavFile.delete());
                     } else {
