@@ -97,9 +97,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
             event.reply("Are you sure you want to **" + actionName + "** the recording?")
                     .setEphemeral(true)
-                    .addActionRow(
+                    .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(
                             net.dv8tion.jda.api.components.buttons.Button.success(id + "_confirm", "Confirm"),
-                            net.dv8tion.jda.api.components.buttons.Button.danger("rec_cancel", "Cancel"))
+                            net.dv8tion.jda.api.components.buttons.Button.danger("rec_cancel", "Cancel")
+                    ))
                     .useComponentsV2(true).queue();
             return;
         }
