@@ -101,10 +101,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
         }
 
         // Stop and send recording if the last human leaves the channel the bot is in
-        if (leftChannel != null && (joinedChannel == null || leftChannel.getIdLong() != joinedChannel.getIdLong())) {
+        if (leftChannel != null) {
             AudioChannel connectedChannel = audioManager.getConnectedChannel();
-            if (audioManager.isConnected() && connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
-                long humanCount = leftChannel.getMembers().stream()
+            if (connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
+                long humanCount = connectedChannel.getMembers().stream()
                         .filter(m -> !m.getUser().isBot())
                         .count();
                 
