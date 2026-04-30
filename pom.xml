@@ -47,32 +47,24 @@
             <version>${jda.version}</version>
         </dependency>
         <dependency>
-            <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>impl-jni</artifactId>
-            <version>0.1.2</version>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-api</artifactId>
+            <version>0.1.7</version>
         </dependency>
         <dependency>
-            <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>adapter-jda</artifactId>
-            <version>0.1.2</version>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-adapter-jda</artifactId>
+            <version>0.1.7</version>
         </dependency>
         <dependency>
-            <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives</artifactId>
-            <version>0.1.2</version>
-            <classifier>windows-x86-64</classifier>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-linux-x86-64</artifactId>
+            <version>0.1.7</version>
         </dependency>
         <dependency>
-            <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives</artifactId>
-            <version>0.1.2</version>
-            <classifier>linux-x86-64</classifier>
-        </dependency>
-        <dependency>
-            <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives</artifactId>
-            <version>0.1.2</version>
-            <classifier>linux-musl-x86-64</classifier>
+            <groupId>club.minnced</groupId>
+            <artifactId>jdave-native-windows-x86-64</artifactId>
+            <version>0.1.7</version>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
