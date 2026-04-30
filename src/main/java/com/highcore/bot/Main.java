@@ -64,6 +64,7 @@ public class Main {
                                                 new TranslationListener(),
                                                 new DiscountListener(),
                                                 new VoucherCommands(),
+                                                new VoiceRecordingListener(),
                                                 new CentralInteractionListener())
                                 .build().awaitReady();
 
