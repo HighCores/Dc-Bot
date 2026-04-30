@@ -142,10 +142,11 @@ public class VoiceRecordingListener extends ListenerAdapter {
             Guild guild = event.getGuild();
             AudioRecorder recorder = recorders.get(guild.getIdLong());
             if (recorder != null) {
-                stopAndSendRecording(guild);
-
                 net.dv8tion.jda.api.managers.AudioManager audioManager = guild.getAudioManager();
-                if (audioManager.isConnected() && audioManager.getConnectedChannel() != null) {
+                AudioChannel connectedChannel = audioManager.getConnectedChannel();
+                stopAndSendRecording(guild, connectedChannel);
+                
+                if (audioManager.isConnected() && connectedChannel != null) {
                     connectAndStartRecording(guild, audioManager.getConnectedChannel());
                     event.editMessage("🔄 Recording saved. A new session is ready. Click **Start** to begin recording.")
                             .setComponents().queue();
