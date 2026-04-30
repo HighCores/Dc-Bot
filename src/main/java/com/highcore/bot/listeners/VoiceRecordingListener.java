@@ -53,7 +53,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
                         )
                     );
                     
-                    msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().setComponents(container).build())
+                    msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                            .setComponents(container)
+                            .useComponentsV2(true)
+                            .build())
                         .useComponentsV2(true)
                         .queue();
                 }
@@ -102,7 +105,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 )
             );
 
-            event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder().setComponents(container).build())
+            event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                            .setComponents(container)
+                            .useComponentsV2(true)
+                            .build())
                     .setEphemeral(true)
                     .useComponentsV2(true)
                     .queue();
