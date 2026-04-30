@@ -171,21 +171,16 @@ public class VoiceRecordingListener extends ListenerAdapter {
         }
     }
 
-    private void stopAndSendRecording(Guild guild) {
+    private void stopAndSendRecording(Guild guild, AudioChannel fallbackChannel) {
         AudioManager audioManager = guild.getAudioManager();
         AudioRecorder recorder = recorders.remove(guild.getIdLong());
 
         if (recorder != null) {
             recorder.stop();
             AudioChannel lastChannel = audioManager.getConnectedChannel();
+            if (lastChannel == null) lastChannel = fallbackChannel;
+
             // Note: Don't close connection here, so the bot can stay if it's "New Record"
-            // Wait! The auto-leave logic calls stopAndSendRecording and we DO want it to
-            // leave.
-            // If it's "New Record", we reconnect immediately. But wait, closing and
-            // reopening might cause a blip.
-            // Let's modify stopAndSendRecording to close connection only if humanCount ==
-            // 0?
-            // Actually, we can check if humans are still there.
             boolean shouldLeave = true;
             if (lastChannel != null) {
                 long humanCount = lastChannel.getMembers().stream()
@@ -217,7 +212,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
                             eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
                             eb.addField("Channel",
-                                    "`" + (lastChannel != null ? lastChannel.getName() : "Unknown") + "`", true);
+                                    "`" + (fallbackChannel != null ? fallbackChannel.getName() : "Unknown") + "`", true);
                             eb.addField("Time", "`" + timeStr + "`", true);
                             eb.addField("Quality", "`48kHz / 16-bit Stereo`", false);
                             eb.setFooter("▪ UNIFIED TERMINAL v1.2.0 ▪ HIGHCORE AGENCY ▪", null);
