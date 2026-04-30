@@ -41,23 +41,21 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
                 // Send control panel
                 if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
-                    net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
-                    eb.setTitle("Recording System");
-                    eb.setDescription(
-                            "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.");
-                    eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
-                    eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
-                    eb.setFooter("▪ UNIFIED TERMINAL v1.2.0 ▪ HIGHCORE AGENCY ▪", null);
-
-                    net.dv8tion.jda.api.components.actionrow.ActionRow row = net.dv8tion.jda.api.components.actionrow.ActionRow
-                            .of(
-                                    net.dv8tion.jda.api.components.buttons.Button.success("rec_start", "Start"),
-                                    net.dv8tion.jda.api.components.buttons.Button.danger("rec_stop", "Stop"),
-                                    net.dv8tion.jda.api.components.buttons.Button.primary("rec_new", "New Record"));
-
-                    msgChannel.sendMessageEmbeds(eb.build())
-                            .setComponents(row)
-                            .queue();
+                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                        "PROTOCOL", 
+                        "Recording System",
+                        "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
+                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
+                        net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                            net.dv8tion.jda.api.components.buttons.Button.success("rec_start", "Start"),
+                            net.dv8tion.jda.api.components.buttons.Button.danger("rec_stop", "Stop"),
+                            net.dv8tion.jda.api.components.buttons.Button.primary("rec_new", "New Record")
+                        )
+                    );
+                    
+                    msgChannel.sendMessage(net.dv8tion.jda.api.utils.messages.MessageCreateData.fromComponents(container))
+                        .useComponentsV2(true)
+                        .queue();
                 }
             }
         }
@@ -65,14 +63,13 @@ public class VoiceRecordingListener extends ListenerAdapter {
         // Stop and send recording if the last human leaves the channel the bot is in
         if (leftChannel != null && (joinedChannel == null || leftChannel.getIdLong() != joinedChannel.getIdLong())) {
             AudioChannel connectedChannel = audioManager.getConnectedChannel();
-            if (audioManager.isConnected() && connectedChannel != null
-                    && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
+            if (audioManager.isConnected() && connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
                 long humanCount = leftChannel.getMembers().stream()
                         .filter(m -> !m.getUser().isBot())
                         .count();
-
+                
                 if (humanCount == 0) {
-                    stopAndSendRecording(guild);
+                    stopAndSendRecording(guild, connectedChannel);
                 }
             }
         }
@@ -80,7 +77,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
         if (event.getMember().equals(guild.getSelfMember())) {
             if (leftChannel != null && joinedChannel == null) {
                 if (recorders.containsKey(guild.getIdLong())) {
-                    stopAndSendRecording(guild);
+                    stopAndSendRecording(guild, leftChannel);
                 }
             }
         }
@@ -94,12 +91,20 @@ public class VoiceRecordingListener extends ListenerAdapter {
         if (id.equals("rec_start") || id.equals("rec_stop") || id.equals("rec_new")) {
             String actionName = id.equals("rec_start") ? "START" : id.equals("rec_stop") ? "STOP" : "SAVE & NEW";
 
-            event.reply("Are you sure you want to **" + actionName + "** the recording?")
+            net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                "VERIFY",
+                "Action Confirmation",
+                "Are you sure you want to **" + actionName + "** the recording?",
+                com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
+                net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                        net.dv8tion.jda.api.components.buttons.Button.success(id + "_confirm", "Confirm"),
+                        net.dv8tion.jda.api.components.buttons.Button.danger("rec_cancel", "Cancel")
+                )
+            );
+
+            event.reply(net.dv8tion.jda.api.utils.messages.MessageCreateData.fromComponents(container))
                     .setEphemeral(true)
-                    .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-                            net.dv8tion.jda.api.components.buttons.Button.success(id + "_confirm", "Confirm"),
-                            net.dv8tion.jda.api.components.buttons.Button.danger("rec_cancel", "Cancel")
-                    ))
+                    .useComponentsV2(true)
                     .queue();
             return;
         }
