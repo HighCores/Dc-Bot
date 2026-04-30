@@ -57,7 +57,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
                     msgChannel.sendMessageEmbeds(eb.build())
                             .setComponents(row)
-                            .useComponentsV2(true)
                             .queue();
                 }
             }
@@ -101,7 +100,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             net.dv8tion.jda.api.components.buttons.Button.success(id + "_confirm", "Confirm"),
                             net.dv8tion.jda.api.components.buttons.Button.danger("rec_cancel", "Cancel")
                     ))
-                    .useComponentsV2(true).queue();
+                    .queue();
             return;
         }
 
