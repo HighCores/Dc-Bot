@@ -1,0 +1,19 @@
+<project>
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>test</groupId>
+  <artifactId>test</artifactId>
+  <version>1</version>
+  <repositories>
+    <repository>
+      <id>arbjerg</id>
+      <url>https://maven.arbjerg.dev/releases</url>
+    </repository>
+  </repositories>
+  <dependencies>
+    <dependency>
+      <groupId>dev.arbjerg</groupId>
+      <artifactId>jda-dave</artifactId>
+      <version>1.1.0</version>
+    </dependency>
+  </dependencies>
+</project>

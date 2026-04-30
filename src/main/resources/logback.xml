@@ -23,5 +23,6 @@
     </root>
 
     <logger name="net.dv8tion.jda" level="WARN"/>
+    <logger name="net.dv8tion.jda.internal.audio.AudioPacket" level="ERROR"/>
     <logger name="com.highcore.bot" level="DEBUG"/>
 </configuration>

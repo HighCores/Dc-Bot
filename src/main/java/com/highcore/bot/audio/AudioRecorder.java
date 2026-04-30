@@ -14,7 +14,7 @@ import java.nio.ByteOrder;
 public class AudioRecorder implements AudioReceiveHandler {
     private final File tempFile;
     private final BufferedOutputStream os;
-    private boolean recording = true;
+    private boolean recording = false;
     private long totalBytes = 0;
 
     public AudioRecorder() throws IOException {
@@ -22,9 +22,17 @@ public class AudioRecorder implements AudioReceiveHandler {
         this.os = new BufferedOutputStream(new FileOutputStream(tempFile));
     }
 
+    public void setRecording(boolean recording) {
+        this.recording = recording;
+    }
+
+    public boolean isRecording() {
+        return recording;
+    }
+
     @Override
     public boolean canReceiveCombined() {
-        return recording;
+        return true; // We always receive, but handle CombinedAudio based on 'recording' flag
     }
 
     @Override
