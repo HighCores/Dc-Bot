@@ -51,6 +51,14 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 }
             }
         }
+        // Detect if the bot itself is disconnected unexpectedly
+        if (event.getMember().equals(guild.getSelfMember())) {
+            if (leftChannel != null && joinedChannel == null) {
+                if (recorders.containsKey(guild.getIdLong())) {
+                    stopAndSendRecording(guild);
+                }
+            }
+        }
     }
 
     private void connectAndStartRecording(Guild guild, AudioChannel channel) {
@@ -74,36 +82,39 @@ public class VoiceRecordingListener extends ListenerAdapter {
             AudioChannel lastChannel = audioManager.getConnectedChannel();
             audioManager.closeAudioConnection();
             
-            if (lastChannel == null) return;
-
             new Thread(() -> {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
                 File wavFile = new File("rec_" + guild.getId() + "_" + timestamp + ".wav");
                 try {
                     recorder.saveAsWav(wavFile);
                     
-                    TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
-                    if (logChannel != null) {
-                        String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-                        
-                        net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
-                        eb.setTitle("\uD83C\uDF99\uFE0F Voice Recording Finished");
-                        eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
-                        eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
-                        eb.addField("Channel", "`" + lastChannel.getName() + "`", true);
-                        eb.addField("Time", "`" + timeStr + "`", true);
-                        eb.addField("Quality", "`48kHz / 16-bit Stereo`", false);
-                        eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA", null);
-                        eb.setTimestamp(java.time.Instant.now());
+                    // Only send if the file has actual audio data (WAV header is 44 bytes)
+                    if (wavFile.exists() && wavFile.length() > 1000) { 
+                        TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
+                        if (logChannel != null) {
+                            String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
+                            
+                            net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
+                            eb.setTitle("\uD83C\uDF99\uFE0F Voice Recording Finished");
+                            eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
+                            eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
+                            eb.addField("Channel", "`" + (lastChannel != null ? lastChannel.getName() : "Unknown") + "`", true);
+                            eb.addField("Time", "`" + timeStr + "`", true);
+                            eb.addField("Quality", "`48kHz / 16-bit Stereo`", false);
+                            eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA", null);
+                            eb.setTimestamp(java.time.Instant.now());
 
-                        logChannel.sendMessageEmbeds(eb.build())
-                                .addFiles(FileUpload.fromData(wavFile))
-                                .queue(m -> wavFile.delete(), t -> wavFile.delete());
+                            logChannel.sendMessageEmbeds(eb.build())
+                                    .addFiles(FileUpload.fromData(wavFile))
+                                    .queue(m -> wavFile.delete(), t -> wavFile.delete());
+                        } else {
+                            wavFile.delete();
+                        }
                     } else {
                         wavFile.delete();
                     }
                 } catch (IOException e) {
-                    wavFile.delete();
+                    if (wavFile.exists()) wavFile.delete();
                 } finally {
                     recorder.cleanup();
                 }
