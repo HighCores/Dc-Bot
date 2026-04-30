@@ -49,27 +49,30 @@
         <dependency>
             <groupId>moe.kyokobot.libdave</groupId>
             <artifactId>impl-jni</artifactId>
-            <version>0.1.0</version>
+            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>moe.kyokobot.libdave</groupId>
             <artifactId>adapter-jda</artifactId>
-            <version>0.1.0</version>
+            <version>0.1.2</version>
         </dependency>
         <dependency>
             <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives-win-x86-64</artifactId>
-            <version>0.1.0</version>
+            <artifactId>natives</artifactId>
+            <version>0.1.2</version>
+            <classifier>windows-x86-64</classifier>
         </dependency>
         <dependency>
             <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives-linux-x86-64</artifactId>
-            <version>0.1.0</version>
+            <artifactId>natives</artifactId>
+            <version>0.1.2</version>
+            <classifier>linux-x86-64</classifier>
         </dependency>
         <dependency>
             <groupId>moe.kyokobot.libdave</groupId>
-            <artifactId>natives-linux-musl-x86-64</artifactId>
-            <version>0.1.0</version>
+            <artifactId>natives</artifactId>
+            <version>0.1.2</version>
+            <classifier>linux-musl-x86-64</classifier>
         </dependency>
         <dependency>
             <groupId>com.squareup.okhttp3</groupId>
