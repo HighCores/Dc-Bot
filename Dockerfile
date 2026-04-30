@@ -11,7 +11,7 @@ COPY src ./src
 RUN mvn clean package -DskipTests -B --no-transfer-progress
 
 # ── Run stage ─────────────────────────────────────────────────────────────────
-FROM eclipse-temurin:17-jre-alpine
+FROM eclipse-temurin:17-jre-jammy
 WORKDIR /app
 COPY --from=build /app/target/highcore-discord-bot-1.1.0.jar app.jar
 CMD ["java", "-jar", "app.jar"]
