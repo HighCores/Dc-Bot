@@ -140,6 +140,8 @@ public class Main {
                                                 .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)
                                                 .setDefaultPermissions(adminPerms),
+                                Commands.slash("rec", "إدارة نــــظــــام الــــتـــســـجـــيـــل الـــصـــوتـــي")
+                                                .setDefaultPermissions(adminPerms),
                                 Commands.slash("mute-text", "إعـــــطــــاء مـــيـــوت كـــتـــابـــي")
                                                 .addOption(OptionType.USER, "user", "الـــعـــضـــو الـــمـــســـتـــهـــدف",
                                                                 true)

@@ -24,6 +24,42 @@ import java.util.concurrent.ConcurrentHashMap;
 public class VoiceRecordingListener extends ListenerAdapter {
     private static final String LOG_CHANNEL_ID = "1499416739597914122";
     private final Map<Long, AudioRecorder> recorders = new ConcurrentHashMap<>();
+    private final Map<Long, String> activeTextChannels = new ConcurrentHashMap<>();
+
+    @Override
+    public void onSlashCommandInteraction(@NotNull net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
+        if (event.getName().equals("rec")) {
+            Guild guild = event.getGuild();
+            if (guild == null) return;
+            
+            AudioChannel channel = guild.getSelfMember().getVoiceState().getChannel();
+            if (channel == null) {
+                event.reply("❌ The bot is not currently in a voice channel. Join a channel first to start recording.").setEphemeral(true).queue();
+                return;
+            }
+            
+            activeTextChannels.put(guild.getIdLong(), event.getChannel().getId());
+            
+            net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                "PROTOCOL", 
+                "Recording System",
+                "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
+                com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
+                net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_start", "Start"),
+                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_stop", "Stop"),
+                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_new", "New Record")
+                )
+            );
+            
+            event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                    .setComponents(container)
+                    .useComponentsV2(true)
+                    .build())
+                .useComponentsV2(true)
+                .queue();
+        }
+    }
 
     @Override
     public void onGuildVoiceUpdate(@NotNull GuildVoiceUpdateEvent event) {
@@ -41,15 +77,16 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
                 // Send control panel
                 if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
+                    activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
                     net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                         "PROTOCOL", 
                         "Recording System",
                         "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
                         com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
                         net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-                            net.dv8tion.jda.api.components.buttons.Button.success("rec_start", "Start"),
-                            net.dv8tion.jda.api.components.buttons.Button.danger("rec_stop", "Stop"),
-                            net.dv8tion.jda.api.components.buttons.Button.primary("rec_new", "New Record")
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_start", "Start"),
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_stop", "Stop"),
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_new", "New Record")
                         )
                     );
                     
@@ -109,7 +146,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             .setComponents(container)
                             .useComponentsV2(true)
                             .build())
-                    .setEphemeral(true)
+                    .setEphemeral(false)
                     .useComponentsV2(true)
                     .queue();
             return;
@@ -298,7 +335,22 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
                             logChannel.sendMessageEmbeds(eb.build())
                                     .addFiles(FileUpload.fromData(wavFile))
-                                    .queue(m -> wavFile.delete(), t -> wavFile.delete());
+                                    .queue();
+
+                            // Also send to the text channel where it was started
+                            String activeChanId = activeTextChannels.get(guild.getIdLong());
+                            if (activeChanId != null) {
+                                TextChannel activeChan = guild.getTextChannelById(activeChanId);
+                                if (activeChan != null) {
+                                    activeChan.sendMessageEmbeds(eb.build())
+                                            .addFiles(FileUpload.fromData(wavFile))
+                                            .queue(m -> wavFile.delete(), t -> wavFile.delete());
+                                } else {
+                                    wavFile.delete();
+                                }
+                            } else {
+                                wavFile.delete();
+                            }
                         } else {
                             wavFile.delete();
                         }
