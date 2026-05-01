@@ -330,23 +330,25 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
         if (recorder != null) {
             recorder.stop();
-            AudioChannel lastChannel = audioManager.getConnectedChannel();
-            if (lastChannel == null) lastChannel = fallbackChannel;
+            // ... (rest of the upload logic will be in the thread)
+        }
 
-            // Note: Don't close connection here, so the bot can stay if it's "New Record"
-            boolean shouldLeave = true;
-            if (lastChannel != null) {
-                long humanCount = lastChannel.getMembers().stream()
-                        .filter(m -> !m.getUser().isBot())
-                        .count();
-                if (humanCount > 0)
-                    shouldLeave = false;
-            }
+        // Always check if we should leave the channel if it's empty, 
+        // even if no recorder was active (e.g. session ended but bot stayed)
+        AudioChannel lastChannel = audioManager.getConnectedChannel();
+        if (lastChannel == null) lastChannel = fallbackChannel;
 
-            if (shouldLeave) {
+        if (lastChannel != null) {
+            long humanCount = lastChannel.getMembers().stream()
+                    .filter(m -> !m.getUser().isBot())
+                    .count();
+            if (humanCount == 0) {
+                log.info("[VOICE] Channel is empty. Closing connection for guild: {}", guild.getName());
                 audioManager.closeAudioConnection();
             }
+        }
 
+        if (recorder != null) {
             new Thread(() -> {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
                 File wavFile = new File("rec_" + guild.getId() + "_" + timestamp + ".wav");
