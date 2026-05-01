@@ -108,6 +108,26 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 // Set active text channel to where the bot "should" report
                 if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
                     activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
+
+                    // Send control panel
+                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                        "PROTOCOL", 
+                        "Recording System",
+                        "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
+                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
+                        net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_start", "Start"),
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_stop", "Stop"),
+                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_new", "New Record")
+                        )
+                    );
+                    
+                    msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                            .setComponents(container)
+                                .useComponentsV2(true)
+                                .build())
+                            .useComponentsV2(true)
+                            .queue();
                 }
             } else {
                 // Follow if bot is alone in its current channel
@@ -118,6 +138,29 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             .count();
                     if (humanCount == 0) {
                         audioManager.openAudioConnection(joinedChannel);
+                        
+                        // Send control panel in the new channel too
+                        if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
+                            activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
+                            net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                                "PROTOCOL", 
+                                "Recording System",
+                                "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
+                                com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
+                                net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_start", "Start"),
+                                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_stop", "Stop"),
+                                    net.dv8tion.jda.api.components.buttons.Button.secondary("rec_new", "New Record")
+                                )
+                            );
+                            
+                            msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                                    .setComponents(container)
+                                        .useComponentsV2(true)
+                                        .build())
+                                    .useComponentsV2(true)
+                                    .queue();
+                        }
                     }
                 }
             }
