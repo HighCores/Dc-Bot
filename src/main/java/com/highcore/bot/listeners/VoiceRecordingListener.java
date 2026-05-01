@@ -16,12 +16,15 @@ import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Section: Voice Recording Listener
  * Human-generated listener for recording voice conversations in Highcore Bot
  */
 public class VoiceRecordingListener extends ListenerAdapter {
+    private static final Logger log = LoggerFactory.getLogger(VoiceRecordingListener.class);
     private static final String LOG_CHANNEL_ID = "1499416739597914122";
     private final Map<Long, AudioRecorder> recorders = new ConcurrentHashMap<>();
     private final Map<Long, String> activeTextChannels = new ConcurrentHashMap<>();
@@ -68,11 +71,43 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioChannel joinedChannel = event.getChannelJoined();
         AudioChannel leftChannel = event.getChannelLeft();
 
-        // Join and start recording if someone joins/switches to a channel and bot is
-        // not connected
-        if (joinedChannel != null && (leftChannel == null || joinedChannel.getIdLong() != leftChannel.getIdLong())
-                && !event.getMember().getUser().isBot()) {
-            if (!audioManager.isConnected()) {
+
+        // Stop and send recording if the last human leaves the channel the bot is in
+        if (leftChannel != null) {
+            AudioChannel connectedChannel = audioManager.getConnectedChannel();
+            if (connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
+                long humanCount = connectedChannel.getMembers().stream()
+                        .filter(m -> !m.getUser().isBot())
+                        .count();
+                
+                if (humanCount == 0) {
+                    log.info("[VOICE] Last human left channel {}. Stopping and sending recording.", leftChannel.getName());
+                    stopAndSendRecording(guild, connectedChannel);
+                }
+            }
+        }
+
+        // Follow logic: If someone joins/moves to a channel and the bot is ALONE in its current channel
+        if (joinedChannel != null && !event.getMember().getUser().isBot()) {
+            if (audioManager.isConnected()) {
+                AudioChannel currentChannel = audioManager.getConnectedChannel();
+                if (currentChannel != null && currentChannel.getIdLong() != joinedChannel.getIdLong()) {
+                    long humanCountInCurrent = currentChannel.getMembers().stream()
+                            .filter(m -> !m.getUser().isBot())
+                            .count();
+                    
+                    if (humanCountInCurrent == 0) {
+                        log.info("[VOICE] Bot is alone in {}. Following users to {}.", currentChannel.getName(), joinedChannel.getName());
+                        audioManager.openAudioConnection(joinedChannel);
+                        
+                        // Update active text channel if possible
+                        if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
+                            activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
+                        }
+                    }
+                }
+            } else {
+                // Join and start recording if bot is not connected at all
                 connectAndStartRecording(guild, joinedChannel);
 
                 // Send control panel
@@ -92,24 +127,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     
                     msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
                             .setComponents(container)
+                                .useComponentsV2(true)
+                                .build())
                             .useComponentsV2(true)
-                            .build())
-                        .useComponentsV2(true)
-                        .queue();
-                }
-            }
-        }
-
-        // Stop and send recording if the last human leaves the channel the bot is in
-        if (leftChannel != null) {
-            AudioChannel connectedChannel = audioManager.getConnectedChannel();
-            if (connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
-                long humanCount = connectedChannel.getMembers().stream()
-                        .filter(m -> !m.getUser().isBot())
-                        .count();
-                
-                if (humanCount == 0) {
-                    stopAndSendRecording(guild, connectedChannel);
+                            .queue();
                 }
             }
         }
@@ -171,6 +192,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
             AudioRecorder recorder = recorders.get(guild.getIdLong());
             if (recorder != null) {
                 recorder.setRecording(true);
+                log.info("[RECORDING] Started session for guild: {}", guild.getName());
                 net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                     "PROTOCOL",
                     "Recording Started",
@@ -281,8 +303,9 @@ public class VoiceRecordingListener extends ListenerAdapter {
             audioManager.setReceivingHandler(recorder);
             audioManager.openAudioConnection(channel);
             recorders.put(guild.getIdLong(), recorder);
+            log.info("[VOICE] Bot connected and ready to record in guild: {}", guild.getName());
         } catch (IOException e) {
-            // Error handled silently
+            log.error("[VOICE] Failed to initialize recorder: {}", e.getMessage());
         }
     }
 
@@ -313,53 +336,65 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
                 File wavFile = new File("rec_" + guild.getId() + "_" + timestamp + ".wav");
                 try {
+                    log.info("[UPLOAD] Saving WAV file: {}", wavFile.getName());
                     recorder.saveAsWav(wavFile);
 
-                    // Only send if the file has actual audio data (WAV header is 44 bytes)
                     if (wavFile.exists() && wavFile.length() > 100) {
+                        log.info("[UPLOAD] File saved (Size: {} bytes). Searching for log channel...", wavFile.length());
                         TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
+                        
                         if (logChannel != null) {
-                            String timeStr = LocalDateTime.now()
-                                    .format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
-
+                            String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                             net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
                             eb.setTitle("🎙️ Voice Recording Finished");
                             eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
                             eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
-                            eb.addField("Channel",
-                                    "`" + (fallbackChannel != null ? fallbackChannel.getName() : "Unknown") + "`", true);
+                            eb.addField("Channel", "`" + (fallbackChannel != null ? fallbackChannel.getName() : "Unknown") + "`", true);
                             eb.addField("Time", "`" + timeStr + "`", true);
                             eb.addField("Quality", "`48kHz / 16-bit Stereo`", false);
                             eb.setFooter("▪ UNIFIED TERMINAL v1.2.0 ▪ HIGHCORE AGENCY ▪", null);
                             eb.setTimestamp(java.time.Instant.now());
 
+                            String activeChanId = activeTextChannels.get(guild.getIdLong());
+                            TextChannel activeChan = activeChanId != null ? guild.getTextChannelById(activeChanId) : null;
+
+                            log.info("[UPLOAD] Sending to LOG channel: {}", logChannel.getName());
+                            
                             logChannel.sendMessageEmbeds(eb.build())
                                     .addFiles(FileUpload.fromData(wavFile))
-                                    .queue();
-
-                            // Also send to the text channel where it was started
-                            String activeChanId = activeTextChannels.get(guild.getIdLong());
-                            if (activeChanId != null) {
-                                TextChannel activeChan = guild.getTextChannelById(activeChanId);
-                                if (activeChan != null) {
-                                    activeChan.sendMessageEmbeds(eb.build())
-                                            .addFiles(FileUpload.fromData(wavFile))
-                                            .queue(m -> wavFile.delete(), t -> wavFile.delete());
-                                } else {
-                                    wavFile.delete();
-                                }
-                            } else {
-                                wavFile.delete();
-                            }
+                                    .queue(msg -> {
+                                        log.info("[UPLOAD] Successfully sent to LOG channel.");
+                                        // After log channel, try sending to active channel if exists
+                                        if (activeChan != null) {
+                                            log.info("[UPLOAD] Sending to active channel: {}", activeChan.getName());
+                                            activeChan.sendMessageEmbeds(eb.build())
+                                                    .addFiles(FileUpload.fromData(wavFile))
+                                                    .queue(m2 -> {
+                                                        log.info("[UPLOAD] Successfully sent to active channel. Deleting local file.");
+                                                        wavFile.delete();
+                                                    }, t2 -> {
+                                                        log.error("[UPLOAD] Failed to send to active channel: {}", t2.getMessage());
+                                                        wavFile.delete();
+                                                    });
+                                        } else {
+                                            log.info("[UPLOAD] No active text channel found. Deleting local file.");
+                                            wavFile.delete();
+                                        }
+                                    }, t -> {
+                                        log.error("[UPLOAD] Failed to send to LOG channel: {}", t.getMessage());
+                                        wavFile.delete();
+                                    });
                         } else {
+                            log.error("[UPLOAD] Log channel with ID {} not found!", LOG_CHANNEL_ID);
                             wavFile.delete();
                         }
                     } else {
+                        log.warn("[UPLOAD] Recording too short or empty. Deleting.");
                         wavFile.delete();
                     }
                 } catch (IOException e) {
-                    if (wavFile.exists())
-                        wavFile.delete();
+                    log.error("[UPLOAD] IO Error during WAV conversion: {}", e.getMessage());
+                    if (wavFile.exists()) wavFile.delete();
                 } finally {
                     recorder.cleanup();
                 }
