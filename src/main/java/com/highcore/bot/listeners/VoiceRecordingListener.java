@@ -225,19 +225,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
             event.reply("Please use the Start button to name your session.").setEphemeral(true).queue();
             return;
         }
-                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                    "ERROR",
-                    "Recording Error",
-                    "❌ Bot is not currently recording in a voice channel.",
-                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
-                );
-                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                        .setComponents(container)
-                        .useComponentsV2(true)
-                        .build()).queue();
-            }
-            return;
-        }
 
         if (id.equals("rec_stop_confirm")) {
             Guild guild = event.getGuild();
@@ -275,9 +262,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
                         .useComponentsV2(true)
                         .build()).queue();
             }
-            return;
-        }
-
             return;
         }
     }
