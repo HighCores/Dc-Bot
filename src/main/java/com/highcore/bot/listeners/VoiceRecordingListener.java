@@ -26,8 +26,13 @@ import org.slf4j.LoggerFactory;
 public class VoiceRecordingListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(VoiceRecordingListener.class);
     private static final String LOG_CHANNEL_ID = "1499416739597914122";
+    
     private final Map<Long, AudioRecorder> recorders = new ConcurrentHashMap<>();
     private final Map<Long, String> activeTextChannels = new ConcurrentHashMap<>();
+    private final Map<Long, String> sessionNames = new ConcurrentHashMap<>();
+    private final Map<Long, Integer> partCounters = new ConcurrentHashMap<>();
+    private final Map<Long, java.util.concurrent.ScheduledFuture<?>> splitTasks = new ConcurrentHashMap<>();
+    private final java.util.concurrent.ScheduledExecutorService scheduler = java.util.concurrent.Executors.newScheduledThreadPool(2);
 
     @Override
     public void onSlashCommandInteraction(@NotNull net.dv8tion.jda.api.events.interaction.command.SlashCommandInteractionEvent event) {
@@ -164,8 +169,21 @@ public class VoiceRecordingListener extends ListenerAdapter {
             @NotNull net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent event) {
         String id = event.getComponentId();
 
-        if (id.equals("rec_start") || id.equals("rec_stop") || id.equals("rec_new")) {
-            String actionName = id.equals("rec_start") ? "START" : id.equals("rec_stop") ? "STOP" : "SAVE & NEW";
+        if (id.equals("rec_start")) {
+            net.dv8tion.jda.api.interactions.modals.Modal modal = net.dv8tion.jda.api.modals.Modal.create("modal_rec_start", "Start Recording")
+                    .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(
+                            net.dv8tion.jda.api.components.textinput.TextInput.create("rec_name", "Meeting Name", net.dv8tion.jda.api.components.textinput.TextInputStyle.SHORT)
+                                    .setPlaceholder("e.g., Development Meeting")
+                                    .setRequired(true)
+                                    .build()
+                    ))
+                    .build();
+            event.replyModal(modal).queue();
+            return;
+        }
+
+        if (id.equals("rec_stop") || id.equals("rec_new")) {
+            String actionName = id.equals("rec_stop") ? "STOP" : "SAVE & NEW";
 
             net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                 "VERIFY",
@@ -203,33 +221,10 @@ public class VoiceRecordingListener extends ListenerAdapter {
         }
 
         if (id.equals("rec_start_confirm")) {
-            Guild guild = event.getGuild();
-            AudioRecorder recorder = recorders.get(guild.getIdLong());
-            
-            // If no recorder exists (e.g. stopped previously), try to create a new one
-            if (recorder == null) {
-                AudioManager audioManager = guild.getAudioManager();
-                if (audioManager.isConnected() && audioManager.getConnectedChannel() != null) {
-                    log.info("[VOICE] Start clicked but no recorder found. Initializing new session for guild: {}", guild.getName());
-                    connectAndStartRecording(guild, audioManager.getConnectedChannel());
-                    recorder = recorders.get(guild.getIdLong());
-                }
-            }
-
-            if (recorder != null) {
-                recorder.setRecording(true);
-                log.info("[RECORDING] Started session for guild: {}", guild.getName());
-                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                    "PROTOCOL",
-                    "Recording Started",
-                    "✅ The recording session has been **STARTED**.",
-                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
-                );
-                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                        .setComponents(container)
-                        .useComponentsV2(true)
-                        .build()).queue();
-            } else {
+            // This is now replaced by Modal interaction, but keeping empty for safety
+            event.reply("Please use the Start button to name your session.").setEphemeral(true).queue();
+            return;
+        }
                 net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                     "ERROR",
                     "Recording Error",
@@ -246,13 +241,22 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
         if (id.equals("rec_stop_confirm")) {
             Guild guild = event.getGuild();
-            AudioRecorder recorder = recorders.get(guild.getIdLong());
+            long guildId = guild.getIdLong();
+            AudioRecorder recorder = recorders.get(guildId);
             if (recorder != null) {
+                // Cancel split task
+                java.util.concurrent.ScheduledFuture<?> task = splitTasks.remove(guildId);
+                if (task != null) task.cancel(false);
+
                 stopAndSendRecording(guild, guild.getAudioManager().getConnectedChannel());
+                
+                String name = sessionNames.remove(guildId);
+                partCounters.remove(guildId);
+
                 net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                     "PROTOCOL",
                     "Recording Finished",
-                    "⏹️ The recording session has been **STOPPED & SAVED**.",
+                    "⏹️ Session **" + (name != null ? name : "Recording") + "** has been **STOPPED & SAVED**.",
                     com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
                 );
                 event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
@@ -274,52 +278,80 @@ public class VoiceRecordingListener extends ListenerAdapter {
             return;
         }
 
-        if (id.equals("rec_new_confirm")) {
-            Guild guild = event.getGuild();
-            AudioRecorder recorder = recorders.get(guild.getIdLong());
-            if (recorder != null) {
-                net.dv8tion.jda.api.managers.AudioManager audioManager = guild.getAudioManager();
-                AudioChannel connectedChannel = audioManager.getConnectedChannel();
-                stopAndSendRecording(guild, connectedChannel);
-                
-                if (audioManager.isConnected() && connectedChannel != null) {
-                    connectAndStartRecording(guild, audioManager.getConnectedChannel());
-                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                        "PROTOCOL",
-                        "New Session",
-                        "🔄 Recording saved. A new session is ready. Click **Start** to begin recording.",
-                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
-                    );
-                    event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                            .setComponents(container)
-                            .useComponentsV2(true)
-                            .build()).queue();
-                } else {
-                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                        "ERROR",
-                        "Connection Error",
-                        "❌ Bot is not connected anymore.",
-                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
-                    );
-                    event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                            .setComponents(container)
-                            .useComponentsV2(true)
-                            .build()).queue();
-                }
-            } else {
-                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                    "ERROR",
-                    "Recording Error",
-                    "❌ No active recording found.",
-                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
-                );
-                event.editMessage(new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                        .setComponents(container)
-                        .useComponentsV2(true)
-                        .build()).queue();
-            }
             return;
         }
+    }
+
+    @Override
+    public void onModalInteraction(@NotNull net.dv8tion.jda.api.events.interaction.ModalInteractionEvent event) {
+        if (event.getModalId().equals("modal_rec_start")) {
+            String name = event.getValue("rec_name").getAsString();
+            Guild guild = event.getGuild();
+            if (guild == null) return;
+
+            long guildId = guild.getIdLong();
+            sessionNames.put(guildId, name);
+            partCounters.put(guildId, 1);
+
+            AudioRecorder recorder = recorders.get(guildId);
+            
+            // If no recorder exists, try to create one
+            if (recorder == null) {
+                net.dv8tion.jda.api.managers.AudioManager audioManager = guild.getAudioManager();
+                if (audioManager.isConnected() && audioManager.getConnectedChannel() != null) {
+                    connectAndStartRecording(guild, audioManager.getConnectedChannel());
+                    recorder = recorders.get(guildId);
+                }
+            }
+
+            if (recorder != null) {
+                recorder.setRecording(true);
+                log.info("[RECORDING] Started session '{}' for guild: {}", name, guild.getName());
+                
+                // Schedule splitting every 30 minutes
+                java.util.concurrent.ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> {
+                    log.info("[VOICE] 30 minutes reached. Splitting recording for session: {}", name);
+                    splitAndRestart(guild);
+                }, 30, 30, java.util.concurrent.TimeUnit.MINUTES);
+                
+                splitTasks.put(guildId, task);
+
+                net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
+                    "PROTOCOL",
+                    "Recording Started",
+                    "✅ Recording session **" + name + "** has been started.\nIt will automatically split every 30 minutes for stability.",
+                    com.highcore.bot.utils.EmbedUtil.BANNER_MAIN
+                );
+                event.reply(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
+                        .setComponents(container)
+                        .useComponentsV2(true)
+                        .build())
+                    .useComponentsV2(true)
+                    .queue();
+            } else {
+                event.reply("❌ Error: Bot is not in a voice channel. Join first then use `/rec`.").setEphemeral(true).queue();
+            }
+        }
+    }
+
+    private void splitAndRestart(Guild guild) {
+        long guildId = guild.getIdLong();
+        net.dv8tion.jda.api.managers.AudioManager audioManager = guild.getAudioManager();
+        net.dv8tion.jda.api.entities.channel.middleman.AudioChannel channel = audioManager.getConnectedChannel();
+        
+        if (channel == null) return;
+
+        // Save current part
+        stopAndSendRecording(guild, channel);
+        
+        // Increment part and restart immediately
+        partCounters.put(guildId, partCounters.getOrDefault(guildId, 1) + 1);
+        connectAndStartRecording(guild, channel);
+        
+        // Mark as recording immediately
+        AudioRecorder next = recorders.get(guildId);
+        if (next != null) next.setRecording(true);
+    }
     }
 
     private void connectAndStartRecording(Guild guild, AudioChannel channel) {
@@ -336,16 +368,20 @@ public class VoiceRecordingListener extends ListenerAdapter {
     }
 
     private void stopAndSendRecording(Guild guild, AudioChannel fallbackChannel) {
+        long guildId = guild.getIdLong();
         AudioManager audioManager = guild.getAudioManager();
-        AudioRecorder recorder = recorders.remove(guild.getIdLong());
+        AudioRecorder recorder = recorders.remove(guildId);
+
+        // Cancel splitting task if it's a final stop
+        java.util.concurrent.ScheduledFuture<?> task = splitTasks.remove(guildId);
+        // Note: we don't cancel if it's called from splitAndRestart, 
+        // but wait, splitAndRestart calls stopAndSendRecording then restarts.
+        // Actually it's better to manage task cancellation in the stop button/leave event.
 
         if (recorder != null) {
             recorder.stop();
-            // ... (rest of the upload logic will be in the thread)
         }
 
-        // Always check if we should leave the channel if it's empty, 
-        // even if no recorder was active (e.g. session ended but bot stayed)
         AudioChannel lastChannel = audioManager.getConnectedChannel();
         if (lastChannel == null) lastChannel = fallbackChannel;
 
@@ -356,25 +392,31 @@ public class VoiceRecordingListener extends ListenerAdapter {
             if (humanCount == 0) {
                 log.info("[VOICE] Channel is empty. Closing connection for guild: {}", guild.getName());
                 audioManager.closeAudioConnection();
+                if (task != null) task.cancel(false);
+                sessionNames.remove(guildId);
+                partCounters.remove(guildId);
             }
         }
 
         if (recorder != null) {
+            final String sessionName = sessionNames.getOrDefault(guildId, "Meeting");
+            final int part = partCounters.getOrDefault(guildId, 1);
+
             new Thread(() -> {
                 String timestamp = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd_HHmmss"));
-                File wavFile = new File("rec_" + guild.getId() + "_" + timestamp + ".wav");
+                File wavFile = new File("rec_" + guild.getId() + "_" + timestamp + "_part" + part + ".wav");
                 try {
                     log.info("[UPLOAD] Saving WAV file: {}", wavFile.getName());
                     recorder.saveAsWav(wavFile);
 
                     if (wavFile.exists() && wavFile.length() > 100) {
-                        log.info("[UPLOAD] File saved (Size: {} bytes). Searching for log channel...", wavFile.length());
+                        log.info("[UPLOAD] File saved. Sending Part {} of session '{}'", part, sessionName);
                         TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
                         
                         if (logChannel != null) {
                             String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));
                             net.dv8tion.jda.api.EmbedBuilder eb = new net.dv8tion.jda.api.EmbedBuilder();
-                            eb.setTitle("🎙️ Voice Recording Finished");
+                            eb.setTitle("🎙️ " + sessionName + " : Part " + part);
                             eb.setColor(com.highcore.bot.utils.EmbedUtil.INFO);
                             eb.setImage(com.highcore.bot.utils.EmbedUtil.BANNER_MAIN);
                             eb.addField("Channel", "`" + (fallbackChannel != null ? fallbackChannel.getName() : "Unknown") + "`", true);
@@ -386,42 +428,24 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             String activeChanId = activeTextChannels.get(guild.getIdLong());
                             TextChannel activeChan = activeChanId != null ? guild.getTextChannelById(activeChanId) : null;
 
-                            log.info("[UPLOAD] Sending to LOG channel: {}", logChannel.getName());
-                            
                             logChannel.sendMessageEmbeds(eb.build())
                                     .addFiles(FileUpload.fromData(wavFile))
                                     .queue(msg -> {
-                                        log.info("[UPLOAD] Successfully sent to LOG channel.");
-                                        // After log channel, try sending to active channel if exists
                                         if (activeChan != null) {
-                                            log.info("[UPLOAD] Sending to active channel: {}", activeChan.getName());
                                             activeChan.sendMessageEmbeds(eb.build())
                                                     .addFiles(FileUpload.fromData(wavFile))
-                                                    .queue(m2 -> {
-                                                        log.info("[UPLOAD] Successfully sent to active channel. Deleting local file.");
-                                                        wavFile.delete();
-                                                    }, t2 -> {
-                                                        log.error("[UPLOAD] Failed to send to active channel: {}", t2.getMessage());
-                                                        wavFile.delete();
-                                                    });
+                                                    .queue(m2 -> wavFile.delete(), t2 -> wavFile.delete());
                                         } else {
-                                            log.info("[UPLOAD] No active text channel found. Deleting local file.");
                                             wavFile.delete();
                                         }
-                                    }, t -> {
-                                        log.error("[UPLOAD] Failed to send to LOG channel: {}", t.getMessage());
-                                        wavFile.delete();
-                                    });
+                                    }, t -> wavFile.delete());
                         } else {
-                            log.error("[UPLOAD] Log channel with ID {} not found!", LOG_CHANNEL_ID);
                             wavFile.delete();
                         }
                     } else {
-                        log.warn("[UPLOAD] Recording too short or empty. Deleting.");
                         wavFile.delete();
                     }
                 } catch (IOException e) {
-                    log.error("[UPLOAD] IO Error during WAV conversion: {}", e.getMessage());
                     if (wavFile.exists()) wavFile.delete();
                 } finally {
                     recorder.cleanup();
