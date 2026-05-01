@@ -205,6 +205,17 @@ public class VoiceRecordingListener extends ListenerAdapter {
         if (id.equals("rec_start_confirm")) {
             Guild guild = event.getGuild();
             AudioRecorder recorder = recorders.get(guild.getIdLong());
+            
+            // If no recorder exists (e.g. stopped previously), try to create a new one
+            if (recorder == null) {
+                AudioManager audioManager = guild.getAudioManager();
+                if (audioManager.isConnected() && audioManager.getConnectedChannel() != null) {
+                    log.info("[VOICE] Start clicked but no recorder found. Initializing new session for guild: {}", guild.getName());
+                    connectAndStartRecording(guild, audioManager.getConnectedChannel());
+                    recorder = recorders.get(guild.getIdLong());
+                }
+            }
+
             if (recorder != null) {
                 recorder.setRecording(true);
                 log.info("[RECORDING] Started session for guild: {}", guild.getName());
