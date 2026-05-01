@@ -336,7 +336,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioRecorder next = recorders.get(guildId);
         if (next != null) next.setRecording(true);
     }
-    }
 
     private void connectAndStartRecording(Guild guild, AudioChannel channel) {
         try {
