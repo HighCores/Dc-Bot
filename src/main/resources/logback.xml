@@ -24,5 +24,6 @@
 
     <logger name="net.dv8tion.jda" level="WARN"/>
     <logger name="net.dv8tion.jda.internal.audio.AudioPacket" level="ERROR"/>
+    <logger name="net.dv8tion.jda.internal.audio.AudioWebSocket" level="OFF"/>
     <logger name="com.highcore.bot" level="DEBUG"/>
 </configuration>
