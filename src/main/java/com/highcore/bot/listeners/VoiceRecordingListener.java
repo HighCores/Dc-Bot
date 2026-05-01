@@ -145,7 +145,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     .build();
 
             net.dv8tion.jda.api.modals.Modal modal = net.dv8tion.jda.api.modals.Modal.create("modal_rec_start", "Start Recording")
-                    .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(nameInput))
+                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Meeting Name", nameInput))
                     .build();
             event.replyModal(modal).queue();
             return;
