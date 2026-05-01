@@ -26,6 +26,7 @@ import org.slf4j.LoggerFactory;
 public class VoiceRecordingListener extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(VoiceRecordingListener.class);
     private static final String LOG_CHANNEL_ID = "1499416739597914122";
+
     
     private final Map<Long, AudioRecorder> recorders = new ConcurrentHashMap<>();
     private final Map<Long, String> activeTextChannels = new ConcurrentHashMap<>();
@@ -42,8 +43,15 @@ public class VoiceRecordingListener extends ListenerAdapter {
             
             AudioChannel channel = guild.getSelfMember().getVoiceState().getChannel();
             if (channel == null) {
-                event.reply("❌ The bot is not currently in a voice channel. Join a channel first to start recording.").setEphemeral(true).queue();
-                return;
+                // Try to join the user's channel
+                net.dv8tion.jda.api.entities.Member member = event.getMember();
+                if (member != null && member.getVoiceState() != null && member.getVoiceState().getChannel() != null) {
+                    channel = member.getVoiceState().getChannel();
+                    guild.getAudioManager().openAudioConnection(channel);
+                } else {
+                    event.reply("❌ You must be in a voice channel for the bot to join and record.").setEphemeral(true).queue();
+                    return;
+                }
             }
             
             activeTextChannels.put(guild.getIdLong(), event.getChannel().getId());
@@ -76,7 +84,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioChannel joinedChannel = event.getChannelJoined();
         AudioChannel leftChannel = event.getChannelLeft();
 
-
         // Stop and send recording if the last human leaves the channel the bot is in
         if (leftChannel != null) {
             AudioChannel connectedChannel = audioManager.getConnectedChannel();
@@ -92,68 +99,30 @@ public class VoiceRecordingListener extends ListenerAdapter {
             }
         }
 
-        // Follow/Join logic: If someone joins/moves to a channel
+        // Auto-join/Follow logic
         if (joinedChannel != null && !event.getMember().getUser().isBot()) {
-            AudioRecorder activeRecorder = recorders.get(guild.getIdLong());
-            
-            if (audioManager.isConnected()) {
-                AudioChannel currentChannel = audioManager.getConnectedChannel();
-                if (currentChannel != null) {
-                    // Case A: Bot is in the SAME channel but has no active recorder
-                    if (currentChannel.getIdLong() == joinedChannel.getIdLong() && activeRecorder == null) {
-                        log.info("[VOICE] Bot is already in {} but no active session found. Starting new session.", currentChannel.getName());
-                        connectAndStartRecording(guild, joinedChannel);
-                    } 
-                    // Case B: Bot is in a DIFFERENT channel and is alone
-                    else if (currentChannel.getIdLong() != joinedChannel.getIdLong()) {
-                        long humanCountInCurrent = currentChannel.getMembers().stream()
-                                .filter(m -> !m.getUser().isBot())
-                                .count();
-                        
-                        if (humanCountInCurrent == 0) {
-                            log.info("[VOICE] Bot is alone in {}. Following users to {}.", currentChannel.getName(), joinedChannel.getName());
-                            audioManager.openAudioConnection(joinedChannel);
-                            
-                            // If we lost our recorder somehow, start a new one
-                            if (activeRecorder == null) {
-                                connectAndStartRecording(guild, joinedChannel);
-                            }
-                            
-                            // Update active text channel
-                            if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
-                                activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
-                            }
-                        }
-                    }
-                }
-            } else {
-                // Case C: Bot is not connected at all
-                connectAndStartRecording(guild, joinedChannel);
-
-                // Send control panel
+            if (!audioManager.isConnected()) {
+                // Connect if not connected
+                audioManager.openAudioConnection(joinedChannel);
+                
+                // Set active text channel to where the bot "should" report
                 if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
                     activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
-                    net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
-                        "PROTOCOL", 
-                        "Recording System",
-                        "Control the audio recording for this channel.\nRecording is currently **PAUSED**.\nClick **Start** to begin.",
-                        com.highcore.bot.utils.EmbedUtil.BANNER_MAIN,
-                        net.dv8tion.jda.api.components.actionrow.ActionRow.of(
-                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_start", "Start"),
-                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_stop", "Stop"),
-                            net.dv8tion.jda.api.components.buttons.Button.secondary("rec_new", "New Record")
-                        )
-                    );
-                    
-                    msgChannel.sendMessage(new net.dv8tion.jda.api.utils.messages.MessageCreateBuilder()
-                            .setComponents(container)
-                                .useComponentsV2(true)
-                                .build())
-                            .useComponentsV2(true)
-                            .queue();
+                }
+            } else {
+                // Follow if bot is alone in its current channel
+                AudioChannel currentChannel = audioManager.getConnectedChannel();
+                if (currentChannel != null && currentChannel.getIdLong() != joinedChannel.getIdLong()) {
+                    long humanCount = currentChannel.getMembers().stream()
+                            .filter(m -> !m.getUser().isBot())
+                            .count();
+                    if (humanCount == 0) {
+                        audioManager.openAudioConnection(joinedChannel);
+                    }
                 }
             }
         }
+
         // Detect if the bot itself is disconnected unexpectedly
         if (event.getMember().equals(guild.getSelfMember())) {
             if (leftChannel != null && joinedChannel == null) {
@@ -176,7 +145,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     .build();
 
             net.dv8tion.jda.api.modals.Modal modal = net.dv8tion.jda.api.modals.Modal.create("modal_rec_start", "Start Recording")
-                    .addComponents(net.dv8tion.jda.api.components.label.Label.of("Meeting Name", nameInput))
+                    .addComponents(net.dv8tion.jda.api.components.actionrow.ActionRow.of(nameInput))
                     .build();
             event.replyModal(modal).queue();
             return;
@@ -374,6 +343,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     .count();
             if (humanCount == 0) {
                 log.info("[VOICE] Channel is empty. Closing connection for guild: {}", guild.getName());
+                audioManager.setReceivingHandler(null);
                 audioManager.closeAudioConnection();
                 if (task != null) task.cancel(false);
                 sessionNames.remove(guildId);
