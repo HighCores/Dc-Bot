@@ -112,6 +112,8 @@ public class CentralInteractionListener extends ListenerAdapter {
                     case "ticket_delete_final" -> TicketService.deleteTicket(tc);
                     case "ticket_verify" -> event.reply("✅ Payment verification system initialized. Staff will review shortly.").setEphemeral(false).queue();
                 }
+            } else if (id.equals("wiz_finish")) {
+                OrderService.finishWizard(event);
             }
         } catch (Exception e) { log.error("Button error", e); }
     }
@@ -184,10 +186,8 @@ public class CentralInteractionListener extends ListenerAdapter {
                 String person = event.getValue("comp_person").getAsString();
                 String desc = event.getValue("comp_desc").getAsString();
                 TicketService.createTicket(event, "Complaint", "Complaint", "Type: " + type + "\nPerson: " + person + "\nDesc: " + desc);
-            } else if (id.equals("modal_order_final")) {
-                OrderService.finishWizard(null); // finishWizard expects a ButtonInteractionEvent, we need to adapt
-                // Actually, OrderService.finishWizard is for buttons. We need a modal handler.
-                // I'll check OrderService again for modal handling.
+            } else if (id.equals("modal_order_final") || id.equals("order_modal")) {
+                OrderService.submitOrder(event);
             } else if (id.equals("modal_feedback_submit")) {
                 event.deferReply(true).queue();
                 String feedback = event.getValue("feedback_input").getAsString();

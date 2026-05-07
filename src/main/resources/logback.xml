@@ -17,13 +17,13 @@
         </encoder>
     </appender>
 
-    <root level="INFO">
+    <root level="ERROR">
         <appender-ref ref="STDOUT"/>
         <appender-ref ref="FILE"/>
     </root>
 
-    <logger name="net.dv8tion.jda" level="WARN"/>
+    <logger name="net.dv8tion.jda" level="ERROR"/>
     <logger name="net.dv8tion.jda.internal.audio.AudioPacket" level="ERROR"/>
     <logger name="net.dv8tion.jda.internal.audio.AudioWebSocket" level="OFF"/>
-    <logger name="com.highcore.bot" level="DEBUG"/>
+    <logger name="com.highcore.bot" level="ERROR"/>
 </configuration>

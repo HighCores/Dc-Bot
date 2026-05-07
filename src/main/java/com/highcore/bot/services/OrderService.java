@@ -269,4 +269,40 @@ public class OrderService {
 
         event.replyModal(modal).queue();
     }
+
+    public static void submitOrder(net.dv8tion.jda.api.events.interaction.ModalInteractionEvent event) {
+        event.deferReply(true).queue();
+        
+        String userId = event.getUser().getId();
+        OrderSession session = sessions.remove(userId);
+        if (session == null) {
+            event.getHook().sendMessage("Order session timed out or not found.").setEphemeral(true).queue();
+            return;
+        }
+
+        String project = event.getValue("o_project").getAsString();
+        String name    = event.getValue("o_name").getAsString();
+        String contact = event.getValue("o_contact").getAsString();
+        String eta     = event.getValue("o_eta").getAsString();
+        String voucher = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
+
+        List<InvoiceService.OrderItem> mainItems = resolveItems(session.selectedServices);
+        List<InvoiceService.OrderItem> addonItems = resolveItems(session.selectedAddons);
+        
+        TicketService.createHighEndOrderTicket(
+            event.getGuild(), 
+            event.getUser(), 
+            project, 
+            name, 
+            contact, 
+            "", // phone
+            session.category, 
+            mainItems, 
+            addonItems, 
+            voucher, 
+            eta
+        );
+        
+        event.getHook().sendMessage("✅ Order ticket is being created...").setEphemeral(true).queue();
+    }
 }
