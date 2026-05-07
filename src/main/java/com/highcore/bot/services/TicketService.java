@@ -40,8 +40,8 @@ import java.util.concurrent.ConcurrentHashMap;
 
 public class TicketService {
     private static final Logger log = LoggerFactory.getLogger(TicketService.class);
-    private static final String TICKET_CAT_ID = "1488795130881249404";
-    private static final String ADMIN_ROLE_ID = "1488795130767736853";
+    private static final String TICKET_CAT_ID = Config.TICKET_CATEGORY_ID;
+    private static final String ADMIN_ROLE_ID = Config.ROLE_HIGH; // Defaulting to High role
     public static final Map<String, JsonObject> ticketCache = new ConcurrentHashMap<>();
 
     public static void createTicket(IReplyCallback event, String subject, String type, String body) {
@@ -564,7 +564,7 @@ public class TicketService {
                         : "None",
                 member.getEffectiveName(), msgs);
 
-        TextChannel logCh = ch.getGuild().getTextChannelById("1488795131019526147");
+        TextChannel logCh = ch.getGuild().getTextChannelById(Config.TRANSCRIPT_CHANNEL_ID);
         if (logCh != null) {
             String userId = ticket.get("user_id").getAsString();
             String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + tid;

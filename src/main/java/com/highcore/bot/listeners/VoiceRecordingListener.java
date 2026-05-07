@@ -407,7 +407,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
                     if (wavFile.exists() && wavFile.length() > 100) {
                         log.info("[UPLOAD] File saved. Sending Part {} of session '{}'", part, sessionName);
-                        TextChannel logChannel = guild.getJDA().getTextChannelById(LOG_CHANNEL_ID);
+                        TextChannel logChannel = com.highcore.bot.services.LogManager.get(guild, com.highcore.bot.config.Config.LOG_VOICE);
                         
                         if (logChannel != null) {
                             String timeStr = LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss"));

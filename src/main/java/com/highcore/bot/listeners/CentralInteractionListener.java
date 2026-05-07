@@ -129,6 +129,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("about_category_select")) {
                 String cat = event.getValues().get(0).replace("about_", "");
                 PanelService.sendServicePriceInfo(event, cat);
+            } else if (id.equals("order_wiz_cat")) {
+                OrderService.handleCategory(event);
+            } else if (id.equals("wiz_sel_services") || id.equals("wiz_sel_addons")) {
+                OrderService.handleMultiSelection(event);
             } else if (id.equals("ticket_manage_menu")) {
                 String selection = event.getValues().get(0);
                 Member member = event.getMember();

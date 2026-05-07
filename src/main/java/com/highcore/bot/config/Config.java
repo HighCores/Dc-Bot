@@ -56,6 +56,7 @@ public class Config {
     public static String BOT_PREFIX = getOrDefault("BOT_PREFIX", "!");
     public static String WELCOME_BG_URL = getOrDefault("WELCOME_BG_URL",
             "https://i.imgur.com/Lzun3rb.png");
+    public static String FEEDBACK_CHANNEL_ID = getOrDefault("FEEDBACK_CHANNEL_ID", "1491423672202952806");
 
     public static final String LOG_JOIN_LEFT = "\u26D4\uFE0Fjoin\u30FBleft\u30FBlogs";
     public static final String LOG_MESSAGE = "\u26D4\uFE0Fmessage\u30FBlogs";

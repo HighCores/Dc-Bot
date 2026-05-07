@@ -35,7 +35,7 @@ public class FeedbackService {
     private static final String TEMPLATE_4 = "https://i.imgur.com/mXYKYnv.jpg";
     private static final String TEMPLATE_5 = "https://i.imgur.com/RqCWzzv.jpg";
 
-    public static final String FEEDBACK_CHANNEL_ID = "1491423672202952806";
+    public static final String FEEDBACK_CHANNEL_ID = com.highcore.bot.config.Config.FEEDBACK_CHANNEL_ID;
 
     public static void submitFeedback(User user, int stars, String feedback, GuildChannel channel) {
         String expandedFeedback = expandShortcodes(feedback, user.getJDA());

@@ -27,15 +27,7 @@ public class OrderService {
         }
     }
 
-    // ── Session ───────────────────────────────────────────────────────────────
-    public static class OrderSession {
-        public String category;
-        public List<String> selectedServices = new ArrayList<>();
-        public List<String> selectedAddons   = new ArrayList<>();
-        public OrderSession(String category) { this.category = category; }
-    }
-
-    public static final Map<String, OrderSession> sessions = new ConcurrentHashMap<>();
+    // Sessions are now unified in PanelService.SESSIONS
 
     // ── All items lookup (id → [name, price]) ─────────────────────────────────
     public static final Map<String, String>   ITEM_NAMES  = new ConcurrentHashMap<>();
@@ -114,10 +106,17 @@ public class OrderService {
     // ── Convert selected IDs to InvoiceService items ──────────────────────────
     public static List<InvoiceService.OrderItem> resolveItems(List<String> ids) {
         List<InvoiceService.OrderItem> out = new ArrayList<>();
+        if (ids == null) return out;
         for (String id : ids) {
-            String name  = ITEM_NAMES.get(id);
-            double[] p   = ITEM_PRICES.get(id);
-            if (name != null && p != null) out.add(new InvoiceService.OrderItem(name, p[0]));
+            Object[] data = PanelService.ALL_ITEMS.get(id);
+            if (data != null) {
+                out.add(new InvoiceService.OrderItem((String) data[0], (Double) data[1]));
+            } else {
+                // Fallback to local maps
+                String name  = ITEM_NAMES.get(id);
+                double[] p   = ITEM_PRICES.get(id);
+                if (name != null && p != null) out.add(new InvoiceService.OrderItem(name, p[0]));
+            }
         }
         return out;
     }
@@ -146,7 +145,9 @@ public class OrderService {
     // ═══════════════════════════════════════════════════════════
     public static void handleCategory(StringSelectInteractionEvent event) {
         String cat = event.getValues().get(0).replace("wiz_", "");
-        sessions.put(event.getUser().getId(), new OrderSession(cat));
+        PanelService.OrderSession session = new PanelService.OrderSession();
+        session.category = cat;
+        PanelService.SESSIONS.put(event.getUser().getId(), session);
         sendServiceSelection(event, cat);
     }
 
@@ -200,20 +201,20 @@ public class OrderService {
     }
 
     public static void handleMultiSelection(StringSelectInteractionEvent event) {
-        OrderSession session = sessions.get(event.getUser().getId());
+        PanelService.OrderSession session = PanelService.SESSIONS.get(event.getUser().getId());
         if (session == null) { PanelService.replyEphemeral(event, "Session lost."); return; }
         
         String id = event.getComponentId();
         if (id.equals("wiz_sel_services")) {
-            session.selectedServices = new ArrayList<>(event.getValues());
+            session.mainIds = new ArrayList<>(event.getValues());
             sendAddonSelection(event, session);
         } else if (id.equals("wiz_sel_addons")) {
-            session.selectedAddons = new ArrayList<>(event.getValues());
+            session.addonIds = new ArrayList<>(event.getValues());
             sendConfirmView(event, session);
         }
     }
 
-    private static void sendAddonSelection(Object event, OrderSession session) {
+    private static void sendAddonSelection(Object event, PanelService.OrderSession session) {
         String prefix = switch (session.category) {
             case "developer" -> "dva";
             case "editor"    -> "eda";
@@ -242,7 +243,7 @@ public class OrderService {
             ActionRow.of(Button.secondary("wiz_finish", "Confirm Order"))));
     }
 
-    private static void sendConfirmView(Object event, OrderSession session) {
+    private static void sendConfirmView(Object event, PanelService.OrderSession session) {
         PanelService.replyEphemeral(event, EmbedUtil.containerBranded(
             "ORDER SUMMARY", "Review & Submit",
             "Click **Confirm Order** to provide your project details.",
@@ -274,7 +275,7 @@ public class OrderService {
         event.deferReply(true).queue();
         
         String userId = event.getUser().getId();
-        OrderSession session = sessions.remove(userId);
+        PanelService.OrderSession session = PanelService.SESSIONS.remove(userId);
         if (session == null) {
             event.getHook().sendMessage("Order session timed out or not found.").setEphemeral(true).queue();
             return;
@@ -286,8 +287,8 @@ public class OrderService {
         String eta     = event.getValue("o_eta").getAsString();
         String voucher = event.getValue("o_voucher") != null ? event.getValue("o_voucher").getAsString() : "";
 
-        List<InvoiceService.OrderItem> mainItems = resolveItems(session.selectedServices);
-        List<InvoiceService.OrderItem> addonItems = resolveItems(session.selectedAddons);
+        List<InvoiceService.OrderItem> mainItems = resolveItems(session.mainIds);
+        List<InvoiceService.OrderItem> addonItems = resolveItems(session.addonIds);
         
         TicketService.createHighEndOrderTicket(
             event.getGuild(), 
