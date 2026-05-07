@@ -546,7 +546,7 @@ public class TicketService {
         JsonObject ticket = SupabaseClient.getTicketAndMetaByChannel(ch.getId());
         if (ticket == null) {
             if (event != null)
-                PanelService.replyEphemeral(event, "Session data missing.");
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("ERROR", "Session Fault", "❌ Session data missing or corrupted.", EmbedUtil.BANNER_SUPPORT));
             return;
         }
         String tid = ticket.get("ticket_id").getAsString();
@@ -568,7 +568,7 @@ public class TicketService {
         if (logCh != null) {
             String userId = ticket.get("user_id").getAsString();
             String url = "https://high-core-dc-bot-production.up.railway.app/view/transcript/" + tid;
-            String logBody = "▶ **TRANSCRIPT • Archive \u2014 Case #" + tid + "**\n\n" +
+            String logBody = "▶ **TRANSCRIPT • Archive — Case #" + tid + "**\n\n" +
                     "**User:** <@" + userId + "> (" + opener + ")\n" +
                     "**Closed By:** " + member.getAsMention();
 
@@ -579,11 +579,11 @@ public class TicketService {
                     .addFiles(net.dv8tion.jda.api.utils.FileUpload.fromData(html, "transcript-" + tid + ".html"))
                     .queue();
             if (event != null) {
-                PanelService.replyEphemeral(event, "✅ Transcript has been uploaded to the management sector.");
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("ARCHIVES", "Transcript", "✅ Transcript has been uploaded to the management sector.", EmbedUtil.BANNER_SUPPORT));
             }
         } else {
             if (event != null) {
-                PanelService.replyEphemeral(event, "❌ Management sector not found.");
+                PanelService.replyEphemeral(event, EmbedUtil.containerBranded("ERROR", "System Fault", "❌ Management sector (transcript channel) not found.", EmbedUtil.BANNER_SUPPORT));
             }
         }
     }

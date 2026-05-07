@@ -172,7 +172,13 @@ public class PanelService {
             }
         }
 
-        boolean useV2 = components.stream().anyMatch(c -> c instanceof Container);
+        boolean useV2Temp = components.stream().anyMatch(c -> c instanceof Container);
+        if (!useV2Temp && target instanceof net.dv8tion.jda.api.events.interaction.component.ButtonInteractionEvent bie) {
+            if ((bie.getMessage().getFlagsRaw() & 4096) != 0) useV2Temp = true;
+        } else if (!useV2Temp && target instanceof net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent sie) {
+            if ((sie.getMessage().getFlagsRaw() & 4096) != 0) useV2Temp = true;
+        }
+        final boolean useV2 = useV2Temp;
 
         if (target instanceof SlashCommandInteractionEvent event && !ephemeral && useV2) {
             try {
