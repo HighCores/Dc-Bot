@@ -20,14 +20,12 @@ public class SafetyListener extends ListenerAdapter {
 
         String content = event.getMessage().getContentRaw();
 
-        // 1. Word Filter (Priority)
         String triggeredWord = WordFilterService.findForbiddenWord(content);
         if (triggeredWord != null) {
             handleViolation(event, triggeredWord);
             return;
         }
 
-        // 2. Auto Replies
         String response = AutoReplyService.getResponse(content);
         if (response != null) {
             event.getChannel().sendMessage(response).queue();

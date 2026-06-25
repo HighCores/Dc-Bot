@@ -34,10 +34,8 @@ import java.util.concurrent.ConcurrentHashMap;
 public class GiveawayCommands extends ListenerAdapter {
     private static final Logger log = LoggerFactory.getLogger(GiveawayCommands.class);
 
-    // Map to hold pending giveaway settings before channel selection
     private static final Map<String, JsonObject> pendingGiveaways = new ConcurrentHashMap<>();
 
-    // Map to hold dashboard message IDs for live updates: giveawayId -> messageId
     public static final Map<Long, String> dashboardMessages = new ConcurrentHashMap<>();
     public static final Map<Long, String> dashboardChannels = new ConcurrentHashMap<>();
 
@@ -70,8 +68,6 @@ public class GiveawayCommands extends ListenerAdapter {
     public void onButtonInteraction(ButtonInteractionEvent event) {
         String id = event.getComponentId();
 
-        // Fix: DO NOT defer if we plan to show a modal (drop/create)
-        // Only defer if we are doing standard replies like history or management
         if (id.equals("btn_gw_history")) {
             if (!event.isAcknowledged())
                 event.deferReply(true).queue();
@@ -123,7 +119,6 @@ public class GiveawayCommands extends ListenerAdapter {
                 String chanId = g.has("channel_id") ? g.get("channel_id").getAsString() : "0";
                 String ends = g.has("ends_at") ? g.get("ends_at").getAsString() : "";
 
-                // Get entry count
                 JsonArray entries = SupabaseClient.getGiveawayEntries(gwIdLong);
                 int pCount = (entries != null) ? entries.size() : 0;
 
@@ -240,7 +235,6 @@ public class GiveawayCommands extends ListenerAdapter {
 
         String prizeStr = event.getValue("prize").getAsString();
 
-        // Symbol Validation
         if (typeStr.equalsIgnoreCase("Voucher")) {
             if (!prizeStr.contains("$")) {
                 event.reply("\u26A0\uFE0F **Format Error:** Voucher prizes must include the `$` symbol (e.g., $50).")
@@ -405,7 +399,6 @@ public class GiveawayCommands extends ListenerAdapter {
         var gwC = EmbedUtil.containerBranded("GIVEAWAY", isDrop ? "Instant Prize" : "Active Rewards", body,
                 EmbedUtil.getDynamicBanner(prize), gwRow);
 
-        // Use a list of components including the mention as TextDisplay
         List<net.dv8tion.jda.api.components.MessageTopLevelComponent> gwComps = new ArrayList<>();
         gwComps.add(net.dv8tion.jda.api.components.textdisplay.TextDisplay.of("<@&1488916921687736421>"));
         gwComps.add(gwC); // The branded container
@@ -421,7 +414,6 @@ public class GiveawayCommands extends ListenerAdapter {
                         + target.getAsMention(),
                 EmbedUtil.INFO);
 
-        // Edit the interaction with a Live Dashboard
         String dashDesc = "### " + prize + " | Live Status\n" +
                 "\u25AB\uFE0F **Status:** Currently Active\n" +
                 "\u25AB\uFE0F **Users Joined:** 0 members";
@@ -471,7 +463,6 @@ public class GiveawayCommands extends ListenerAdapter {
         ch.editMessageComponentsById(msgId, dashC).useComponentsV2(true).queue(null, ex -> {
         });
 
-        // Also update the main giveaway message count button
         String mainMsgId = g.has("message_id") && !g.get("message_id").isJsonNull() ? g.get("message_id").getAsString()
                 : null;
         String mainChanId = g.has("channel_id") ? g.get("channel_id").getAsString() : null;

@@ -24,7 +24,6 @@ public class CalendarUtil {
         int currentDay = 1;
         sb.append("` ");
         
-        // Initial padding
         for (int i = 0; i < startOffset; i++) {
             sb.append("    ");
         }

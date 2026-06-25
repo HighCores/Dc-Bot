@@ -18,7 +18,6 @@ public class TranscriptService {
             String openerName, String claimedBy, String closedBy, JsonArray messages) {
         StringBuilder sb = new StringBuilder();
 
-        // CSS & Header (Premium Design)
         sb.append(
                 "<!DOCTYPE html><html lang='en'><head><meta charset='UTF-8'><meta name='viewport' content='width=device-width,initial-scale=1'>");
         sb.append("<title>Transcript · #").append(channelName).append("</title>");
@@ -83,7 +82,6 @@ public class TranscriptService {
                 ".att-img { max-width:400px; max-height:400px; border-radius:8px; border:1px solid var(--border); box-shadow:0 2px 8px rgba(0,0,0,.2); }");
         sb.append("</style></head><body>");
 
-        // Hero Section
         sb.append("<div class='hero'><div class='hero-top'><div style='display:flex;align-items:center;gap:12px'>");
         sb.append(
                 "<div class='logo-mark'>HC</div><div><div class='logo-text'>HIGH CORE AGENCY</div><div class='logo-sub'>Ticket Transcript</div></div>");
@@ -116,7 +114,6 @@ public class TranscriptService {
             String content = safe(m, "content");
             String time = formatTime(safe(m, "created_at"));
 
-            // Simplified logic: Catch standard bots and specifically 'HighCore Agency'
             boolean isBot = uName.toLowerCase().contains("bot") || uName.toLowerCase().contains("agency")
                     || uName.equals("Highcore");
 
@@ -143,7 +140,6 @@ public class TranscriptService {
 
         sb.append("</div>");
 
-        // Footer
         sb.append("<div class='footer'><span class='footer-brand'>Highcore Agency</span>");
         sb.append("<span>Generated ").append(DATE_FORMAT.format(Instant.now())).append(" (Asia/Riyadh)</span></div>");
         sb.append("</body></html>");
@@ -180,21 +176,17 @@ public class TranscriptService {
     private static String processContent(String content) {
         String html = content.replace("<", "&lt;").replace(">", "&gt;").replace("\n", "<br>");
 
-        // Advanced Attachment Handling (Images vs Files)
         if (html.contains("[ATTACHMENT: ")) {
-            // Match any attachment
             java.util.regex.Matcher m = java.util.regex.Pattern.compile("\\[ATTACHMENT: (.*?)\\]").matcher(html);
             StringBuffer sb = new StringBuffer();
             while (m.find()) {
                 String url = m.group(1);
                 String lowerUrl = url.toLowerCase();
-                // Check if it's an image
                 if (lowerUrl.matches(".*\\.(png|jpg|jpeg|gif|webp|bmp)(?:\\?.*)?$")) {
                     m.appendReplacement(sb,
                             "<div class='att-wrap'><a href='" + url + "' target='_blank'><img class='att-img' src='"
                                     + url + "' alt='Image Attachment'></a></div>");
                 } else {
-                    // Render as a clickable file button
                     String fileName = "Download File/Video";
                     try {
                         String[] parts = url.split("\\?")[0].split("/");

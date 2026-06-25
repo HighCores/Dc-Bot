@@ -20,7 +20,6 @@ public class LogManager {
     private static final Logger log = LoggerFactory.getLogger(LogManager.class);
     private static final Map<String, TextChannel> channelCache = new ConcurrentHashMap<>();
 
-    // All log channel names
     private static final String[] LOG_CHANNELS = {
             Config.LOG_JOIN_LEFT,
             Config.LOG_MESSAGE,
@@ -44,11 +43,6 @@ public class LogManager {
             return;
         }
 
-        // Status: Log channels active. Resets disabled to preserve DB integrity.
-        // SupabaseClient.clearTicketHistory();
-        // SupabaseClient.setSetting("ticket_next_id_ORDER", "1");
-        // SupabaseClient.setSetting("ticket_next_id_SUPPORT", "1");
-        // SupabaseClient.setSetting("ticket_next_id_COMPLAINT", "1");
 
         Category category = guild.getCategoryById(Config.LOG_CATEGORY_ID);
         if (category == null) {
@@ -56,14 +50,12 @@ public class LogManager {
             return;
         }
 
-        // Get ALL text channels in the category once
         List<TextChannel> existingChannels = category.getTextChannels();
 
         int found = 0;
         int created = 0;
 
         for (String name : LOG_CHANNELS) {
-            // Priority: Try ID lookup if the name string is numeric
             if (name.matches("\\d+")) {
                 TextChannel ch = guild.getTextChannelById(name);
                 if (ch != null) {
@@ -74,7 +66,6 @@ public class LogManager {
                 }
             }
 
-            // Try exact match first, then normalized match from the category
             TextChannel existing = findChannel(existingChannels, name);
             if (existing != null) {
                 channelCache.put(name, existing);
@@ -102,14 +93,12 @@ public class LogManager {
      * Discord may normalize channel names (lowercase, replace special chars).
      */
     private static TextChannel findChannel(List<TextChannel> channels, String targetName) {
-        // 1. Exact match
         for (TextChannel ch : channels) {
             if (ch.getName().equals(targetName)) {
                 return ch;
             }
         }
 
-        // 2. Normalized match — Discord converts names to lowercase and may alter unicode
         String normalized = targetName.toLowerCase().replaceAll("[^a-z0-9\\-_]", "");
         for (TextChannel ch : channels) {
             String chNormalized = ch.getName().toLowerCase().replaceAll("[^a-z0-9\\-_]", "");
@@ -118,8 +107,6 @@ public class LogManager {
             }
         }
 
-        // 3. Contains match — if the channel name contains the key part
-        // Extract the meaningful part (e.g., "join-left-logs" from "⛔️join・left・logs")
         String keyPart = targetName.replaceAll("[^a-zA-Z]", "").toLowerCase();
         if (!keyPart.isEmpty()) {
             for (TextChannel ch : channels) {
@@ -163,14 +150,11 @@ public class LogManager {
      * falls back to category-based auto-creation.
      */
     public static TextChannel getDashboardLogChannel(Guild guild, String channelKey) {
-        // Try ID first if it looks like one
         if (channelKey.matches("\\d+")) {
             TextChannel ch = guild.getTextChannelById(channelKey);
             if (ch != null) return ch;
         }
 
-        // Only use the global dashboard 'Moderation Log Channel' override FOR core moderation actions
-        // (Bans, Kicks, Mutes). Other logs (Commands, Tickets) should stay in their specific channels.
         if (channelKey.equals(Config.LOG_MODS_CMD)) {
             String dashboardId = SettingSyncService.getModerationLogChannel();
             if (dashboardId != null && !dashboardId.isEmpty()) {

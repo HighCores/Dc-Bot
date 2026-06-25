@@ -43,7 +43,6 @@ public class AudioRecorder implements AudioReceiveHandler {
             os.write(data);
             totalBytes += data.length;
         } catch (IOException e) {
-            // Error handled silently per section policy
         }
     }
 
@@ -52,7 +51,6 @@ public class AudioRecorder implements AudioReceiveHandler {
         try {
             os.close();
         } catch (IOException e) {
-            // Error handled silently
         }
     }
 
@@ -65,7 +63,6 @@ public class AudioRecorder implements AudioReceiveHandler {
             byte[] buffer = new byte[4096];
             int len;
             while ((len = in.read(buffer)) > 0) {
-                // Swap bytes from Big Endian (JDA) to Little Endian (WAV)
                 for (int i = 0; i < len; i += 2) {
                     if (i + 1 < len) {
                         byte b1 = buffer[i];

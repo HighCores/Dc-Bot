@@ -45,7 +45,6 @@ public class InvoiceService {
             }
             
             if (template == null) {
-                // Emergency Fallback: Create a dark-themed blank template (1000x1400)
                 template = new BufferedImage(1000, 1400, BufferedImage.TYPE_INT_ARGB);
                 Graphics2D g2 = template.createGraphics();
                 g2.setColor(new Color(25, 25, 25)); // Dark background
@@ -65,13 +64,10 @@ public class InvoiceService {
             double sX = W / 1000.0;
             double sY = H / 1000.0;
 
-            // 1. Invoice ID (#)
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(24 * sX)));
             g.setColor(COL_GOLD);
-            // Positioned exactly after the # on the right
             g.drawString(tid, (int)(685 * sX), (int)(152 * sY));
 
-            // 2. Avatar
             if (userAvatarUrl != null && !userAvatarUrl.isEmpty()) {
                 try {
                     java.net.URLConnection conn = new URL(userAvatarUrl).openConnection();
@@ -90,19 +86,16 @@ public class InvoiceService {
                 } catch (Exception ignored) {}
             }
             
-            // 2b. Username - Centered in the brown rectangle
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(16 * sX)));
             g.setColor(COL_WHITE);
             String uName = truncate(userName != null ? userName : clientName, 20);
             g.drawString(uName, (int)(775 * sX) - g.getFontMetrics().stringWidth(uName)/2, (int)(237 * sY));
 
-            // 3. Status
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(isPaid ? Color.GREEN : COL_GOLD);
             String statusText = isPaid ? "AUTHORIZED" : "PENDING";
             g.drawString(statusText, (int)(810 * sX) - g.getFontMetrics().stringWidth(statusText)/2, (int)(284 * sY));
 
-            // 4. Client Details - Restoring contact but keeping description removed per request
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(18 * sX)));
             g.setColor(COL_WHITE);
             g.drawString(truncate(userName != null ? userName : clientName, 25), (int)(675 * sX), (int)(355 * sY));
@@ -113,7 +106,6 @@ public class InvoiceService {
                 g.drawString(truncate(contact, 30), (int)(675 * sX), (int)(380 * sY));
             }
 
-            // 5. Project Info
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(20 * sX)));
             g.setColor(COL_WHITE);
             g.drawString(truncate(projectName, 25), (int)(300 * sX), (int)(248 * sY));
@@ -124,7 +116,6 @@ public class InvoiceService {
             if (catLabel.length() > 2) catLabel = catLabel.substring(0,1).toUpperCase() + catLabel.substring(1).toLowerCase();
             g.drawString(catLabel, (int)(260 * sX), (int)(278 * sY));
 
-            // 6. Add-ons Checklist (Top-left section)
             g.setFont(new Font("Segoe UI", Font.PLAIN, (int)(18 * sX)));
             g.setColor(COL_CREAM);
             int addOnStartY = (int)(385 * sY);
@@ -133,7 +124,6 @@ public class InvoiceService {
                 g.drawString("\u2022 " + truncate(listToDraw.get(i).name, 45), (int)(145 * sX), addOnStartY + (i * (int)(26 * sY)));
             }
 
-            // 7. Table
             int col_ServicesX = (int)(150 * sX);
             int col_PriceX    = (int)(660 * sX);
             int col_QtyX      = (int)(745 * sX);
@@ -159,13 +149,11 @@ public class InvoiceService {
                 drawnCount++;
             }
 
-            // 8. Financials
             double taxVal = subtotalVal * 0.05;
             double finalTotal = Math.max(0, (subtotalVal + taxVal) - discount);
 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(22 * sX)));
             
-            // Subtotal & Discount in #ffd570
             g.setColor(Color.decode("#ffd570"));
             g.drawString("$" + fmt(subtotalVal), (int)(245 * sX), (int)(862 * sY)); 
             
@@ -173,9 +161,7 @@ public class InvoiceService {
             if (discountPercent > 0) discStr += " (" + discountPercent + "%)";
             g.drawString(discStr, (int)(245 * sX), (int)(888 * sY)); 
             
-            // Removed redundant coupon deduction display branch
 
-            // Tax & Total Price in WHITE
             g.setColor(Color.WHITE);
             g.drawString("$" + fmt(taxVal),      (int)(725 * sX), (int)(852 * sY)); 
             g.setFont(new Font("Segoe UI", Font.BOLD, (int)(23 * sX)));

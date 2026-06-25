@@ -375,17 +375,14 @@ public class TicketService {
                                 + member.getAsMention() + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.SUCCESS));
 
-        // Update the original message buttons immediately
         event.editMessage(new MessageEditBuilder()
                 .setComponents(List.of(rebuildWelcomeContainer(ticket, true, member, ch)))
                 .useComponentsV2(true)
                 .build()).queue();
 
-        // Rename channel
         String type = ch.getName().split("-")[0];
         ch.getManager().setName(type + "-" + member.getEffectiveName()).queue();
 
-        // Send separate notification
         ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Claimed",
                 "\uD83D\uDCE1 Ticket Handled By: " + member.getAsMention()))
                 .useComponentsV2(true).queue();
@@ -408,19 +405,16 @@ public class TicketService {
                                 + member.getAsMention() + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.WARNING));
 
-        // Update the original message buttons immediately
         event.editMessage(new MessageEditBuilder()
                 .setComponents(List.of(rebuildWelcomeContainer(ticket, false, null, ch)))
                 .useComponentsV2(true)
                 .build()).queue();
 
-        // Send separate notification
         ch.sendMessageComponents(EmbedUtil.brandedNotice("▶ NOTICE • Unclaimed",
                 "\u2935\uFE0F Ticket Unclaimed By: " + member.getAsMention()))
                 .useComponentsV2(true).queue();
     }
 
-    // Metadata is now managed via database lookups rather than channel topics.
 
     public static void requestCloseConfirmation(ButtonInteractionEvent event) {
         event.replyComponents(EmbedUtil.containerBranded("CONFIRMATION", "Close Ticket",
@@ -448,7 +442,6 @@ public class TicketService {
         String userId = ticket.get("user_id").getAsString();
         Member client = ch.getGuild().getMemberById(userId);
 
-        // Feedback Trigger (For Order tickets) - Public in channel
         String type = ticket.has("type") && !ticket.get("type").isJsonNull() ? ticket.get("type").getAsString() : "";
         if (type.isEmpty() && ticket.has("metadata")) {
             JsonElement metaEl = ticket.get("metadata");
@@ -473,7 +466,6 @@ public class TicketService {
                 ))).useComponentsV2(true).queue();
         }
 
-        // 1. Remove client write access but keep view access
         if (client != null) {
             ch.getManager().putMemberPermissionOverride(client.getIdLong(), 
                     EnumSet.of(Permission.VIEW_CHANNEL), 
@@ -484,7 +476,6 @@ public class TicketService {
                     .queue();
         }
 
-        // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "closed", member.getEffectiveName());
 
         LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS,
@@ -493,16 +484,13 @@ public class TicketService {
                                 + "\nChannel: " + ch.getAsMention(),
                         member, null, null, EmbedUtil.DANGER));
 
-        // 3. Rename channel
         String currentName = ch.getName();
         if (!currentName.endsWith("-C")) {
             ch.getManager().setName(currentName + "-C").queue();
         }
 
-        // 4. Auto Transcript
         transcriptTicket(ch, member, event);
 
-        // 5. Send Control Panel
         Container panel = EmbedUtil.containerBranded("ARCHIVES", "Control Panel",
                 "### TICKET CLOSED\nAgent **"
                         + member.getEffectiveName() + "** has closed this ticket.\n\nSelect an action below.",
@@ -531,11 +519,9 @@ public class TicketService {
 
         String userId = ticket.get("user_id").getAsString();
 
-        // 1. Restore client access
         ch.getManager().putMemberPermissionOverride(Long.parseLong(userId),
                 EnumSet.of(Permission.VIEW_CHANNEL, Permission.MESSAGE_SEND), null).queue();
 
-        // 2. Update DB status
         SupabaseClient.updateTicketStatus(tid, "open", null);
 
         LogManager.logEmbed(ch.getGuild(), Config.LOG_TICKETS,
@@ -569,7 +555,6 @@ public class TicketService {
 
         JsonArray msgs = SupabaseClient.getTicketMessages(tid);
 
-        // Try to find opened_at or fallback
         String openedAt = ticket.has("created_at") ? ticket.get("created_at").getAsString() : Instant.now().toString();
         String opener = ticket.has("user_name") ? ticket.get("user_name").getAsString() : "Unknown";
         String type = ch.getName().toUpperCase().split("-")[0];

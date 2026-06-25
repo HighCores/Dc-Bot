@@ -43,7 +43,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
             
             AudioChannel channel = guild.getSelfMember().getVoiceState().getChannel();
             if (channel == null) {
-                // Try to join the user's channel
                 net.dv8tion.jda.api.entities.Member member = event.getMember();
                 if (member != null && member.getVoiceState() != null && member.getVoiceState().getChannel() != null) {
                     channel = member.getVoiceState().getChannel();
@@ -84,7 +83,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioChannel joinedChannel = event.getChannelJoined();
         AudioChannel leftChannel = event.getChannelLeft();
 
-        // Stop and send recording if the last human leaves the channel the bot is in
         if (leftChannel != null) {
             AudioChannel connectedChannel = audioManager.getConnectedChannel();
             if (connectedChannel != null && leftChannel.getIdLong() == connectedChannel.getIdLong()) {
@@ -99,17 +97,13 @@ public class VoiceRecordingListener extends ListenerAdapter {
             }
         }
 
-        // Auto-join/Follow logic
         if (joinedChannel != null && !event.getMember().getUser().isBot()) {
             if (!audioManager.isConnected()) {
-                // Connect if not connected
                 audioManager.openAudioConnection(joinedChannel);
                 
-                // Set active text channel to where the bot "should" report
                 if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
                     activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
 
-                    // Send control panel
                     net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
                         "PROTOCOL", 
                         "Recording System",
@@ -130,7 +124,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
                             .queue();
                 }
             } else {
-                // Follow if bot is alone in its current channel
                 AudioChannel currentChannel = audioManager.getConnectedChannel();
                 if (currentChannel != null && currentChannel.getIdLong() != joinedChannel.getIdLong()) {
                     long humanCount = currentChannel.getMembers().stream()
@@ -139,7 +132,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
                     if (humanCount == 0) {
                         audioManager.openAudioConnection(joinedChannel);
                         
-                        // Send control panel in the new channel too
                         if (joinedChannel instanceof net.dv8tion.jda.api.entities.channel.middleman.MessageChannel msgChannel) {
                             activeTextChannels.put(guild.getIdLong(), msgChannel.getId());
                             net.dv8tion.jda.api.components.container.Container container = com.highcore.bot.utils.EmbedUtil.containerBranded(
@@ -166,7 +158,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
             }
         }
 
-        // Detect if the bot itself is disconnected unexpectedly
         if (event.getMember().equals(guild.getSelfMember())) {
             if (leftChannel != null && joinedChannel == null) {
                 if (recorders.containsKey(guild.getIdLong())) {
@@ -233,7 +224,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
         }
 
         if (id.equals("rec_start_confirm")) {
-            // This is now replaced by Modal interaction, but keeping empty for safety
             event.reply("Please use the Start button to name your session.").setEphemeral(true).queue();
             return;
         }
@@ -243,7 +233,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
             long guildId = guild.getIdLong();
             AudioRecorder recorder = recorders.get(guildId);
             if (recorder != null) {
-                // Cancel split task
                 java.util.concurrent.ScheduledFuture<?> task = splitTasks.remove(guildId);
                 if (task != null) task.cancel(false);
 
@@ -291,7 +280,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
 
             AudioRecorder recorder = recorders.get(guildId);
             
-            // If no recorder exists, try to create one
             if (recorder == null) {
                 net.dv8tion.jda.api.managers.AudioManager audioManager = guild.getAudioManager();
                 if (audioManager.isConnected() && audioManager.getConnectedChannel() != null) {
@@ -304,7 +292,6 @@ public class VoiceRecordingListener extends ListenerAdapter {
                 recorder.setRecording(true);
                 log.info("[RECORDING] Started session '{}' for guild: {}", name, guild.getName());
                 
-                // Schedule splitting every 30 minutes
                 java.util.concurrent.ScheduledFuture<?> task = scheduler.scheduleAtFixedRate(() -> {
                     log.info("[VOICE] 30 minutes reached. Splitting recording for session: {}", name);
                     splitAndRestart(guild);
@@ -337,14 +324,11 @@ public class VoiceRecordingListener extends ListenerAdapter {
         
         if (channel == null) return;
 
-        // Save current part
         stopAndSendRecording(guild, channel);
         
-        // Increment part and restart immediately
         partCounters.put(guildId, partCounters.getOrDefault(guildId, 1) + 1);
         connectAndStartRecording(guild, channel);
         
-        // Mark as recording immediately
         AudioRecorder next = recorders.get(guildId);
         if (next != null) next.setRecording(true);
     }
@@ -367,11 +351,7 @@ public class VoiceRecordingListener extends ListenerAdapter {
         AudioManager audioManager = guild.getAudioManager();
         AudioRecorder recorder = recorders.remove(guildId);
 
-        // Cancel splitting task if it's a final stop
         java.util.concurrent.ScheduledFuture<?> task = splitTasks.remove(guildId);
-        // Note: we don't cancel if it's called from splitAndRestart, 
-        // but wait, splitAndRestart calls stopAndSendRecording then restarts.
-        // Actually it's better to manage task cancellation in the stop button/leave event.
 
         if (recorder != null) {
             recorder.stop();

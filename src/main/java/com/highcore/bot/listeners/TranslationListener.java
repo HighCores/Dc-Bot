@@ -147,7 +147,6 @@ public class TranslationListener extends ListenerAdapter {
                 String body = TranslationService.translateText("By engaging with Highcore Agency, you agree to the following terms and conditions.", lang);
                 layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(EmbedUtil.BANNER_MAIN)));
                 layout.add(TextDisplay.of("## " + header + "\n" + body));
-                // Add images from handleTerms logic
                 String[] imgs = {"https://i.imgur.com/KTPxBfL.png", "https://i.imgur.com/1454z6W.png"};
                 for (String img : imgs) {
                     layout.add(MediaGallery.of(MediaGalleryItem.fromUrl(img)));

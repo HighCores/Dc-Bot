@@ -19,7 +19,6 @@ public class TelemetryService {
                 long ping = jda.getGatewayPing();
                 long uptime = java.lang.management.ManagementFactory.getRuntimeMXBean().getUptime();
                 
-                // Mirroring data to Supabase for the Dashboard (The "Mirrors")
                 SupabaseClient.setSetting("bot_status", "ONLINE");
                 SupabaseClient.setSetting("bot_latency", ping + "ms");
                 SupabaseClient.setSetting("bot_uptime", formatUptime(uptime));

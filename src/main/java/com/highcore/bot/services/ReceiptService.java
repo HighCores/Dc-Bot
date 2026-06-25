@@ -20,7 +20,6 @@ public class ReceiptService {
         BufferedImage img = new BufferedImage(width, height, BufferedImage.TYPE_INT_RGB);
         Graphics2D g = img.createGraphics();
 
-        // High-Fidelity Rendering
         g.setRenderingHint(RenderingHints.KEY_ANTIALIASING, RenderingHints.VALUE_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
@@ -30,7 +29,6 @@ public class ReceiptService {
         g.setPaint(bgGradient);
         g.fillRect(0, 0, width, height);
 
-        // GLASS-FRAME BORDER
         g.setColor(new Color(91, 110, 245, 100));
         g.setStroke(new BasicStroke(2));
         g.drawRoundRect(15, 15, width - 30, height - 30, 25, 25);

@@ -22,7 +22,6 @@ public class WelcomeCardService {
     public static byte[] generateWelcomeCard(Member member) throws Exception {
         BufferedImage background = null;
         try {
-            // Priority 1: Classpath Resource (Fast and reliable)
             log.info("Loading background from classpath resources...");
             java.io.InputStream is = WelcomeCardService.class.getResourceAsStream("/welcome.png");
             if (is == null) is = WelcomeCardService.class.getResourceAsStream("/IMG_20260408_171922.png");
@@ -31,7 +30,6 @@ public class WelcomeCardService {
                 background = ImageIO.read(is);
             }
             
-            // Priority 2: Remote URL (Fallback)
             if (background == null) {
                 String urlStr = com.highcore.bot.config.Config.WELCOME_BG_URL;
                 log.warn("Resource missing. Attempting emergency remote fetch: [{}]", urlStr);
@@ -63,10 +61,8 @@ public class WelcomeCardService {
         g.setRenderingHint(RenderingHints.KEY_RENDERING, RenderingHints.VALUE_RENDER_QUALITY);
         g.setRenderingHint(RenderingHints.KEY_INTERPOLATION, RenderingHints.VALUE_INTERPOLATION_BICUBIC);
 
-        // 1. Draw Template
         g.drawImage(background, 0, 0, width, height, null);
 
-        // 2. Avatar - Calibrated for the new clean circle
         String avatarUrl = member.getUser().getEffectiveAvatarUrl() + "?size=256";
         BufferedImage avatar = null;
         try {
@@ -76,7 +72,6 @@ public class WelcomeCardService {
             avatar = ImageIO.read(conn.getInputStream());
         } catch (Exception e) {
             log.warn("Failed to load user avatar: {}. Using generic fallback.", e.getMessage());
-            // Create a generic colored circle if avatar fails to avoid total failure
             avatar = new BufferedImage(256, 256, BufferedImage.TYPE_INT_ARGB);
             Graphics2D gAv = avatar.createGraphics();
             gAv.setColor(new Color(212, 175, 55));
@@ -86,7 +81,6 @@ public class WelcomeCardService {
 
         // --- THE DESIGNER'S BLUEPRINT (PIXEL-PERFECT ARCHITECTURE) ---
         
-        // 1. Digital Avatar Container (Surgically Calibrated)
         int avatarSize = 642; 
         int avatarX = 409; 
         int avatarY = 198;
@@ -95,7 +89,6 @@ public class WelcomeCardService {
         g.drawImage(avatar, avatarX, avatarY, avatarSize, avatarSize, null);
         g.setClip(null);
 
-        // 2. Member Identity Engine (Sleek Font)
         String name = member.getEffectiveName().toUpperCase(); 
         if (name.length() > 25) name = name.substring(0, 23) + "..";
 
@@ -112,11 +105,9 @@ public class WelcomeCardService {
         int nameX = 1204 + (nameBoxWidth - nameWidth) / 2; 
         int nameY = 652 + ((725 - 652) / 2) + (metrics.getAscent() / 2) - 5;
 
-        // A. Drop Shadow Case
         g.setColor(new Color(0, 0, 0, 180));
         g.drawString(name, nameX + 3, nameY + 3);
 
-        // B. Master Golden Gradient
         GradientPaint gp = new GradientPaint(
             nameX, nameY - fontSize, new Color(197, 160, 89), 
             nameX, nameY, new Color(142, 115, 65) 
@@ -124,11 +115,9 @@ public class WelcomeCardService {
         g.setPaint(gp);
         g.drawString(name, nameX, nameY);
 
-        // C. Specular Highlight
         g.setColor(new Color(255, 255, 255, 60));
         g.drawString(name, nameX, nameY - 1);
 
-        // D. Subtle Highlight (Overlaying slightly shifted for gloss)
         g.setColor(new Color(240, 230, 140, 100)); // #F0E68C with alpha
         g.drawString(name, nameX, nameY - 1); 
 

@@ -30,7 +30,6 @@ public class VoucherCommands extends ListenerAdapter {
         if (subcommand == null) return;
 
         if (subcommand.equals("create")) {
-            // Permission check for create
             boolean hasSuperRole = event.getMember().getRoles().stream().anyMatch(r -> r.getId().equals(SUPER_ROLE_ID));
             if (!hasSuperRole) {
                 event.reply("### \u26A0\uFE0F PERMISSION RESTRICTED\nOnly specific administration roles can generate new vouchers.").setEphemeral(true).queue();
@@ -42,7 +41,6 @@ public class VoucherCommands extends ListenerAdapter {
             int amount = event.getOption("amount").getAsInt();
             int expiryDays = event.getOption("expiry").getAsInt();
 
-            // Constraints
             if (type.equalsIgnoreCase("DISCOUNT")) {
                 if (amount > 60) {
                     event.reply("### \u26A0\uFE0F VALIDATION ERROR\nMaximum discount allowed is **60%**.").setEphemeral(true).queue();
@@ -60,7 +58,6 @@ public class VoucherCommands extends ListenerAdapter {
             String expiresAt = Instant.now().plus(Duration.ofDays(expiryDays)).toString();
             String prizeDetails = (type.equalsIgnoreCase("DISCOUNT") ? amount + "% Discount" : "$" + amount + " Voucher");
             
-            // Issue to channel
             VoucherService.issueVoucherToChannel(target, amount, type, expiresAt, prizeDetails, event.getChannel().asTextChannel());
             
             event.getHook().sendMessage("### \u2705 SUCCESS\nSuccessfully issued " + prizeDetails + " to <@" + target.getId() + ">.").setEphemeral(true).queue();

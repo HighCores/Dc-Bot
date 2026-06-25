@@ -65,7 +65,6 @@ public class FeedbackService {
                         post -> {
                             log.info("[FEEDBACK] Successfully created forum post: {}",
                                     post.getThreadChannel().getName());
-                            // Lock the thread
                             post.getThreadChannel().getManager().setLocked(true).queue();
                         },
                         err -> log.error("[FEEDBACK] Failed to create forum post", err));
@@ -115,7 +114,6 @@ public class FeedbackService {
 
         g.drawImage(template, 0, 0, null);
 
-        // Fonts
         Font arabicFont;
         String fontName = "Zain-Bold.ttf";
         log.info("[FEEDBACK] Current Directory: {}", new java.io.File(".").getAbsolutePath());
@@ -157,7 +155,6 @@ public class FeedbackService {
             arabicFont = new Font("SansSerif", Font.BOLD, 45);
         }
 
-        // Feedback (Updated coordinates)
         g.setFont(arabicFont);
         g.setColor(Color.WHITE);
         int commBoxW = 1273 - 545;
@@ -276,7 +273,6 @@ public class FeedbackService {
     }
 
     private static int calculateTokenWidth(String token, FontMetrics fm) {
-        // Simple width, we assume emojis will be drawn at ~lineHeight
         int w = 0;
         int emojiSize = (int) (fm.getHeight() * 0.85);
         int i = 0;
@@ -328,7 +324,6 @@ public class FeedbackService {
         List<Object> parts = new ArrayList<>();
         int i = 0;
         while (i < line.length()) {
-            // 1. Check for Custom Discord Emoji at current position
             Matcher m = CUSTOM_EMOJI_PATTERN.matcher(line.substring(i));
             if (m.find() && m.start() == 0) {
                 String id = m.group(2);
@@ -342,7 +337,6 @@ public class FeedbackService {
             int codePoint = line.codePointAt(i);
             int charCount = Character.charCount(codePoint);
 
-            // 2. Check for Unicode Emoji at current position
             if (isEmoji(codePoint)) {
                 StringBuilder hex = new StringBuilder(Integer.toHexString(codePoint));
                 BufferedImage img = getEmojiImage(hex.toString(), true);
@@ -350,7 +344,6 @@ public class FeedbackService {
                 else parts.add(line.substring(i, i + charCount));
                 i += charCount;
             } else {
-                // 3. It's regular text, collect until next emoji or end
                 StringBuilder textPart = new StringBuilder();
                 while (i < line.length()) {
                     int cp = line.codePointAt(i);

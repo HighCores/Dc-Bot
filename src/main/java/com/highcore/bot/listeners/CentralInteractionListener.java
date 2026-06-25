@@ -88,13 +88,10 @@ public class CentralInteractionListener extends ListenerAdapter {
             } else if (id.equals("order_final")) {
                 PanelService.handleOrderFinalModal(event, id);
             } else if (id.startsWith("translate_init_")) {
-                 // Forward to handleTranslationRequest if it exists in TranslationListener or implement here
-                 // For now, use existing pattern if available
             } else if (id.startsWith("ticket_") && !id.startsWith("ticket_init_")) {
                 Member member = event.getMember();
                 if (member == null) return;
                 
-                // Restriction for ticket options
                 if (member.getRoles().stream().noneMatch(r -> r.getId().equals("1488795130008961040"))) {
                     event.reply("This option is only available for the designated management role.").setEphemeral(true).queue();
                     return;
@@ -138,7 +135,6 @@ public class CentralInteractionListener extends ListenerAdapter {
                 Member member = event.getMember();
                 if (member == null) return;
                 
-                // Permission check: only specific management role can manage tickets
                 if (member.getRoles().stream().noneMatch(r -> r.getId().equals("1488795130008961040"))) {
                     event.reply("You do not have permission to manage this ticket.").setEphemeral(true).queue();
                     return;

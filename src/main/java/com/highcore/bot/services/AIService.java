@@ -53,7 +53,6 @@ public class AIService {
         userMsg.addProperty("role", "user");
         userMsg.addProperty("content", message);
         
-        // Only track history for standard chat, not single-use translation
         if (!sessionId.equals("translator")) {
             history.add(userMsg);
             while (history.size() > 10) history.remove(0);

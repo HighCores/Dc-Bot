@@ -128,18 +128,14 @@ public class GiveawayService {
                     "Selection process finished.\n> **Item:** " + prizeDetails + "\n\n\u274C Not enough participants.",
                     EmbedUtil.BANNER_GIVEAWAY)).useComponentsV2(true).queue();
         } else {
-            // Process each winner individually
             for (String winnerId : winners) {
                 jda.retrieveUserById(winnerId).queue(user -> {
-                    // 1. Generate Image
                     byte[] winnerImg = generateWinnerImage(user, prizeDetails);
 
-                    // 2. Issue Voucher/DM
                     String dchId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
                     TextChannel adminCh = (dchId != null) ? guild.getTextChannelById(dchId) : null;
                     VoucherService.issueVoucher(user, finalValue, type, expiresAt, prizeDetails, ch, adminCh);
 
-                    // 3. Send Public Announcement for this winner
                     if (winnerImg != null) {
                         var eb = EmbedUtil.containerBranded("GIVEAWAY", "Winner Identified",
                                 "<@" + user.getId() + "> won **" + prizeDetails + "**!\n\n> Voucher Sent In Dm",
@@ -159,7 +155,6 @@ public class GiveawayService {
             }
         }
 
-        // Sync Dashboard
         String dashMsgId = com.highcore.bot.commands.GiveawayCommands.dashboardMessages.get(giveawayId);
         String dashChId = com.highcore.bot.commands.GiveawayCommands.dashboardChannels.get(giveawayId);
         if (dashMsgId != null && dashChId != null) {
@@ -223,11 +218,8 @@ public class GiveawayService {
             } catch (Exception ignored) {
             }
 
-            // Draw Winner Name at 1292, 638
             g.setColor(Color.WHITE);
             g.setFont(new Font("Segoe UI", Font.BOLD, 75));
-            // Center roughly within the rect (1292,638 to 2093,718)
-            // Width is ~800px, Height is ~80px.
             String name = user.getEffectiveName().toUpperCase();
             FontMetrics metrics = g.getFontMetrics();
             int nameX = 1292 + (801 - metrics.stringWidth(name)) / 2;

@@ -29,7 +29,6 @@ public class ModerationCommands extends ListenerAdapter {
     public void onSlashCommandInteraction(@NotNull SlashCommandInteractionEvent event) {
         String name = event.getName().toLowerCase();
         
-        // OWNERSHIP-BASED DEFERRAL for Moderation: Only acknowledge if it's a mod tool
         java.util.List<String> modCmds = java.util.Arrays.asList(
             "setnick", "ban", "unban", "unban-all", "kick", "vkick", "mute-text", "unmute-text",
             "mute-check", "mute-voice", "unmute-voice", "timeout", "untimeout", "clear", "move",
@@ -355,7 +354,6 @@ public class ModerationCommands extends ListenerAdapter {
         
         event.deferReply().queue();
         
-        // Minor delay to ensure database sync if command was just run
         try { Thread.sleep(600); } catch (InterruptedException ignored) {}
 
         com.google.gson.JsonArray warns = com.highcore.bot.database.SupabaseClient.getUserWarnings(u.getId(), event.getGuild().getId());
@@ -489,7 +487,6 @@ public class ModerationCommands extends ListenerAdapter {
         OptionMapping imgMapping = event.getOption("image");
         if (imgMapping == null || name == null) return;
 
-        // Sanitize emoji name: alphanumeric and underscores only, 2-32 chars
         String sanitized = name.replaceAll("[^a-zA-Z0-9_]", "");
         if (sanitized.length() < 2) sanitized = "emoji_" + sanitized;
         if (sanitized.length() > 32) sanitized = sanitized.substring(0, 32);

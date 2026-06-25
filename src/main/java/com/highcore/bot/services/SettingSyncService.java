@@ -13,7 +13,6 @@ public class SettingSyncService {
     private static final Logger log = LoggerFactory.getLogger(SettingSyncService.class);
     private static final ScheduledExecutorService scheduler = Executors.newScheduledThreadPool(1);
     
-    // Cached global configurations
     public static JsonObject modConfig = new JsonObject();
     public static JsonObject automodConfig = new JsonObject();
     public static JsonObject logConfig = new JsonObject();
@@ -21,7 +20,6 @@ public class SettingSyncService {
     public static JsonObject globalSettings = new JsonObject();
 
     public static void start() {
-        // Sync immediately, then every 30 seconds to stay in sync with the Dashboard
         sync();
         scheduler.scheduleAtFixedRate(SettingSyncService::sync, 30, 30, TimeUnit.SECONDS);
         log.info("Global Settings Sync started: Fetching Dashboard configurations.");
@@ -29,7 +27,6 @@ public class SettingSyncService {
 
     public static void sync() {
         try {
-            // Fetch global settings
             JsonObject mod = SupabaseClient.getModerationConfig("global");
             if (mod != null) modConfig = mod;
 

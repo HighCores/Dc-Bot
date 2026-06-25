@@ -55,7 +55,6 @@ public class BannedWordCommands extends ListenerAdapter {
     }
 
     private void sendPanel(Object event, boolean edit) {
-        // Fetch from dc_word_filter (via service cache or direct DB)
         com.google.gson.JsonArray arr = SupabaseClient.getWordFilter();
         List<String> words = new ArrayList<>();
         if (arr != null) {

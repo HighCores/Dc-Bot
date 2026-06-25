@@ -18,7 +18,6 @@ public class AutoReplyService {
 
     public static void init() {
         refreshCache();
-        // Background sync
         scheduler.scheduleAtFixedRate(AutoReplyService::refreshCache, 10, 10, TimeUnit.SECONDS);
     }
 
@@ -30,7 +29,6 @@ public class AutoReplyService {
                 if (arr != null) {
                     arr.forEach(el -> {
                         var obj = el.getAsJsonObject();
-                        // Support both trigger/response (new DB schema) and keyword/response_text (legacy schema)
                         String key = obj.has("trigger") ? obj.get("trigger").getAsString() : (obj.has("keyword") ? obj.get("keyword").getAsString() : null);
                         String val = obj.has("response") ? obj.get("response").getAsString() : (obj.has("response_text") ? obj.get("response_text").getAsString() : null);
                         

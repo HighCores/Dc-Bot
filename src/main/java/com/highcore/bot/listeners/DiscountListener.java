@@ -120,7 +120,6 @@ public class DiscountListener extends ListenerAdapter {
             SupabaseClient.deleteDiscount(dbId);
             event.reply("\u2705 Discount deleted successfully.").setEphemeral(true).queue();
             
-            // Sync UI
             try {
                 if (event.getMessage() != null) {
                     DiscountService.updateDiscountPanel(event, LocalDate.now().getYear(), LocalDate.now().getMonthValue());
@@ -128,7 +127,6 @@ public class DiscountListener extends ListenerAdapter {
             } catch (Exception e) {}
         } else if (id.startsWith("btn_disc_mod_")) {
             long dbId = Long.parseLong(id.replace("btn_disc_mod_", ""));
-            // Fetch current data (actually we can just ask for new data)
             TextInput dateInput = TextInput.create("date", TextInputStyle.SHORT).setPlaceholder("YYYY-MM-DD").setRequired(true).build();
             TextInput percentInput = TextInput.create("percent", TextInputStyle.SHORT).setPlaceholder("Percentage").setRequired(true).build();
             
@@ -145,7 +143,6 @@ public class DiscountListener extends ListenerAdapter {
     public void onStringSelectInteraction(@NotNull net.dv8tion.jda.api.events.interaction.component.StringSelectInteractionEvent event) {
         String id = event.getComponentId();
         if (id.equals("sel_disc_interval")) {
-            // ... (existing auto deploy logic)
             String interval = event.getValues().get(0);
             TextInput nameInput = TextInput.create("name", TextInputStyle.SHORT).setPlaceholder("Holiday Name").setRequired(true).build();
             
@@ -178,7 +175,6 @@ public class DiscountListener extends ListenerAdapter {
     public void onModalInteraction(@NotNull ModalInteractionEvent event) {
         String id = event.getModalId();
         if (id.startsWith("modal_disc_save_")) {
-            // ... (existing creation logic)
             String[] parts = id.split("_");
             String type = parts[3];
             String repeat = parts[4];
@@ -187,7 +183,6 @@ public class DiscountListener extends ListenerAdapter {
             String endRaw = event.getValue("end_date") != null ? event.getValue("end_date").getAsString().trim() : "";
             String percentStr = event.getValue("percent").getAsString();
 
-            // Handling Yearly MM-DD format
             if (repeat.equals("YEARLY")) {
                 if (dateRaw.matches("\\d{1,2}-\\d{1,2}")) dateRaw = LocalDate.now().getYear() + "-" + dateRaw;
                 if (!endRaw.isEmpty() && endRaw.matches("\\d{1,2}-\\d{1,2}")) endRaw = LocalDate.now().getYear() + "-" + endRaw;
@@ -217,7 +212,6 @@ public class DiscountListener extends ListenerAdapter {
             String date; try { String[] dp = dateRaw.split("-"); date = String.format("%s-%02d-%02d", dp[0], Integer.parseInt(dp[1]), Integer.parseInt(dp[2])); } catch (Exception e) { event.reply("Error.").setEphemeral(true).queue(); return; }
             int percent; try { percent = Integer.parseInt(percentStr.replace("%", "").trim()); } catch (Exception e) { event.reply("Invalid percentage.").setEphemeral(true).queue(); return; }
 
-            // I need a patch/update method in SupabaseClient
             JsonObject body = new JsonObject();
             body.addProperty("schedule_date", date);
             body.addProperty("percentage", percent);

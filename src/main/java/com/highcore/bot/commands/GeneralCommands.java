@@ -33,7 +33,6 @@ public class GeneralCommands extends ListenerAdapter {
                     "https://i.imgur.com/KTPxBfL.png"
                 };
                 
-                // 2. Banners
                 java.util.List<net.dv8tion.jda.api.components.container.ContainerChildComponent> layout = new java.util.ArrayList<>();
                 for (int i = 0; i < imgs.length; i++) {
                     layout.add(net.dv8tion.jda.api.components.mediagallery.MediaGallery.of(net.dv8tion.jda.api.components.mediagallery.MediaGalleryItem.fromUrl(imgs[i])));

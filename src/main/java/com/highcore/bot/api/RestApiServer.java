@@ -34,7 +34,6 @@ public class RestApiServer {
             config.showJavalinBanner = false;
         }).start(Config.API_PORT);
 
-        // Auth middleware - throws exception to stop unauthorized requests
         app.before("/api/*", ctx -> {
             String apiKey = ctx.header("X-API-Key");
             if (apiKey == null || !apiKey.equals(Config.API_KEY)) {
@@ -165,7 +164,6 @@ public class RestApiServer {
                 StringBuilder debug = new StringBuilder();
                 debug.append(
                         "<body style='background:#0d0e10;color:#e3e5e8;font-family:\"Inter\",sans-serif;display:flex;flex-direction:column;align-items:center;justify-content:center;height:100vh;margin:0'>");
-                // Header (Branded)
                 debug.append("<div style='text-align:center;margin-bottom:30px'>");
                 debug.append(
                         "<div style='width:50px;height:50px;background:linear-gradient(135deg,#C5A059,#FFD700);border-radius:12px;margin:0 auto 15px;display:flex;align-items:center;justify-content:center;font-weight:800;color:#000;box-shadow:0 4px 20px rgba(197,160,89,0.3)'>HC</div>");
@@ -175,7 +173,6 @@ public class RestApiServer {
                         .append(" · Diagnostic analysis active.</div>");
                 debug.append("</div>");
 
-                // Diagnostic Data (Premium Look)
                 debug.append(
                         "<div style='background:#141517;border:1px solid #2a2c30;border-radius:12px;padding:20px;width:90%;max-width:500px;box-shadow:0 10px 30px rgba(0,0,0,0.5)'>");
                 debug.append(
@@ -231,7 +228,6 @@ public class RestApiServer {
                         ? ticket.get("closed_by").getAsString()
                         : "Auto-System";
             } else if (messages != null && messages.size() > 0) {
-                // Infer from first message
                 JsonObject first = messages.get(0).getAsJsonObject();
                 openedAt = first.has("created_at") ? first.get("created_at").getAsString() : openedAt;
                 openerName = first.has("user_name") ? first.get("user_name").getAsString() : openerName;
@@ -357,7 +353,7 @@ public class RestApiServer {
             }
         }
 
-        channel.sendMessage(mb.build()).queue();
+        channel.sendMessage(mb.build()).setAllowedMentions(java.util.Arrays.asList(net.dv8tion.jda.api.entities.Message.MentionType.values())).queue();
         ctx.json(Map.of("success", true));
     }
 

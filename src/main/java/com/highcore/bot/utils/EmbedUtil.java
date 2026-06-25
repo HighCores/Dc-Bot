@@ -33,8 +33,6 @@ public class EmbedUtil {
     public static final Color ACCENT_TEAL = Color.decode("#14b8a6");
     public static final Color PRIMARY = Color.decode("#35423E");
 
-    // User requested to migrate to Imgur to avoid Discord CDN expiry links.
-    // Replace the "PLACEHOLDER" parts below with real Imgur IDs.
     public static final String BANNER_MAIN = "https://i.imgur.com/RDb9nSh.png";
     public static final String BANNER_WELCOME = "https://i.imgur.com/QF8QFQm.png";
     public static final String BANNER_STARTUP_HEADER = "https://i.imgur.com/RDb9nSh.png";
@@ -42,14 +40,12 @@ public class EmbedUtil {
     public static final String BANNER_ORDER = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_GIVEAWAY = "https://i.imgur.com/iKKg1BG.png";
 
-    // Support category banners
     public static final String BANNER_SUPPORT = "https://i.imgur.com/MBU5wvl.png";
     public static final String BANNER_COMPLAINT = "https://i.imgur.com/t7Prrsr.png";
     public static final String BANNER_TICKETS_MENU = "https://i.imgur.com/wllO63d.png";
     public static final String BANNER_ORDER_TICKET = "https://i.imgur.com/llP8itV.png";
     public static final String BANNER_INVOICE = "https://i.imgur.com/OHF6qJB.png";
 
-    // Order category banners
     public static final String BANNER_DESIGN = "https://i.imgur.com/sHZzmVi.png";
     public static final String BANNER_DEVELOPER = "https://i.imgur.com/rX2oXzt.png";
     public static final String BANNER_MINECRAFT = "https://i.imgur.com/1TKfy9i.png";
@@ -72,7 +68,6 @@ public class EmbedUtil {
             return BANNER_GIVEAWAY;
         String lower = prize.toLowerCase();
 
-        // Discounts
         if (lower.contains("10%"))
             return "https://i.imgur.com/QpboYHV.png";
         if (lower.contains("20%"))
@@ -86,7 +81,6 @@ public class EmbedUtil {
         if (lower.contains("60%"))
             return "https://i.imgur.com/ujRHuoi.png";
 
-        // Vouchers
         if (lower.contains("50") && lower.contains("$"))
             return "https://i.imgur.com/gqEoG4z.png";
         if (lower.contains("100") && lower.contains("$"))
@@ -240,14 +234,12 @@ public class EmbedUtil {
             UserSnowflake targetUser, Member targetMember, Color color) {
         EmbedBuilder eb = new EmbedBuilder();
 
-        // Match the screenshot: Banner + Activity Sector Header
         eb.setImage(BANNER_MAIN);
         eb.setTitle("► Highcore Agency ・ Activity Log");
         eb.setAuthor("Action Executed", null, null);
         eb.setColor(color);
         eb.setTimestamp(Instant.now());
 
-        // Body Fields with the exact style
         eb.addField("Action:", "`/" + command + "`", false);
 
         if (moderator != null) {
@@ -256,12 +248,7 @@ public class EmbedUtil {
             eb.addField("User:", "Automated System", true);
         }
 
-        // Add context for the channel if available
         if (moderator != null && moderator.getGuild() != null) {
-            // We'll try to guess if we can get the interaction channel in a better way
-            // later,
-            // but for now we rely on the command handling pass-through or generic tag.
-            // Usually, logs provide channel info in 'details'.
         }
 
         if (targetUser != null || targetMember != null) {
@@ -282,7 +269,6 @@ public class EmbedUtil {
             eb.addField("Details:", details, false);
         }
 
-        // Exact Footer from screenshot
         eb.setFooter("\u25AA UNIFIED TERMINAL v1.2.0 \u30FB HIGHCORE AGENCY \u25AA");
 
         return eb.build();

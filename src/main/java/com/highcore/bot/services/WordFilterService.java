@@ -18,7 +18,6 @@ public class WordFilterService {
 
     public static void init() {
         reload();
-        // Reload every 5 minutes
         scheduler.scheduleAtFixedRate(WordFilterService::reload, 5, 5, TimeUnit.MINUTES);
     }
 

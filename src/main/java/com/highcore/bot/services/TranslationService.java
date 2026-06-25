@@ -23,7 +23,6 @@ public class TranslationService {
     private static long lastGoogleErrorTime = 0;
     private static final long ERROR_RETRY_DELAY = 10 * 60 * 1000;
     
-    // Simple cache to make translations instant for repeated calls
     private static final java.util.Map<String, String> cache = new java.util.concurrent.ConcurrentHashMap<>();
 
     
@@ -60,7 +59,6 @@ public class TranslationService {
     }
 
     public static byte[] translateImage(String imageUrl, String targetLang) {
-        // Disabled as per user request to focus on text and buttons only.
         return null;
     }
 }

@@ -128,7 +128,6 @@ public class SupabaseClient {
         log.info("[TRACE] Attempting POST to dc_tickets: {}", body.toString());
         post("dc_tickets", body);
 
-        // Save type in metadata since column is missing in dc_tickets
         JsonObject meta = new JsonObject();
         meta.addProperty("type", type);
         saveTicketMeta(ticketId, meta);

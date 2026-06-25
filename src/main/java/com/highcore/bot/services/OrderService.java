@@ -19,7 +19,6 @@ import java.util.stream.Collectors;
 
 public class OrderService {
 
-    // ── Data model ────────────────────────────────────────────────────────────
     public static class ServiceItem {
         public final String id, name, price;
         public ServiceItem(String id, String name, String price) {
@@ -27,13 +26,10 @@ public class OrderService {
         }
     }
 
-    // Sessions are now unified in PanelService.SESSIONS
 
-    // ── All items lookup (id → [name, price]) ─────────────────────────────────
     public static final Map<String, String>   ITEM_NAMES  = new ConcurrentHashMap<>();
     public static final Map<String, double[]> ITEM_PRICES = new ConcurrentHashMap<>();
     static {
-        // Designer main
         put("ds_logo",     "Logo Design",                       30.0);
         put("ds_identity", "Full Visual Identity",              60.0);
         put("ds_posters",  "Posters & Ads",                     90.0);
@@ -45,7 +41,6 @@ public class OrderService {
         put("ds_uiux",     "UI/UX Design",                     120.0);
         put("ds_info",     "Infographic",                       40.0);
         put("ds_emoji",    "Emoji / Stickers",                  30.0);
-        // Designer add-ons
         put("da_rev",      "Additional Revisions (Quote)",       0.0);
         put("da_rush",     "Rush Delivery",                     45.0);
         put("da_source",   "Source Files (AI/PSD)",            250.0);
@@ -54,7 +49,6 @@ public class OrderService {
         put("da_2rev",     "2 Revisions After Delivery",        35.0);
         put("da_logosize", "Additional Logo Size",              10.0);
         put("da_copy",     "Copywriting",                       25.0);
-        // Developer main
         put("dv_web",      "Web Developer",                     50.0);
         put("dv_bots",     "Bots Developer",                    50.0);
         put("dv_full",     "Full-Stack Developer",             100.0);
@@ -62,17 +56,14 @@ public class OrderService {
         put("dv_back",     "Back-End",                          40.0);
         put("dv_ai",       "AI & Automation",                  100.0);
         put("dv_db",       "Database Administrator",            30.0);
-        // Developer add-ons
         put("dva_rev",     "Additional Revisions (Quote)",       0.0);
         put("dva_rush",    "Rush Delivery",                     70.0);
         put("dva_source",  "Source Files",                     150.0);
         put("dva_2rev",    "2 Revisions After Delivery",       180.0);
-        // Editor main
         put("ed_reels",    "Reels / Shorts Editor",             60.0);
         put("ed_long",     "Long-form Video Editor",           120.0);
         put("ed_anim",     "Animation Editor",                 150.0);
         put("ed_gaming",   "Gaming Editor",                    150.0);
-        // Editor add-ons
         put("eda_rev",     "Additional Revisions (Quote)",       0.0);
         put("eda_rush",    "Rush Delivery",                     45.0);
         put("eda_source",  "Source Files (AI/PSD)",            250.0);
@@ -81,14 +72,12 @@ public class OrderService {
         put("eda_2rev",    "2 Revisions After Delivery",        35.0);
         put("eda_size",    "Additional Size",                   10.0);
         put("eda_copy",    "Copywriting",                       25.0);
-        // Minecraft main
         put("mc_plugin",   "Plugin Developer",                  50.0);
         put("mc_config",   "Configuration Specialist",          80.0);
         put("mc_map",      "Map Maker / Builder",               30.0);
         put("mc_pixel",    "Pixel Artist / Texture Creator",   130.0);
         put("mc_3d",       "3D Modeler (Blockbench)",           65.0);
         put("mc_admin",    "Technical Admin / SysAdmin",        55.0);
-        // Minecraft add-ons
         put("mca_rev",     "Additional Revisions (Quote)",       0.0);
         put("mca_rush",    "Rush Delivery",                     45.0);
         put("mca_source",  "Source Files (AI/PSD)",            250.0);
@@ -103,7 +92,6 @@ public class OrderService {
         ITEM_PRICES.put(id, new double[]{price});
     }
 
-    // ── Convert selected IDs to InvoiceService items ──────────────────────────
     public static List<InvoiceService.OrderItem> resolveItems(List<String> ids) {
         List<InvoiceService.OrderItem> out = new ArrayList<>();
         if (ids == null) return out;
@@ -112,7 +100,6 @@ public class OrderService {
             if (data != null) {
                 out.add(new InvoiceService.OrderItem((String) data[0], (Double) data[1]));
             } else {
-                // Fallback to local maps
                 String name  = ITEM_NAMES.get(id);
                 double[] p   = ITEM_PRICES.get(id);
                 if (name != null && p != null) out.add(new InvoiceService.OrderItem(name, p[0]));
@@ -121,9 +108,6 @@ public class OrderService {
         return out;
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // STEP 1 — Category select
-    // ═══════════════════════════════════════════════════════════
     public static void startWizard(Object event) {
         StringSelectMenu menu = StringSelectMenu.create("order_wiz_cat")
             .setPlaceholder("Select a service category...")
@@ -140,9 +124,6 @@ public class OrderService {
             EmbedUtil.BANNER_MAIN, ActionRow.of(menu)));
     }
 
-    // ═══════════════════════════════════════════════════════════
-    // STEP 2 — Main services multi-select
-    // ═══════════════════════════════════════════════════════════
     public static void handleCategory(StringSelectInteractionEvent event) {
         String cat = event.getValues().get(0).replace("wiz_", "");
         PanelService.OrderSession session = new PanelService.OrderSession();

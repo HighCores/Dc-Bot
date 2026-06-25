@@ -117,7 +117,6 @@ public class InfoCommands extends ListenerAdapter {
         Member m = event.getOption("user") != null ? event.getOption("user").getAsMember() : event.getMember();
         if (m == null) return;
         
-        // Use PanelService for interaction safety
         m.getUser().retrieveProfile().queue(profile -> {
             long created = m.getUser().getTimeCreated().toEpochSecond();
             long joined = m.getTimeJoined().toEpochSecond();
