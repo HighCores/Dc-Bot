@@ -184,6 +184,22 @@ public class TicketService {
                         SupabaseClient.createTicket(tid, user.getId(), cName, channel.getId(), "ORDER", pName);
                         SupabaseClient.saveTicketMeta(tid, meta);
 
+                        try {
+                            JsonObject orderBody = new JsonObject();
+                            orderBody.addProperty("order_num", tid);
+                            orderBody.addProperty("user_id", Long.parseLong(user.getId()));
+                            orderBody.addProperty("user_name", cName);
+                            orderBody.addProperty("project", pName);
+                            orderBody.addProperty("contact", contact);
+                            orderBody.addProperty("eta", eta);
+                            orderBody.addProperty("total_price", (subTotal - totalDisc));
+                            orderBody.addProperty("status", "pending");
+                            SupabaseClient.createOrder(orderBody);
+                            log.info("[DB] Created dc_order for {}", tid);
+                        } catch (Exception e) {
+                            log.error("Failed to create dc_order", e);
+                        }
+
                         if (voucherCode != null && !voucherCode.isBlank()) {
                             String cleanCode = voucherCode.trim().toUpperCase();
                             log.info("Marking voucher as used: {}", cleanCode);
