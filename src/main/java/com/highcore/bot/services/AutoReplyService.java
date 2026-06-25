@@ -19,7 +19,7 @@ public class AutoReplyService {
     public static void init() {
         refreshCache();
         // Background sync
-        scheduler.scheduleAtFixedRate(AutoReplyService::refreshCache, 1, 1, TimeUnit.MINUTES);
+        scheduler.scheduleAtFixedRate(AutoReplyService::refreshCache, 10, 10, TimeUnit.SECONDS);
     }
 
     public static void refreshCache() {
