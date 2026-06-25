@@ -30,9 +30,12 @@ public class AutoReplyService {
                 if (arr != null) {
                     arr.forEach(el -> {
                         var obj = el.getAsJsonObject();
-                        if (obj.has("keyword") && obj.has("response_text")) {
-                            responses.put(obj.get("keyword").getAsString().toLowerCase(), 
-                                          obj.get("response_text").getAsString());
+                        // Support both trigger/response (new DB schema) and keyword/response_text (legacy schema)
+                        String key = obj.has("trigger") ? obj.get("trigger").getAsString() : (obj.has("keyword") ? obj.get("keyword").getAsString() : null);
+                        String val = obj.has("response") ? obj.get("response").getAsString() : (obj.has("response_text") ? obj.get("response_text").getAsString() : null);
+                        
+                        if (key != null && val != null) {
+                            responses.put(key.toLowerCase(), val);
                         }
                     });
                 }
@@ -43,13 +46,13 @@ public class AutoReplyService {
         }
     }
 
-    public static void addResponse(String keyword, String response, String author) {
-        SupabaseClient.createAutoResponse(keyword, response, author);
+    public static void addResponse(String trigger, String response, String author) {
+        SupabaseClient.createAutoResponse(trigger, response, author);
         refreshCache();
     }
 
-    public static void removeResponse(String keyword) {
-        SupabaseClient.deleteAutoResponse(keyword);
+    public static void removeResponse(String trigger) {
+        SupabaseClient.deleteAutoResponse(trigger);
         refreshCache();
     }
 

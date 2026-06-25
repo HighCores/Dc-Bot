@@ -77,8 +77,11 @@ public class AutoReplyCommands extends ListenerAdapter {
         else {
             for (var el : replies) {
                 JsonObject o = el.getAsJsonObject();
-                sb.append("\u25AB\uFE0F **").append(o.get("keyword").getAsString()).append(":** ")
-                        .append(o.get("response_text").getAsString()).append("\n");
+                String key = o.has("trigger") ? o.get("trigger").getAsString() : (o.has("keyword") ? o.get("keyword").getAsString() : "UNKNOWN");
+                String val = o.has("response") ? o.get("response").getAsString() : (o.has("response_text") ? o.get("response_text").getAsString() : "UNKNOWN");
+                
+                sb.append("\u25AB\uFE0F **").append(key).append(":** ")
+                        .append(val).append("\n");
             }
         }
 
@@ -88,16 +91,6 @@ public class AutoReplyCommands extends ListenerAdapter {
                 Button.secondary("ar_manage", "Delete Response").withEmoji(net.dv8tion.jda.api.entities.emoji.Emoji
                         .fromCustom("DeleteResponce", 1496974794518954035L, false)));
         var c = EmbedUtil.containerBranded("AUTOMATION", "Logic Hub", sb.toString(), null, row);
-        if (edit) {
-            net.dv8tion.jda.api.utils.messages.MessageEditBuilder builder = new net.dv8tion.jda.api.utils.messages.MessageEditBuilder()
-                    .setComponents(c)
-                    .useComponentsV2(true);
-            if (event instanceof ButtonInteractionEvent)
-                ((ButtonInteractionEvent) event).editMessage(builder.build()).useComponentsV2(true).queue();
-            else if (event instanceof ModalInteractionEvent)
-                ((ModalInteractionEvent) event).editMessage(builder.build()).useComponentsV2(true).queue();
-        } else if (event instanceof SlashCommandInteractionEvent) {
-            PanelService.reply((SlashCommandInteractionEvent) event, c);
-        }
+        PanelService.reply(event, edit, c, true);
     }
 }

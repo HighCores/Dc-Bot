@@ -79,7 +79,7 @@ public class MessageListener extends ListenerAdapter {
         }
 
         // 🤖 Auto Replies
-        String autoReply = isAboveLaw ? null : AutoReplyService.getResponse(content);
+        String autoReply = AutoReplyService.getResponse(content);
         if (autoReply != null) {
             event.getMessage().reply(autoReply).queue();
             return;
